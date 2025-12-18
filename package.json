@@ -4,7 +4,7 @@
   "description": "Supermouse is a lightweight, customizable JavaScript library that enhances cursor interactions on web pages. It replaces the default cursor with a stylish, animated pointer consisting of a dot and ring. Supermouse offers smooth animations, customizable colors and sizes, and responsive hover effects. Perfect for creating engaging, interactive user experiences in modern web applications.",
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter playground dev",
+    "dev": "pnpm --filter supermouse-playground dev",
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
     "create:plugin": "node scripts/create-plugin.js", 
