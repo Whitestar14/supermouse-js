@@ -25,10 +25,10 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
       const vy = Math.abs(app.state.velocity.y);
       if ((vx + vy) < minVelocity) return;
 
-      // 1. Random Size using Math util
+      // 1. Random Size (Using Math Util)
       const size = math.random(2, 5);
 
-      // 2. Create using Factory
+      // 2. Create (Using DOM Util)
       const p = dom.createCircle(size, color);
       
       dom.applyStyles(p, {
@@ -36,17 +36,20 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
         transition: `transform 0.6s ${Easings.SMOOTH}, opacity 0.6s ${Easings.SMOOTH}`
       });
       
-      dom.setTransform(p, app.state.client.x, app.state.client.y);
+      // Initial Position (Using DOM Util)
+      const startX = app.state.pointer.x;
+      const startY = app.state.pointer.y;
+      dom.setTransform(p, startX, startY);
 
       app.container.appendChild(p);
       particles.push(p);
 
       // 3. Animate Out
       requestAnimationFrame(() => {
-        const destX = app.state.client.x + math.random(-15, 15);
-        const destY = app.state.client.y + math.random(-15, 15);
+        const destX = startX + math.random(-15, 15);
+        const destY = startY + math.random(-15, 15);
         
-        // Use setTransform with Scale=0
+        // Scale to 0 using the utility
         dom.setTransform(p, destX, destY, 0);
         p.style.opacity = '0';
       });

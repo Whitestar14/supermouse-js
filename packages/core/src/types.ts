@@ -6,11 +6,17 @@ export interface MousePosition {
 }
 
 export interface MouseState {
-  client: MousePosition;
+  /** Raw hardware mouse position (ReadOnly-ish) */
+  pointer: MousePosition;
+  /** Where the cursor *wants* to be (Modifiable by Magnetic plugins) */
+  target: MousePosition;
+  /** The interpolated "smooth" position (Visuals follow this) */
   smooth: MousePosition;
+  
   velocity: MousePosition;
   isDown: boolean;
   isHover: boolean;
+  isText: boolean;
   hoverTarget: HTMLElement | null;
 }
 
@@ -18,17 +24,9 @@ export interface SupermouseOptions {
   smoothness?: number;
   hoverSelector?: string;
   enableTouch?: boolean;
-  /** 
-   * Automatically disable custom cursor on touch-only devices 
-   * (checks for 'pointer: fine' capability)
-   * @default true 
-   */
   autoDisableOnMobile?: boolean;
-  /** 
-   * Hides the default system cursor. 
-   * @default true 
-   */
-  hideCursor?: boolean; 
+  ignoreOnText?: boolean;
+  hideCursor?: boolean;
 }
 
 export interface SupermousePlugin {

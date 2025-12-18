@@ -2,16 +2,19 @@ import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage } from './systems/Stage';
 import { Input } from './systems/Input';
 import { lerp } from './utils/math';
+// Import version from package.json (Vite/Rollup will bundle this string)
+import pkg from '../package.json';
 
 export class Supermouse {
+  // Public Version Helper
+  public readonly version: string = pkg.version;
+
   state: MouseState;
   options: SupermouseOptions;
   plugins: Map<string, SupermousePlugin> = new Map();
   
-  // Systems
   private stage: Stage;
   private input: Input;
-  
   private rafId: number = 0;
   private lastTime: number = 0;
   private isRunning: boolean = false;
@@ -28,7 +31,8 @@ export class Supermouse {
     };
 
     this.state = {
-      client: { x: -100, y: -100 },
+      pointer: { x: -100, y: -100 },
+      target: { x: -100, y: -100 },
       smooth: { x: -100, y: -100 },
       velocity: { x: 0, y: 0 },
       isDown: false,
@@ -37,9 +41,7 @@ export class Supermouse {
       hoverTarget: null,
     };
 
-    // Initialize Systems
     this.stage = new Stage(!!this.options.hideCursor);
-    
     this.input = new Input(this.state, this.options, (enabled) => {
       if (!enabled) this.resetPosition();
     });
@@ -78,12 +80,12 @@ export class Supermouse {
   }
 
   private resetPosition() {
-    this.state.client = { x: -100, y: -100 };
-    this.state.smooth = { x: -100, y: -100 };
+    const off = { x: -100, y: -100 };
+    this.state.pointer = { ...off };
+    this.state.target = { ...off };
+    this.state.smooth = { ...off };
     this.state.velocity = { x: 0, y: 0 };
   }
-
-  // --- Game Loop ---
 
   private startLoop() {
     this.isRunning = true;
@@ -97,47 +99,46 @@ export class Supermouse {
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
 
-    // 1. Manage Visibility based on State
-    // If text mode or disabled, hide the stage
     const shouldShowStage = this.input.isEnabled && !this.state.isText;
     this.stage.setVisibility(shouldShowStage);
 
-    // 2. Manage Native Cursor for Text Mode
     if (this.input.isEnabled && this.options.ignoreOnText) {
-       // If isText is true, show native cursor. Else hide it (if hideCursor is on)
-       if (this.state.isText) {
-          this.stage.setNativeCursor('auto');
-       } else {
-          this.stage.setNativeCursor('none');
-       }
+       this.stage.setNativeCursor(this.state.isText ? 'auto' : 'none');
     }
 
-    // 3. Physics
     if (this.input.isEnabled) {
+      this.state.target.x = this.state.pointer.x;
+      this.state.target.y = this.state.pointer.y;
+
+      this.plugins.forEach((plugin) => {
+        plugin.update?.(this, deltaTime);
+      });
+
       const factor = this.options.smoothness!;
-      this.state.smooth.x = lerp(this.state.smooth.x, this.state.client.x, factor);
-      this.state.smooth.y = lerp(this.state.smooth.y, this.state.client.y, factor);
+      this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
+      this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);
       
-      this.state.velocity.x = this.state.client.x - this.state.smooth.x;
-      this.state.velocity.y = this.state.client.y - this.state.smooth.y;
+      this.state.velocity.x = this.state.target.x - this.state.smooth.x;
+      this.state.velocity.y = this.state.target.y - this.state.smooth.y;
+
     } else {
       this.state.smooth.x = -100;
       this.state.smooth.y = -100;
+      this.state.pointer.x = -100;
+      this.state.pointer.y = -100;
+      
+      this.plugins.forEach((plugin) => {
+        plugin.update?.(this, deltaTime);
+      });
     }
-
-    // 4. Plugins
-    this.plugins.forEach((plugin) => {
-      plugin.update?.(this, deltaTime);
-    });
 
     this.rafId = requestAnimationFrame(this.tick);
   };
-
+  
   public destroy() {
     this.isRunning = false;
     cancelAnimationFrame(this.rafId);
 
-    // Delegate destruction to systems
     this.input.destroy();
     this.stage.destroy();
 

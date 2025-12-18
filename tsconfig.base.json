@@ -12,6 +12,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
 
     /* Linting */
     "strict": true,

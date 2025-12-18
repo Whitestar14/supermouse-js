@@ -37,11 +37,11 @@ export class Input {
     if (!this.isEnabled) return;
     
     if (e instanceof MouseEvent) {
-      this.state.client.x = e.clientX;
-      this.state.client.y = e.clientY;
+      this.state.pointer.x = e.clientX;
+      this.state.pointer.y = e.clientY;
     } else if (e.touches?.[0]) {
-      this.state.client.x = e.touches[0].clientX;
-      this.state.client.y = e.touches[0].clientY;
+      this.state.pointer.x = e.touches[0].clientX;
+      this.state.pointer.y = e.touches[0].clientY;
     }
   };
 

@@ -22,7 +22,7 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     },
     
     update(app) {
-      const { x, y } = app.state.client;
+      const { x, y } = app.state.target;
       dom.setTransform(el, x, y);
     },
     

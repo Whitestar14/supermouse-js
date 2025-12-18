@@ -49,7 +49,7 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
         textNode.innerText = text;
         el.style.opacity = '1';
         
-        const { x, y } = app.state.client;
+        const { x, y } = app.state.target;
         dom.setTransform(el, x, y + 24);
       } else {
         el.style.opacity = '0';
