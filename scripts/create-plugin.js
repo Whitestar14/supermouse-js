@@ -42,10 +42,7 @@ const getTemplates = () => {
         "build": "vite build"
       },
       dependencies: dependencies,
-      devDependencies: {
-        "vite": "^5.0.0",
-        "vite-plugin-dts": "^3.0.0"
-      }
+      devDependencies: {}
     },
 
     tsConfig: {
@@ -116,6 +113,27 @@ export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlu
 async function run() {
   const templates = getTemplates();
   let mode = 'create'; // 'create' | 'update' | 'abort'
+
+ if (mode === 'create') {
+    const rlCreate = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const confirm = await new Promise(resolve => {
+      rlCreate.question(
+        `\n🆕 You are about to create a NEW plugin: "@supermousejs/${pluginName}"\n` +
+        `   Location: packages/${pluginName}\n` +
+        `   Proceed? (Y/n) `, 
+        resolve
+      );
+    });
+    rlCreate.close();
+
+    if (confirm.toLowerCase() === 'n') {
+      console.log('🛑 Aborted.');
+      process.exit(0);
+    }
+  }
+
+  console.log(`\n🚀 ${mode === 'create' ? 'Scaffolding' : 'Updating configs for'} @supermousejs/${pluginName}...`);
+
 
   // 2. Check Existence
   if (fs.existsSync(pluginDir)) {

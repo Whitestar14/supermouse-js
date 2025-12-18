@@ -1,10 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@supermousejs/*": ["src/*"]
-    }
+    "outDir": "dist",
+    "baseUrl": "."
   }
 }

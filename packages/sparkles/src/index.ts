@@ -1,30 +1,37 @@
 import type { SupermousePlugin } from '@supermousejs/core';
 
-export const Sparkles = (options: { color?: string, maxParticles?: number } = {}): SupermousePlugin => {
+export interface SparklesOptions {
+  color?: string;
+  maxParticles?: number;
+  minVelocity?: number;
+}
+
+export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
   const color = options.color || '#ff00ff';
   const limit = options.maxParticles || 20;
+  const minVelocity = options.minVelocity || 10;
   
-  // Storage for particles
   const particles: HTMLDivElement[] = [];
   let tickCount = 0;
 
   return {
     name: 'sparkles',
     
-    // No install needed (we create elements on the fly)
+    // No install needed (we create elements dynamically)
 
     update(app) {
-      // 1. Limit creation rate (every 3rd frame) to prevent DOM overload
+      // 1. Throttling (Don't spawn every frame, maybe every 3rd frame)
       tickCount++;
       if (tickCount % 3 !== 0) return;
 
-      // 2. Only create sparkles if moving fast enough
-      const vel = Math.abs(app.state.velocity.x) + Math.abs(app.state.velocity.y);
-      if (vel < 2) return;
+      // 2. Velocity Check (Only sparkle when moving fast)
+      const vx = Math.abs(app.state.velocity.x);
+      const vy = Math.abs(app.state.velocity.y);
+      if ((vx + vy) < minVelocity) return;
 
       // 3. Create Particle
       const p = document.createElement('div');
-      const size = Math.random() * 4 + 2; // Random size 2px-6px
+      const size = Math.random() * 3 + 2; // Random 2px - 5px
       
       Object.assign(p.style, {
         position: 'fixed',
@@ -35,19 +42,19 @@ export const Sparkles = (options: { color?: string, maxParticles?: number } = {}
         pointerEvents: 'none',
         zIndex: '9997', // Behind ring
         opacity: '1',
-        transition: 'transform 0.5s, opacity 0.5s', // Fade out anim
-        // Start at current mouse pos
+        transition: 'transform 0.6s ease-out, opacity 0.6s ease-out', // Fade out anim
+        // Start at current raw mouse position
         transform: `translate3d(${app.state.client.x}px, ${app.state.client.y}px, 0)`
       });
 
       document.body.appendChild(p);
       particles.push(p);
 
-      // 4. Animate Out (Next frame)
+      // 4. Animate Out (Next frame to allow CSS transition to trigger)
       requestAnimationFrame(() => {
-        // Random drift direction
-        const destX = app.state.client.x + (Math.random() - 0.5) * 20;
-        const destY = app.state.client.y + (Math.random() - 0.5) * 20;
+        // Drift randomly
+        const destX = app.state.client.x + (Math.random() - 0.5) * 30;
+        const destY = app.state.client.y + (Math.random() - 0.5) * 30;
         
         p.style.transform = `translate3d(${destX}px, ${destY}px, 0) scale(0)`;
         p.style.opacity = '0';
