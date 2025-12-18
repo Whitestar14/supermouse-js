@@ -1,4 +1,3 @@
-// scripts/create-plugin.js
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,8 +11,8 @@ const rootDir = path.resolve(__dirname, '..');
 // 1. Get Arguments
 const pluginName = process.argv[2];
 if (!pluginName) {
-  console.error('❌ Please provide a plugin name.');
-  console.log('   Usage: pnpm create my-plugin-name');
+  console.error('[!] Please provide a plugin name.');
+  console.log('    Usage: pnpm create <name>');
   process.exit(1);
 }
 
@@ -26,7 +25,6 @@ const pluginDir = path.join(rootDir, 'packages', pluginName);
 
 // --- Templates ---
 const getTemplates = () => {
-  // Special handling: Core cannot depend on itself
   const dependencies = pluginName === 'core' 
     ? {} 
     : { "@supermousejs/core": "workspace:*" };
@@ -34,7 +32,7 @@ const getTemplates = () => {
   return {
     packageJson: {
       name: `@supermousejs/${pluginName}`,
-      version: "0.0.0", // You might want to preserve version in the future, but strict reset is safer for now
+      version: "0.0.0",
       main: "dist/index.umd.js",
       module: "dist/index.mjs",
       types: "dist/index.d.ts",
@@ -42,7 +40,7 @@ const getTemplates = () => {
         "build": "vite build"
       },
       dependencies: dependencies,
-      devDependencies: {}
+      devDependencies: {} // Inherited from root
     },
 
     tsConfig: {
@@ -67,7 +65,6 @@ export default defineConfig({
       fileName: (format) => \`index.\${format}.js\`,
     },
     rollupOptions: {
-      // Don't bundle core, unless we ARE core
       external: ${pluginName === 'core' ? '[]' : "['@supermousejs/core']"},
       output: {
         globals: {
@@ -83,24 +80,35 @@ export default defineConfig({
     indexTs: `
 import type { SupermousePlugin } from '@supermousejs/core';
 
+/**
+ * Options for the ${pascalName} plugin.
+ */
 export interface ${pascalName}Options {
+  /**
+   * Example option.
+   * @default true
+   */
   enabled?: boolean;
 }
 
+/**
+ * ${pascalName} Plugin.
+ * @param options - Configuration options.
+ */
 export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlugin => {
   return {
     name: '${pluginName}',
 
     install(app) {
-      console.log('${pluginName} installed!');
+      // Setup logic
     },
 
     update(app, deltaTime) {
-      // Logic loop
+      // Loop logic
     },
 
     destroy(app) {
-      // Cleanup
+      // Cleanup logic
     }
   };
 };
@@ -112,69 +120,58 @@ export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlu
 
 async function run() {
   const templates = getTemplates();
-  let mode = 'create'; // 'create' | 'update' | 'abort'
+  let mode = 'create'; // 'create' | 'update'
 
- if (mode === 'create') {
-    const rlCreate = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const confirm = await new Promise(resolve => {
-      rlCreate.question(
-        `\n🆕 You are about to create a NEW plugin: "@supermousejs/${pluginName}"\n` +
-        `   Location: packages/${pluginName}\n` +
-        `   Proceed? (Y/n) `, 
-        resolve
-      );
-    });
-    rlCreate.close();
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-    if (confirm.toLowerCase() === 'n') {
-      console.log('🛑 Aborted.');
-      process.exit(0);
-    }
-  }
-
-  console.log(`\n🚀 ${mode === 'create' ? 'Scaffolding' : 'Updating configs for'} @supermousejs/${pluginName}...`);
-
-
-  // 2. Check Existence
+  // 2. Determine Mode
   if (fs.existsSync(pluginDir)) {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    
+    mode = 'update';
     const answer = await new Promise(resolve => {
       rl.question(
-        `\n⚠️  Plugin "@supermousejs/${pluginName}" already exists.\n   Do you want to overwrite configs (package.json, vite, tsconfig) but KEEP src/index.ts? (y/N) `, 
+        `\n[!] Plugin "@supermousejs/${pluginName}" already exists.\n` +
+        `    Overwrite configs (package.json, vite, tsconfig) but KEEP src/index.ts? (y/N) `, 
         resolve
       );
     });
-    rl.close();
-
-    if (answer.toLowerCase() === 'y') {
-      mode = 'update';
-    } else {
-      console.log('🛑 Aborted.');
+    if (answer.toLowerCase() !== 'y') {
+      console.log('[-] Aborted.');
+      process.exit(0);
+    }
+  } else {
+    mode = 'create';
+    const answer = await new Promise(resolve => {
+      rl.question(
+        `\n[+] Creating NEW plugin: "@supermousejs/${pluginName}"\n` +
+        `    Location: packages/${pluginName}\n` +
+        `    Proceed? (Y/n) `, 
+        resolve
+      );
+    });
+    if (answer.toLowerCase() === 'n') {
+      console.log('[-] Aborted.');
       process.exit(0);
     }
   }
+  rl.close();
 
-  console.log(`\n🚀 ${mode === 'create' ? 'Scaffolding' : 'Updating configs for'} @supermousejs/${pluginName}...`);
+  console.log(`\n>> ${mode === 'create' ? 'Scaffolding' : 'Updating configs for'} @supermousejs/${pluginName}...`);
 
-  // 3. Create Directory if needed
+  // 3. Create Directory
   if (!fs.existsSync(pluginDir)) {
     fs.mkdirSync(path.join(pluginDir, 'src'), { recursive: true });
   }
 
-  // 4. Write Configurations (ALWAYS overwrite these in both modes)
-  console.log('📄 Writing configuration files...');
+  // 4. Write Configs (Always overwrite)
+  console.log('>> Writing configuration files...');
   
-  // NOTE: For package.json in update mode, we might want to preserve the Version
-  // But for strict consistency, we overwrite everything else.
   let finalPackageJson = templates.packageJson;
+  
+  // Preserve version if updating
   if (mode === 'update') {
     try {
       const currentPkg = JSON.parse(fs.readFileSync(path.join(pluginDir, 'package.json'), 'utf-8'));
-      // Preserve version
       finalPackageJson.version = currentPkg.version;
-      // Preserve extra deps if any? (Optional: Comment out next line to force reset deps)
-      // finalPackageJson.dependencies = { ...finalPackageJson.dependencies, ...currentPkg.dependencies };
     } catch (e) { /* ignore */ }
   }
 
@@ -182,28 +179,28 @@ async function run() {
   fs.writeFileSync(path.join(pluginDir, 'tsconfig.json'), JSON.stringify(templates.tsConfig, null, 2));
   fs.writeFileSync(path.join(pluginDir, 'vite.config.ts'), templates.viteConfig);
 
-  // 5. Write Source Code (ONLY if creating new)
+  // 5. Write Source (Only if create)
   const indexTsPath = path.join(pluginDir, 'src/index.ts');
   if (mode === 'create') {
     fs.writeFileSync(indexTsPath, templates.indexTs);
-    console.log('📝 Created src/index.ts');
+    console.log('   [+] Created src/index.ts');
   } else {
-    console.log('⏩ Skipping src/index.ts (Preserved)');
+    console.log('   [~] Preserved src/index.ts');
   }
 
-  // 6. Update Playground (Links & Aliases)
+  // 6. Update Playground
   if (pluginName !== 'core') {
-    console.log('🔗 Linking to Playground...');
     updatePlayground(pluginName);
   }
 
-  console.log(`\n✅ Success! @supermousejs/${pluginName} is ready.`);
+  console.log(`\n[ok] @supermousejs/${pluginName} is ready.`);
   if (mode === 'create') {
-    console.log('👉 Don\'t forget to run "pnpm install"!');
+    console.log('    Run "pnpm install" to link dependencies.');
   }
 }
 
 function updatePlayground(name) {
+  console.log('>> Linking to Playground...');
   const playgroundPkgPath = path.join(rootDir, 'playground', 'package.json');
   const playgroundPkg = JSON.parse(fs.readFileSync(playgroundPkgPath, 'utf-8'));
 
@@ -212,7 +209,7 @@ function updatePlayground(name) {
   playgroundPkg.dependencies[`@supermousejs/${name}`] = "workspace:*";
   fs.writeFileSync(playgroundPkgPath, JSON.stringify(playgroundPkg, null, 2));
 
-  // 2. Add Vite Alias (Regex Magic)
+  // 2. Add Vite Alias
   const playgroundVitePath = path.join(rootDir, 'playground', 'vite.config.ts');
   let playgroundViteContent = fs.readFileSync(playgroundVitePath, 'utf-8');
   
@@ -220,13 +217,12 @@ function updatePlayground(name) {
 
   if (!playgroundViteContent.includes(`@supermousejs/${name}`)) {
     if (playgroundViteContent.includes('alias: {')) {
-      // Insert into existing alias block
       playgroundViteContent = playgroundViteContent.replace(
         /(alias:\s*{)/,
         `$1\n      ${aliasEntry},`
       );
       fs.writeFileSync(playgroundVitePath, playgroundViteContent);
-      console.log('   Added alias to vite.config.ts');
+      console.log('   [+] Added alias to vite.config.ts');
     }
   }
 }
