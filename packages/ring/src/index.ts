@@ -8,20 +8,19 @@ export interface RingOptions {
 }
 
 export const Ring = (options: RingOptions = {}): SupermousePlugin => {
-  let el: HTMLDivElement;
+  let element: HTMLDivElement;
   
   const baseSize = options.size || 20;
   const hoverSize = options.hoverSize || 40;
-  const clickSize = baseSize * 0.8;
   const color = options.color || '#750c7e';
   const borderWidth = options.borderWidth || 2;
 
   return {
-    name: 'ring',
+    name: 'builtin-ring',
     
     install(app) {
-      el = document.createElement('div');
-      Object.assign(el.style, {
+      element = document.createElement('div');
+      Object.assign(element.style, {
         boxSizing: 'border-box',
         position: 'fixed',
         top: '0', left: '0',
@@ -29,29 +28,30 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
         border: `${borderWidth}px solid ${color}`,
         pointerEvents: 'none',
         zIndex: '9998',
+        // Center using CSS
         transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)', 
         transition: 'width 0.2s, height 0.2s, border-color 0.2s',
         willChange: 'transform, width, height'
       });
-      document.body.appendChild(el);
+      document.body.appendChild(element);
     },
 
     update(app) {
-      // 1. Determine Size
-      let size = baseSize;
-      if (app.state.isHover) size = hoverSize;
-      if (app.state.isDown) size = baseSize * 0.8;
+      let targetSize = app.state.isHover ? hoverSize : baseSize;
 
-      // 2. Apply Size
-      el.style.width = `${size}px`;
-      el.style.height = `${size}px`;
+      if (app.state.isDown) {
+        targetSize *= 0.8; 
+      }
+
+      element.style.width = `${targetSize}px`;
+      element.style.height = `${targetSize}px`;
 
       const { x, y } = app.state.smooth;
-      el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+      element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
     },
 
     destroy() {
-      el.remove();
+      element.remove();
     }
   };
 };
