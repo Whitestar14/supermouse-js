@@ -1,7 +1,6 @@
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
-import { Stage } from './systems/Stage';
-import { Input } from './systems/Input';
-import { lerp } from './utils/math';
+import { Stage, Input } from './systems';
+import { lerp } from './utils';
 import pkg from '../package.json';
 
 export class Supermouse {
@@ -44,7 +43,6 @@ export class Supermouse {
     };
 
     this.stage = new Stage(!!this.options.hideCursor);
-    
     this.hoverSelectors.forEach(s => this.stage.addSelector(s));
 
     this.input = new Input(
@@ -56,6 +54,35 @@ export class Supermouse {
 
     this.init();
   }
+
+  public getPlugin(name: string) {
+    return this.plugins.get(name);
+  }
+
+  public enablePlugin(name: string) {
+    const plugin = this.plugins.get(name);
+    if (plugin && plugin.isEnabled === false) {
+      plugin.isEnabled = true;
+      plugin.onEnable?.(this);
+    }
+  }
+
+  public disablePlugin(name: string) {
+    const plugin = this.plugins.get(name);
+    if (plugin && plugin.isEnabled !== false) {
+      plugin.isEnabled = false;
+      plugin.onDisable?.(this);
+    }
+  }
+
+  public togglePlugin(name: string) {
+    const plugin = this.plugins.get(name);
+    if (plugin) {
+      if (plugin.isEnabled === false) this.enablePlugin(name);
+      else this.disablePlugin(name);
+    }
+  }
+
 
   public registerHoverTarget(selector: string) {
     if (!this.hoverSelectors.has(selector)) {
@@ -74,6 +101,11 @@ export class Supermouse {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
       return this;
     }
+    
+    if (plugin.isEnabled === undefined) {
+      plugin.isEnabled = true;
+    }
+
     this.plugins.set(plugin.name, plugin);
     plugin.install?.(this);
     return this;
@@ -111,7 +143,9 @@ export class Supermouse {
       this.state.target.y = this.state.pointer.y;
 
       this.plugins.forEach((plugin) => {
-        plugin.update?.(this, deltaTime);
+        if (plugin.isEnabled !== false) {
+          plugin.update?.(this, deltaTime);
+        }
       });
 
       const factor = this.state.reducedMotion ? 1 : this.options.smoothness!;
@@ -128,7 +162,9 @@ export class Supermouse {
       this.state.pointer.y = -100;
       
       this.plugins.forEach((plugin) => {
-        plugin.update?.(this, deltaTime);
+        if (plugin.isEnabled !== false) {
+          plugin.update?.(this, deltaTime);
+        }
       });
     }
 

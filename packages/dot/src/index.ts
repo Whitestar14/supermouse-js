@@ -1,31 +1,30 @@
-import { type SupermousePlugin, dom, Layers } from '@supermousejs/core';
+import { type SupermousePlugin, dom, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
 
 export interface DotOptions {
-  size?: number;
-  color?: string;
+  size?: ValueOrGetter<number>;
+  color?: ValueOrGetter<string>;
+  opacity?: ValueOrGetter<number>;
   zIndex?: string;
   mixBlendMode?: string;
-  /**
-   * If true, the dot will vanish when hovering a sticky element
-   * (leaving only the Ring highlighter).
-   * @default false
-   */
-  hideOnStick?: boolean;
 }
 
 export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   let el: HTMLDivElement;
-  const size = options.size || 8;
-  const color = options.color || '#750c7e';
+  
+  // Defaults
+  const defSize = 8;
+  const defColor = '#750c7e';
+  const defOpacity = 1;
   const mixBlendMode = options.mixBlendMode || 'difference';
-  const hideOnStick = options.hideOnStick || false;
-
-  let lastTarget: HTMLElement | null = null;
 
   return {
     name: 'dot',
+    isEnabled: true,
     
     install(app) {
+      const size = resolve(options.size, app.state, defSize);
+      const color = resolve(options.color, app.state, defColor);
+
       el = dom.createCircle(size, color);
       
       dom.applyStyles(el, {
@@ -39,30 +38,32 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     },
     
     update(app) {
-      const target = app.state.hoverTarget;
-      let isHidden = false;
+      const size = resolve(options.size, app.state, defSize);
+      const opacity = resolve(options.opacity, app.state, defOpacity);
       
-      // 1. Check Context
-      if (target !== lastTarget) {
-        lastTarget = target;
-        const overrideColor = target?.getAttribute('data-supermouse-color');
-        el.style.backgroundColor = overrideColor || color;
+      let color = resolve(options.color, app.state, defColor);
+      const target = app.state.hoverTarget;
+      
+      if (target) {
+        const overrideColor = target.getAttribute('data-supermouse-color');
+        if (overrideColor) color = overrideColor;
       }
 
-      // 2. Check Hide Logic (Scenario 2)
-      if (hideOnStick && target && target.hasAttribute('data-supermouse-stick')) {
-        isHidden = true;
-      }
+      // 2. Apply Styles
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
+      el.style.backgroundColor = color;
+      el.style.opacity = String(opacity);
 
-      // 3. Render
-      if (isHidden) {
-        el.style.opacity = '0';
-      } else {
-        el.style.opacity = '1';
-        const { x, y } = app.state.target;
-        dom.setTransform(el, x, y);
-      }
+      const { x, y } = app.state.target;
+      dom.setTransform(el, x, y);
     },
+
+    onDisable() {
+      el.style.opacity = '0';
+    },
+
+    onEnable() {},
     
     destroy() {
       el.remove();

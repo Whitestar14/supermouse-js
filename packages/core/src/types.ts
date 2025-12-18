@@ -6,13 +6,9 @@ export interface MousePosition {
 }
 
 export interface MouseState {
-  /** Raw hardware mouse position (ReadOnly-ish) */
   pointer: MousePosition;
-  /** Where the cursor *wants* to be (Modifiable by Magnetic plugins) */
   target: MousePosition;
-  /** The interpolated "smooth" position (Visuals follow this) */
   smooth: MousePosition;
-  
   velocity: MousePosition;
   isDown: boolean;
   isHover: boolean;
@@ -30,9 +26,25 @@ export interface SupermouseOptions {
   hideCursor?: boolean;
 }
 
+/**
+ * Helper type: Allows a property to be a static value OR a function that returns the value based on state.
+ */
+export type ValueOrGetter<T> = T | ((state: MouseState) => T);
+
 export interface SupermousePlugin {
   name: string;
+  /** 
+   * If false, update() will not be called. 
+   * @default true 
+   */
+  isEnabled?: boolean;
+
   install?: (instance: Supermouse) => void;
   update?: (instance: Supermouse, deltaTime: number) => void;
   destroy?: (instance: Supermouse) => void;
+
+  /** Called when the plugin is enabled via .enablePlugin() */
+  onEnable?: (instance: Supermouse) => void;
+  /** Called when the plugin is disabled via .disablePlugin() */
+  onDisable?: (instance: Supermouse) => void;
 }

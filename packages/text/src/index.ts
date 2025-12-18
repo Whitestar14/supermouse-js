@@ -16,6 +16,7 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
 
   return {
     name: 'text',
+    isEnabled: true,
 
     install(app) {
       el = dom.createDiv();
@@ -53,8 +54,8 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
       }
     },
 
-    destroy() {
-      el.remove();
-    }
+    onDisable() { el.style.opacity = '0'; },
+    onEnable() { /* Update loop will handle opacity */ },
+    destroy() { el.remove(); }
   };
 };

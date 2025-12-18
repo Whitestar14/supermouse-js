@@ -23,6 +23,7 @@ export const Image = (options: ImageOptions = {}): SupermousePlugin => {
 
   return {
     name: 'image',
+    isEnabled: true,
 
     install(app) {
       container = dom.createDiv();
@@ -81,8 +82,8 @@ export const Image = (options: ImageOptions = {}): SupermousePlugin => {
       }
     },
 
-    destroy() {
-      container.remove();
-    }
+    onDisable() { container.style.opacity = '0'; },
+    onEnable() { /* Update loop will handle */ },
+    destroy() { container.remove(); }
   };
 };

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, reactive } from 'vue';
 import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
@@ -11,24 +11,40 @@ import { Image } from '@supermousejs/image';
 let mouse: Supermouse | null = null;
 const isEnabled = ref(true);
 
+// State for plugin toggles
+const plugins = reactive({
+  dot: true,
+  ring: true,
+  sparkles: true,
+  magnetic: true
+});
+
 onMounted(() => {
   mouse = new Supermouse({
     enableTouch: false,
-    ignoreOnNative: true, // Auto-hide on inputs/textareas
-    hideCursor: true      // Core will inject styles to hide native cursor
+    ignoreOnNative: true, 
+    hideCursor: true      
   });
 
   mouse
-    // Logic Plugins first (Calculates positions)
     .use(Magnetic({ force: 0.1 }))
-    // Visual Plugins next
-    .use(Dot({ size: 8, color: 'var(--cursor-color)', hideOnStick: true }))
-    .use(Ring({ size: 20, hoverSize: 45, color: 'var(--cursor-color)', enableStick: true, enableSkew: true }))
+    .use(Dot({ 
+      size: 8, 
+      color: 'var(--cursor-color)', 
+      // Functional Option: Hide dot if sticking
+      opacity: (state) => state.hoverTarget?.hasAttribute('data-supermouse-stick') ? 0 : 1 
+    }))
+    .use(Ring({ 
+      size: 20, 
+      hoverSize: 45, 
+      color: 'var(--cursor-color)', 
+      enableStick: true, 
+      enableSkew: true 
+    }))
     .use(Text({ className: 'custom-tooltip' }))
     .use(Image({ offset: [20, 20], smoothness: 0.15 }))
     .use(Sparkles({ color: 'var(--cursor-color)', maxParticles: 30 }));
     
-  // Set initial theme variable
   document.documentElement.style.setProperty('--cursor-color', '#750c7e');
 });
 
@@ -38,9 +54,9 @@ onUnmounted(() => {
 
 const toggleCursor = () => {
   if (isEnabled.value) {
-    mouse?.disable(); // Removes injected styles, native cursor returns
+    mouse?.disable(); 
   } else {
-    mouse?.enable();  // Re-injects styles
+    mouse?.enable(); 
   }
   isEnabled.value = !isEnabled.value;
 };
@@ -50,12 +66,17 @@ const switchTheme = () => {
   const next = current === '#750c7e' ? '#00ff00' : '#750c7e';
   document.documentElement.style.setProperty('--cursor-color', next);
 };
+
+// Plugin Toggle Handler
+const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic') => {
+  mouse?.togglePlugin(name);
+  plugins[name] = !plugins[name];
+};
 </script>
 
 <template>
   <div class="min-h-screen p-10 font-sans bg-gray-950 text-white"> 
     
-    <!-- Header -->
     <header class="text-center mb-16">
       <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
         Supermouse V2
@@ -63,7 +84,6 @@ const switchTheme = () => {
       <p class="text-gray-400">Vue 3 Integration Test</p>
     </header>
 
-    <!-- Test Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
       
       <!-- Card 1: Basic -->
@@ -77,7 +97,6 @@ const switchTheme = () => {
       <!-- Card 2: Magnetic -->
       <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
         <h3 class="text-xl font-semibold text-gray-200">Magnetic</h3>
-        <!-- UPDATED ATTRIBUTE -->
         <button class="px-6 py-3 border border-white rounded-full hover:bg-white hover:text-black transition-colors" 
                 data-supermouse-magnetic>
           Snap to Center
@@ -87,7 +106,6 @@ const switchTheme = () => {
       <!-- Card 3: Stick -->
       <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
         <h3 class="text-xl font-semibold text-gray-200">Stick Effect</h3>
-        <!-- UPDATED ATTRIBUTE -->
         <button class="px-8 py-4 bg-gray-800 rounded-xl" data-supermouse-stick>
           Stick to Shape
         </button>
@@ -96,7 +114,6 @@ const switchTheme = () => {
       <!-- Card 4: Text Label -->
       <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
         <h3 class="text-xl font-semibold text-gray-200">Text Tooltip</h3>
-        <!-- UPDATED ATTRIBUTE -->
         <div class="w-full h-20 bg-gray-800 rounded-lg flex items-center justify-center" 
              data-supermouse-text="VIEW PROJECT">
           Hover Area
@@ -106,7 +123,6 @@ const switchTheme = () => {
       <!-- Card 5: Image Hover -->
       <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
         <h3 class="text-xl font-semibold text-gray-200">Image Reveal</h3>
-        <!-- UPDATED ATTRIBUTE -->
         <div class="text-2xl font-bold underline decoration-purple-500"
              data-supermouse-img="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400">
           Hover This Title
@@ -116,23 +132,50 @@ const switchTheme = () => {
       <!-- Card 6: Native Inputs -->
       <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
         <h3 class="text-xl font-semibold text-gray-200">Native Input</h3>
-        <!-- Native cursor logic handles this automatically -->
         <input type="text" placeholder="Cursor should vanish..." 
                class="w-full px-4 py-2 bg-black border border-gray-700 rounded focus:border-purple-500 outline-none" />
       </div>
 
     </div>
 
-    <!-- Controls (Fixed Bottom) -->
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-4 z-50 cursor-default"
-         @mousedown.stop @mouseover.stop>
+    <!-- Controls (Bottom Left) -->
+    <div class="fixed bottom-8 left-8 flex gap-4 z-50 cursor-default">
       <button @click="toggleCursor" 
-              class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono">
+              class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono transition-colors">
         {{ isEnabled ? 'Disable Cursor' : 'Enable Cursor' }}
       </button>
       <button @click="switchTheme" 
-              class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono">
+              class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono transition-colors">
         Switch Theme
+      </button>
+    </div>
+
+    <!-- Plugin Toggles (Bottom Right) -->
+    <div class="fixed bottom-8 right-8 flex flex-col gap-2 z-50 cursor-default">
+      <div class="text-xs text-gray-500 font-mono mb-1 text-right">PLUGINS</div>
+      
+      <button @click="togglePlugin('dot')" 
+              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
+              :class="plugins.dot ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
+        Dot: {{ plugins.dot ? 'ON' : 'OFF' }}
+      </button>
+
+      <button @click="togglePlugin('ring')" 
+              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
+              :class="plugins.ring ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
+        Ring: {{ plugins.ring ? 'ON' : 'OFF' }}
+      </button>
+
+      <button @click="togglePlugin('sparkles')" 
+              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
+              :class="plugins.sparkles ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
+        Sparkles: {{ plugins.sparkles ? 'ON' : 'OFF' }}
+      </button>
+      
+      <button @click="togglePlugin('magnetic')" 
+              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
+              :class="plugins.magnetic ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
+        Magnetic: {{ plugins.magnetic ? 'ON' : 'OFF' }}
       </button>
     </div>
 
@@ -140,7 +183,6 @@ const switchTheme = () => {
 </template>
 
 <style>
-/* Custom Class for Text Plugin (passed via className prop) */
 .custom-tooltip {
   background: white;
   color: black;
@@ -153,7 +195,6 @@ const switchTheme = () => {
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* Default Image Plugin Class */
 .supermouse-image {
   width: 200px;
   height: 140px;

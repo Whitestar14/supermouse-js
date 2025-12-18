@@ -1,10 +1,11 @@
-import { type SupermousePlugin, dom, math, effects, Layers } from '@supermousejs/core';
+import { type SupermousePlugin, dom, math, effects, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
 
 export interface RingOptions {
-  size?: number;
-  hoverSize?: number;
-  color?: string;
-  borderWidth?: number;
+  size?: ValueOrGetter<number>;
+  hoverSize?: ValueOrGetter<number>;
+  color?: ValueOrGetter<string>;
+  borderWidth?: ValueOrGetter<number>;
+  
   mixBlendMode?: string;
   enableSkew?: boolean;
   enableStick?: boolean;
@@ -14,18 +15,20 @@ export interface RingOptions {
 export const Ring = (options: RingOptions = {}): SupermousePlugin => {
   let el: HTMLDivElement;
   
-  const baseSize = options.size || 20;
-  const hoverSize = options.hoverSize || 40;
-  const color = options.color || '#ffffff';
-  const borderWidth = options.borderWidth || 2;
+  // Defaults
+  const defSize = 20;
+  const defHoverSize = 40;
+  const defColor = '#ffffff';
+  const defBorder = 2;
+  
   const mixBlendMode = options.mixBlendMode || 'difference';
   const enableSkew = options.enableSkew ?? false;
   const enableStick = options.enableStick ?? true;
   const stickPadding = options.stickPadding || 10;
 
   // State
-  let currentW = baseSize;
-  let currentH = baseSize;
+  let currentW = defSize;
+  let currentH = defSize;
   let currentRot = 0;
   let currentScaleX = 1;
   let currentScaleY = 1;
@@ -35,14 +38,22 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
 
   return {
     name: 'ring',
+    isEnabled: true,
     
     install(app) {
-      el = dom.createCircle(baseSize, 'transparent');
+      // Init styles
+      const size = resolve(options.size, app.state, defSize);
+      const color = resolve(options.color, app.state, defColor);
+      const border = resolve(options.borderWidth, app.state, defBorder);
+
+      el = dom.createCircle(size, 'transparent');
       dom.applyStyles(el, {
-        border: `${borderWidth}px solid ${color}`,
+        borderWidth: `${border}px`,
+        borderStyle: 'solid',
+        borderColor: color,
         zIndex: Layers.FOLLOWER,
         mixBlendMode: mixBlendMode,
-        transition: 'border-color 0.2s ease'
+        transition: 'opacity 0.2s ease' // Only opacity is CSS transitioned
       });
       
       app.registerHoverTarget('[data-supermouse-stick]');
@@ -52,37 +63,35 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
     },
 
     update(app) {
+      // 1. Resolve Dynamic Options
+      const baseSize = resolve(options.size, app.state, defSize);
+      const hoverSize = resolve(options.hoverSize, app.state, defHoverSize);
+      let color = resolve(options.color, app.state, defColor);
+      const border = resolve(options.borderWidth, app.state, defBorder);
+
       const target = app.state.hoverTarget;
-      
       let targetW = baseSize;
       let targetH = baseSize;
       let targetRadius = 50;
       let isStuck = false;
 
-      // 1. Determine Logic (Fixed Logic check)
+      // 2. Logic (Stick vs Hover)
       if (enableStick && target && target.hasAttribute('data-supermouse-stick')) {
         isStuck = true;
-        
         if (target !== lastTarget) {
           lastTarget = target;
           stickCache = effects.getStickyDimensions(target, stickPadding);
         }
-
         if (stickCache) {
           targetW = stickCache.width;
           targetH = stickCache.height;
           targetRadius = stickCache.radius;
         }
       } else {
-        if (lastTarget) {
-          lastTarget = null;
-          stickCache = null;
-        }
+        if (lastTarget) { lastTarget = null; stickCache = null; }
         
         if (target && target.hasAttribute('data-supermouse-color')) {
-             el.style.borderColor = target.getAttribute('data-supermouse-color')!;
-        } else {
-             el.style.borderColor = color;
+             color = target.getAttribute('data-supermouse-color')!;
         }
 
         if (app.state.isHover) {
@@ -95,7 +104,11 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
         }
       }
 
-      // 2. Animate Shape
+      // 3. Apply Props
+      el.style.borderColor = color;
+      el.style.borderWidth = `${border}px`;
+
+      // 4. Animate Geom
       currentW = math.lerp(currentW, targetW, 0.2);
       currentH = math.lerp(currentH, targetH, 0.2);
 
@@ -103,41 +116,49 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
       el.style.height = `${currentH}px`;
       el.style.borderRadius = isStuck ? `${targetRadius}px` : '50%';
 
+      // 5. Position & Skew
+      let x, y;
       let targetRot = 0;
       let targetScaleX = 1;
       let targetScaleY = 1;
 
-      if (enableSkew && !app.state.reducedMotion && !isStuck) {
-        const { velocity } = app.state;
-        const skew = effects.getVelocitySkew(velocity.x, velocity.y);
+      if (isStuck && stickCache) {
+        x = stickCache.x;
+        y = stickCache.y;
         
-        targetRot = skew.rotation;
-        targetScaleX = skew.scaleX;
-        targetScaleY = skew.scaleY;
-      }
-
-      if (isStuck) {
-        currentRot = 0; 
-        currentScaleX = math.lerp(currentScaleX, 1, 0.15);
-        currentScaleY = math.lerp(currentScaleY, 1, 0.15);
+        // Immediate reset if stuck
+        currentRot = 0;
+        currentScaleX = math.lerp(currentScaleX, 1, 0.2);
+        currentScaleY = math.lerp(currentScaleY, 1, 0.2);
       } else {
+        x = app.state.smooth.x;
+        y = app.state.smooth.y;
+
+        if (enableSkew && !app.state.reducedMotion) {
+          const { velocity } = app.state;
+          const skew = effects.getVelocitySkew(velocity.x, velocity.y);
+          targetRot = skew.rotation;
+          targetScaleX = skew.scaleX;
+          targetScaleY = skew.scaleY;
+        }
+        
         currentRot = math.lerp(currentRot, targetRot, 0.15);
         currentScaleX = math.lerp(currentScaleX, targetScaleX, 0.15);
         currentScaleY = math.lerp(currentScaleY, targetScaleY, 0.15);
       }
 
-      // 5. Position & Render (Using Utils)
-      let x, y;
-      
-      if (isStuck && stickCache) {
-        x = stickCache.x;
-        y = stickCache.y;
-      } else {
-        x = app.state.smooth.x;
-        y = app.state.smooth.y;
-      }
+      // 6. Ensure Visible
+      el.style.opacity = '1';
 
       dom.setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
+    },
+
+    onDisable() {
+      el.style.opacity = '0';
+    },
+    
+    onEnable() {
+      el.style.opacity = '1';
     },
 
     destroy() {
