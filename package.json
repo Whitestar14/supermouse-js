@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "pnpm --filter playground dev",
     "build": "pnpm -r run build",
-    "test": "pnpm -r run test"
+    "test": "pnpm -r run test", 
+    "create": "node scripts/create-plugin.js"
   },
   "keywords": [
     "cursor",

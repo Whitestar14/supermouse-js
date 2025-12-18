@@ -7,6 +7,8 @@
   "dependencies": {
     "@supermousejs/core": "workspace:*", 
     "@supermousejs/dot": "workspace:*", 
-    "@supermousejs/ring": "workspace:*"
+    "@supermousejs/ring": "workspace:*", 
+    "@supermousejs/text": "workspace:*", 
+    "@supermousejs/sparkles": "workspace:*"
   }
 }

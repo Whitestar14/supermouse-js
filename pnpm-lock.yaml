@@ -50,6 +50,18 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  packages/sparkles:
+    dependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/text:
+    dependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
+
   playground:
     dependencies:
       '@supermousejs/core':
@@ -61,6 +73,12 @@ importers:
       '@supermousejs/ring':
         specifier: workspace:*
         version: link:../packages/ring
+      '@supermousejs/sparkles':
+        specifier: workspace:*
+        version: link:../packages/sparkles
+      '@supermousejs/text':
+        specifier: workspace:*
+        version: link:../packages/text
 
 packages:
 
