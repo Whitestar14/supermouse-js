@@ -1,4 +1,4 @@
-import type { SupermousePlugin } from '@supermousejs/core';
+import { type SupermousePlugin, dom, Layers, Easings } from '@supermousejs/core';
 
 export interface RingOptions {
   size?: number;
@@ -8,7 +8,7 @@ export interface RingOptions {
 }
 
 export const Ring = (options: RingOptions = {}): SupermousePlugin => {
-  let element: HTMLDivElement;
+  let el: HTMLDivElement;
   
   const baseSize = options.size || 20;
   const hoverSize = options.hoverSize || 40;
@@ -19,44 +19,30 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
     name: 'ring',
     
     install(app) {
-      element = document.createElement('div');
-      Object.assign(element.style, {
-        boxSizing: 'border-box',
-        position: 'fixed',
-        top: '0', left: '0',
-        borderRadius: '50%',
+      el = dom.createCircle(baseSize, 'transparent');
+      
+      dom.applyStyles(el, {
         border: `${borderWidth}px solid ${color}`,
-        pointerEvents: 'none',
-        zIndex: '9998',
-        // Start offscreen
-        transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)', 
-        transition: 'width 0.2s, height 0.2s, border-color 0.2s',
-        willChange: 'transform, width, height'
+        zIndex: Layers.FOLLOWER,
+        transition: `width 0.2s ${Easings.EASE_OUT_EXPO}, height 0.2s ${Easings.EASE_OUT_EXPO}`
       });
       
-      app.container.appendChild(element);
+      app.container.appendChild(el);
     },
 
     update(app) {
-      // 1. Calculate Size
       let targetSize = app.state.isHover ? hoverSize : baseSize;
+      if (app.state.isDown) targetSize *= 0.8;
 
-      // Shrink on click (relative to current state)
-      if (app.state.isDown) {
-        targetSize *= 0.8; 
-      }
+      el.style.width = `${targetSize}px`;
+      el.style.height = `${targetSize}px`;
 
-      // 2. Apply Size
-      element.style.width = `${targetSize}px`;
-      element.style.height = `${targetSize}px`;
-
-      // 3. Move (Use Smooth coordinates)
       const { x, y } = app.state.smooth;
-      element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+      dom.setTransform(el, x, y);
     },
 
     destroy() {
-      element.remove();
+      el.remove();
     }
   };
 };
