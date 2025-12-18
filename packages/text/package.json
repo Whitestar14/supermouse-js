@@ -1,0 +1,7 @@
+{
+  "name": "@supermousejs/text", 
+  "version": "2.0.0", 
+  "dependencies": {
+    "@supermousejs/core": "workspace:*"
+  }
+}
