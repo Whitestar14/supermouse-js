@@ -18,6 +18,12 @@ export interface SupermouseOptions {
   smoothness?: number;
   hoverSelector?: string;
   enableTouch?: boolean;
+  /** 
+   * Automatically disable custom cursor on touch-only devices 
+   * (checks for 'pointer: fine' capability)
+   * @default true 
+   */
+  autoDisableOnMobile?: boolean;
 }
 
 export interface SupermousePlugin {
