@@ -16,8 +16,9 @@ export interface MouseState {
   velocity: MousePosition;
   isDown: boolean;
   isHover: boolean;
-  isText: boolean;
+  isNative: boolean;
   hoverTarget: HTMLElement | null;
+  reducedMotion: boolean;
 }
 
 export interface SupermouseOptions {
@@ -25,7 +26,7 @@ export interface SupermouseOptions {
   hoverSelector?: string;
   enableTouch?: boolean;
   autoDisableOnMobile?: boolean;
-  ignoreOnText?: boolean;
+  ignoreOnNative?: boolean;
   hideCursor?: boolean;
 }
 

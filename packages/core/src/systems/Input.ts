@@ -3,6 +3,7 @@ import { MouseState, SupermouseOptions } from '../types';
 export class Input {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;
+  private motionQuery?: MediaQueryList;
   public isEnabled: boolean = true;
 
   constructor(
@@ -11,6 +12,7 @@ export class Input {
     private onEnableChange: (enabled: boolean) => void
   ) {
     this.checkDeviceCapability();
+    this.checkMotionPreferences();
     this.bindEvents();
   }
 
@@ -26,6 +28,15 @@ export class Input {
     this.mediaQueryList.addEventListener('change', this.mediaQueryHandler);
   }
 
+  private checkMotionPreferences() {
+   this.motionQuery = window.matchMedia('(prefer-reduced-motion: reduce)');
+   this.state.reducedMotion = this.motionQuery.matches;
+   
+   this.motionQuery.addEventListener('change',  e => {
+     this.state.reducedMotion = e.matches;
+   });
+  }
+  
   private updateEnabledState(enabled: boolean) {
     this.isEnabled = enabled;
     this.onEnableChange(enabled);
@@ -52,19 +63,20 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
-    // Hover Check
     if (target.matches(this.options.hoverSelector!)) {
       this.state.isHover = true;
       this.state.hoverTarget = target;
     }
 
-    // Text Mode Check
-    if (this.options.ignoreOnText) {
-      const isInput = target.matches('input, textarea, [contenteditable]');
+    if (this.options.ignoreOnNative) {
       const style = window.getComputedStyle(target).cursor;
       
-      if (isInput || style === 'text' || style === 'vertical-text') {
-        this.state.isText = true;
+      const supermouseAllowed = ['default', 'auto', 'pointer', 'none', 'inherit'];
+      
+      const isFormElement = target.matches('input, textarea, select, [contenteditable]');
+
+      if (isFormElement || !supermouseAllowed.includes(style)) {
+        this.state.isNative = true;
       }
     }
   };
@@ -78,8 +90,8 @@ export class Input {
       this.state.hoverTarget = null;
     }
 
-    if (this.state.isText) {
-      this.state.isText = false;
+    if (this.state.isNative) {
+      this.state.isNative = false;
     }
   };
 

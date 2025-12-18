@@ -1,41 +1,50 @@
 import { type SupermousePlugin } from '@supermousejs/core';
 
 export interface MagneticOptions {
-  /** 
-   * How "sticky" the magnet is. 0.1 = very sticky, 0.8 = loose.
-   * @default 0.5 
-   */
   force?: number;
 }
 
 export const Magnetic = (options: MagneticOptions = {}): SupermousePlugin => {
   const force = options.force || 0.5;
+  
+  // Cache Mechanism
+  let lastTarget: HTMLElement | null = null;
+  let cachedRect: DOMRect | null = null;
+  let cachedCenter = { x: 0, y: 0 };
 
   return {
     name: 'magnetic',
     
     update(app) {
-      const targetEl = app.state.hoverTarget;
-      if (!targetEl || !targetEl.hasAttribute('data-magnetic')) return;
+      const target = app.state.hoverTarget;
+      
+      if (target !== lastTarget) {
+        lastTarget = target;
+        cachedRect = null;
+        
+        if (target && target.hasAttribute('data-magnetic')) {
+          const rect = target.getBoundingClientRect();
+          cachedRect = rect;
+          cachedCenter = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+          };
+        }
+      }
 
-      // 1. Calculate Center of Button
-      const rect = targetEl.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      // 2. Apply Magnetism if active
+      if (cachedRect) {
+        const { x: centerX, y: centerY } = cachedCenter;
 
-      // 2. Calculate "Sticky" Position
-      // Instead of going straight to the mouse (pointer),
-      // we interpolate between the Center and the Pointer.
-      const rawX = app.state.pointer.x;
-      const rawY = app.state.pointer.y;
+        const rawX = app.state.pointer.x;
+        const rawY = app.state.pointer.y;
 
-      const magnetX = centerX + (rawX - centerX) * force;
-      const magnetY = centerY + (rawY - centerY) * force;
+        const magnetX = centerX + (rawX - centerX) * force;
+        const magnetY = centerY + (rawY - centerY) * force;
 
-      // 3. Hijack the Core Target
-      // The cursor will now fly towards this sticky point
-      app.state.target.x = magnetX;
-      app.state.target.y = magnetY;
+        app.state.target.x = magnetX;
+        app.state.target.y = magnetY;
+      }
     }
   };
 };

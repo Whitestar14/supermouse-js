@@ -25,7 +25,7 @@ export class Supermouse {
       hoverSelector: 'a, button, input, textarea, [data-hover]',
       enableTouch: false,
       autoDisableOnMobile: true,
-      ignoreOnText: true,
+      ignoreOnNative: true,
       hideCursor: true, 
       ...options
     };
@@ -37,7 +37,7 @@ export class Supermouse {
       velocity: { x: 0, y: 0 },
       isDown: false,
       isHover: false,
-      isText: false,
+      isNative: false,
       hoverTarget: null,
     };
 
@@ -99,11 +99,11 @@ export class Supermouse {
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
 
-    const shouldShowStage = this.input.isEnabled && !this.state.isText;
+    const shouldShowStage = this.input.isEnabled && !this.state.isNative;
     this.stage.setVisibility(shouldShowStage);
 
-    if (this.input.isEnabled && this.options.ignoreOnText) {
-       this.stage.setNativeCursor(this.state.isText ? 'auto' : 'none');
+    if (this.input.isEnabled && this.options.ignoreOnNative) {
+       this.stage.setNativeCursor(this.state.isNative ? 'auto' : 'none');
     }
 
     if (this.input.isEnabled) {
@@ -114,7 +114,7 @@ export class Supermouse {
         plugin.update?.(this, deltaTime);
       });
 
-      const factor = this.options.smoothness!;
+      const factor = this.state.reducedMotion ? 1 : this.options.smoothness!;
       this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
       this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);
       

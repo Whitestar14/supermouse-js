@@ -3,12 +3,15 @@ import { type SupermousePlugin, dom, Layers } from '@supermousejs/core';
 export interface DotOptions {
   size?: number;
   color?: string;
+  zIndex?: string;
+  mixBlendMode?: string;
 }
 
 export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   let el: HTMLDivElement;
   const size = options.size || 8;
   const color = options.color || '#750c7e';
+  const mixBlendMode = options.mixBlendMode || 'difference';
 
   return {
     name: 'builtin-dot',
@@ -16,7 +19,10 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     install(app) {
       el = dom.createCircle(size, color);
       
-      el.style.zIndex = Layers.CURSOR;
+      dom.applyStyles(el, {
+        zIndex: options.zIndex || Layers.CURSOR, 
+        mixBlendMode: options.mixBlendMode
+      })
       
       app.container.appendChild(el);
     },
