@@ -47,6 +47,12 @@ importers:
         specifier: workspace:*
         version: link:../ring
 
+  packages/magnetic:
+    dependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/ring:
     dependencies:
       '@supermousejs/core':
@@ -73,6 +79,9 @@ importers:
       '@supermousejs/dot':
         specifier: workspace:*
         version: link:../packages/dot
+      '@supermousejs/magnetic':
+        specifier: workspace:*
+        version: link:../packages/magnetic
       '@supermousejs/ring':
         specifier: workspace:*
         version: link:../packages/ring
