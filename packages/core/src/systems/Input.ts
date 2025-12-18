@@ -9,10 +9,11 @@ export class Input {
   constructor(
     private state: MouseState,
     private options: SupermouseOptions,
+    private getHoverSelector: () => string, 
     private onEnableChange: (enabled: boolean) => void
   ) {
     this.checkDeviceCapability();
-    this.checkMotionPreferences();
+    this.checkMotionPreference();
     this.bindEvents();
   }
 
@@ -28,7 +29,7 @@ export class Input {
     this.mediaQueryList.addEventListener('change', this.mediaQueryHandler);
   }
 
-  private checkMotionPreferences() {
+  private checkMotionPreference() {
    this.motionQuery = window.matchMedia('(prefer-reduced-motion: reduce)');
    this.state.reducedMotion = this.motionQuery.matches;
    
@@ -43,10 +44,8 @@ export class Input {
   }
 
   // --- Handlers ---
-
-  private handleMove = (e: MouseEvent | TouchEvent) => {
+ private handleMove = (e: MouseEvent | TouchEvent) => {
     if (!this.isEnabled) return;
-    
     if (e instanceof MouseEvent) {
       this.state.pointer.x = e.clientX;
       this.state.pointer.y = e.clientY;
@@ -63,16 +62,17 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
-    if (target.matches(this.options.hoverSelector!)) {
+    const selector = this.getHoverSelector();
+    const hoverable = target.closest(selector);
+
+    if (hoverable) {
       this.state.isHover = true;
-      this.state.hoverTarget = target;
+      this.state.hoverTarget = hoverable as HTMLElement;
     }
 
     if (this.options.ignoreOnNative) {
       const style = window.getComputedStyle(target).cursor;
-      
       const supermouseAllowed = ['default', 'auto', 'pointer', 'none', 'inherit'];
-      
       const isFormElement = target.matches('input, textarea, select, [contenteditable]');
 
       if (isFormElement || !supermouseAllowed.includes(style)) {
@@ -85,9 +85,11 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
-    if (target === this.state.hoverTarget) {
-      this.state.isHover = false;
-      this.state.hoverTarget = null;
+    if (target === this.state.hoverTarget || target.contains(this.state.hoverTarget)) {
+       if (!e.relatedTarget || !(this.state.hoverTarget?.contains(e.relatedTarget as Node))) {
+          this.state.isHover = false;
+          this.state.hoverTarget = null;
+       }
     }
 
     if (this.state.isNative) {

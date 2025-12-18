@@ -50,7 +50,7 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
         const destY = startY + math.random(-15, 15);
         
         // Scale to 0 using the utility
-        dom.setTransform(p, destX, destY, 0);
+        dom.setTransform(p, destX, destY, 0, 0, 0);
         p.style.opacity = '0';
       });
 

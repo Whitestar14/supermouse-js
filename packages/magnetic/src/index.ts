@@ -7,7 +7,6 @@ export interface MagneticOptions {
 export const Magnetic = (options: MagneticOptions = {}): SupermousePlugin => {
   const force = options.force || 0.5;
   
-  // Cache Mechanism
   let lastTarget: HTMLElement | null = null;
   let cachedRect: DOMRect | null = null;
   let cachedCenter = { x: 0, y: 0 };
@@ -15,14 +14,20 @@ export const Magnetic = (options: MagneticOptions = {}): SupermousePlugin => {
   return {
     name: 'magnetic',
     
+    install(app) {
+      app.registerHoverTarget('[data-supermouse-magnetic]');
+    },
+    
     update(app) {
       const target = app.state.hoverTarget;
       
+      // 1. Cache Geometry
       if (target !== lastTarget) {
         lastTarget = target;
         cachedRect = null;
         
-        if (target && target.hasAttribute('data-magnetic')) {
+        // We only care about magnetic attributes
+        if (target && target.hasAttribute('data-supermouse-magnetic')) {
           const rect = target.getBoundingClientRect();
           cachedRect = rect;
           cachedCenter = {
@@ -32,16 +37,17 @@ export const Magnetic = (options: MagneticOptions = {}): SupermousePlugin => {
         }
       }
 
-      // 2. Apply Magnetism if active
+      // 2. Apply Elastic Force
       if (cachedRect) {
         const { x: centerX, y: centerY } = cachedCenter;
-
         const rawX = app.state.pointer.x;
         const rawY = app.state.pointer.y;
 
+        // Formula: Center + (Dist * Force)
         const magnetX = centerX + (rawX - centerX) * force;
         const magnetY = centerY + (rawY - centerY) * force;
 
+        // Update the global target
         app.state.target.x = magnetX;
         app.state.target.y = magnetY;
       }

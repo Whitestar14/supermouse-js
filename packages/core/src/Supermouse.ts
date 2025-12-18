@@ -2,11 +2,9 @@ import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage } from './systems/Stage';
 import { Input } from './systems/Input';
 import { lerp } from './utils/math';
-// Import version from package.json (Vite/Rollup will bundle this string)
 import pkg from '../package.json';
 
 export class Supermouse {
-  // Public Version Helper
   public readonly version: string = pkg.version;
 
   state: MouseState;
@@ -18,11 +16,14 @@ export class Supermouse {
   private rafId: number = 0;
   private lastTime: number = 0;
   private isRunning: boolean = false;
+  
+  private hoverSelectors: Set<string> = new Set([
+    'a', 'button', 'input', 'textarea', '[data-hover]'
+  ]);
 
   constructor(options: SupermouseOptions = {}) {
     this.options = {
       smoothness: 0.15,
-      hoverSelector: 'a, button, input, textarea, [data-hover]',
       enableTouch: false,
       autoDisableOnMobile: true,
       ignoreOnNative: true,
@@ -39,24 +40,34 @@ export class Supermouse {
       isHover: false,
       isNative: false,
       hoverTarget: null,
+      reducedMotion: false
     };
 
     this.stage = new Stage(!!this.options.hideCursor);
-    this.input = new Input(this.state, this.options, (enabled) => {
-      if (!enabled) this.resetPosition();
-    });
+    
+    this.hoverSelectors.forEach(s => this.stage.addSelector(s));
+
+    this.input = new Input(
+      this.state, 
+      this.options,
+      () => Array.from(this.hoverSelectors).join(', '), 
+      (enabled) => { if (!enabled) this.resetPosition(); }
+    );
 
     this.init();
   }
 
-  // Getter so plugins can access app.container
-  public get container(): HTMLDivElement {
-    return this.stage.element;
+  public registerHoverTarget(selector: string) {
+    if (!this.hoverSelectors.has(selector)) {
+      this.hoverSelectors.add(selector);
+      this.stage.addSelector(selector);
+    }
   }
 
-  private init() {
-    this.startLoop();
-  }
+  public get container(): HTMLDivElement { return this.stage.element; }
+  private init() { this.startLoop(); }
+  public enable() { this.input.isEnabled = true; this.stage.setNativeCursor('none'); }
+  public disable() { this.input.isEnabled = false; this.stage.setNativeCursor('auto'); this.resetPosition(); }
 
   public use(plugin: SupermousePlugin) {
     if (this.plugins.has(plugin.name)) {
@@ -66,17 +77,6 @@ export class Supermouse {
     this.plugins.set(plugin.name, plugin);
     plugin.install?.(this);
     return this;
-  }
-
-  public enable() { 
-    this.input.isEnabled = true;
-    this.stage.setNativeCursor('none');
-  }
-
-  public disable() { 
-    this.input.isEnabled = false;
-    this.stage.setNativeCursor('auto');
-    this.resetPosition(); 
   }
 
   private resetPosition() {
@@ -138,10 +138,8 @@ export class Supermouse {
   public destroy() {
     this.isRunning = false;
     cancelAnimationFrame(this.rafId);
-
     this.input.destroy();
     this.stage.destroy();
-
     this.plugins.forEach(p => p.destroy?.(this));
     this.plugins.clear();
   }
