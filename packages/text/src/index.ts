@@ -23,7 +23,7 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
         pointerEvents: 'none',
         zIndex: '10000', // Always on top
         opacity: '0',
-        // Center using CSS (Standardized)
+        // Center using CSS
         transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)',
         transition: 'opacity 0.2s ease', 
         // Typography
@@ -39,7 +39,7 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
         whiteSpace: 'nowrap'
       });
       
-      document.body.appendChild(el);
+      app.container.appendChild(el);
     },
 
     update(app) {
@@ -48,12 +48,12 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
       // 1. Check for attribute
       const text = target?.getAttribute('data-cursor-text');
 
-      // 2. Show/Hide based on state
+      // 2. Show/Hide based on attribute existence + hover state
       if (app.state.isHover && text) {
         textNode.innerText = text;
         el.style.opacity = '1';
         
-        // 3. Position (Offset slightly below cursor so it's readable)
+        // 3. Position (Offset below cursor)
         const { x, y } = app.state.client;
         el.style.transform = `translate3d(${x}px, ${y + 24}px, 0) translate(-50%, -50%)`;
       } else {

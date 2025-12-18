@@ -8,15 +8,13 @@ export interface DotOptions {
 
 export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   let element: HTMLDivElement;
-  const size = options.size || 15;
+  const size = options.size || 8;
   const color = options.color || '#750c7e';
 
   return {
-    name: 'builtin-dot',
+    name: 'dot',
     
-    install(app) {
-      document.body.style.cursor = 'none';
-      
+    install(app) {      
       element = document.createElement('div');
       Object.assign(element.style, {
         boxSizing: 'border-box',
@@ -28,10 +26,12 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
         borderRadius: '50%',
         pointerEvents: 'none',
         zIndex: options.zIndex || '9999',
+        // Center using CSS
         transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)',
         willChange: 'transform'
       });
-      document.body.appendChild(element);
+      
+      app.container.appendChild(element);
     },
     
     update(app) {
@@ -40,7 +40,6 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     },
     
     destroy() {
-      document.body.style.cursor = '';
       element.remove();
     }
   };

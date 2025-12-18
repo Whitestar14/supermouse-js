@@ -24,6 +24,11 @@ export interface SupermouseOptions {
    * @default true 
    */
   autoDisableOnMobile?: boolean;
+  /** 
+   * Hides the default system cursor. 
+   * @default true 
+   */
+  hideCursor?: boolean; 
 }
 
 export interface SupermousePlugin {

@@ -5,6 +5,8 @@ export class Supermouse {
   options: SupermouseOptions;
   plugins: Map<string, SupermousePlugin> = new Map();
   
+  public readonly container: HTMLDivElement;
+  
   private rafId: number = 0;
   private lastTime: number = 0;
   private isRunning: boolean = false;
@@ -20,6 +22,8 @@ export class Supermouse {
       hoverSelector: 'a, button, input, textarea, [data-hover]',
       enableTouch: false,
       autoDisableOnMobile: true,
+      ignoreOnText: true,
+      hideCursor: true, 
       ...options
     };
 
@@ -29,10 +33,27 @@ export class Supermouse {
       velocity: { x: 0, y: 0 },
       isDown: false,
       isHover: false,
+      isText: false,
       hoverTarget: null,
     };
 
-    // Check device capabilities before starting
+    // 1. Create the Stage Container
+    this.container = document.createElement('div');
+    Object.assign(this.container.style, {
+      position: 'fixed',
+      top: '0', left: '0', width: '100%', height: '100%',
+      pointerEvents: 'none',
+      zIndex: '9999',
+      opacity: '1',
+      transition: 'opacity 0.15s ease'
+    });
+    
+    if (this.options.hideCursor) {
+      document.body.style.cursor = 'none';
+    }
+    
+    document.body.appendChild(this.container);
+
     this.checkDeviceCapability();
     this.init();
   }
@@ -59,33 +80,19 @@ export class Supermouse {
   private checkDeviceCapability() {
     if (!this.options.autoDisableOnMobile) return;
 
-    // 'pointer: fine' is the standard way to detect mouse/trackpad availability
     this.mediaQueryList = window.matchMedia('(pointer: fine)');
-    
-    // Set initial state
     this.isEnabled = this.mediaQueryList.matches;
 
-    // Define handler for dynamic changes (e.g. plugging in a mouse)
     this.mediaQueryHandler = (e: MediaQueryListEvent) => {
       this.isEnabled = e.matches;
-      if (!this.isEnabled) {
-        // Reset position off-screen immediately on disable
-        this.resetPosition();
-      }
+      if (!this.isEnabled) this.resetPosition();
     };
 
-    // Listen for changes
     this.mediaQueryList.addEventListener('change', this.mediaQueryHandler);
   }
 
-  public enable() {
-    this.isEnabled = true;
-  }
-
-  public disable() {
-    this.isEnabled = false;
-    this.resetPosition();
-  }
+  public enable() { this.isEnabled = true; }
+  public disable() { this.isEnabled = false; this.resetPosition(); }
 
   private resetPosition() {
     this.state.client = { x: -100, y: -100 };
@@ -110,21 +117,44 @@ export class Supermouse {
   private handleDown = () => { if (this.isEnabled) this.state.isDown = true; };
   private handleUp = () => { if (this.isEnabled) this.state.isDown = false; };
 
-  private handleHoverCheck = (e: MouseEvent) => {
+  private handleMouseOver = (e: MouseEvent) => {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
+
+    // 1. Check Interactive Hover
     if (target.matches(this.options.hoverSelector!)) {
       this.state.isHover = true;
       this.state.hoverTarget = target;
     }
+
+    // 2. Check Text Mode (for selection)
+    if (this.options.ignoreOnText) {
+      const isInput = target.matches('input, textarea, [contenteditable]');
+      const style = window.getComputedStyle(target).cursor;
+      
+      if (isInput || style === 'text' || style === 'vertical-text') {
+        this.state.isText = true;
+        document.body.style.cursor = 'auto';
+      }
+    }
   };
 
-  private handleHoverOut = (e: MouseEvent) => {
+  private handleMouseOut = (e: MouseEvent) => {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
+
+    // 1. Clear Hover
     if (target === this.state.hoverTarget) {
       this.state.isHover = false;
       this.state.hoverTarget = null;
+    }
+
+    // 2. Clear Text Mode
+    if (this.state.isText) {
+      this.state.isText = false;
+      if (this.options.hideCursor) {
+      document.body.style.cursor = 'none'; // Hide native cursor again
+      }
     }
   };
 
@@ -133,8 +163,9 @@ export class Supermouse {
     window.addEventListener('mousedown', this.handleDown);
     window.addEventListener('mouseup', this.handleUp);
     
-    document.addEventListener('mouseover', this.handleHoverCheck);
-    document.addEventListener('mouseout', this.handleHoverOut);
+    // Consolidated handlers
+    document.addEventListener('mouseover', this.handleMouseOver);
+    document.addEventListener('mouseout', this.handleMouseOut);
 
     if (this.options.enableTouch) {
       window.addEventListener('touchmove', this.handleMove, { passive: true });
@@ -157,18 +188,21 @@ export class Supermouse {
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
 
+    // 1. Global Admin Control (Visibility)
+    // If text mode or disabled, HIDE EVERYTHING via the container.
+    const shouldVisible = this.isEnabled && !this.state.isText;
+    this.container.style.opacity = shouldVisible ? '1' : '0';
+
     if (this.isEnabled) {
-      // 1. Math: Linear Interpolation (Lerp)
+      // 2. Physics
       const factor = this.options.smoothness!;
       
       this.state.smooth.x += (this.state.client.x - this.state.smooth.x) * factor;
       this.state.smooth.y += (this.state.client.y - this.state.smooth.y) * factor;
 
-      // 2. Velocity Calculation
       this.state.velocity.x = this.state.client.x - this.state.smooth.x;
       this.state.velocity.y = this.state.client.y - this.state.smooth.y;
     } else {
-      // If disabled, enforce off-screen coordinates so plugins hide elements
       this.state.smooth.x = -100;
       this.state.smooth.y = -100;
       this.state.client.x = -100;
@@ -176,7 +210,6 @@ export class Supermouse {
     }
 
     // 3. Update Plugins
-    // We run plugins even if disabled so they can update their DOM to the off-screen coords
     this.plugins.forEach((plugin) => {
       plugin.update?.(this, deltaTime);
     });
@@ -188,7 +221,6 @@ export class Supermouse {
     this.isRunning = false;
     cancelAnimationFrame(this.rafId);
 
-    // Cleanup Media Query
     if (this.mediaQueryList && this.mediaQueryHandler) {
       this.mediaQueryList.removeEventListener('change', this.mediaQueryHandler);
     }
@@ -196,14 +228,18 @@ export class Supermouse {
     window.removeEventListener('mousemove', this.handleMove);
     window.removeEventListener('mousedown', this.handleDown);
     window.removeEventListener('mouseup', this.handleUp);
-    document.removeEventListener('mouseover', this.handleHoverCheck);
-    document.removeEventListener('mouseout', this.handleHoverOut);
+    document.removeEventListener('mouseover', this.handleMouseOver);
+    document.removeEventListener('mouseout', this.handleMouseOut);
     
     if (this.options.enableTouch) {
       window.removeEventListener('touchmove', this.handleMove);
       window.removeEventListener('touchstart', this.handleDown);
       window.removeEventListener('touchend', this.handleUp);
     }
+
+    // Cleanup DOM
+    document.body.style.cursor = ''; 
+    this.container.remove();
 
     this.plugins.forEach(p => p.destroy?.(this));
     this.plugins.clear();

@@ -16,7 +16,7 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
   const borderWidth = options.borderWidth || 2;
 
   return {
-    name: 'builtin-ring',
+    name: 'ring',
     
     install(app) {
       element = document.createElement('div');
@@ -28,24 +28,29 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
         border: `${borderWidth}px solid ${color}`,
         pointerEvents: 'none',
         zIndex: '9998',
-        // Center using CSS
+        // Start offscreen
         transform: 'translate3d(-100px, -100px, 0) translate(-50%, -50%)', 
         transition: 'width 0.2s, height 0.2s, border-color 0.2s',
         willChange: 'transform, width, height'
       });
-      document.body.appendChild(element);
+      
+      app.container.appendChild(element);
     },
 
     update(app) {
+      // 1. Calculate Size
       let targetSize = app.state.isHover ? hoverSize : baseSize;
 
+      // Shrink on click (relative to current state)
       if (app.state.isDown) {
         targetSize *= 0.8; 
       }
 
+      // 2. Apply Size
       element.style.width = `${targetSize}px`;
       element.style.height = `${targetSize}px`;
 
+      // 3. Move (Use Smooth coordinates)
       const { x, y } = app.state.smooth;
       element.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
     },
