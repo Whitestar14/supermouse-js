@@ -1,0 +1,7 @@
+{
+  "name": "@supermousejs/ring", 
+  "version": "2.0.0", 
+  "dependencies": {
+    "@supermousejs/core": "workspace:*"
+  }
+}

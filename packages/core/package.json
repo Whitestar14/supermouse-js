@@ -1,0 +1,10 @@
+{
+	"name": "@supermousejs/core", 
+	"version":  "2.0.0", 
+	"main": "dist/supermouse-core.umd.js", 
+	"module": "dist/supermouse-core.mjs", 
+	"types": "dist/index.d.ts", 
+	"scripts": {
+		"build": "vite build"
+	}
+}

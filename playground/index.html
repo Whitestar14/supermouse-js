@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supermouse V2 Playground</title>
+    <style>
+      body { 
+        margin: 0; 
+        background: #111; 
+        color: #fff; 
+        font-family: monospace;
+        height: 200vh; /* Make it scrollable to test coordinates */
+      }
+      .center-msg {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        pointer-events: none;
+      }
+      
+      /* Test Hover Target */
+      button {
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        font-size: 1.2rem;
+        cursor: none; /* Hide default cursor to test ours later */
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="center-msg">
+      <h1>Supermouse V2</h1>
+      <p>Move your mouse...</p>
+      <div id="debug-panel"></div>
+    </div>
+
+    <button>Hover Me!</button>
+
+    <!-- Point to your TypeScript file -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
