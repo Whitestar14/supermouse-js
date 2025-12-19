@@ -27,6 +27,49 @@ importers:
         specifier: ^4.0.13
         version: 4.0.16(@types/node@20.19.27)(jiti@1.21.7)
 
+  docs:
+    dependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../packages/core
+      '@supermousejs/dot':
+        specifier: workspace:*
+        version: link:../packages/dot
+      '@supermousejs/image':
+        specifier: workspace:*
+        version: link:../packages/image
+      '@supermousejs/magnetic':
+        specifier: workspace:*
+        version: link:../packages/magnetic
+      '@supermousejs/ring':
+        specifier: workspace:*
+        version: link:../packages/ring
+      '@supermousejs/sparkles':
+        specifier: workspace:*
+        version: link:../packages/sparkles
+      '@supermousejs/text':
+        specifier: workspace:*
+        version: link:../packages/text
+      autoprefixer:
+        specifier: ^10.4.23
+        version: 10.4.23(postcss@8.5.6)
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      tailwindcss:
+        specifier: ^3.4.19
+        version: 3.4.19
+      vue:
+        specifier: ^3.5.26
+        version: 3.5.26(typescript@5.8.3)
+      vue-router:
+        specifier: 4.2.5
+        version: 4.2.5(vue@3.5.26(typescript@5.8.3))
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.3
+        version: 6.0.3(vite@7.3.0(@types/node@20.19.27)(jiti@1.21.7))(vue@3.5.26(typescript@5.8.3))
+
   packages/core: {}
 
   packages/dot:
@@ -40,6 +83,18 @@ importers:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/legacy:
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
+      '@supermousejs/dot':
+        specifier: workspace:*
+        version: link:../dot
+      '@supermousejs/ring':
+        specifier: workspace:*
+        version: link:../ring
 
   packages/legacy-wrapper:
     dependencies:
@@ -635,6 +690,9 @@ packages:
 
   '@vue/compiler-ssr@3.5.26':
     resolution: {integrity: sha512-lZT9/Y0nSIRUPVvapFJEVDbEXruZh2IYHMk2zTtEgJSlP5gVOqeWXH54xDKAaFS4rTnDeDBQUYDtxKyoW9FwDw==}
+
+  '@vue/devtools-api@6.6.4':
+    resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
 
   '@vue/language-core@1.8.27':
     resolution: {integrity: sha512-L8Kc27VdQserNaCUNiSFdDl9LWT24ly8Hpwf1ECy3aFb9m6bDhBGQYOujDm21N7EW3moKIOKEanQwe1q5BK+mA==}
@@ -1488,6 +1546,11 @@ packages:
       jsdom:
         optional: true
 
+  vue-router@4.2.5:
+    resolution: {integrity: sha512-DIUpKcyg4+PTQKfFPX88UWhlagBEBEfJ5A8XDXRJLUnZOvcpMF8o/dnL90vpVkGaPbjvXazV/rC1qBKrZlFugw==}
+    peerDependencies:
+      vue: ^3.2.0
+
   vue-template-compiler@2.7.16:
     resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
 
@@ -2075,6 +2138,8 @@ snapshots:
     dependencies:
       '@vue/compiler-dom': 3.5.26
       '@vue/shared': 3.5.26
+
+  '@vue/devtools-api@6.6.4': {}
 
   '@vue/language-core@1.8.27(typescript@5.8.3)':
     dependencies:
@@ -2849,6 +2914,11 @@ snapshots:
       - terser
       - tsx
       - yaml
+
+  vue-router@4.2.5(vue@3.5.26(typescript@5.8.3)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.26(typescript@5.8.3)
 
   vue-template-compiler@2.7.16:
     dependencies:
