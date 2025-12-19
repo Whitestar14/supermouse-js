@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --grid-size: 40px;
+    --grid-color: #f0f0f0;
+    --text-main: #09090b;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: #fff;
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+}
+
+.mono,
+code,
+pre,
+kbd {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.grid-bg {
+    background-image:
+        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    background-position: center top;
+}
+
+/* 3D Scene Utilities */
+.scene-3d {
+    perspective: 1000px;
+}
+
+.cube-3d {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: spinCube 12s infinite linear;
+}
+
+.face {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: bold;
+    color: #a1a1aa;
+}
+
+.face-front {
+    transform: rotateY(0deg) translateZ(50px);
+}
+
+.face-back {
+    transform: rotateY(180deg) translateZ(50px);
+}
+
+.face-right {
+    transform: rotateY(90deg) translateZ(50px);
+}
+
+.face-left {
+    transform: rotateY(-90deg) translateZ(50px);
+}
+
+.face-top {
+    transform: rotateX(90deg) translateZ(50px);
+}
+
+.face-bottom {
+    transform: rotateX(-90deg) translateZ(50px);
+}
+
+@keyframes spinCube {
+    0% {
+        transform: rotateX(-15deg) rotateY(0deg);
+    }
+
+    100% {
+        transform: rotateX(-15deg) rotateY(360deg);
+    }
+}
+
+::selection {
+    background: #000;
+    color: #fff;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #fff;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 3px;
+}
