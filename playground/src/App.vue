@@ -5,7 +5,6 @@ import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
 import { Text } from '@supermousejs/text';
 import { Sparkles } from '@supermousejs/sparkles';
-import { Magnetic } from '@supermousejs/magnetic';
 import { Image } from '@supermousejs/image';
 
 let mouse: Supermouse | null = null;
@@ -23,11 +22,11 @@ onMounted(() => {
   mouse = new Supermouse({
     enableTouch: false,
     ignoreOnNative: true, 
-    hideCursor: true      
+    hideCursor: true,
+    stickStrength: 0   
   });
 
   mouse
-    .use(Magnetic({ force: 0.1 }))
     .use(Dot({ 
       size: 8, 
       color: 'var(--cursor-color)', 
