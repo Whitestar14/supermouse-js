@@ -11,7 +11,6 @@ export interface DotOptions {
 export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   let el: HTMLDivElement;
   
-  // Defaults
   const defSize = 8;
   const defColor = '#750c7e';
   const defOpacity = 1;
@@ -40,33 +39,25 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     update(app) {
       const size = resolve(options.size, app.state, defSize);
       const opacity = resolve(options.opacity, app.state, defOpacity);
-      
       let color = resolve(options.color, app.state, defColor);
-      const target = app.state.hoverTarget;
       
-      if (target) {
-        const overrideColor = target.getAttribute('data-supermouse-color');
-        if (overrideColor) color = overrideColor;
+      const target = app.state.hoverTarget;
+      if (target?.hasAttribute('data-supermouse-color')) {
+        color = target.getAttribute('data-supermouse-color')!;
       }
 
-      // 2. Apply Styles
       el.style.width = `${size}px`;
       el.style.height = `${size}px`;
       el.style.backgroundColor = color;
       el.style.opacity = String(opacity);
 
+      // Position Logic
       const { x, y } = app.state.target;
       dom.setTransform(el, x, y);
     },
 
-    onDisable() {
-      el.style.opacity = '0';
-    },
-
-    onEnable() {},
-    
-    destroy() {
-      el.remove();
-    }
+    onDisable() { el.style.opacity = '0'; },
+    onEnable() { /* Handled by update */ },
+    destroy() { el.remove(); }
   };
 };

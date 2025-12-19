@@ -1,3 +1,4 @@
+
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
 import { lerp } from './utils';
@@ -134,20 +135,23 @@ export class Supermouse {
     const shouldShowStage = this.input.isEnabled && !this.state.isNative;
     this.stage.setVisibility(shouldShowStage);
 
-    if (this.input.isEnabled && this.options.ignoreOnNative) {
+    if (this.input.isEnabled && this.options.hideCursor) {
        this.stage.setNativeCursor(this.state.isNative ? 'auto' : 'none');
     }
 
     if (this.input.isEnabled) {
+      // target was used for magnetism. i might reintroduce its use later.
       this.state.target.x = this.state.pointer.x;
       this.state.target.y = this.state.pointer.y;
 
+      // Plugins: Update Visuals
       this.plugins.forEach((plugin) => {
         if (plugin.isEnabled !== false) {
           plugin.update?.(this, deltaTime);
         }
       });
 
+      // Smooth: Lerp towards target
       const factor = this.state.reducedMotion ? 1 : this.options.smoothness!;
       this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
       this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);

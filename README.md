@@ -1,230 +1,340 @@
 # Supermouse.js
 
-Supermouse is a lightweight, customizable JavaScript library that enhances cursor interactions on web pages. It replaces the default cursor with a stylish, animated pointer consisting of a dot and ring. Supermouse offers smooth animations, customizable colors and sizes, and responsive hover effects. Perfect for creating engaging, interactive user experiences in modern web applications.
+Supermouse v2 is a modular, TypeScript-first cursor-effects system for the web. The project was rebuilt as a pnpm monorepo centered on a small, focused `core` package that exposes a simple plugin API and a runtime stage/input system. Individual visual effects (dot, ring, sparkles, image, text, magnetic, etc.) are split into closed-off packages so they can be developed, tested, and published independently.
 
-## Installation
+This README documents the repository layout, the runtime and plugin architecture, the dev toolchain, and the custom CLI helpers used to scaffold and remove plugins. It also lists the current gaps and recommended improvements for v2.
 
-Supermouse.js can be installed and used in multiple ways:
+---
 
-### npm
+Table of contents
+- TL;DR / Quick start
+- Project layout
+- Goals & design principles
+- Architecture (Core, Systems, Plugins)
+- Plugin authoring (patterns, APIs & data attributes)
+- Toolchain & workspace conventions
+- Custom CLI tools (create/remove plugin)
+- Where this repo needs ironing out / roadmap
+- Development & publishing notes
+- Contributing & license
 
-For projects using npm, install Supermouse.js with:
+---
 
-```bash
-npm install supermouse
+TL;DR / Quick start
+
+- Install dependencies: `pnpm install`
+- Run the demo playground (Vue + Tailwind): `pnpm dev` (runs `supermouse-playground`)
+- Build all packages: `pnpm -r build`
+- Create a plugin scaffold: `pnpm run create:plugin <name>`
+- Remove a plugin: `pnpm run remove:plugin <name>`
+
+Example usage (runtime):
+
+```ts
+import { Supermouse } from '@supermousejs/core';
+import { Dot } from '@supermousejs/dot';
+import { Ring } from '@supermousejs/ring';
+
+const app = new Supermouse({ smoothness: 0.12 });
+app.use(Dot({ size: 8, color: '#f0f' }));
+app.use(Ring({ size: 20, enableSkew: true }));
 ```
 
-### CDN
-
-To use Supermouse.js directly in your HTML file via CDN, add the following script tag:
+Hover-targets and behavior are data-attribute driven. Example:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/supermouse@latest/dist/supermouse.min.js"></script>
+<button data-supermouse-stick>Stick me</button>
+<div data-supermouse-color="#00ff00">Color override</div>
+<a data-supermouse-img="/path/to/img.jpg">Show image on hover</a>
 ```
 
-### Direct Download
+---
 
-You can also download the latest version of Supermouse.js from our GitHub releases page and include it in your project:
+Project layout
 
-```html
-<script src="path/to/supermouse.min.js"></script>
+Top-level structure (important files/directories):
+
+- `packages/`
+  - `core/` — the runtime: `Supermouse` class, `systems` (Input, Stage), `utils` and types. This is the only package that implements the runtime loop and plugin lifecycle.
+  - `dot/`, `ring/`, `sparkles/`, `image/`, `text/`, `magnetic/`, … — effect plugins; each is an independent package usually named `@supermousejs/<name>`.
+  - `legacy-wrapper/` — compatibility wrapper for v1 users (exports the old class-based API).
+  - `react/`, `vue/` — framework bindings (currently placeholders).
+- `playground/` — Vite + Vue dev app used to demo and iterate on plugins (pulls packages via `workspace:*`).
+- `scripts/` — local CLI helpers: `create-plugin.js`, `remove-plugin.js`.
+- `pnpm-workspace.yaml` — workspace config; the monorepo is managed with pnpm.
+- `tsconfig.base.json` — base TypeScript settings for packages.
+- `CHANGELOG.md`, `package.json` (root), and Changesets tooling in devDependencies for versioning.
+
+Repository tree (ASCII)
+
+```text
+.
++-- .changeset/
+|   +-- README.md
+|   \-- config.json
++-- .git/
++-- .gitignore
++-- CHANGELOG.md
++-- package.json
++-- pnpm-lock.yaml
++-- pnpm-workspace.yaml
++-- README.md
++-- tsconfig.base.json
++-- scripts/
+|   +-- create-plugin.js
+|   \-- remove-plugin.js
++-- packages/
+|   +-- core/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   +-- vite.config.ts
+|   |   \-- src/
+|   |       +-- index.ts
+|   |       +-- Supermouse.ts
+|   |       +-- types.ts
+|   |       +-- systems/
+|   |       |   +-- index.ts
+|   |       |   +-- Input.ts
+|   |       |   \-- Stage.ts
+|   |       \-- utils/
+|   |           +-- index.ts
+|   |           +-- dom.ts
+|   |           +-- math.ts
+|   |           +-- effects.ts
+|   |           +-- css.ts
+|   |           +-- layers.ts
+|   |           \-- options.ts
+|   +-- dot/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   +-- vite.config.ts
+|   |   \-- src/
+|   |       \-- index.ts
+|   +-- ring/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   +-- vite.config.ts
+|   |   \-- src/
+|   |       \-- index.ts
+|   +-- sparkles/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   \-- src/
+|   |       \-- index.ts
+|   +-- image/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   +-- vite.config.ts
+|   |   \-- src/
+|   |       \-- index.ts
+|   +-- text/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   \-- src/
+|   |       \-- index.ts
+|   +-- magnetic/
+|   |   +-- package.json
+|   |   +-- tsconfig.json
+|   |   +-- vite.config.ts
+|   |   \-- src/
+|   |       \-- index.ts
+|   +-- legacy-wrapper/
+|   |   +-- package.json
+|   |   \-- index.js
+|   +-- react/ (placeholder)
+|   \-- vue/ (placeholder)
++-- playground/
+|   +-- package.json
+|   +-- index.html
+|   +-- vite.config.ts
+|   +-- tsconfig.json
+|   +-- postcss.config.ts
+|   +-- tailwind.config.ts
+|   \-- src/
+|       +-- main.ts
+|       +-- App.vue
+|       \-- index.css
+\-- node_modules/ (omitted)
 ```
 
-After installation, you're ready to start using Supermouse.js in your project!
+---
 
-## Usage
+Goals & design principles
 
-Getting started with Supermouse.js is straightforward. Follow these steps to implement a custom cursor in your project:
+- Minimal core: the `core` package is intentionally small and focused on input normalization, cursor hiding/visibility, a single DOM stage, and the plugin lifecycle.
+- Plugin-first: visual/interaction features live in separate packages and should be able to be built and published independently.
+- Data-driven integration: plugins integrate with DOM elements via semantic `data-supermouse-*` attributes to provide flexible, declarative behavior.
+- Framework-agnostic runtime: core uses vanilla DOM operations. Framework bindings (React/Vue) can be provided as thin adapters.
+- Respect preferences & accessibility: supports `prefers-reduced-motion` and auto-disables on touch/narrow-pointer environments by default.
 
-1. Import Supermouse:
+---
 
-```javascript
-import Supermouse from 'supermouse';
+Architecture overview
+
+Core runtime (in `packages/core`)
+- `Supermouse` (core runtime) — located at `packages/core/src/Supermouse.ts`.
+  - Maintains `state` (`pointer`, `target`, `smooth`, `velocity`, `isHover`, `isNative`, ...).
+  - Hosts an update loop based on `requestAnimationFrame` (tick accepts `deltaTime`).
+  - Manages `plugins` (a `Map<string, SupermousePlugin>`).
+  - Responsible for plugin lifecycle: `install`, `update` (called every frame if enabled), `onEnable` / `onDisable`, `destroy`.
+  - Exposes plugin-management helpers: `use(plugin)`, `enablePlugin(name)`, `disablePlugin(name)`, `togglePlugin(name)` and `registerHoverTarget(selector)`.
+
+- Systems
+  - `Input` (`packages/core/src/systems/Input.ts`) — listens for `mousemove`, `touch*` (optional), `mousedown`/`mouseup` and manages `isNative`/`isHover`/`pointer` state. It also auto-disables on mobile (media query `pointer: fine`) when configured to do so and watches `prefers-reduced-motion`.
+  - `Stage` (`packages/core/src/systems/Stage.ts`) — single DOM container inserted on the page (fixed full viewport, `pointer-events: none`, `z-index: 9999`) where plugins append their DOM. Also responsible for hiding native cursor across a configurable selector list (injecting a `<style>` block to set `cursor: none !important;`).
+
+- Utils & Types — `packages/core/src/utils` and `types.ts`: helpful building blocks for plugin authors: DOM helpers, math/lerp/dist/angle helpers, `Easings`, `Layers` (z-indices), and `resolve` for dynamic option values.
+
+Plugin model & conventions
+- Interface: a `SupermousePlugin` is a plain object with at minimum a `name` string and optional lifecycle methods:
+  - `install(app)` — called once on `use` to create DOM and register selectors.
+  - `update(app, deltaTime)` — called every tick when the plugin is enabled.
+  - `destroy(app)` — cleanup.
+  - `onEnable(app)` / `onDisable(app)` — optional toggles.
+  - `isEnabled?: boolean` — if `false`, `update` will not be called.
+
+- Behavior conventions:
+  - Plugins append child elements to `app.container` (the `Stage` element).
+  - Plugins should call `app.registerHoverTarget(selector)` for any selectors they rely on so the stage knows to hide the native cursor on those elements.
+  - Plugins may read and, in some cases, set `app.state.target` (e.g., the `magnetic` plugin adjusts the target position).
+
+How Supermouse orchestrates plugins
+- Each animation frame Supermouse:
+  1. Updates visibility & native cursor status based on `Input` and state.
+  2. Copies the pointer position into `state.target` when `input.isEnabled`.
+  3. Runs `plugin.update(app, deltaTime)` for each plugin where `isEnabled !== false`.
+  4. Smoothes motion (`smooth` vs `target`) and computes `velocity`.
+
+This means plugins are run in a simple deterministic sequence. Plugins can influence subsequent behavior by modifying `app.state` (e.g., `Magnetic` influences `target`) and by registering hover selectors.
+
+---
+
+Plugin authoring guide (practical)
+
+1. Scaffold a package:
+   - `pnpm run create:plugin my-plugin` (this creates `packages/my-plugin` with `package.json`, `tsconfig.json`, `vite.config.ts` and a starter `src/index.ts`)
+2. Implement a plugin (example):
+
+```ts
+import type { SupermousePlugin } from '@supermousejs/core';
+import { dom, Layers, resolve } from '@supermousejs/core';
+
+export const MyPlugin = (opts = {}): SupermousePlugin => {
+  let el: HTMLDivElement;
+  return {
+    name: 'my-plugin',
+    install(app) {
+      el = dom.createDiv();
+      el.style.zIndex = Layers.CURSOR;
+      app.container.appendChild(el);
+      app.registerHoverTarget('[data-my-attr]');
+    },
+    update(app) {
+      const { x, y } = app.state.smooth;
+      dom.setTransform(el, x, y);
+    },
+    destroy() { el.remove(); }
+  };
+};
 ```
 
-2. Create a new Supermouse instance:
+3. Build & test locally:
+   - `pnpm -w -F @supermousejs/my-plugin build` (or `pnpm -r build` to build everything)
+   - Add the plugin to the `playground` (the scaffolders do this automatically when created) and test the behavior.
 
-```javascript
-const cursor = new Supermouse();
-```
+Data attributes used by built-in plugins
+- `data-supermouse-color` — color override for `Dot`/`Ring`.
+- `data-supermouse-stick` — allow `Ring` to "stick" to an element's geometry.
+- `data-supermouse-img` — `Image` plugin: show an image on hover.
+- `data-supermouse-text` — `Text` plugin: show text on hover.
+- `data-supermouse-magnetic` — `Magnetic` plugin: attract pointer toward element center.
+- `data-supermouse-ignore` — VETO: force native cursor / ignore supermouse.
 
-3. Customize your cursor (optional):
+(Plugins may register additional selectors using `app.registerHoverTarget`.)
 
-```javascript
-const cursor = new Supermouse({
-  theme: 'neon',
-  ringSize: 20,
-  ringClickSize: 15,
-  animationDuration: 300,
-  ringAnimationDuration: 700,
-  ringAnimationDelay: 250,
-  useAnimation: true,
-});
-```
+---
 
-4. Change theme dynamically:
+Toolchain & monorepo setup
 
-```javascript
-cursor.setTheme('ocean');
-```
+- Package manager: `pnpm` workspace (`pnpm-workspace.yaml`). All internal packages reference the `core` package using `workspace:*` so workspaces are linked locally.
+- Language: TypeScript (root `tsconfig.base.json`), `strict` mode.
+- Bundler: `vite` configured to build libraries (`lib` mode). Each build typically emits an ESM (`index.mjs`) and a UMD (`index.umd.js`) file.
+- Types: `vite-plugin-dts` is used in library builds to generate `.d.ts` files.
+- Versioning: `@changesets/cli` is present in `devDependencies` to manage multi-package releases.
+- Testing: `vitest` is in root `devDependencies` (tests need to be added per-package / standardized).
+- Playground: `playground/` is a Vite Vue application (uses Tailwind + PostCSS) and lists internal packages as workspace dependencies. The `create-plugin` script adds a Vite alias to the playground for faster iteration.
 
-5. For React applications, use the useSupermouse hook:
+Packaging & dependency isolation
+- Plugins depend on `@supermousejs/core` via `workspace:*` during local development.
+- Vite configs for plugins mark `@supermousejs/core` as `external` so core is not bundled into plugin distributions; the plugin's UMD/ESM will expect a single shared core at runtime. This avoids duplicated runtime and allows plugin builds to remain small.
+- Framework bindings (React/Vue) should use `peerDependencies` to avoid multiple copies of framework libs across packages.
 
-```jsx
-import React from 'react';
-import { useSupermouse } from 'supermouse';
+---
 
-function App() {
-  const supermouse = useSupermouse({ theme: 'neon' });
-  return <div>React app with Supermouse</div>;
-}
-```
+Custom CLI tooling (scaffolding)
 
-Supermouse.js will automatically handle cursor movements and hover effects on interactive elements (a, button, [data-hover]).
+- `scripts/create-plugin.js` — scaffolds a new package at `packages/<name>` with a `package.json` (including `workspace:*` core dep), `tsconfig.json`, `vite.config.ts`, and a starter `src/index.ts`. It automatically adds the plugin as a dependency in `playground/package.json` and adds a Vite alias in the playground's `vite.config.ts` for local editing.
 
-## Testing
+- `scripts/remove-plugin.js` — safely unlinks and removes a plugin from `playground` and deletes `packages/<name>`.
 
-Supermouse.js uses Jest for unit testing to ensure reliability and maintainability. Our test suite covers a wide range of scenarios and edge cases.
+Use:
+- `pnpm run create:plugin <name>`
+- `pnpm run remove:plugin <name>`
 
-### Running Tests
+These scripts are intentionally simple and interactive; they do not currently update documentation or run linting.
 
-To run the tests, use the following command:
+---
 
-```bash
-npm test
-```
+Where this repo needs ironing out / roadmap & recommendations
 
-This command will execute all test suites and provide a detailed output of test results and code coverage.
+(Observed gaps and suggested priorities for v2 stabilization)
 
-## Test Coverage
+1. Standardize package configs
+   - Several packages are missing `vite.config.ts` or consistent `package.json` scripts (e.g. `test`, `build`). Ensure all packages follow the same template (the `create-plugin.js` template is a good baseline).
+2. Tests & CI
+   - Add a `test` script to each package and add unit tests (using `vitest`) for `core` systems and plugin behavior. Add CI (GitHub Actions) to run tests, builds, and type checks on PRs.
+3. Linting & formatting
+   - Add `eslint` + `prettier` for consistent style across packages.
+4. Publish workflow
+   - Document publishing steps; ensure `changesets` is configured and a `publish` workflow is added to automate releases.
+5. Finish framework bindings or remove placeholders
+   - `react/` and `vue/` directories exist but are empty. Add thin, well-typed adapters with `peerDependencies` on React/Vue.
+6. Improve `create-plugin.js`
+   - Add optional flags for author, initial tests, README, LICENSE, CHANGELOG, and CI configuration.
+7. Documentation & examples
+   - Add a `docs/` section or Storybook to demonstrate each plugin's options and attribute-driven usage.
+8. Performance & accessibility audits
+   - Add performance budgets and ARIA/accessibility checks for keyboard-only & assistive-tech scenarios.
 
-As of the latest update, Supermouse.js maintains excellent test coverage:
+---
 
-- Statements: 89.65%
-- Branches: 78.04%
-- Functions: 85%
-- Lines: 90.69%
+Development notes
 
-## Contributing to Tests
+- Run the demo playground: `pnpm dev`
+- Build all packages: `pnpm -r build` (runs each packages' `build` script)
+- Create/remove plugin: `pnpm run create:plugin <name>` / `pnpm run remove:plugin <name>`
+- Root tooling: `changesets` is available for managing multi-package versioning.
 
-We welcome contributions to our test suite. If you're adding new features or fixing bugs, please include relevant test cases. Ensure all tests pass before submitting a pull request.
+Publishing: prefer `changesets` to prepare releases and then `pnpm -r publish` (or a CI-driven publish action).
 
-For more information on writing tests, refer to the [Jest documentation](https://jestjs.io/docs/getting-started).
+---
 
-## API Reference
+Appendix — files of interest
 
-### Options
+- `packages/core/src/Supermouse.ts` — core runtime and update loop
+- `packages/core/src/systems/Input.ts` — input event normalization and accessibility checks
+- `packages/core/src/systems/Stage.ts` — DOM stage and native-cursor hiding
+- `packages/*/src/index.ts` — plugin entry points (see `dot`, `ring`, `sparkles`, `image`, `text`, `magnetic`)
+- `packages/legacy-wrapper/index.js` — compatibility wrapper for v1 API
+- `scripts/create-plugin.js` and `scripts/remove-plugin.js` — scaffolding helpers
 
-- `theme`: String (default: 'default') - Sets the visual theme of the cursor
-- `ringSize`: Number (default: 15) - Size of the outer ring in pixels
-- `ringClickSize`: Number (default: ringSize - 5) - Size of the ring when clicked
-- `animationDuration`: Number (default: 200) - Duration of pointer animations in milliseconds
-- `ringAnimationDuration`: Number (default: 600) - Duration of ring animations in milliseconds
-- `ringAnimationDelay`: Number (default: 200) - Delay before ring animations start in milliseconds
-- `useAnimation`: Boolean (default: true) - Enables or disables animations
+---
 
-### Methods
+Contributing
 
-- `setTheme(theme: string)`: Change the cursor theme
+Contributions are welcome. Please open issues/PRs and follow the standard steps:
+- Fork, branch, code, add tests, ensure the playground demonstrates your changes, open a PR with a clear description.
 
-```js
-cursor.setTheme('neon');
-```
+License
 
-- `handleHoverEffects()`: Apply hover effects to interactive elements (a, button, [data-hover])
-
-```js
-cursor.handleHoverEffects();
-```
-
-- `setRingSize(size: number)`: Set the size of the outer ring
-
-```js
-cursor.setRingSize(20);
-```
-
-- `setPointerColor(color: string)`: Set the color of the pointer
-
-```js
-cursor.setPointerColor('#ff0000');
-```
-
-- `setAnimationDuration(duration: number)`: Set the duration of pointer animations
-
-```js
-cursor.setAnimationDuration(300);
-```
-
-- `setRingAnimationDuration(duration: number)`: Set the duration of ring animations
-
-```js
-cursor.setRingAnimationDuration(800);
-```
-
-- `setRingAnimationDelay(delay: number)`: Set the delay before ring animations start
-
-```js
-cursor.setRingAnimationDelay(150);
-```
-
-- `setHoverColor(color: string)`: Set the color of the cursor on hover
-
-```js
-cursor.setHoverColor('#00ff00');
-```
-
-### Themes
-
-Available themes:
-
-- default
-- neon
-- monochrome
-- sunset
-- ocean
-
-Change theme:
-
-```js
-cursor.setTheme('neon');
-```
-
-### Internal Workings
-
-- The `Supermouse` class creates a container div with two child elements: a pointer (dot) and a ring.
-- It uses `requestAnimationFrame` for smooth animations and updates.
-- The cursor position is tracked using mouse events (mousemove, mousedown, mouseup).
-- The ring follows the pointer with a slight delay for a more natural feel.
-- Hover effects are automatically applied to interactive elements.
-
-## Inspiration
-
-Supermouse.js was made possible from the inspiration of a few incredible works like [Curzr](https://github.com/fuzionix/Curzr), the open-source project, and the lightweight cursor library [Pointer.js](https://seattleowl.com/pointer.js).
-
-## Troubleshooting
-
-### Cursor not appearing
-
-- Ensure Supermouse.js is properly imported and initialized
-- Check if any CSS is overriding the cursor styles
-
-### Animations not working
-
-- Verify that `useAnimation` is set to `true` in the options
-- Check if the browser supports Web Animations API
-
-### Theme not applying correctly
-
-- Confirm the theme name is spelled correctly
-- Make sure custom themes are properly defined before use
-
-### Performance issues
-
-- Try reducing `ringSize` or increasing `animationDuration`
-- Disable animations for low-end devices
-
-For further assistance, please open an issue on our GitHub repository.
-
-## License
-
-MIT License
+MIT

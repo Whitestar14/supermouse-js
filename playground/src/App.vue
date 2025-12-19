@@ -31,8 +31,6 @@ onMounted(() => {
     .use(Dot({ 
       size: 8, 
       color: 'var(--cursor-color)', 
-      // Functional Option: Hide dot if sticking
-      opacity: (state) => state.hoverTarget?.hasAttribute('data-supermouse-stick') ? 0 : 1 
     }))
     .use(Ring({ 
       size: 20, 
@@ -139,7 +137,8 @@ const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic') => {
     </div>
 
     <!-- Controls (Bottom Left) -->
-    <div class="fixed bottom-8 left-8 flex gap-4 z-50 cursor-default">
+    <div class="fixed bottom-8 left-8 flex gap-4 z-50 cursor-default" data-supermouse-ignore
+         @mousedown.stop>
       <button @click="toggleCursor" 
               class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono transition-colors">
         {{ isEnabled ? 'Disable Cursor' : 'Enable Cursor' }}
@@ -151,7 +150,8 @@ const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic') => {
     </div>
 
     <!-- Plugin Toggles (Bottom Right) -->
-    <div class="fixed bottom-8 right-8 flex flex-col gap-2 z-50 cursor-default">
+    <div class="fixed bottom-8 right-8 flex flex-col gap-2 z-50 cursor-default" data-supermouse-ignore
+         @mousedown.stop>
       <div class="text-xs text-gray-500 font-mono mb-1 text-right">PLUGINS</div>
       
       <button @click="togglePlugin('dot')" 

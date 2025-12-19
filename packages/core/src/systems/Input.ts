@@ -46,6 +46,9 @@ export class Input {
   // --- Handlers ---
  private handleMove = (e: MouseEvent | TouchEvent) => {
     if (!this.isEnabled) return;
+    
+    // We still track pointer position even in ignored zones 
+    // so the cursor doesn't teleport when it re-enters.
     if (e instanceof MouseEvent) {
       this.state.pointer.x = e.clientX;
       this.state.pointer.y = e.clientY;
@@ -62,6 +65,14 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
+    // 0. THE VETO: Explicit Ignore
+    // If the target (or any parent) has the ignore attribute, force Native Mode.
+    if (target.closest('[data-supermouse-ignore]')) {
+      this.state.isNative = true;
+      return; // Stop processing hover effects
+    }
+
+    // 1. Dynamic Hover Check
     const selector = this.getHoverSelector();
     const hoverable = target.closest(selector);
 
@@ -70,6 +81,7 @@ export class Input {
       this.state.hoverTarget = hoverable as HTMLElement;
     }
 
+    // 2. Semantic Native Cursor Check (Auto-detection)
     if (this.options.ignoreOnNative) {
       const style = window.getComputedStyle(target).cursor;
       const supermouseAllowed = ['default', 'auto', 'pointer', 'none', 'inherit'];
@@ -92,6 +104,9 @@ export class Input {
        }
     }
 
+    // Clear Native/Veto State
+    // We assume that if we mouse out, we are returning to "Neutral" territory.
+    // The next mouseover (which fires immediately after) will re-assert isNative if needed.
     if (this.state.isNative) {
       this.state.isNative = false;
     }
