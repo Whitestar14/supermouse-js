@@ -1,0 +1,17 @@
+
+{
+  "name": "supermouse",
+  "version": "2.0.0",
+  "description": "Legacy compatibility wrapper for Supermouse v2",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@supermousejs/core": "workspace:*",
+    "@supermousejs/dot": "workspace:*",
+    "@supermousejs/ring": "workspace:*"
+  }
+}

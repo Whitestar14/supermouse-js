@@ -8,6 +8,7 @@
     "@supermousejs/core": "workspace:*",
     "@supermousejs/dot": "workspace:*",
     "@supermousejs/image": "workspace:*",
+    "@supermousejs/magnetic": "workspace:*",
     "@supermousejs/ring": "workspace:*",
     "@supermousejs/sparkles": "workspace:*",
     "@supermousejs/text": "workspace:*",

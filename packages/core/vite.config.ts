@@ -10,7 +10,6 @@ export default defineConfig({
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      // Don't bundle core, unless we ARE core
       external: [],
       output: {
         globals: {

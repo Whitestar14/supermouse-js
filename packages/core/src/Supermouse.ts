@@ -140,7 +140,6 @@ export class Supermouse {
     }
 
     if (this.input.isEnabled) {
-      // target was used for magnetism. i might reintroduce its use later.
       this.state.target.x = this.state.pointer.x;
       this.state.target.y = this.state.pointer.y;
 

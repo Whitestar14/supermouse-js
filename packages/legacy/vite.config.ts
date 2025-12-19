@@ -1,3 +1,4 @@
+
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import path from 'path';
@@ -6,15 +7,13 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'Dot',
+      name: 'Supermouse',
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      external: ['@supermousejs/core'],
+      external: [], 
       output: {
-        globals: {
-          '@supermousejs/core': 'SupermouseCore'
-        }
+        globals: {}
       }
     }
   },

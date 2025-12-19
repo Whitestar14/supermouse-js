@@ -5,6 +5,11 @@
   ],
   "compilerOptions": {
     "outDir": "dist",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@supermousejs/core": [
+        "../core/src/index.ts"
+      ]
+    }
   }
 }

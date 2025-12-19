@@ -5,12 +5,12 @@ import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
 import { Text } from '@supermousejs/text';
 import { Sparkles } from '@supermousejs/sparkles';
+import { Magnetic } from '@supermousejs/magnetic';
 import { Image } from '@supermousejs/image';
 
 let mouse: Supermouse | null = null;
 const isEnabled = ref(true);
 
-// State for plugin toggles
 const plugins = reactive({
   dot: true,
   ring: true,
@@ -23,21 +23,14 @@ onMounted(() => {
     enableTouch: false,
     ignoreOnNative: true, 
     hideCursor: true,
-    stickStrength: 0   
   });
 
   mouse
-    .use(Dot({ 
-      size: 8, 
-      color: 'var(--cursor-color)', 
-    }))
-    .use(Ring({ 
-      size: 20, 
-      hoverSize: 45, 
-      color: 'var(--cursor-color)', 
-      enableStick: true, 
-      enableSkew: true 
-    }))
+    // Logic Plugins first (Calculates positions)
+    .use(Magnetic({ attraction: 0.8 }))
+    // Visual Plugins next
+    .use(Dot({ size: 8, color: 'var(--cursor-color)', hideOnStick: true }))
+    .use(Ring({ size: 20, hoverSize: 45, color: 'var(--cursor-color)', enableStick: true, enableSkew: true }))
     .use(Text({ className: 'custom-tooltip' }))
     .use(Image({ offset: [20, 20], smoothness: 0.15 }))
     .use(Sparkles({ color: 'var(--cursor-color)', maxParticles: 30 }));

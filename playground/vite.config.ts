@@ -12,6 +12,7 @@ export default defineConfig({
       '@supermousejs/text': path.resolve(__dirname, '../packages/text/src/index.ts'),
       '@supermousejs/image': path.resolve(__dirname, '../packages/image/src/index.ts'),
       '@supermousejs/sparkles': path.resolve(__dirname, '../packages/sparkles/src/index.ts'),
+      '@supermousejs/magnetic': path.resolve(__dirname, '../packages/magnetic/src/index.ts'),
     },
   },
 });

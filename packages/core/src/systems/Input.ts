@@ -46,9 +46,6 @@ export class Input {
   // --- Handlers ---
  private handleMove = (e: MouseEvent | TouchEvent) => {
     if (!this.isEnabled) return;
-    
-    // We still track pointer position even in ignored zones 
-    // so the cursor doesn't teleport when it re-enters.
     if (e instanceof MouseEvent) {
       this.state.pointer.x = e.clientX;
       this.state.pointer.y = e.clientY;
@@ -104,9 +101,6 @@ export class Input {
        }
     }
 
-    // Clear Native/Veto State
-    // We assume that if we mouse out, we are returning to "Neutral" territory.
-    // The next mouseover (which fires immediately after) will re-assert isNative if needed.
     if (this.state.isNative) {
       this.state.isNative = false;
     }
