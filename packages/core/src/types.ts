@@ -1,3 +1,4 @@
+
 import { Supermouse } from './Supermouse';
 
 /**
@@ -33,6 +34,8 @@ export interface MouseState {
   hoverTarget: HTMLElement | null;
   /** Whether the user has `prefers-reduced-motion` enabled. */
   reducedMotion: boolean;
+  /** Whether the system has received valid input coordinates at least once. */
+  hasReceivedInput: boolean;
 }
 
 /**
@@ -69,6 +72,11 @@ export interface SupermouseOptions {
    * @default true
    */
   hideCursor?: boolean;
+  /**
+   * Whether to hide the custom cursor when the mouse leaves the browser window.
+   * @default true
+   */
+  hideOnLeave?: boolean;
 }
 
 /**

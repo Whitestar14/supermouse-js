@@ -5,6 +5,8 @@ export interface IconMap {
   [key: string]: string;
 }
 
+export type IconAnchor = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
 export interface IconOptions {
   /** Map of icon names to SVG strings */
   icons: IconMap;
@@ -21,34 +23,51 @@ export interface IconOptions {
   /** Offset [x, y] for the icon. Default [0, 0] */
   offset?: [number, number];
   /** 
+   * Where the cursor visual anchors relative to the mouse point.
+   * Use 'top-left' for standard arrow cursors to align the tip with the click.
+   * @default 'center'
+   */
+  anchor?: ValueOrGetter<IconAnchor>;
+  /** 
    * Movement strategy. 
    * 'smooth' = uses interpolated position (laggy/cinematic).
    * 'raw' = uses raw pointer position (instant/precise).
    * @default 'smooth'
    */
-  followStrategy?: 'smooth' | 'raw';
+  followStrategy?: ValueOrGetter<'smooth' | 'raw'>;
 }
 
 export const Icon = (options: IconOptions): SupermousePlugin => {
   let el: HTMLDivElement;
   let contentWrapper: HTMLDivElement;
+  let styleTag: HTMLStyleElement;
   
-  const icons = options.icons;
-  const defaultState = options.defaultState || 'default';
-  const useSemanticTags = options.useSemanticTags ?? true;
-  const duration = options.transitionDuration ?? 200;
-  const [offX, offY] = options.offset || [0, 0];
-  const followStrategy = options.followStrategy || 'smooth';
+  // We reference options directly in update loop for reactivity
   
-  let currentState = defaultState;
-  let targetState = defaultState;
+  let currentState = options.defaultState || 'default';
+  let targetState = options.defaultState || 'default';
   let isTransitioning = false;
+  let lastDuration = 200;
+
+  // Inject CSS Keyframes for loading spinner if needed
+  const injectStyles = () => {
+    if (!document.getElementById('supermouse-icon-styles')) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'supermouse-icon-styles';
+        styleTag.textContent = `
+          @keyframes supermouse-spin { 100% { transform: rotate(360deg); } }
+          .supermouse-spin { animation: supermouse-spin 1s linear infinite; transform-origin: center; }
+        `;
+        document.head.appendChild(styleTag);
+    }
+  };
 
   return {
     name: 'icon',
     isEnabled: true,
     
     install(app) {
+      injectStyles();
       el = dom.createDiv();
       contentWrapper = dom.createDiv();
       
@@ -64,12 +83,16 @@ export const Icon = (options: IconOptions): SupermousePlugin => {
       contentWrapper.style.display = 'flex';
       contentWrapper.style.alignItems = 'center';
       contentWrapper.style.justifyContent = 'center';
+      
+      const duration = options.transitionDuration ?? 200;
       contentWrapper.style.transition = `transform ${duration/2}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+      lastDuration = duration;
+
       contentWrapper.style.transformOrigin = 'center center';
       contentWrapper.style.transform = 'scale(1)';
       
       // Initial content
-      contentWrapper.innerHTML = icons[currentState] || '';
+      contentWrapper.innerHTML = options.icons[currentState] || '';
       
       el.appendChild(contentWrapper);
       app.container.appendChild(el);
@@ -78,8 +101,19 @@ export const Icon = (options: IconOptions): SupermousePlugin => {
     },
     
     update(app) {
+      const duration = options.transitionDuration ?? 200;
+      const useSemanticTags = options.useSemanticTags ?? true;
+      const [userOffX, userOffY] = options.offset || [0, 0];
+      const icons = options.icons;
+
+      // Update transition if duration changed
+      if (duration !== lastDuration) {
+        contentWrapper.style.transition = `transform ${duration/2}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+        lastDuration = duration;
+      }
+
       // 1. Determine State
-      let nextState = defaultState;
+      let nextState = options.defaultState || 'default';
       const hoverTarget = app.state.hoverTarget;
       
       if (hoverTarget) {
@@ -108,7 +142,7 @@ export const Icon = (options: IconOptions): SupermousePlugin => {
       // 2. Handle Transition (Scale Out -> Swap -> Scale In)
       if (nextState !== currentState && !isTransitioning) {
         // Only transition if the new state actually exists in our registry
-        if (icons[nextState] || nextState === defaultState) {
+        if (icons[nextState] || nextState === (options.defaultState || 'default')) {
             targetState = nextState;
             isTransitioning = true;
             
@@ -129,16 +163,32 @@ export const Icon = (options: IconOptions): SupermousePlugin => {
       // 3. Update Props
       const size = resolve(options.size, app.state, 24);
       const color = resolve(options.color, app.state, 'black');
+      const strategy = resolve(options.followStrategy, app.state, 'smooth');
+      const anchor = resolve(options.anchor, app.state, 'center');
       
       el.style.width = `${size}px`;
       el.style.height = `${size}px`;
       el.style.color = color;
       
-      // 4. Position
-      const pos = followStrategy === 'raw' ? app.state.pointer : app.state.smooth;
-      dom.setTransform(el, pos.x + offX, pos.y + offY);
+      // 4. Calculate Anchor Offset
+      let anchorX = 0;
+      let anchorY = 0;
+      const half = size / 2;
+
+      switch(anchor) {
+        case 'top-left': anchorX = half; anchorY = half; break;
+        case 'top-right': anchorX = -half; anchorY = half; break;
+        case 'bottom-left': anchorX = half; anchorY = -half; break;
+        case 'bottom-right': anchorX = -half; anchorY = -half; break;
+      }
+
+      // 5. Position
+      const pos = strategy === 'raw' ? app.state.pointer : app.state.smooth;
+      dom.setTransform(el, pos.x + userOffX + anchorX, pos.y + userOffY + anchorY);
     },
     
-    destroy() { el.remove(); }
+    destroy() { 
+        el.remove();
+    }
   };
 };

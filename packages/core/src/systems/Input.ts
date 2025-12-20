@@ -1,3 +1,4 @@
+
 import { MouseState, SupermouseOptions } from '../types';
 
 /**
@@ -50,12 +51,29 @@ export class Input {
   // --- Handlers ---
  private handleMove = (e: MouseEvent | TouchEvent) => {
     if (!this.isEnabled) return;
+    let x = 0;
+    let y = 0;
+
     if (e instanceof MouseEvent) {
-      this.state.pointer.x = e.clientX;
-      this.state.pointer.y = e.clientY;
+      x = e.clientX;
+      y = e.clientY;
     } else if (e.touches?.[0]) {
-      this.state.pointer.x = e.touches[0].clientX;
-      this.state.pointer.y = e.touches[0].clientY;
+      x = e.touches[0].clientX;
+      y = e.touches[0].clientY;
+    }
+
+    this.state.pointer.x = x;
+    this.state.pointer.y = y;
+
+    // Invisible Until Active Strategy:
+    // If this is the first input (or re-entry), snap everything to the exact position
+    // to prevent the cursor from "flying in" from 0,0 or -100,-100.
+    if (!this.state.hasReceivedInput) {
+      this.state.hasReceivedInput = true;
+      this.state.target.x = x;
+      this.state.target.y = y;
+      this.state.smooth.x = x;
+      this.state.smooth.y = y;
     }
   };
 
@@ -107,6 +125,13 @@ export class Input {
 
     if (this.state.isNative) {
       this.state.isNative = false;
+    }
+
+    // Window Exit Detection:
+    // If relatedTarget is null, the mouse has likely left the viewport window.
+    // If configured to hide on leave, we disable hasReceivedInput.
+    if (this.options.hideOnLeave && e.relatedTarget === null) {
+      this.state.hasReceivedInput = false;
     }
   };
 

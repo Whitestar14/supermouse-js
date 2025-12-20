@@ -1,3 +1,4 @@
+
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
 import { lerp } from './utils';
@@ -36,6 +37,7 @@ export class Supermouse {
       autoDisableOnMobile: true,
       ignoreOnNative: true,
       hideCursor: true, 
+      hideOnLeave: true,
       ...options
     };
 
@@ -48,7 +50,8 @@ export class Supermouse {
       isHover: false,
       isNative: false,
       hoverTarget: null,
-      reducedMotion: false
+      reducedMotion: false,
+      hasReceivedInput: false
     };
 
     this.stage = new Stage(!!this.options.hideCursor);
@@ -161,6 +164,7 @@ export class Supermouse {
     this.state.target = { ...off };
     this.state.smooth = { ...off };
     this.state.velocity = { x: 0, y: 0 };
+    this.state.hasReceivedInput = false;
   }
 
   private startLoop() {
@@ -175,11 +179,16 @@ export class Supermouse {
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
 
-    const shouldShowStage = this.input.isEnabled && !this.state.isNative;
+    // Visibility Logic:
+    // Only show the stage if Input is enabled, we aren't in Native mode (like text input), 
+    // AND we have actually received input coordinates at least once.
+    const shouldShowStage = this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
     this.stage.setVisibility(shouldShowStage);
 
     if (this.input.isEnabled && this.options.hideCursor) {
-       this.stage.setNativeCursor(this.state.isNative ? 'auto' : 'none');
+       // Only hide native cursor if we are showing ours (hasReceivedInput is true) AND not in a native zone
+       const shouldHideNative = this.state.hasReceivedInput && !this.state.isNative;
+       this.stage.setNativeCursor(shouldHideNative ? 'none' : 'auto');
     }
 
     if (this.input.isEnabled) {
@@ -194,6 +203,8 @@ export class Supermouse {
       });
 
       // Smooth: Lerp towards target
+      // If just re-entered/started (hasReceivedInput just flipped true in Input.ts), 
+      // Input.ts snaps state.smooth to state.pointer, so lerp distance is 0.
       const factor = this.state.reducedMotion ? 1 : this.options.smoothness!;
       this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
       this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);

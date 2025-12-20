@@ -1,3 +1,5 @@
+let stageCount = 0;
+
 /**
  * Manages the fixed DOM container for cursor elements and handles global CSS injection 
  * for hiding the native cursor.
@@ -5,6 +7,7 @@
 export class Stage {
   public readonly element: HTMLDivElement;
   private styleTag: HTMLStyleElement;
+  private id: string;
 
   private selectors: Set<string> = new Set([
     'html', 'body', 'a', 'button', 'input[type="submit"]', 
@@ -13,6 +16,8 @@ export class Stage {
   ]);
 
   constructor(private hideNativeCursor: boolean) {
+    this.id = `supermouse-style-${stageCount++}`;
+
     // 1. Create Container
     this.element = document.createElement('div');
     Object.assign(this.element.style, {
@@ -27,7 +32,7 @@ export class Stage {
 
     // 2. Create Dynamic Style Tag
     this.styleTag = document.createElement('style');
-    this.styleTag.id = 'supermouse-cursor-styles';
+    this.styleTag.id = this.id;
     document.head.appendChild(this.styleTag);
 
     if (this.hideNativeCursor) {
@@ -55,6 +60,7 @@ export class Stage {
    * @param type 'none' to hide, 'auto' to show.
    */
   public setNativeCursor(type: 'none' | 'auto' | '') {
+    // If global hiding is disabled, do nothing
     if (!this.hideNativeCursor && type === 'none') return;
 
     if (type === 'none') {
@@ -76,6 +82,8 @@ export class Stage {
   public destroy() {
     this.element.remove();
     this.styleTag.remove();
+    // Only reset body cursor if we were the ones hiding it? 
+    // For now, safe to reset to empty (default).
     document.body.style.cursor = '';
   }
 }

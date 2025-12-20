@@ -1,3 +1,4 @@
+
 import { type SupermousePlugin, dom, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
 
 export interface DotOptions {
@@ -5,7 +6,7 @@ export interface DotOptions {
   color?: ValueOrGetter<string>;
   opacity?: ValueOrGetter<number>;
   zIndex?: string;
-  mixBlendMode?: string;
+  mixBlendMode?: ValueOrGetter<string>;
 }
 
 export const Dot = (options: DotOptions = {}): SupermousePlugin => {
@@ -14,7 +15,7 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   const defSize = 8;
   const defColor = '#750c7e';
   const defOpacity = 1;
-  const mixBlendMode = options.mixBlendMode || 'difference';
+  const defBlend = 'difference';
 
   return {
     name: 'dot',
@@ -23,13 +24,13 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     install(app) {
       const size = resolve(options.size, app.state, defSize);
       const color = resolve(options.color, app.state, defColor);
-
+      
       el = dom.createCircle(size, color);
       
       dom.applyStyles(el, {
         zIndex: options.zIndex || Layers.CURSOR, 
-        mixBlendMode: mixBlendMode,
-        transition: 'background-color 0.2s ease, opacity 0.2s ease'
+        transition: 'background-color 0.2s ease, opacity 0.2s ease',
+        mixBlendMode: 'normal' // Initial value, updated in loop
       });
       
       app.registerHoverTarget('[data-supermouse-color]');
@@ -39,6 +40,7 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
     update(app) {
       const size = resolve(options.size, app.state, defSize);
       const opacity = resolve(options.opacity, app.state, defOpacity);
+      const blend = resolve(options.mixBlendMode, app.state, defBlend);
       let color = resolve(options.color, app.state, defColor);
       
       const target = app.state.hoverTarget;
@@ -50,6 +52,11 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
       el.style.height = `${size}px`;
       el.style.backgroundColor = color;
       el.style.opacity = String(opacity);
+      
+      // Reactive Blend Mode (Dirty Check)
+      if (el.style.mixBlendMode !== blend) {
+        el.style.mixBlendMode = blend;
+      }
 
       // Position Logic
       const { x, y } = app.state.target;

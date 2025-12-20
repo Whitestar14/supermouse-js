@@ -36,6 +36,7 @@ export const Pointer = (options: PointerOptions = {}): SupermousePlugin => {
   // State
   let lastRotation = 0;
   let stopTime = 0;
+  let lastSvg = '';
 
   return {
     name: 'pointer',
@@ -45,7 +46,6 @@ export const Pointer = (options: PointerOptions = {}): SupermousePlugin => {
       el = dom.createDiv();
       el.style.zIndex = Layers.CURSOR;
       el.style.transformOrigin = 'center center'; 
-      el.innerHTML = options.svg || DEFAULT_SVG;
       
       app.container.appendChild(el);
       
@@ -62,12 +62,19 @@ export const Pointer = (options: PointerOptions = {}): SupermousePlugin => {
       const restingAngle = resolve(options.restingAngle, app.state, -45);
       const returnToRest = resolve(options.returnToRest, app.state, true);
       const restDelay = resolve(options.restDelay, app.state, 200);
-      
+      const svg = options.svg || DEFAULT_SVG;
+
+      // 2. DOM Updates (Dirty Checks)
       el.style.width = `${size}px`;
       el.style.height = `${size}px`;
       el.style.color = color;
 
-      // 2. Physics (Rotation)
+      if (svg !== lastSvg) {
+        el.innerHTML = svg;
+        lastSvg = svg;
+      }
+
+      // 3. Physics (Rotation)
       const { x: vx, y: vy } = app.state.velocity;
       const speed = math.dist(vx, vy);
       const now = performance.now();
@@ -98,7 +105,7 @@ export const Pointer = (options: PointerOptions = {}): SupermousePlugin => {
       
       currentRotation += delta * factor;
 
-      // 3. Transform
+      // 4. Transform
       const { x, y } = app.state.smooth;
       dom.setTransform(el, x, y, currentRotation);
     },
