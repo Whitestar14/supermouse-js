@@ -1,4 +1,3 @@
-
 import { Supermouse } from './Supermouse';
 
 export interface MousePosition {
@@ -34,6 +33,13 @@ export type ValueOrGetter<T> = T | ((state: MouseState) => T);
 
 export interface SupermousePlugin {
   name: string;
+  /** 
+   * Execution priority. Lower numbers run first.
+   * Logic plugins (like Magnetic) should use negative numbers.
+   * Visual plugins (Dot, Ring) default to 0.
+   * @default 0
+   */
+  priority?: number;
   /** 
    * If false, update() will not be called. 
    * @default true 

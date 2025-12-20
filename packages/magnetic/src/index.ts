@@ -27,6 +27,7 @@ export const Magnetic = (options: MagneticOptions = {}): SupermousePlugin => {
 
   return {
     name: "magnetic",
+    priority: -10, // Run before visual plugins (default 0) to update target coordinates first
     isEnabled: true,
 
     install(app) {

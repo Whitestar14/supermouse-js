@@ -1,4 +1,3 @@
-
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
 import { lerp } from './utils';
@@ -11,6 +10,7 @@ export class Supermouse {
   options: SupermouseOptions;
   plugins: Map<string, SupermousePlugin> = new Map();
   
+  private pluginList: SupermousePlugin[] = [];
   private stage: Stage;
   private input: Input;
   private rafId: number = 0;
@@ -108,8 +108,16 @@ export class Supermouse {
     }
 
     this.plugins.set(plugin.name, plugin);
+    this.updatePluginList();
+    
     plugin.install?.(this);
     return this;
+  }
+
+  private updatePluginList() {
+    this.pluginList = Array.from(this.plugins.values()).sort((a, b) => {
+      return (a.priority || 0) - (b.priority || 0);
+    });
   }
 
   private resetPosition() {
@@ -143,8 +151,8 @@ export class Supermouse {
       this.state.target.x = this.state.pointer.x;
       this.state.target.y = this.state.pointer.y;
 
-      // Plugins: Update Visuals
-      this.plugins.forEach((plugin) => {
+      // Plugins: Update Logic & Visuals (Sorted by priority)
+      this.pluginList.forEach((plugin) => {
         if (plugin.isEnabled !== false) {
           plugin.update?.(this, deltaTime);
         }
@@ -164,7 +172,7 @@ export class Supermouse {
       this.state.pointer.x = -100;
       this.state.pointer.y = -100;
       
-      this.plugins.forEach((plugin) => {
+      this.pluginList.forEach((plugin) => {
         if (plugin.isEnabled !== false) {
           plugin.update?.(this, deltaTime);
         }
@@ -181,5 +189,6 @@ export class Supermouse {
     this.stage.destroy();
     this.plugins.forEach(p => p.destroy?.(this));
     this.plugins.clear();
+    this.pluginList = [];
   }
 }
