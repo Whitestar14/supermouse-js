@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref } from 'vue';
+import { onMounted, onUnmounted, watch, ref, reactive, nextTick } from 'vue';
 import { Supermouse } from '@supermousejs/core';
 import type { PresetRecipe } from './recipes';
 
@@ -16,9 +16,34 @@ const props = defineProps<{
 const containerRef = ref<HTMLElement | null>(null);
 let mouse: Supermouse | null = null;
 
+// Reactive proxy that connects the recipe getters to the current props
+const liveConfig = reactive<Record<string, any>>({});
+
+const lastPos = { x: -100, y: -100 };
+
+const onGlobalMove = (e: MouseEvent) => {
+  lastPos.x = e.clientX;
+  lastPos.y = e.clientY;
+};
+
+// Interaction State
+const isBouncing = ref(false);
+const triggerBounce = () => {
+  isBouncing.value = true;
+  setTimeout(() => { isBouncing.value = false; }, 150);
+};
+
 const initCursor = () => {
   if (!containerRef.value) return;
-  if (mouse) mouse.destroy();
+  
+  // Cleanup previous instance
+  if (mouse) {
+    mouse.destroy();
+    mouse = null;
+  }
+
+  // Sync initial config
+  Object.assign(liveConfig, props.config);
 
   // 1. Create Core
   mouse = new Supermouse({
@@ -27,36 +52,65 @@ const initCursor = () => {
     ignoreOnNative: true
   });
 
-  // 2. Run Recipe Setup
-  props.recipe.setup(mouse, props.config);
+  // 2. Pre-seed position
+  if (lastPos.x !== -100) {
+    mouse.state.pointer.x = lastPos.x;
+    mouse.state.pointer.y = lastPos.y;
+    mouse.state.target.x = lastPos.x;
+    mouse.state.target.y = lastPos.y;
+    mouse.state.smooth.x = lastPos.x;
+    mouse.state.smooth.y = lastPos.y;
+  }
+
+  // 3. Run Recipe Setup with Reactive Config
+  // This allows getters inside the recipe (e.g. () => config.size) to read 
+  // from the live object, which we update via the watcher below.
+  props.recipe.setup(mouse, liveConfig);
 };
 
-// Watch Global Config
-watch(() => props.globalConfig, () => {
-  if (mouse) {
-    mouse.options.smoothness = props.globalConfig.smoothness;
-    mouse.options.hideCursor = !props.globalConfig.showNative;
-    if (!props.globalConfig.showNative) mouse.stage.setNativeCursor('none');
-    else mouse.stage.setNativeCursor('auto');
-  }
-}, { deep: true });
+// --- Reactivity ---
 
-// Watch Recipe
+// 1. Recipe Change: HARD Reload (Different plugins needed)
 watch(() => props.recipe.id, () => {
-  initCursor();
+    nextTick(initCursor);
 });
 
-// Watch Config
-watch(() => props.config, () => {
-    // Config updates are handled dynamically by plugins via getters where possible.
+// 2. Config Change: SOFT Update (Update reactive state)
+watch(() => props.config, (newVal) => {
+    // Determine if we need a hard reload (for static options) or soft (for getters)
+    // For now, we update the reactive object. Plugins using getters will pick it up instantly.
+    // Plugins using static options won't update until hard reload, but most visuals use getters.
+    Object.assign(liveConfig, newVal);
 }, { deep: true });
 
+// 3. Global Config: Semi-Soft (Update core options)
+watch(() => props.globalConfig, (newVal) => {
+    if (mouse) {
+        // Update smooth factor directly
+        mouse.options.smoothness = newVal.smoothness;
+        
+        // Handle Native Cursor visibility
+        // If config says showNative=true, we want hideCursor=false
+        const shouldHide = !newVal.showNative;
+        if (mouse.options.hideCursor !== shouldHide) {
+            mouse.options.hideCursor = shouldHide;
+            // Force stage update
+            // @ts-ignore - Accessing private/internal for hot-update
+            if (mouse.input.isEnabled) {
+                 // @ts-ignore
+                 mouse.stage.setNativeCursor(shouldHide ? 'none' : 'auto');
+            }
+        }
+    }
+}, { deep: true });
 
 onMounted(() => {
+  window.addEventListener('mousemove', onGlobalMove);
   initCursor();
 });
 
 onUnmounted(() => {
+  window.removeEventListener('mousemove', onGlobalMove);
   mouse?.destroy();
 });
 </script>
@@ -73,19 +127,38 @@ onUnmounted(() => {
         </h1>
     </div>
 
-    <!-- Interactive Elements Toolbar -->
-    <div class="h-24 border-t border-zinc-200 bg-white relative z-20 flex items-center justify-center gap-0 px-8">
+    <!-- Interactive Elements Toolbar (Flush Strip) -->
+    <div class="h-12 border-t border-zinc-200 bg-white relative z-20 flex items-stretch justify-center divide-x divide-zinc-200">
         
         <!-- Button -->
-        <button class="h-12 px-8 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-                data-supermouse-text="Click me">
+        <button 
+            @click="triggerBounce"
+            class="px-8 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors duration-100 ease-out"
+            :class="{ 'bg-black text-white': isBouncing }"
+            data-supermouse-text="Click me"
+        >
             Button
         </button>
 
         <!-- Link/Text -->
-        <div class="h-12 flex items-center px-8 text-sm font-bold text-zinc-900 border border-l-0 border-zinc-200 hover:bg-zinc-50 transition-colors cursor-pointer" 
+        <div class="flex items-center px-8 text-sm font-bold text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer" 
              data-hover data-supermouse-text="Go to Link">
-            Hyperlink
+            <span class="underline decoration-2 underline-offset-4">Hyperlink</span>
+        </div>
+
+        <!-- Input -->
+        <input 
+            type="text" 
+            placeholder="Type here..." 
+            class="px-6 w-32 md:w-64 bg-white text-sm font-mono focus:outline-none focus:bg-zinc-50 transition-colors placeholder:text-zinc-400"
+        />
+
+        <!-- Loading Trigger -->
+        <div class="w-12 flex items-center justify-center bg-white hover:bg-zinc-50 cursor-wait"
+             data-supermouse-icon="loading"
+             title="Hover to test loading icon"
+        >
+            <div class="w-1.5 h-1.5 bg-zinc-300 rounded-full"></div>
         </div>
 
     </div>

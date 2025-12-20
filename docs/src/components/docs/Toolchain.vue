@@ -40,7 +40,7 @@ const buildCode = `pnpm -r build`;
                <p class="text-xs text-zinc-500 mb-4">Creates package folder, tsconfig, and vite config.</p>
            </div>
            <div class="w-full md:w-2/3">
-               <CodeBlock :code="createPluginCode" title="Terminal" />
+               <CodeBlock :code="createPluginCode" title="Terminal" lang="text" />
            </div>
         </div>
 
@@ -50,7 +50,7 @@ const buildCode = `pnpm -r build`;
                <p class="text-xs text-zinc-500 mb-4">Safely unlinks from workspace and deletes files.</p>
            </div>
            <div class="w-full md:w-2/3">
-               <CodeBlock :code="removePluginCode" title="Terminal" />
+               <CodeBlock :code="removePluginCode" title="Terminal" lang="text" />
            </div>
         </div>
      </div>

@@ -16,7 +16,9 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "vue": "^3.5.26",
-    "@supermousejs/text-ring": "workspace:*"
+    "@supermousejs/text-ring": "workspace:*",
+    "@supermousejs/pointer": "workspace:*",
+    "@supermousejs/icon": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3"

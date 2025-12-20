@@ -1,6 +1,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { APP_VERSION } from '../constants';
 
 const mobileMenuOpen = ref(false);
 
@@ -33,7 +34,7 @@ const toggleMenu = () => {
             <div class="w-[0.6em] h-[0.6em] bg-current rounded-full mx-[0.05em] relative top-[1px]"></div>
             <span>use</span>
           </div>
-          <span class="ml-3 text-[10px] font-bold text-zinc-400 tracking-widest uppercase relative top-[2px] opacity-60">v2.0</span>
+          <span class="ml-3 text-[10px] font-bold text-zinc-400 tracking-widest uppercase relative top-[2px] opacity-60">{{ APP_VERSION }}</span>
         </router-link>
 
         <!-- Mobile Menu Trigger -->
@@ -106,7 +107,7 @@ const toggleMenu = () => {
          <div class="mt-auto relative z-10 p-12 border-t border-zinc-100 bg-white/50 backdrop-blur-sm">
             <div class="flex flex-col gap-2">
                <span class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Latest Release</span>
-               <span class="text-sm font-bold text-zinc-900">v2.0.4 Stable</span>
+               <span class="text-sm font-bold text-zinc-900">{{ APP_VERSION }} Stable</span>
             </div>
          </div>
     </div>

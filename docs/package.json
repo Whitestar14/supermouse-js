@@ -20,7 +20,9 @@
     "@supermousejs/text": "workspace:*",
     "@supermousejs/text-ring": "workspace:*",
     "@supermousejs/image": "workspace:*",
-    "@supermousejs/magnetic": "workspace:*"
+    "@supermousejs/magnetic": "workspace:*",
+    "@supermousejs/pointer": "workspace:*",
+    "@supermousejs/icon": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3",

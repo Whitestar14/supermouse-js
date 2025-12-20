@@ -1,106 +1,151 @@
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, inject } from 'vue';
 import CursorEditor from '../components/playground/CursorEditor.vue';
 import { RECIPES } from '../components/playground/recipes';
 
 const activeRecipeId = ref<string | null>(null);
+const searchQuery = ref('');
+const setGlobalCursorState = inject<(enabled: boolean) => void>('setGlobalCursorState');
+
+const filteredRecipes = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim();
+  if (!q) return RECIPES;
+  
+  return RECIPES.filter(r => 
+    r.name.toLowerCase().includes(q) || 
+    r.description.toLowerCase().includes(q) ||
+    r.id.toLowerCase().includes(q)
+  );
+});
 
 const openEditor = (presetId: string) => {
+  // Pause global cursor so the Editor can instantiate its own local cursor
+  setGlobalCursorState?.(false);
   activeRecipeId.value = presetId;
+};
+
+const closeEditor = () => {
+  activeRecipeId.value = null;
+  // Re-enable global cursor
+  setGlobalCursorState?.(true);
 };
 </script>
 
 <template>
   <div class="text-zinc-900 relative min-h-screen bg-white">
     
-    <!-- Section Header (Sticky) -->
-    <div class="flex border-b border-zinc-200 h-16 md:h-20 bg-white sticky top-0 z-30">
-      <div class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0 bg-white">
-        <span class="mono text-lg font-bold text-zinc-900">05</span>
-      </div>
-      <div class="flex-1 px-8 flex items-center justify-between bg-white/80 backdrop-blur-md">
-         <h2 class="text-xl font-bold tracking-tighter text-zinc-900">Playground</h2>
-         <span class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">gallery.vue</span>
-      </div>
-    </div>
+    <!-- 
+      Strict Grid Layout 
+      The header and body must share exact column widths to maintain the grid lines.
+      Col 1 (Gutter): 80px (mobile) / 96px (desktop)
+      Col 2 (Sidebar): 400px (lg) / 480px (xl)
+      Col 3 (Main): Flex
+    -->
 
-    <!-- Layout Container -->
-    <div class="flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+    <div class="flex flex-col min-h-[calc(100vh-80px)]">
+      
+      <!-- Sticky Header Row -->
+      <div class="sticky top-0 z-30 flex bg-white border-b border-zinc-200 h-16 md:h-20">
         
-        <!-- Sidebar Spacer (Left Gutter) -->
-        <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white z-20"></div>
-
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col lg:flex-row">
-            
-            <!-- Intro Column -->
-            <div class="w-full lg:w-[400px] xl:w-[480px] p-8 md:p-12 lg:p-16 border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white relative z-10">
-                <div class="sticky top-32">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-2 h-2 bg-black"></div>
-                        <span class="mono text-[11px] font-bold uppercase tracking-widest text-zinc-500">Library</span>
-                    </div>
-                    <h1 class="text-4xl md:text-5xl font-bold tracking-tighter text-zinc-900 mb-6 leading-[1.05]">
-                        Preset Gallery
-                    </h1>
-                    <p class="text-lg text-zinc-600 font-medium leading-relaxed mb-8">
-                        Explore our collection of pre-configured cursor interactions. Select any preset to enter the <strong>Studio Editor</strong> and customize physics, aesthetics, and behavior.
-                    </p>
-                    
-                    <div class="p-6 bg-zinc-50 border border-zinc-200">
-                        <h4 class="font-bold text-sm mb-4 uppercase tracking-widest text-zinc-900 text-xs">How it works</h4>
-                        <ul class="text-sm text-zinc-600 space-y-3 font-mono">
-                            <li class="flex gap-4">
-                                <span class="font-bold text-black">01</span>
-                                Select a base style
-                            </li>
-                            <li class="flex gap-4">
-                                <span class="font-bold text-black">02</span>
-                                Tweak physics in the Editor
-                            </li>
-                            <li class="flex gap-4">
-                                <span class="font-bold text-black">03</span>
-                                Export configuration code
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gallery Grid -->
-            <div class="flex-1 bg-white">
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-px bg-zinc-200 border-b border-zinc-200">
-                    <button 
-                        v-for="preset in RECIPES" 
-                        :key="preset.id"
-                        @click="openEditor(preset.id)"
-                        class="group bg-white p-12 text-left hover:bg-zinc-50 transition-colors flex flex-col h-[320px] outline-none relative"
-                    >
-                        <div class="flex-1 mb-6 relative">
-                            <span class="text-5xl filter grayscale group-hover:grayscale-0 transition-all duration-500 block transform group-hover:scale-110 origin-top-left">{{ preset.icon }}</span>
-                        </div>
-                        
-                        <div class="mt-auto relative z-10">
-                            <div class="flex justify-between items-end mb-2">
-                                <h3 class="text-xl font-bold text-zinc-900 tracking-tight group-hover:translate-x-1 transition-transform">{{ preset.name }}</h3>
-                                <div class="w-6 h-6 border border-zinc-200 flex items-center justify-center bg-white group-hover:border-black group-hover:bg-black group-hover:text-white transition-all">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                </div>
-                            </div>
-                            <p class="text-xs text-zinc-500 font-mono leading-relaxed max-w-[90%]">{{ preset.description }}</p>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
+        <!-- 1. Gutter (Matches Navbar Logo Width) -->
+        <div class="w-[80px] md:w-[96px] border-r border-zinc-200 shrink-0 flex items-center justify-center bg-white">
+           <!-- Empty Gutter -->
         </div>
+
+        <!-- 2. Title Cell (Desktop Only - Aligns with Intro Column) -->
+        <div class="hidden lg:flex w-[400px] xl:w-[480px] items-center px-12 border-r border-zinc-200 bg-white">
+           <h1 class="font-bold tracking-tight text-zinc-900 text-lg">Playground</h1>
+        </div>
+
+        <!-- 3. Search Cell (Aligns with Grid) -->
+        <div class="flex-1 flex items-center bg-zinc-50/50">
+           <div class="w-16 h-full flex items-center justify-center text-zinc-400 shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+           </div>
+           <input 
+              type="text" 
+              v-model="searchQuery"
+              placeholder="Search presets..." 
+              class="w-full h-full bg-transparent outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 font-mono tracking-tight"
+           />
+           <!-- Count Badge -->
+           <div v-if="searchQuery" class="pr-6">
+              <span class="mono text-[10px] font-bold bg-zinc-200 text-zinc-600 px-2 py-1 rounded-sm">
+                {{ filteredRecipes.length }}
+              </span>
+           </div>
+        </div>
+      </div>
+
+      <!-- Body Content Row -->
+      <div class="flex flex-col lg:flex-row flex-1 items-stretch">
+        
+        <!-- 1. Gutter (Desktop Only) -->
+        <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white"></div>
+
+        <!-- 2. Intro Column (Aligns with Header Title) -->
+        <div class="w-full lg:w-[400px] xl:w-[480px] border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white p-8 md:p-12 flex flex-col relative z-10">
+            <!-- Mobile Title (Visible only when sidebar is collapsed/stacked) -->
+            <div class="lg:hidden mb-8">
+               <h1 class="font-bold tracking-tight text-zinc-900 text-2xl">Playground</h1>
+            </div>
+
+            <div class="lg:sticky lg:top-32">
+                <h2 class="text-5xl mt-8 md:text-6xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[0.95]">
+                    Interactive<br/>Gallery
+                </h2>
+                <p class="text-lg text-zinc-600 font-medium leading-relaxed mb-8 text-pretty">
+                    Select a preset to enter the Studio Editor. Configure physics, tweak visuals, and export production-ready code.
+                </p>
+                
+                <div class="hidden lg:block mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-4">
+                    Select a preset to edit
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Grid Column (Aligns with Header Search) -->
+        <div class="flex-1 bg-white min-h-[50vh]">
+            <div v-if="filteredRecipes.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border-b border-zinc-200">
+                <button 
+                    v-for="preset in filteredRecipes" 
+                    :key="preset.id"
+                    @click="openEditor(preset.id)"
+                    class="group bg-white p-10 text-left hover:bg-zinc-50 transition-colors flex flex-col h-[280px] outline-none relative"
+                >
+                    <div class="flex-1 mb-6 relative">
+                        <span class="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-500 block transform group-hover:scale-110 origin-top-left opacity-80 group-hover:opacity-100">{{ preset.icon }}</span>
+                    </div>
+                    
+                    <div class="mt-auto relative z-10">
+                        <div class="flex justify-between items-end mb-2">
+                            <h3 class="text-lg font-bold text-zinc-900 tracking-tight group-hover:translate-x-1 transition-transform">{{ preset.name }}</h3>
+                            <div class="w-6 h-6 flex items-center justify-center text-zinc-300 group-hover:text-black transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-zinc-500 font-mono leading-relaxed max-w-[90%] line-clamp-2">{{ preset.description }}</p>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Empty State -->
+            <div v-else class="flex flex-col items-center justify-center h-[50vh] text-zinc-300">
+                <div class="mb-4 font-mono text-4xl opacity-20">∅</div>
+                <span class="mono text-xs uppercase tracking-widest font-bold text-zinc-400">No matching presets</span>
+            </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- The Editor Modal -->
     <CursorEditor 
         :activeRecipeId="activeRecipeId" 
-        @close="activeRecipeId = null" 
+        @close="closeEditor" 
     />
 
   </div>

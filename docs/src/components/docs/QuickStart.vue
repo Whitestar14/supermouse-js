@@ -32,7 +32,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
                 <p class="text-xs text-zinc-500 leading-relaxed">Install core and any desired effect plugins.</p>
             </div>
             <div class="flex-1 min-w-0">
-                <CodeBlock :code="shellCode" title="Terminal" />
+                <CodeBlock :code="shellCode" title="Terminal" lang="text" />
             </div>
         </div>
 
@@ -44,7 +44,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
                 <p class="text-xs text-zinc-500 leading-relaxed">Initialize the class and register plugins.</p>
             </div>
             <div class="flex-1 min-w-0">
-                <CodeBlock :code="mainCode" title="src/main.ts" />
+                <CodeBlock :code="mainCode" title="src/main.ts" lang="typescript" />
             </div>
         </div>
 
@@ -56,7 +56,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
                 <p class="text-xs text-zinc-500 leading-relaxed">Use data attributes to control behavior.</p>
             </div>
             <div class="flex-1 min-w-0">
-                <CodeBlock :code="htmlCode" title="index.html" />
+                <CodeBlock :code="htmlCode" title="index.html" lang="html" />
                 <!-- Callout separated from code block container -->
                 <div class="mt-6 p-4 border border-zinc-200 bg-zinc-50/50">
                     <p class="text-xs font-bold text-zinc-900 uppercase tracking-wide mb-1">Important</p>

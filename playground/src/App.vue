@@ -1,8 +1,10 @@
+
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, reactive } from 'vue';
 import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
+import { Pointer } from '@supermousejs/pointer';
 import { Text } from '@supermousejs/text';
 import { Sparkles } from '@supermousejs/sparkles';
 import { Magnetic } from '@supermousejs/magnetic';
@@ -13,6 +15,7 @@ const isEnabled = ref(true);
 
 const plugins = reactive({
   dot: true,
+  pointer: false,
   ring: true,
   sparkles: true,
   magnetic: true
@@ -29,6 +32,7 @@ onMounted(() => {
     // Logic Plugins first (Calculates positions)
     .use(Magnetic({ attraction: 0.8 }))
     // Visual Plugins next
+    .use(Pointer({ size: 24, isEnabled: false })) // Disabled by default, toggled via UI
     .use(Dot({ size: 8, color: 'var(--cursor-color)', hideOnStick: true }))
     .use(Ring({ size: 20, hoverSize: 45, color: 'var(--cursor-color)', enableStick: true, enableSkew: true }))
     .use(Text({ className: 'custom-tooltip' }))
@@ -58,9 +62,17 @@ const switchTheme = () => {
 };
 
 // Plugin Toggle Handler
-const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic') => {
+const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic' | 'pointer') => {
   mouse?.togglePlugin(name);
   plugins[name] = !plugins[name];
+  
+  // Exclusive toggles for demo clarity
+  if (name === 'pointer' && plugins.pointer) {
+    if (plugins.dot) { mouse?.disablePlugin('dot'); plugins.dot = false; }
+    if (plugins.ring) { mouse?.disablePlugin('ring'); plugins.ring = false; }
+  } else if ((name === 'dot' || name === 'ring') && plugins[name]) {
+    if (plugins.pointer) { mouse?.disablePlugin('pointer'); plugins.pointer = false; }
+  }
 };
 </script>
 
@@ -156,6 +168,12 @@ const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic') => {
               class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
               :class="plugins.ring ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
         Ring: {{ plugins.ring ? 'ON' : 'OFF' }}
+      </button>
+      
+      <button @click="togglePlugin('pointer')" 
+              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
+              :class="plugins.pointer ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
+        Pointer: {{ plugins.pointer ? 'ON' : 'OFF' }}
       </button>
 
       <button @click="togglePlugin('sparkles')" 

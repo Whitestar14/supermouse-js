@@ -1,4 +1,8 @@
 
+<script setup lang="ts">
+import { AUTHOR, YEAR } from '../constants';
+</script>
+
 <template>
   <footer class="border-t border-zinc-200 bg-white">
     <div class="flex flex-col md:flex-row">
@@ -14,7 +18,7 @@
              </div>
              <span class="text-zinc-300">|</span>
              <span class="mono text-xs text-zinc-400 uppercase tracking-widest font-bold">
-                Copyright © 2024-2025 Stud.io Inc.
+                Copyright © {{ YEAR }} {{ AUTHOR }}
              </span>
           </div>
 
