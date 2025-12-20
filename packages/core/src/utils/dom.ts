@@ -1,8 +1,31 @@
+
 /**
  * Applies a dictionary of styles to an HTMLElement.
  */
 export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
   Object.assign(el.style, styles);
+}
+
+// WeakMap to store previous styles for elements to prevent DOM thrashing
+const styleCache = new WeakMap<HTMLElement, Record<string, string | number>>();
+
+/**
+ * Smart Style Setter.
+ * Only writes to the DOM if the value has actually changed.
+ */
+export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, value: string | number) {
+  let cache = styleCache.get(el);
+  if (!cache) {
+    cache = {};
+    styleCache.set(el, cache);
+  }
+
+  // Only write to DOM if value changed
+  if (cache[property as string] !== value) {
+    // @ts-ignore - Dynamic access
+    el.style[property] = value;
+    cache[property as string] = value;
+  }
 }
 
 /**

@@ -1,26 +1,28 @@
-import { type SupermousePlugin, dom, Layers, Easings } from '@supermousejs/core';
+import { definePlugin, dom, Layers, Easings, resolve, type ValueOrGetter } from '@supermousejs/core';
 
 export interface TextOptions {
+  name?: string;
+  isEnabled?: boolean;
   className?: string;
   offset?: [number, number];
   duration?: number;
 }
 
-export const Text = (options: TextOptions = {}): SupermousePlugin => {
-  let el: HTMLDivElement;
-  let textNode: HTMLSpanElement;
-  
+export const Text = (options: TextOptions = {}) => {
   const className = options.className || 'supermouse-text';
   const [offX, offY] = options.offset || [0, 24];
   const duration = options.duration || 200;
+  
+  let textNode: HTMLSpanElement;
 
-  return {
+  return definePlugin<HTMLDivElement, TextOptions>({
     name: 'text',
-    isEnabled: true,
+    selector: '[data-supermouse-text]',
 
-    install(app) {
-      el = dom.createDiv();
+    create: (app) => {
+      const el = dom.createDiv();
       el.classList.add(className);
+      
       textNode = document.createElement('span');
       el.appendChild(textNode);
 
@@ -31,31 +33,24 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
         pointerEvents: 'none',
         whiteSpace: 'nowrap'
       });
-      
       dom.setTransform(el, -100, -100);
-      
-      app.registerHoverTarget('[data-supermouse-text]');
-      
-      app.container.appendChild(el);
+      return el;
     },
 
-    update(app) {
+    update: (app, el) => {
       const target = app.state.hoverTarget;
       const text = target?.getAttribute('data-supermouse-text');
 
       if (app.state.isHover && text) {
         textNode.innerText = text;
-        el.style.opacity = '1';
+        dom.setStyle(el, 'opacity', '1');
         
+        // Dynamic position based on pointer
         const { x, y } = app.state.pointer;
         dom.setTransform(el, x + offX, y + offY);
       } else {
-        el.style.opacity = '0';
+        dom.setStyle(el, 'opacity', '0');
       }
-    },
-
-    onDisable() { el.style.opacity = '0'; },
-    onEnable() { /* Update loop will handle opacity */ },
-    destroy() { el.remove(); }
-  };
+    }
+  }, options);
 };

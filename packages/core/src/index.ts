@@ -6,3 +6,4 @@ export * as effects from './utils/effects';
 export * from './utils/layers';
 export * from './utils/css';
 export * from './utils/options'
+export * from './utils/plugin'

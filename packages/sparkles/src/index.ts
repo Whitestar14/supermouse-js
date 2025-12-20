@@ -1,12 +1,14 @@
-import { type SupermousePlugin, dom, math, Layers, Easings, resolve, type ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, dom, math, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
 
 export interface SparklesOptions {
+  name?: string;
+  isEnabled?: boolean;
   color?: ValueOrGetter<string>;
   maxParticles?: number;
   minVelocity?: number;
 }
 
-export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
+export const Sparkles = (options: SparklesOptions = {}) => {
   const defColor = '#ff00ff';
   const limit = options.maxParticles || 20;
   const minVelocity = options.minVelocity || 10;
@@ -14,9 +16,8 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
   let particles: HTMLDivElement[] = [];
   let tickCount = 0;
 
-  return {
+  return definePlugin({
     name: 'sparkles',
-    isEnabled: true,
     
     update(app) {
       tickCount++;
@@ -26,7 +27,6 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
       const vy = Math.abs(app.state.velocity.y);
       if ((vx + vy) < minVelocity) return;
 
-      // Resolve Color dynamically
       const color = resolve(options.color, app.state, defColor);
       const size = math.random(2, 5);
 
@@ -34,7 +34,7 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
       
       dom.applyStyles(p, {
         zIndex: Layers.TRACE,
-        transition: `transform 0.6s ${Easings.SMOOTH}, opacity 0.6s ${Easings.SMOOTH}`
+        transition: `transform 0.6s ease-out, opacity 0.6s ease-out`
       });
       
       const startX = app.state.pointer.x;
@@ -71,5 +71,5 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
       particles.forEach(p => p.remove());
       particles = [];
     }
-  };
+  }, options);
 };

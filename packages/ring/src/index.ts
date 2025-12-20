@@ -1,24 +1,25 @@
-import { type SupermousePlugin, dom, math, effects, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, dom, math, effects, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
 
 export interface RingOptions {
+  name?: string;
+  isEnabled?: boolean;
   size?: ValueOrGetter<number>;
   hoverSize?: ValueOrGetter<number>;
   color?: ValueOrGetter<string>;
+  fill?: ValueOrGetter<string>;
   borderWidth?: ValueOrGetter<number>;
-  
   mixBlendMode?: string;
   enableSkew?: boolean;
   enableStick?: boolean;
   stickPadding?: number;
+  className?: string;
 }
 
-export const Ring = (options: RingOptions = {}): SupermousePlugin => {
-  let el: HTMLDivElement;
-  
-  // Defaults
+export const Ring = (options: RingOptions = {}) => {
   const defSize = 20;
   const defHoverSize = 40;
   const defColor = '#ffffff';
+  const defFill = 'transparent';
   const defBorder = 2;
   
   const mixBlendMode = options.mixBlendMode || 'difference';
@@ -26,7 +27,6 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
   const enableStick = options.enableStick ?? true;
   const stickPadding = options.stickPadding || 10;
 
-  // State
   let currentW = defSize;
   let currentH = defSize;
   let currentRot = 0;
@@ -36,37 +36,40 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
   let lastTarget: HTMLElement | null = null;
   let stickCache: ReturnType<typeof effects.getStickyDimensions> | null = null;
 
-  return {
+  return definePlugin<HTMLDivElement, RingOptions>({
     name: 'ring',
-    isEnabled: true,
-    
-    install(app) {
-      // Init styles
+    selector: '[data-supermouse-color]',
+
+    create: (app) => {
       const size = resolve(options.size, app.state, defSize);
       const color = resolve(options.color, app.state, defColor);
+      const fill = resolve(options.fill, app.state, defFill);
       const border = resolve(options.borderWidth, app.state, defBorder);
 
-      el = dom.createCircle(size, 'transparent');
+      const el = dom.createCircle(size, fill);
+      if (options.className) el.classList.add(...options.className.split(' '));
+      
       dom.applyStyles(el, {
         borderWidth: `${border}px`,
         borderStyle: 'solid',
         borderColor: color,
         zIndex: Layers.FOLLOWER,
         mixBlendMode: mixBlendMode,
-        transition: 'opacity 0.2s ease' // Only opacity is CSS transitioned
+        transition: 'opacity 0.2s ease'
       });
       
       app.registerHoverTarget('[data-supermouse-stick]');
-      app.registerHoverTarget('[data-supermouse-color]');
-      
-      app.container.appendChild(el);
+      return el;
     },
 
-    update(app) {
-      // 1. Resolve Dynamic Options
+    styles: {
+      color: 'borderColor',
+      fill: 'backgroundColor'
+    },
+
+    update: (app, el) => {
       const baseSize = resolve(options.size, app.state, defSize);
       const hoverSize = resolve(options.hoverSize, app.state, defHoverSize);
-      let color = resolve(options.color, app.state, defColor);
       const border = resolve(options.borderWidth, app.state, defBorder);
 
       const target = app.state.hoverTarget;
@@ -75,7 +78,7 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
       let targetRadius = 50;
       let isStuck = false;
 
-      // 2. Logic (Stick vs Hover)
+      // Stick Logic
       if (enableStick && target && target.hasAttribute('data-supermouse-stick')) {
         isStuck = true;
         if (target !== lastTarget) {
@@ -90,8 +93,10 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
       } else {
         if (lastTarget) { lastTarget = null; stickCache = null; }
         
+        // Attribute Override
         if (target && target.hasAttribute('data-supermouse-color')) {
-             color = target.getAttribute('data-supermouse-color')!;
+             const override = target.getAttribute('data-supermouse-color')!;
+             dom.setStyle(el, 'borderColor', override);
         }
 
         if (app.state.isHover) {
@@ -104,19 +109,17 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
         }
       }
 
-      // 3. Apply Props
-      el.style.borderColor = color;
-      el.style.borderWidth = `${border}px`;
+      dom.setStyle(el, 'borderWidth', `${border}px`);
 
-      // 4. Animate Geom
+      // Animate Geometry
       currentW = math.lerp(currentW, targetW, 0.2);
       currentH = math.lerp(currentH, targetH, 0.2);
 
-      el.style.width = `${currentW}px`;
-      el.style.height = `${currentH}px`;
-      el.style.borderRadius = isStuck ? `${targetRadius}px` : '50%';
+      dom.setStyle(el, 'width', `${currentW}px`);
+      dom.setStyle(el, 'height', `${currentH}px`);
+      dom.setStyle(el, 'borderRadius', isStuck ? `${targetRadius}px` : '50%');
 
-      // 5. Position & Skew
+      // Position & Skew
       let x, y;
       let targetRot = 0;
       let targetScaleX = 1;
@@ -125,8 +128,6 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
       if (isStuck && stickCache) {
         x = stickCache.x;
         y = stickCache.y;
-        
-        // Immediate reset if stuck
         currentRot = 0;
         currentScaleX = math.lerp(currentScaleX, 1, 0.2);
         currentScaleY = math.lerp(currentScaleY, 1, 0.2);
@@ -147,21 +148,7 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
         currentScaleY = math.lerp(currentScaleY, targetScaleY, 0.15);
       }
 
-      el.style.opacity = '1';
-
       dom.setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
-    },
-
-    onDisable() {
-      el.style.opacity = '0';
-    },
-    
-    onEnable() {
-      el.style.opacity = '1';
-    },
-
-    destroy() {
-      el.remove();
     }
-  };
+  }, options);
 };
