@@ -1,5 +1,9 @@
 import { MouseState, SupermouseOptions } from '../types';
 
+/**
+ * Handles input events (mouse/touch) and manages the `isNative`/`isHover` state logic.
+ * Also handles mobile/touch disabling and reduced-motion preferences.
+ */
 export class Input {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;

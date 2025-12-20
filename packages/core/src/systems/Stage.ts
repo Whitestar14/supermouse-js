@@ -1,3 +1,7 @@
+/**
+ * Manages the fixed DOM container for cursor elements and handles global CSS injection 
+ * for hiding the native cursor.
+ */
 export class Stage {
   public readonly element: HTMLDivElement;
   private styleTag: HTMLStyleElement;
@@ -32,8 +36,8 @@ export class Stage {
   }
 
   /**
-   * adds a new CSS selector to the "Hide Native Cursor" list.
-   * Called by plugins during install.
+   * Adds a new CSS selector to the "Hide Native Cursor" list.
+   * Called by plugins during install to ensure the native cursor is hidden on their interactive targets.
    */
   public addSelector(selector: string) {
     this.selectors.add(selector);
@@ -41,10 +45,15 @@ export class Stage {
       this.updateCursorCSS();
     }
   }
- public setVisibility(visible: boolean) {
+
+  public setVisibility(visible: boolean) {
     this.element.style.opacity = visible ? '1' : '0';
   }
 
+  /**
+   * Toggles the visibility of the native cursor via CSS.
+   * @param type 'none' to hide, 'auto' to show.
+   */
   public setNativeCursor(type: 'none' | 'auto' | '') {
     if (!this.hideNativeCursor && type === 'none') return;
 

@@ -32,6 +32,9 @@ export function setTransform(
   `;
 }
 
+/**
+ * Creates a circular HTML div with absolute positioning.
+ */
 export function createCircle(size: number, color: string): HTMLDivElement {
   const el = document.createElement('div');
   applyStyles(el, {
@@ -48,6 +51,9 @@ export function createCircle(size: number, color: string): HTMLDivElement {
   return el;
 }
 
+/**
+ * Creates a basic HTML div container for absolute positioning.
+ */
 export function createDiv(): HTMLDivElement {
   const el = document.createElement('div');
   applyStyles(el, {

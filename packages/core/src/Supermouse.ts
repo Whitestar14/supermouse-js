@@ -3,6 +3,10 @@ import { Stage, Input } from './systems';
 import { lerp } from './utils';
 import pkg from '../package.json';
 
+/**
+ * The core runtime for Supermouse.js.
+ * Manages the animation loop, input state, and plugin orchestration.
+ */
 export class Supermouse {
   public readonly version: string = pkg.version;
 
@@ -21,6 +25,10 @@ export class Supermouse {
     'a', 'button', 'input', 'textarea', '[data-hover]'
   ]);
 
+  /**
+   * Creates a new Supermouse instance.
+   * @param options - Global configuration options.
+   */
   constructor(options: SupermouseOptions = {}) {
     this.options = {
       smoothness: 0.15,
@@ -56,10 +64,16 @@ export class Supermouse {
     this.init();
   }
 
+  /**
+   * Retrieves a registered plugin by name.
+   */
   public getPlugin(name: string) {
     return this.plugins.get(name);
   }
 
+  /**
+   * Enables a specific plugin.
+   */
   public enablePlugin(name: string) {
     const plugin = this.plugins.get(name);
     if (plugin && plugin.isEnabled === false) {
@@ -68,6 +82,9 @@ export class Supermouse {
     }
   }
 
+  /**
+   * Disables a specific plugin.
+   */
   public disablePlugin(name: string) {
     const plugin = this.plugins.get(name);
     if (plugin && plugin.isEnabled !== false) {
@@ -76,6 +93,9 @@ export class Supermouse {
     }
   }
 
+  /**
+   * Toggles the enabled state of a plugin.
+   */
   public togglePlugin(name: string) {
     const plugin = this.plugins.get(name);
     if (plugin) {
@@ -84,7 +104,11 @@ export class Supermouse {
     }
   }
 
-
+  /**
+   * Adds a CSS selector to the list of interactive elements.
+   * When hovered, `state.isHover` becomes true and `state.hoverTarget` is set.
+   * Also hides the native cursor for these elements if `hideCursor` is true.
+   */
   public registerHoverTarget(selector: string) {
     if (!this.hoverSelectors.has(selector)) {
       this.hoverSelectors.add(selector);
@@ -92,11 +116,22 @@ export class Supermouse {
     }
   }
 
+  /** The fixed container element where cursor visuals are rendered. */
   public get container(): HTMLDivElement { return this.stage.element; }
+  
   private init() { this.startLoop(); }
+
+  /** Starts the loop and enables input listeners. */
   public enable() { this.input.isEnabled = true; this.stage.setNativeCursor('none'); }
+  
+  /** Stops the loop, disables listeners, and resets cursor style. */
   public disable() { this.input.isEnabled = false; this.stage.setNativeCursor('auto'); this.resetPosition(); }
 
+  /**
+   * Registers a new plugin.
+   * Logic plugins (priority < 0) run before Visual plugins.
+   * @param plugin - The plugin object to install.
+   */
   public use(plugin: SupermousePlugin) {
     if (this.plugins.has(plugin.name)) {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
@@ -182,6 +217,7 @@ export class Supermouse {
     this.rafId = requestAnimationFrame(this.tick);
   };
   
+  /** Cleans up all resources, plugins, and DOM elements. */
   public destroy() {
     this.isRunning = false;
     cancelAnimationFrame(this.rafId);

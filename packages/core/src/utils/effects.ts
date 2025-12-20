@@ -1,4 +1,3 @@
-
 import { dist, angle, clamp } from './math';
 
 /**
@@ -26,6 +25,7 @@ export function getVelocitySkew(vx: number, vy: number, intensity = 0.005, maxSt
     scaleY: 1 - stretch * 0.5
   };
 }
+
 /**
  * Measures an element to get its geometry for the "Stick" effect.
  * 
