@@ -1,9 +1,10 @@
-
 import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
 import { Sparkles } from '@supermousejs/sparkles';
 import { Text } from '@supermousejs/text';
+import { TextRing } from '@supermousejs/text-ring';
+import { Magnetic } from '@supermousejs/magnetic';
 
 export type ControlType = 'range' | 'color' | 'toggle' | 'text' | 'select';
 
@@ -45,6 +46,55 @@ export const RECIPES: PresetRecipe[] = [
         color: () => config.color,
         mixBlendMode: config.mixBlendMode
       }));
+    }
+  },
+  {
+    id: 'text-ring',
+    name: 'Text Ring',
+    description: 'Rotates a text message around your cursor.',
+    icon: '◎',
+    schema: [
+      { key: 'text', label: 'Message', type: 'text', defaultValue: 'SUPERMOUSE • V2 • ' },
+      { key: 'radius', label: 'Radius', type: 'range', min: 20, max: 100, defaultValue: 60 },
+      { key: 'spread', label: 'Auto-Fit (Spread)', type: 'toggle', defaultValue: true, description: 'Evenly distributes text along the circle.' },
+      { key: 'speed', label: 'Speed', type: 'range', min: -5, max: 5, step: 0.1, defaultValue: 0.5 },
+      { key: 'fontSize', label: 'Font Size', type: 'range', min: 8, max: 32, defaultValue: 12 },
+      { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' }
+    ],
+    setup: (app, config) => {
+      app.use(Dot({ size: 6, color: () => config.color }));
+      app.use(TextRing({
+        text: () => config.text,
+        radius: () => config.radius,
+        fontSize: () => config.fontSize,
+        speed: () => config.speed,
+        color: () => config.color,
+        spread: config.spread
+      }));
+    }
+  },
+  {
+    id: 'magnetic-button',
+    name: 'Magnetic Force',
+    description: 'Attracts the cursor to interactive elements using the Magnetic plugin.',
+    icon: '🧲',
+    schema: [
+      { key: 'attraction', label: 'Attraction', type: 'range', min: 0.1, max: 1, step: 0.1, defaultValue: 0.4, description: 'How strongly it sticks (0-1)' },
+      { key: 'distance', label: 'Range', type: 'range', min: 50, max: 200, step: 10, defaultValue: 120, description: 'Capture radius in px' }
+    ],
+    setup: (app, config) => {
+      app.use(Magnetic({
+        attraction: config.attraction,
+        distance: config.distance
+      }));
+      app.use(Dot({ size: 8, color: '#000' }));
+      app.use(Ring({ size: 30, color: '#000', enableStick: false }));
+      
+      // Inject some magnetic data attributes into the playground for testing
+      setTimeout(() => {
+        const btns = document.querySelectorAll('button, [data-hover]');
+        btns.forEach(b => b.setAttribute('data-supermouse-magnetic', 'true'));
+      }, 100);
     }
   },
   {

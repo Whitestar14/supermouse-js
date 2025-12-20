@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import EditorControls from './EditorControls.vue';
@@ -43,13 +42,30 @@ watch(() => props.activeRecipeId, (newId) => {
 // Code Export Logic
 const getExportCode = () => {
   const parts: string[] = [];
+  const id = currentRecipe.value.id;
   
   // 1. Imports
   parts.push(`import { Supermouse } from '@supermousejs/core';`);
-  if (currentRecipe.value.id.includes('dot')) parts.push(`import { Dot } from '@supermousejs/dot';`);
-  if (currentRecipe.value.id.includes('ring')) parts.push(`import { Ring } from '@supermousejs/ring';`);
-  if (currentRecipe.value.id.includes('sparkles')) parts.push(`import { Sparkles } from '@supermousejs/sparkles';`);
-  if (currentRecipe.value.id.includes('text')) parts.push(`import { Text } from '@supermousejs/text';`);
+  
+  // Use exact or specific checks to avoid overlap
+  if (id === 'basic-dot' || id === 'ghost-trail' || id === 'magnetic-button' || id === 'sparkles' || id === 'text-cursor' || id === 'text-ring') {
+      parts.push(`import { Dot } from '@supermousejs/dot';`);
+  }
+  if (id === 'ghost-trail' || id === 'magnetic-button') {
+      parts.push(`import { Ring } from '@supermousejs/ring';`);
+  }
+  if (id === 'sparkles') {
+      parts.push(`import { Sparkles } from '@supermousejs/sparkles';`);
+  }
+  if (id === 'text-cursor') {
+      parts.push(`import { Text } from '@supermousejs/text';`);
+  }
+  if (id === 'text-ring') {
+      parts.push(`import { TextRing } from '@supermousejs/text-ring';`);
+  }
+  if (id === 'magnetic-button') {
+      parts.push(`import { Magnetic } from '@supermousejs/magnetic';`);
+  }
   
   parts.push('');
   parts.push('// 1. Initialize Core');
@@ -61,14 +77,43 @@ const getExportCode = () => {
   
   // 3. Plugin Usage
   parts.push(`// 2. Add Plugins`);
-  if (currentRecipe.value.id.includes('dot')) {
-      parts.push(`app.use(Dot({ size: ${config.value.size || 8}, color: '${config.value.color || '#000'}' }));`);
+  
+  // Common Dot for most
+  if (id !== 'text-ring') { // Text Ring adds its own dot in setup, but we want clean export
+      // Actually setup() adds Dot for almost all.
+      // Let's just output what the setup function does approx.
   }
-  if (currentRecipe.value.id.includes('ring')) {
-      parts.push(`app.use(Ring({ size: ${config.value.size}, color: '${config.value.color}' }));`);
+
+  if (id === 'basic-dot') {
+      parts.push(`app.use(Dot({ size: ${config.value.size}, color: '${config.value.color}', mixBlendMode: '${config.value.mixBlendMode}' }));`);
   }
-  if (currentRecipe.value.id.includes('sparkles')) {
-      parts.push(`app.use(Sparkles({ color: '${config.value.color}' }));`);
+  else if (id === 'text-ring') {
+      parts.push(`app.use(Dot({ size: 6, color: '${config.value.color}' }));`);
+      parts.push(`app.use(TextRing({ 
+  text: '${config.value.text}', 
+  radius: ${config.value.radius}, 
+  spread: ${config.value.spread},
+  speed: ${config.value.speed}, 
+  fontSize: ${config.value.fontSize}, 
+  color: '${config.value.color}' 
+}));`);
+  }
+  else if (id === 'magnetic-button') {
+      parts.push(`app.use(Dot({ size: 8, color: '#000' }));`);
+      parts.push(`app.use(Ring({ size: 30, color: '#000', enableStick: false }));`);
+      parts.push(`app.use(Magnetic({ attraction: ${config.value.attraction}, distance: ${config.value.distance} }));`);
+  }
+  else if (id === 'ghost-trail') {
+      parts.push(`app.use(Dot({ size: 4, color: '${config.value.color}' }));`);
+      parts.push(`app.use(Ring({ size: ${config.value.size}, color: '${config.value.color}', mixBlendMode: 'normal' }));`);
+  }
+  else if (id === 'sparkles') {
+      parts.push(`app.use(Dot({ size: 8, color: '${config.value.color}' }));`);
+      parts.push(`app.use(Sparkles({ color: '${config.value.color}', minVelocity: ${config.value.velocity} }));`);
+  }
+  else if (id === 'text-cursor') {
+      parts.push(`app.use(Dot({ size: 8, color: '#000' }));`);
+      parts.push(`app.use(Text({ offset: [0, ${config.value.offsetY}] }));`);
   }
   
   return parts.join('\n');

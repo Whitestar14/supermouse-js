@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
+      '@supermousejs/zoetrope': path.resolve(__dirname, '../packages/zoetrope/src/index.ts'),
+      '@supermousejs/text-ring': path.resolve(__dirname, '../packages/text-ring/src/index.ts'),
       '@supermousejs/core': path.resolve(__dirname, '../packages/core/src/index.ts'),
       '@supermousejs/dot': path.resolve(__dirname, '../packages/dot/src/index.ts'),
       '@supermousejs/ring': path.resolve(__dirname, '../packages/ring/src/index.ts'),

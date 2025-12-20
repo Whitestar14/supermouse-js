@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { ControlSchema } from './recipes';
@@ -78,6 +77,15 @@ const localGlobal = computed({
                     >
                     <div class="absolute inset-y-0 right-0 w-10 border-l border-zinc-200 pointer-events-none" :style="{ backgroundColor: localConfig[control.key] }"></div>
                 </div>
+            </div>
+
+            <!-- Text Input -->
+            <div v-else-if="control.type === 'text'" class="flex flex-col gap-2">
+                <input 
+                    type="text" 
+                    v-model="localConfig[control.key]" 
+                    class="w-full h-10 border border-zinc-200 px-3 font-mono text-sm outline-none focus:border-black transition-colors bg-zinc-50 focus:bg-white"
+                >
             </div>
 
             <!-- Toggle Input (Rectangular) -->
