@@ -12,7 +12,7 @@ const rootDir = path.resolve(__dirname, "..");
 const pluginName = process.argv[2];
 if (!pluginName) {
   console.error("[!] Please provide a plugin name.");
-  console.log("    Usage: pnpm create <name>");
+  console.log("    Usage: node scripts/create-plugin.js <name>");
   process.exit(1);
 }
 
@@ -31,7 +31,7 @@ const getTemplates = () => {
   return {
     packageJson: {
       name: `@supermousejs/${pluginName}`,
-      version: "0.0.0",
+      version: "2.0.0",
       main: "dist/index.umd.js",
       module: "dist/index.mjs",
       types: "dist/index.d.ts",
@@ -48,6 +48,13 @@ const getTemplates = () => {
       compilerOptions: {
         outDir: "dist",
         baseUrl: ".",
+        ...(pluginName !== "core"
+          ? {
+              paths: {
+                "@supermousejs/core": ["../core/src/index.ts"],
+              },
+            }
+          : {}),
       },
     },
 
@@ -55,6 +62,10 @@ const getTemplates = () => {
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   build: {
@@ -95,19 +106,37 @@ export interface ${pascalName}Options {
  * @param options - Configuration options.
  */
 export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlugin => {
+  // Local state variables
+  let isSetup = false;
+
   return {
     name: '${pluginName}',
+    isEnabled: true,
 
     install(app) {
-      // Setup logic
+      // 1. Create DOM elements
+      // 2. Append to app.container
+      // 3. Register event listeners or hover targets
+      isSetup = true;
     },
 
     update(app, deltaTime) {
-      // Loop logic
+      if (!isSetup) return;
+      // Calculate physics, update DOM transforms
+    },
+
+    onEnable(app) {
+      // Called when plugin is enabled via app.enablePlugin('${pluginName}')
+      // Restore visibility (e.g. opacity = 1)
+    },
+
+    onDisable(app) {
+      // Called when plugin is disabled via app.disablePlugin('${pluginName}')
+      // Hide visuals (e.g. opacity = 0) to prevent ghosting
     },
 
     destroy(app) {
-      // Cleanup logic
+      // Cleanup DOM elements and listeners
     }
   };
 };
@@ -142,18 +171,6 @@ async function run() {
     }
   } else {
     mode = "create";
-    const answer = await new Promise((resolve) => {
-      rl.question(
-        `\n[+] Creating NEW plugin: "@supermousejs/${pluginName}"\n` +
-          `    Location: packages/${pluginName}\n` +
-          `    Proceed? (Y/n) `,
-        resolve
-      );
-    });
-    if (answer.toLowerCase() === "n") {
-      console.log("[-] Aborted.");
-      process.exit(0);
-    }
   }
   rl.close();
 
@@ -207,9 +224,10 @@ async function run() {
     console.log("   [~] Preserved src/index.ts");
   }
 
-  // 6. Update Playground
+  // 6. Update Consumers (Playground, Docs)
   if (pluginName !== "core") {
-    updatePlayground(pluginName);
+    updateConsumer("playground", pluginName);
+    updateConsumer("docs", pluginName);
   }
 
   console.log(`\n[ok] @supermousejs/${pluginName} is ready.`);
@@ -218,30 +236,54 @@ async function run() {
   }
 }
 
-function updatePlayground(name) {
-  console.log(">> Linking to Playground...");
-  const playgroundPkgPath = path.join(rootDir, "playground", "package.json");
-  const playgroundPkg = JSON.parse(fs.readFileSync(playgroundPkgPath, "utf-8"));
+function updateConsumer(folderName, pluginName) {
+  const consumerPath = path.join(rootDir, folderName);
+
+  // Check existence
+  if (!fs.existsSync(consumerPath)) {
+    console.log(`   [~] Skipping ${folderName} (not found).`);
+    return;
+  }
+
+  console.log(`>> Linking to ${folderName}...`);
+  const pkgPath = path.join(consumerPath, "package.json");
+  const vitePath = path.join(consumerPath, "vite.config.ts");
 
   // 1. Add dependency
-  playgroundPkg.dependencies = playgroundPkg.dependencies || {};
-  playgroundPkg.dependencies[`@supermousejs/${name}`] = "workspace:*";
-  fs.writeFileSync(playgroundPkgPath, JSON.stringify(playgroundPkg, null, 2));
+  if (fs.existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+      pkg.dependencies = pkg.dependencies || {};
+      pkg.dependencies[`@supermousejs/${pluginName}`] = "workspace:*";
+      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+      console.log(`   [+] Added dependency to ${folderName}/package.json`);
+    } catch (e) {
+      console.error(`   [!] Failed to update ${folderName}/package.json`);
+    }
+  }
 
   // 2. Add Vite Alias
-  const playgroundVitePath = path.join(rootDir, "playground", "vite.config.ts");
-  let playgroundViteContent = fs.readFileSync(playgroundVitePath, "utf-8");
+  if (fs.existsSync(vitePath)) {
+    try {
+      let viteContent = fs.readFileSync(vitePath, "utf-8");
+      const aliasEntry = `'@supermousejs/${pluginName}': path.resolve(__dirname, '../packages/${pluginName}/src/index.ts')`;
 
-  const aliasEntry = `'@supermousejs/${name}': path.resolve(__dirname, '../packages/${name}/src/index.ts')`;
-
-  if (!playgroundViteContent.includes(`@supermousejs/${name}`)) {
-    if (playgroundViteContent.includes("alias: {")) {
-      playgroundViteContent = playgroundViteContent.replace(
-        /(alias:\s*{)/,
-        `$1\n      ${aliasEntry},`
-      );
-      fs.writeFileSync(playgroundVitePath, playgroundViteContent);
-      console.log("   [+] Added alias to vite.config.ts");
+      if (!viteContent.includes(`@supermousejs/${pluginName}`)) {
+        if (viteContent.includes("alias: {")) {
+          viteContent = viteContent.replace(
+            /(alias:\s*{)/,
+            `$1\n      ${aliasEntry},`
+          );
+          fs.writeFileSync(vitePath, viteContent);
+          console.log(`   [+] Added alias to ${folderName}/vite.config.ts`);
+        } else {
+          console.warn(
+            `   [!] Could not find "alias: {" block in ${folderName}/vite.config.ts`
+          );
+        }
+      }
+    } catch (e) {
+      console.error(`   [!] Failed to update ${folderName}/vite.config.ts`);
     }
   }
 }

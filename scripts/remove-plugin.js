@@ -21,7 +21,7 @@ async function run() {
     rl.question(
       `\n[!] DANGER: You are about to DELETE "@supermousejs/${pluginName}".\n` +
       `    Path: packages/${pluginName}\n` +
-      `    Unlink: playground\n\n` +
+      `    Unlink: playground, docs\n\n` +
       `    Are you sure? (y/N) `, 
       resolve
     );
@@ -33,43 +33,11 @@ async function run() {
     process.exit(0);
   }
 
-  // 2. Unlink from Playground Package.json
-  console.log('>> Unlinking from Playground package.json...');
-  const pgPkgPath = path.join(rootDir, 'playground', 'package.json');
-  try {
-    const pgPkg = JSON.parse(fs.readFileSync(pgPkgPath, 'utf-8'));
-    const depName = `@supermousejs/${pluginName}`;
-    
-    if (pgPkg.dependencies && pgPkg.dependencies[depName]) {
-      delete pgPkg.dependencies[depName];
-      fs.writeFileSync(pgPkgPath, JSON.stringify(pgPkg, null, 2));
-      console.log('   [-] Removed dependency.');
-    } else {
-      console.log('   [~] Dependency not found.');
-    }
-  } catch (e) {
-    console.error('   [!] Error reading playground package.json');
-  }
+  // 2. Unlink from Consumers
+  unlinkConsumer('playground', pluginName);
+  unlinkConsumer('docs', pluginName);
 
-  // 3. Unlink from Playground Vite Config
-  console.log('>> Unlinking from Playground vite.config.ts...');
-  const pgVitePath = path.join(rootDir, 'playground', 'vite.config.ts');
-  try {
-    let content = fs.readFileSync(pgVitePath, 'utf-8');
-    const regex = new RegExp(`\\s*['"]@supermousejs/${pluginName}['"]:.*,?\\n?`, 'g');
-    
-    if (regex.test(content)) {
-      content = content.replace(regex, '');
-      fs.writeFileSync(pgVitePath, content);
-      console.log('   [-] Removed alias.');
-    } else {
-      console.log('   [~] Alias not found.');
-    }
-  } catch (e) {
-    console.error('   [!] Error reading playground vite.config.ts');
-  }
-
-  // 4. Delete Directory
+  // 3. Delete Directory
   if (fs.existsSync(pluginDir)) {
     console.log(`>> Deleting packages/${pluginName}...`);
     fs.rmSync(pluginDir, { recursive: true, force: true });
@@ -79,6 +47,56 @@ async function run() {
   }
 
   console.log(`\n[ok] Cleanup complete. Run "pnpm install" to update lockfile.`);
+}
+
+function unlinkConsumer(folderName, pluginName) {
+  const consumerPath = path.join(rootDir, folderName);
+  
+  if (!fs.existsSync(consumerPath)) {
+    console.log(`   [~] Skipping ${folderName} (not found).`);
+    return;
+  }
+
+  console.log(`>> Unlinking from ${folderName}...`);
+  const pkgPath = path.join(consumerPath, 'package.json');
+  const vitePath = path.join(consumerPath, 'vite.config.ts');
+
+  // Remove from package.json
+  if (fs.existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+      const depName = `@supermousejs/${pluginName}`;
+      
+      if (pkg.dependencies && pkg.dependencies[depName]) {
+        delete pkg.dependencies[depName];
+        fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+        console.log(`   [-] Removed dependency from ${folderName}.`);
+      } else {
+        console.log(`   [~] Dependency not found in ${folderName}.`);
+      }
+    } catch (e) {
+      console.error(`   [!] Error reading ${folderName}/package.json`);
+    }
+  }
+
+  // Remove from vite.config.ts
+  if (fs.existsSync(vitePath)) {
+    try {
+      let content = fs.readFileSync(vitePath, 'utf-8');
+      // Regex matches: '  '@supermousejs/name': ... ,' or without comma
+      const regex = new RegExp(`\\s*['"]@supermousejs/${pluginName}['"]:.*,?\\n?`, 'g');
+      
+      if (regex.test(content)) {
+        content = content.replace(regex, '\n');
+        fs.writeFileSync(vitePath, content);
+        console.log(`   [-] Removed alias from ${folderName}.`);
+      } else {
+        console.log(`   [~] Alias not found in ${folderName}.`);
+      }
+    } catch (e) {
+      console.error(`   [!] Error reading ${folderName}/vite.config.ts`);
+    }
+  }
 }
 
 run();

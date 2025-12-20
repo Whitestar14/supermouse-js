@@ -1,0 +1,15 @@
+{
+  "name": "@supermousejs/text-ring",
+  "version": "2.0.0",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@supermousejs/core": "workspace:*",
+    "@supermousejs/zoetrope": "workspace:*"
+  },
+  "devDependencies": {}
+}

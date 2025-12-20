@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@supermousejs/core": ["../core/src/index.ts"],
+      "@supermousejs/zoetrope": ["../zoetrope/src/index.ts"]
+    }
+  }
+}

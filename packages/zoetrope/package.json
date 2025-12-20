@@ -1,0 +1,12 @@
+{
+  "name": "@supermousejs/zoetrope",
+  "version": "1.0.0",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,9 +1,0 @@
-{
-	"name": "supermousejs", 
-	"version": "2.0.0", 
-	"dependencies": {
-		"@supermousejs/core": "workspace:*", 
-		"@supermousejs/dot": "workspace:*", 
-		"@supermousejs/ring": "workspace:*"
-	}
-}

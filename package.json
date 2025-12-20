@@ -8,6 +8,7 @@
     "dev:docs": "pnpm --filter supermouse-docs dev",
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
+    "manage": "node scripts/manage.js",
     "create:plugin": "node scripts/create-plugin.js", 
     "remove:plugin": "node scripts/remove-plugin.js",
     "sync": "node scripts/sync-configs.js",
