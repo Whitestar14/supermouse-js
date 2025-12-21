@@ -57,15 +57,12 @@ export const Icon = (options: IconOptions) => {
 
     create: () => {
       injectStyles();
-      const el = dom.createDiv();
-      contentWrapper = dom.createDiv();
+      const el = dom.createActor('div') as HTMLDivElement;
+      contentWrapper = dom.createActor('div') as HTMLDivElement;
       
       el.style.zIndex = Layers.CURSOR;
       
       dom.applyStyles(contentWrapper, {
-        position: 'absolute',
-        top: '0',
-        left: '0',
         width: '100%',
         height: '100%',
         display: 'flex',

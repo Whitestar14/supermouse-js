@@ -56,34 +56,43 @@ export function setTransform(
 }
 
 /**
- * Creates a circular HTML div with absolute positioning.
+ * Creates a standard Supermouse actor element with optimal performance settings.
+ * Includes absolute positioning, pointer-events: none, and will-change: transform.
+ * 
+ * @param tagName The HTML tag to create (default: 'div')
  */
-export function createCircle(size: number, color: string): HTMLDivElement {
-  const el = document.createElement('div');
+export function createActor(tagName: string = 'div'): HTMLElement {
+  const el = document.createElement(tagName);
   applyStyles(el, {
     position: 'absolute',
-    top: '0', left: '0',
-    width: `${size}px`,
-    height: `${size}px`,
-    borderRadius: '50%',
-    backgroundColor: color,
+    top: '0',
+    left: '0',
     pointerEvents: 'none',
     boxSizing: 'border-box',
+    display: 'block',
     willChange: 'transform'
   });
   return el;
 }
 
 /**
- * Creates a basic HTML div container for absolute positioning.
+ * Creates a circular HTML div using the standard actor base.
  */
-export function createDiv(): HTMLDivElement {
-  const el = document.createElement('div');
+export function createCircle(size: number, color: string): HTMLDivElement {
+  const el = createActor('div') as HTMLDivElement;
   applyStyles(el, {
-    position: 'absolute',
-    top: '0', left: '0',
-    pointerEvents: 'none',
-    boxSizing: 'border-box'
+    width: `${size}px`,
+    height: `${size}px`,
+    borderRadius: '50%',
+    backgroundColor: color,
   });
   return el;
+}
+
+/**
+ * Legacy alias for createActor.
+ * @deprecated Use createActor() instead.
+ */
+export function createDiv(): HTMLDivElement {
+  return createActor('div') as HTMLDivElement;
 }

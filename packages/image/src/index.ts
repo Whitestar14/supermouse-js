@@ -26,8 +26,8 @@ export const Image = (options: ImageOptions = {}) => {
     name: 'image',
     selector: '[data-supermouse-img]',
 
-    create: () => {
-      const container = dom.createDiv();
+    create: (app) => {
+      const container = dom.createActor('div') as HTMLDivElement;
       container.classList.add(className);
       
       img = document.createElement('img');
@@ -41,8 +41,7 @@ export const Image = (options: ImageOptions = {}) => {
         opacity: '0',
         overflow: 'hidden',
         transition: `opacity ${duration}ms ${Easings.SMOOTH}`,
-        width: '150px', height: 'auto',
-        willChange: 'transform, opacity' 
+        width: '150px', height: 'auto'
       });
 
       dom.setTransform(container, -100, -100);

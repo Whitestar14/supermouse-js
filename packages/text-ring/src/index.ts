@@ -47,11 +47,9 @@ export const TextRing = (options: TextRingOptions = {}) => {
     selector: '[data-supermouse-text-ring]',
 
     create: (app) => {
-      const container = dom.createDiv();
+      const container = dom.createActor('div') as HTMLDivElement;
       dom.applyStyles(container, {
         zIndex: Layers.FOLLOWER,
-        pointerEvents: 'none',
-        willChange: 'transform',
         transition: 'opacity 0.2s ease',
         opacity: '1',
         width: '0px',

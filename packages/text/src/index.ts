@@ -1,4 +1,5 @@
-import { definePlugin, dom, Layers, Easings } from '@supermousejs/core';
+
+import { definePlugin, dom, Layers, Easings, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface TextOptions {
   name?: string;
@@ -20,7 +21,7 @@ export const Text = (options: TextOptions = {}) => {
     selector: '[data-supermouse-text]',
 
     create: () => {
-      const el = dom.createDiv();
+      const el = dom.createActor('div') as HTMLDivElement;
       el.classList.add(className);
       
       textNode = document.createElement('span');
@@ -30,7 +31,6 @@ export const Text = (options: TextOptions = {}) => {
         zIndex: Layers.OVERLAY,
         opacity: '0',
         transition: `opacity ${duration}ms ${Easings.SMOOTH}`,
-        pointerEvents: 'none',
         whiteSpace: 'nowrap'
       });
       dom.setTransform(el, -100, -100);

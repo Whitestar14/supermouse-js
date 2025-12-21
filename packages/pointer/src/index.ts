@@ -38,7 +38,7 @@ export const Pointer = (options: PointerOptions = {}) => {
     name: 'pointer',
 
     create: (app) => {
-      const el = dom.createDiv();
+      const el = dom.createActor('div') as HTMLDivElement;
       el.style.zIndex = Layers.CURSOR;
       el.style.transformOrigin = 'center center'; 
       
@@ -66,9 +66,6 @@ export const Pointer = (options: PointerOptions = {}) => {
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);
 
-      // SVG update logic (if needed dynamically, though usually static)
-      // Removed repetitive innerHTML set for performance, relying on lastSvg check implicitly done in creation
-      
       const { x: vx, y: vy } = app.state.velocity;
       const speed = math.dist(vx, vy);
       const now = performance.now();
