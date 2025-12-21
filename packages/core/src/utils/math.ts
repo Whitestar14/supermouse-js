@@ -1,8 +1,18 @@
+
 /**
  * Linear Interpolation between two values.
  */
 export function lerp(start: number, end: number, factor: number): number {
   return start + (end - start) * factor;
+}
+
+/**
+ * Linear Interpolation between two angles in degrees, taking the shortest path.
+ * Handles wrap-around at 360 degrees.
+ */
+export function lerpAngle(start: number, end: number, factor: number): number {
+  const diff = ((((end - start) % 360) + 540) % 360) - 180;
+  return start + diff * factor;
 }
 
 /**

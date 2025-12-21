@@ -22,6 +22,7 @@ const DEFAULT_SVG = `
 export const Pointer = (options: PointerOptions = {}) => {
   const defSize = 32;
   const smoothing = options.rotationSmoothing || 0.15;
+  // SVG content is static to prevent constant re-parsing.
   const svgContent = options.svg || DEFAULT_SVG;
   
   const getSize = normalize(options.size, defSize);
@@ -32,7 +33,6 @@ export const Pointer = (options: PointerOptions = {}) => {
   let currentRotation = 0;
   let lastRotation = 0;
   let stopTime = 0;
-  let lastSvg = '';
 
   return definePlugin<HTMLDivElement, PointerOptions>({
     name: 'pointer',
@@ -46,9 +46,7 @@ export const Pointer = (options: PointerOptions = {}) => {
       currentRotation = restAngle;
       lastRotation = restAngle;
       
-      // Init SVG once if static
       el.innerHTML = svgContent;
-      lastSvg = svgContent;
       
       return el;
     },
@@ -82,14 +80,11 @@ export const Pointer = (options: PointerOptions = {}) => {
         }
       }
 
-      const diff = targetRotation - currentRotation;
-      let delta = ((diff + 180) % 360) - 180;
-      if (delta < -180) delta += 360;
-      
+      // Use core interpolation with shortest-path logic
       const isReturning = speed <= 1 && returnToRest && (now - stopTime > restDelay);
       const factor = isReturning ? 0.05 : smoothing;
       
-      currentRotation += delta * factor;
+      currentRotation = math.lerpAngle(currentRotation, targetRotation, factor);
 
       const { x, y } = app.state.smooth;
       dom.setTransform(el, x, y, currentRotation);
