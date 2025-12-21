@@ -1,17 +1,17 @@
 
 import { Supermouse } from './Supermouse';
 
-/**
- * Represents a 2D coordinate point.
- */
 export interface MousePosition {
   x: number;
   y: number;
 }
 
-/**
- * The global state object shared across the Supermouse instance and all plugins.
- */
+export interface ShapeState {
+  width: number;
+  height: number;
+  borderRadius: number;
+}
+
 export interface MouseState {
   /** The raw position of the input pointer (mouse/touch). */
   pointer: MousePosition;
@@ -36,6 +36,11 @@ export interface MouseState {
   reducedMotion: boolean;
   /** Whether the system has received valid input coordinates at least once. */
   hasReceivedInput: boolean;
+  /** 
+   * Defines a specific geometric shape the cursor should conform to.
+   * Set by logic plugins like Stick. Visual plugins should morph to this if present.
+   */
+  shape: ShapeState | null;
 }
 
 /**

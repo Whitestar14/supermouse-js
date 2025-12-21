@@ -9,17 +9,17 @@ export interface DotOptions {
   opacity?: ValueOrGetter<number>;
   zIndex?: string;
   mixBlendMode?: string;
+  /** Whether to hide the dot when the cursor is in a 'shape' state (e.g. Stuck). Default true. */
+  hideOnShape?: boolean;
 }
 
 export const Dot = (options: DotOptions = {}) => {
   const defSize = 8;
   const defColor = '#750c7e';
+  const hideOnShape = options.hideOnShape ?? true;
 
   // Normalize options once during setup
   const getSize = normalize(options.size, defSize);
-  // We keep resolve logic for context-aware color in the loop, or we can handle it partly here.
-  // Since color depends on hoverTarget attributes (which isn't strictly in 'state' cleanly yet), 
-  // we might still need some logic. But we can normalize the base color.
   const getColor = normalize(options.color, defColor);
 
   return definePlugin<HTMLDivElement, DotOptions>({
@@ -41,23 +41,27 @@ export const Dot = (options: DotOptions = {}) => {
     },
 
     styles: {
-      // Removed 'color' from here because we need custom logic for attributes
       opacity: 'opacity'
     },
 
     update: (app, el) => {
-      // Manual Size Update
       const size = getSize(app.state);
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);
 
-      // Context Override for Color
+      // Handle Color
       const target = app.state.hoverTarget;
       if (target?.hasAttribute('data-supermouse-color')) {
         const override = target.getAttribute('data-supermouse-color')!;
         dom.setStyle(el, 'backgroundColor', override);
       } else {
         dom.setStyle(el, 'backgroundColor', getColor(app.state));
+      }
+
+      if (hideOnShape && app.state.shape) {
+        dom.setStyle(el, 'opacity', '0');
+      } else {
+        dom.setStyle(el, 'opacity', '1');
       }
 
       const { x, y } = app.state.target;

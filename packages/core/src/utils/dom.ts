@@ -38,6 +38,8 @@ export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, v
  * @param rotation Rotation (deg) - Default 0
  * @param scaleX Scale X - Default 1
  * @param scaleY Scale Y - Default 1
+ * @param skewX Skew X (deg) - Default 0
+ * @param skewY Skew Y (deg) - Default 0
  */
 export function setTransform(
   el: HTMLElement, 
@@ -45,12 +47,15 @@ export function setTransform(
   y: number, 
   rotation: number = 0, 
   scaleX: number = 1, 
-  scaleY: number = 1
+  scaleY: number = 1,
+  skewX: number = 0,
+  skewY: number = 0
 ) {
   el.style.transform = `
     translate3d(${x}px, ${y}px, 0) 
     translate(-50%, -50%) 
     rotate(${rotation}deg) 
+    skew(${skewX}deg, ${skewY}deg)
     scale(${scaleX}, ${scaleY})
   `;
 }

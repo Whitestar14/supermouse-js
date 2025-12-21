@@ -51,7 +51,8 @@ export class Supermouse {
       isNative: false,
       hoverTarget: null,
       reducedMotion: false,
-      hasReceivedInput: false
+      hasReceivedInput: false,
+      shape: null
     };
 
     this.stage = new Stage(!!this.options.hideCursor);
@@ -165,6 +166,7 @@ export class Supermouse {
     this.state.smooth = { ...off };
     this.state.velocity = { x: 0, y: 0 };
     this.state.hasReceivedInput = false;
+    this.state.shape = null;
   }
 
   private startLoop() {
