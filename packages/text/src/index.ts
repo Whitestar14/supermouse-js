@@ -1,4 +1,4 @@
-import { definePlugin, dom, Layers, Easings, resolve, type ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, dom, Layers, Easings } from '@supermousejs/core';
 
 export interface TextOptions {
   name?: string;
@@ -19,7 +19,7 @@ export const Text = (options: TextOptions = {}) => {
     name: 'text',
     selector: '[data-supermouse-text]',
 
-    create: (app) => {
+    create: () => {
       const el = dom.createDiv();
       el.classList.add(className);
       

@@ -1,4 +1,5 @@
-import { definePlugin, dom, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
+
+import { definePlugin, dom, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 import { getCirclePath, getCircumference, formatLoopText } from '@supermousejs/zoetrope';
 
 export interface TextRingOptions {
@@ -26,11 +27,15 @@ export const TextRing = (options: TextRingOptions = {}) => {
 
   const defText = 'SUPERMOUSE • SUPERMOUSE • ';
   const defRadius = 60;
-  const defColor = '#000';
   const defFontSize = 12;
   const defSpeed = 0.5;
   const className = options.className || '';
   const spread = options.spread ?? false; 
+
+  const getText = normalize(options.text, defText);
+  const getRadius = normalize(options.radius, defRadius);
+  const getFontSize = normalize(options.fontSize, defFontSize);
+  const getSpeed = normalize(options.speed, defSpeed);
 
   let currentRotation = 0;
   let lastText = '';
@@ -70,7 +75,7 @@ export const TextRing = (options: TextRingOptions = {}) => {
       
       textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       
-      const fs = resolve(options.fontSize, app.state, defFontSize);
+      const fs = getFontSize(app.state);
       textEl.setAttribute('font-size', `${fs}px`);
       lastFontSize = fs;
 
@@ -100,10 +105,10 @@ export const TextRing = (options: TextRingOptions = {}) => {
 
     update: (app, container) => {
       const target = app.state.hoverTarget;
-      let text = resolve(options.text, app.state, defText);
-      const radius = resolve(options.radius, app.state, defRadius);
-      const fontSize = resolve(options.fontSize, app.state, defFontSize);
-      const speed = resolve(options.speed, app.state, defSpeed);
+      let text = getText(app.state);
+      const radius = getRadius(app.state);
+      const fontSize = getFontSize(app.state);
+      const speed = getSpeed(app.state);
 
       if (target?.hasAttribute('data-supermouse-text-ring')) {
         const attr = target.getAttribute('data-supermouse-text-ring');

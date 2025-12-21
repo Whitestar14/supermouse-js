@@ -1,6 +1,6 @@
 import { Supermouse } from '../Supermouse';
-import { SupermousePlugin, MouseState, ValueOrGetter } from '../types';
-import { resolve } from './options';
+import { SupermousePlugin } from '../types';
+import { normalize } from './options';
 import { setStyle } from './dom';
 
 // --- SHARED OPTIONS ---
@@ -63,6 +63,26 @@ export function definePlugin(config: any, userOptions: any = {}): SupermousePlug
   if (typeof config.create === 'function') {
     let element: HTMLElement;
 
+    // PRE-COMPILE STYLE SETTERS
+    // Instead of iterating Object.entries() every frame (allocation heavy),
+    // we create an array of specific update functions once.
+    const styleSetters: ((app: Supermouse, el: HTMLElement) => void)[] = [];
+    
+    if (config.styles) {
+      for (const [optKey, cssProp] of Object.entries(config.styles)) {
+        // Normalize once. Now we have a fast getter.
+        const getter = normalize(userOptions[optKey], undefined);
+        const prop = cssProp as any;
+        
+        styleSetters.push((app, el) => {
+          const val = getter(app.state);
+          if (val !== undefined) {
+            setStyle(el, prop, val);
+          }
+        });
+      }
+    }
+
     return {
       name,
       isEnabled: initialEnabled,
@@ -80,15 +100,12 @@ export function definePlugin(config: any, userOptions: any = {}): SupermousePlug
       },
 
       update(app, dt) {
-        // 3. Auto-apply Styles (Dirty Checked)
-        if (config.styles) {
-          for (const [optKey, cssProp] of Object.entries(config.styles)) {
-            const val = resolve(userOptions[optKey], app.state, undefined);
-            if (val !== undefined) {
-              setStyle(element, cssProp as any, val);
-            }
-          }
+        // 3. Run Pre-compiled Style Setters
+        // Using a plain for loop is faster than forEach for high-freq code
+        for (let i = 0; i < styleSetters.length; i++) {
+          styleSetters[i](app, element);
         }
+        
         // 4. Run Custom Update
         config.update?.(app, element, dt);
       },
@@ -116,8 +133,6 @@ export function definePlugin(config: any, userOptions: any = {}): SupermousePlug
       ...config, // Spread priority, install, etc.
       name,
       isEnabled: initialEnabled,
-      // Wrap hooks to ensure we handle the overrides properly if needed
-      // (though simple spreading usually works for logic plugins)
     };
   }
 }

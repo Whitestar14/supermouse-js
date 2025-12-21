@@ -1,4 +1,5 @@
-import { definePlugin, dom, math, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
+
+import { definePlugin, dom, math, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface IconMap {
   [key: string]: string;
@@ -32,6 +33,11 @@ export const Icon = (options: IconOptions) => {
 
   let currentRotation = 0;
   let lastTargetRotation = 0;
+
+  const getSize = normalize(options.size, 24);
+  const getStrategy = normalize(options.followStrategy, 'smooth');
+  const getAnchor = normalize(options.anchor, 'center');
+  const getShouldRotate = normalize(options.rotateWithVelocity, false);
 
   const injectStyles = () => {
     if (!document.getElementById('supermouse-icon-styles')) {
@@ -139,10 +145,10 @@ export const Icon = (options: IconOptions) => {
         }
       }
       
-      const size = resolve(options.size, app.state, 24);
-      const strategy = resolve(options.followStrategy, app.state, 'smooth');
-      const anchor = resolve(options.anchor, app.state, 'center');
-      const shouldRotate = resolve(options.rotateWithVelocity, app.state, false);
+      const size = getSize(app.state);
+      const strategy = getStrategy(app.state);
+      const anchor = getAnchor(app.state);
+      const shouldRotate = getShouldRotate(app.state);
       
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);

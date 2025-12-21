@@ -1,4 +1,5 @@
-import { definePlugin, dom, math, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
+
+import { definePlugin, dom, math, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface PointerOptions {
   name?: string;
@@ -21,7 +22,13 @@ const DEFAULT_SVG = `
 export const Pointer = (options: PointerOptions = {}) => {
   const defSize = 32;
   const smoothing = options.rotationSmoothing || 0.15;
+  const svgContent = options.svg || DEFAULT_SVG;
   
+  const getSize = normalize(options.size, defSize);
+  const getRestingAngle = normalize(options.restingAngle, -45);
+  const getReturnToRest = normalize(options.returnToRest, true);
+  const getRestDelay = normalize(options.restDelay, 200);
+
   let currentRotation = 0;
   let lastRotation = 0;
   let stopTime = 0;
@@ -35,9 +42,14 @@ export const Pointer = (options: PointerOptions = {}) => {
       el.style.zIndex = Layers.CURSOR;
       el.style.transformOrigin = 'center center'; 
       
-      const restAngle = resolve(options.restingAngle, app.state, -45);
+      const restAngle = getRestingAngle(app.state);
       currentRotation = restAngle;
       lastRotation = restAngle;
+      
+      // Init SVG once if static
+      el.innerHTML = svgContent;
+      lastSvg = svgContent;
+      
       return el;
     },
 
@@ -46,20 +58,17 @@ export const Pointer = (options: PointerOptions = {}) => {
     },
 
     update: (app, el) => {
-      const size = resolve(options.size, app.state, defSize);
-      const restingAngle = resolve(options.restingAngle, app.state, -45);
-      const returnToRest = resolve(options.returnToRest, app.state, true);
-      const restDelay = resolve(options.restDelay, app.state, 200);
-      const svg = options.svg || DEFAULT_SVG;
+      const size = getSize(app.state);
+      const restingAngle = getRestingAngle(app.state);
+      const returnToRest = getReturnToRest(app.state);
+      const restDelay = getRestDelay(app.state);
 
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);
 
-      if (svg !== lastSvg) {
-        el.innerHTML = svg;
-        lastSvg = svg;
-      }
-
+      // SVG update logic (if needed dynamically, though usually static)
+      // Removed repetitive innerHTML set for performance, relying on lastSvg check implicitly done in creation
+      
       const { x: vx, y: vy } = app.state.velocity;
       const speed = math.dist(vx, vy);
       const now = performance.now();

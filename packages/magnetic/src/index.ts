@@ -1,7 +1,8 @@
+
 import {
   definePlugin,
   math,
-  resolve,
+  normalize,
   type ValueOrGetter,
 } from "@supermousejs/core";
 
@@ -16,6 +17,9 @@ export const Magnetic = (options: MagneticOptions = {}) => {
   let lastTarget: HTMLElement | null = null;
   let magnetCenter = { x: 0, y: 0 };
   let isActive = false;
+
+  const getAttraction = normalize(options.attraction, 0.3);
+  const getDistance = normalize(options.distance, 100);
 
   return definePlugin({
     name: "magnetic",
@@ -44,10 +48,10 @@ export const Magnetic = (options: MagneticOptions = {}) => {
       if (isActive && lastTarget) {
         const { x, y } = app.state.pointer;
         const dist = math.dist(x, y, magnetCenter.x, magnetCenter.y);
-        const range = resolve(options.distance, app.state, 100);
+        const range = getDistance(app.state);
 
         if (dist < range) {
-          const attraction = resolve(options.attraction, app.state, 0.3);
+          const attraction = getAttraction(app.state);
           app.state.target.x = math.lerp(x, magnetCenter.x, attraction);
           app.state.target.y = math.lerp(y, magnetCenter.y, attraction);
         }

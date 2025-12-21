@@ -1,4 +1,5 @@
-import { definePlugin, dom, math, effects, Layers, resolve, type ValueOrGetter } from '@supermousejs/core';
+
+import { definePlugin, dom, math, effects, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface RingOptions {
   name?: string;
@@ -27,6 +28,13 @@ export const Ring = (options: RingOptions = {}) => {
   const enableStick = options.enableStick ?? true;
   const stickPadding = options.stickPadding || 10;
 
+  // Normalized Getters
+  const getSize = normalize(options.size, defSize);
+  const getHoverSize = normalize(options.hoverSize, defHoverSize);
+  const getColor = normalize(options.color, defColor);
+  const getFill = normalize(options.fill, defFill);
+  const getBorder = normalize(options.borderWidth, defBorder);
+
   let currentW = defSize;
   let currentH = defSize;
   let currentRot = 0;
@@ -41,18 +49,13 @@ export const Ring = (options: RingOptions = {}) => {
     selector: '[data-supermouse-color]',
 
     create: (app) => {
-      const size = resolve(options.size, app.state, defSize);
-      const color = resolve(options.color, app.state, defColor);
-      const fill = resolve(options.fill, app.state, defFill);
-      const border = resolve(options.borderWidth, app.state, defBorder);
-
-      const el = dom.createCircle(size, fill);
+      const el = dom.createCircle(getSize(app.state), getFill(app.state));
       if (options.className) el.classList.add(...options.className.split(' '));
       
       dom.applyStyles(el, {
-        borderWidth: `${border}px`,
+        borderWidth: `${getBorder(app.state)}px`,
         borderStyle: 'solid',
-        borderColor: color,
+        borderColor: getColor(app.state),
         zIndex: Layers.FOLLOWER,
         mixBlendMode: mixBlendMode,
         transition: 'opacity 0.2s ease'
@@ -63,14 +66,14 @@ export const Ring = (options: RingOptions = {}) => {
     },
 
     styles: {
-      color: 'borderColor',
       fill: 'backgroundColor'
     },
 
     update: (app, el) => {
-      const baseSize = resolve(options.size, app.state, defSize);
-      const hoverSize = resolve(options.hoverSize, app.state, defHoverSize);
-      const border = resolve(options.borderWidth, app.state, defBorder);
+      const baseSize = getSize(app.state);
+      const hoverSize = getHoverSize(app.state);
+      const border = getBorder(app.state);
+      let color = getColor(app.state);
 
       const target = app.state.hoverTarget;
       let targetW = baseSize;
@@ -95,8 +98,7 @@ export const Ring = (options: RingOptions = {}) => {
         
         // Attribute Override
         if (target && target.hasAttribute('data-supermouse-color')) {
-             const override = target.getAttribute('data-supermouse-color')!;
-             dom.setStyle(el, 'borderColor', override);
+             color = target.getAttribute('data-supermouse-color')!;
         }
 
         if (app.state.isHover) {
@@ -109,6 +111,7 @@ export const Ring = (options: RingOptions = {}) => {
         }
       }
 
+      dom.setStyle(el, 'borderColor', color);
       dom.setStyle(el, 'borderWidth', `${border}px`);
 
       // Animate Geometry

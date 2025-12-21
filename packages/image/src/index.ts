@@ -1,4 +1,5 @@
-import { definePlugin, dom, math, Layers, Easings, resolve, type ValueOrGetter } from '@supermousejs/core';
+
+import { definePlugin, dom, math, Layers, Easings } from '@supermousejs/core';
 
 export interface ImageOptions {
   name?: string;
@@ -25,7 +26,7 @@ export const Image = (options: ImageOptions = {}) => {
     name: 'image',
     selector: '[data-supermouse-img]',
 
-    create: (app) => {
+    create: () => {
       const container = dom.createDiv();
       container.classList.add(className);
       
