@@ -1,5 +1,4 @@
 
-
 /**
  * AST-Based Code Generator
  * Generates robust, formatted TypeScript code for Supermouse recipes.
@@ -85,6 +84,7 @@ const PLUGIN_IMPORTS: Record<string, string> = {
   'basic-dot': 'Dot',
   'ghost-trail': 'Dot, Ring',
   'magnetic-button': 'Dot, Ring, Magnetic',
+  'sticky-element': 'Dot, Ring, Stick',
   'sparkles': 'Dot, Sparkles',
   'text-cursor': 'Dot, Text',
   'text-ring': 'Dot, TextRing',
@@ -100,7 +100,8 @@ const PKG_MAP: Record<string, string> = {
   'TextRing': '@supermousejs/text-ring',
   'Magnetic': '@supermousejs/magnetic',
   'Pointer': '@supermousejs/pointer',
-  'Icon': '@supermousejs/icon'
+  'Icon': '@supermousejs/icon',
+  'Stick': '@supermousejs/stick'
 };
 
 // --- Main Generator ---
@@ -156,7 +157,12 @@ export const generateCode = (recipeId: string, config: any, globalConfig: any) =
   else if (recipeId === 'magnetic-button') {
     chain.push(call('Magnetic', obj({ attraction: config.attraction, distance: config.distance })));
     chain.push(call('Dot', obj({ size: 8, color: '#000000' })));
-    chain.push(call('Ring', obj({ size: 30, color: '#000000', enableStick: false })));
+    chain.push(call('Ring', obj({ size: 30, color: '#000000' })));
+  }
+  else if (recipeId === 'sticky-element') {
+    chain.push(call('Stick', obj({ padding: config.padding })));
+    chain.push(call('Dot', obj({ size: 8, color: config.color, hideOnShape: config.hideDot })));
+    chain.push(call('Ring', obj({ size: 30, color: config.color, enableSkew: true })));
   }
   else if (recipeId === 'ghost-trail') {
     chain.push(call('Dot', obj({ size: 4, color: config.color })));

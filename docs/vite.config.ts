@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
+      '@supermousejs/vue': path.resolve(__dirname, '../packages/vue/src/index.ts'),
+      '@supermousejs/stick': path.resolve(__dirname, '../packages/stick/src/index.ts'),
+      '@supermousejs/states': path.resolve(__dirname, '../packages/states/src/index.ts'),
       '@supermousejs/icon': path.resolve(__dirname, '../packages/icon/src/index.ts'),
       '@supermousejs/pointer': path.resolve(__dirname, '../packages/pointer/src/index.ts'),
       '@supermousejs/zoetrope': path.resolve(__dirname, '../packages/zoetrope/src/index.ts'),

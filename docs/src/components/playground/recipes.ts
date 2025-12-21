@@ -8,6 +8,7 @@ import { TextRing } from '@supermousejs/text-ring';
 import { Magnetic } from '@supermousejs/magnetic';
 import { Pointer } from '@supermousejs/pointer';
 import { Icon } from '@supermousejs/icon';
+import { Stick } from '@supermousejs/stick';
 
 export type ControlType = 'range' | 'color' | 'toggle' | 'text' | 'select';
 
@@ -43,7 +44,7 @@ const POINTER_SVG = `
 `;
 
 const ICON_SVGS: Record<string, string> = {
-  default: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-25deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>`,
+  default: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-45deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>`,
   hand: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`,
   text: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8"/><path d="M12 4v16"/><path d="M8 20h8"/></svg>`,
   // CSS Keyframe Animation provided by plugin style injection
@@ -68,7 +69,7 @@ export const RECIPES: PresetRecipe[] = [
       app.use(Dot({
         size: () => config.size,
         color: () => config.color,
-        mixBlendMode: () => config.mixBlendMode
+        mixBlendMode: config.mixBlendMode
       }));
     }
   },
@@ -82,6 +83,7 @@ export const RECIPES: PresetRecipe[] = [
         { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
         { key: 'transitionDuration', label: 'Transition', type: 'range', min: 0, max: 500, defaultValue: 200, unit: 'ms', description: 'Morph duration' },
         { key: 'followStrategy', label: 'Follow Mode', type: 'select', options: ['smooth', 'raw'], defaultValue: 'smooth' },
+        { key: 'rotateWithVelocity', label: 'Rotate w/ Velocity', type: 'toggle', defaultValue: false },
         { key: 'anchor', label: 'Anchor Point', type: 'select', options: ['center', 'top-left'], defaultValue: 'top-left', description: 'Align "Top Left" for arrows.' }
     ],
     setup: (app, config) => {
@@ -92,6 +94,7 @@ export const RECIPES: PresetRecipe[] = [
             color: () => config.color,
             transitionDuration: config.transitionDuration, 
             followStrategy: () => config.followStrategy,
+            rotateWithVelocity: () => config.rotateWithVelocity,
             anchor: () => config.anchor
         }));
     }
@@ -159,11 +162,42 @@ export const RECIPES: PresetRecipe[] = [
         distance: () => config.distance
       }));
       app.use(Dot({ size: 8, color: '#000' }));
-      app.use(Ring({ size: 30, color: '#000', enableStick: false }));
+      app.use(Ring({ size: 30, color: '#000' }));
       
+      // Inject behavior into playground DOM
       setTimeout(() => {
         const btns = document.querySelectorAll('button, [data-hover]');
         btns.forEach(b => b.setAttribute('data-supermouse-magnetic', 'true'));
+      }, 50);
+    }
+  },
+  {
+    id: 'sticky-element',
+    name: 'Sticky Element',
+    description: 'The Ring cursor morphs to match the shape of the hovered element.',
+    icon: '🔳',
+    schema: [
+      { key: 'padding', label: 'Padding', type: 'range', min: 0, max: 30, step: 1, defaultValue: 10, unit: 'px' },
+      { key: 'color', label: 'Ring Color', type: 'color', defaultValue: '#000000' },
+      { key: 'hideDot', label: 'Hide Dot', type: 'toggle', defaultValue: true, description: 'Fade out the center dot when sticking.' }
+    ],
+    setup: (app, config) => {
+      app.use(Stick({ padding: () => config.padding }));
+      app.use(Dot({ 
+        size: 8, 
+        color: config.color, 
+        hideOnShape: config.hideDot 
+      }));
+      app.use(Ring({ 
+        size: 30, 
+        color: config.color, 
+        enableSkew: true 
+      }));
+
+      // Inject behavior into playground DOM
+      setTimeout(() => {
+        const btns = document.querySelectorAll('button, [data-hover]');
+        btns.forEach(b => b.setAttribute('data-supermouse-stick', 'true'));
       }, 50);
     }
   },
@@ -182,7 +216,8 @@ export const RECIPES: PresetRecipe[] = [
        app.use(Ring({
          size: () => config.size,
          color: () => config.color,
-         mixBlendMode: 'normal'
+         mixBlendMode: 'normal',
+         enableSkew: true,
        }));
     }
   },
@@ -199,7 +234,6 @@ export const RECIPES: PresetRecipe[] = [
       app.use(Dot({ size: 8, color: () => config.color }));
       app.use(Sparkles({
         color: () => config.color,
-        minVelocity: config.velocity // Static option
       }));
     }
   },

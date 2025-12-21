@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import EditorControls from './EditorControls.vue';
@@ -61,12 +60,12 @@ const copyCode = () => {
 
 <template>
   <Teleport to="body">
-    <!-- No transition for the modal overlay - Brutalist instant appearance -->
+    <!-- Modal Overlay -->
     <div v-if="activeRecipeId" class="fixed inset-0 z-[100] bg-white/95 flex items-center justify-center p-0 md:p-8">
         
         <div class="bg-white w-full h-full max-w-[1600px] border border-zinc-900 flex flex-col overflow-hidden relative shadow-2xl">
             
-            <!-- Mobile Close Button (Top Right - Overlay) -->
+            <!-- Mobile Close -->
             <button 
                 @click="emit('close')"
                 class="absolute top-0 right-0 z-50 w-12 h-12 flex items-center justify-center bg-black text-white hover:bg-zinc-800 transition-colors lg:hidden"
@@ -74,7 +73,7 @@ const copyCode = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
 
-            <!-- Desktop Close Button (Flush Top Right) -->
+            <!-- Desktop Close -->
             <button 
                 @click="emit('close')" 
                 class="absolute top-0 right-0 z-50 h-12 px-8 bg-black text-white text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors hidden lg:flex items-center justify-center"
@@ -83,10 +82,10 @@ const copyCode = () => {
             </button>
 
             <div class="flex flex-1 overflow-hidden flex-col lg:flex-row">
-                <!-- Sidebar (Left) - Contains Config OR Code -->
+                <!-- Sidebar -->
                 <div class="w-full lg:w-[400px] border-b lg:border-b-0 lg:border-r border-zinc-200 shrink-0 h-2/5 lg:h-full flex flex-col bg-white z-10">
                     
-                    <!-- Sidebar Header / Tabs -->
+                    <!-- Tabs -->
                     <div class="h-12 flex border-b border-zinc-200 shrink-0">
                        <button 
                           @click="mode = 'config'" 
@@ -105,9 +104,9 @@ const copyCode = () => {
                        </button>
                     </div>
 
-                    <!-- Sidebar Content Area -->
+                    <!-- Content -->
                     <div class="flex-1 overflow-hidden relative">
-                        <!-- Configuration View -->
+                        <!-- Config View -->
                         <div v-if="mode === 'config'" class="absolute inset-0 overflow-y-auto">
                             <EditorControls 
                                 :schema="currentRecipe.schema" 
@@ -134,10 +133,8 @@ const copyCode = () => {
                     </div>
                 </div>
 
-                <!-- Preview (Right) -->
+                <!-- Preview -->
                 <div class="flex-1 bg-zinc-50 relative h-3/5 lg:h-full overflow-hidden">
-                    
-                    <!-- Header inside Preview for desktop context -->
                     <div class="absolute top-8 left-8 z-30 hidden lg:block pointer-events-none">
                         <div class="flex items-center gap-4">
                             <span class="text-3xl filter grayscale">{{ currentRecipe.icon }}</span>

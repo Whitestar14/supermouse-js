@@ -33,6 +33,16 @@ const triggerBounce = () => {
   setTimeout(() => { isBouncing.value = false; }, 150);
 };
 
+const cleanupAttributes = () => {
+  if (!containerRef.value) return;
+  // Remove temporary attributes injected by previous recipes
+  const targets = containerRef.value.querySelectorAll('[data-supermouse-magnetic], [data-supermouse-stick]');
+  targets.forEach(el => {
+    el.removeAttribute('data-supermouse-magnetic');
+    el.removeAttribute('data-supermouse-stick');
+  });
+};
+
 const initCursor = () => {
   if (!containerRef.value) return;
   
@@ -41,6 +51,9 @@ const initCursor = () => {
     mouse.destroy();
     mouse = null;
   }
+
+  // Cleanup DOM
+  cleanupAttributes();
 
   // Sync initial config
   Object.assign(liveConfig, props.config);
@@ -63,8 +76,6 @@ const initCursor = () => {
   }
 
   // 3. Run Recipe Setup with Reactive Config
-  // This allows getters inside the recipe (e.g. () => config.size) to read 
-  // from the live object, which we update via the watcher below.
   props.recipe.setup(mouse, liveConfig);
 };
 
@@ -77,9 +88,6 @@ watch(() => props.recipe.id, () => {
 
 // 2. Config Change: SOFT Update (Update reactive state)
 watch(() => props.config, (newVal) => {
-    // Determine if we need a hard reload (for static options) or soft (for getters)
-    // For now, we update the reactive object. Plugins using getters will pick it up instantly.
-    // Plugins using static options won't update until hard reload, but most visuals use getters.
     Object.assign(liveConfig, newVal);
 }, { deep: true });
 
@@ -90,7 +98,6 @@ watch(() => props.globalConfig, (newVal) => {
         mouse.options.smoothness = newVal.smoothness;
         
         // Handle Native Cursor visibility
-        // If config says showNative=true, we want hideCursor=false
         const shouldHide = !newVal.showNative;
         if (mouse.options.hideCursor !== shouldHide) {
             mouse.options.hideCursor = shouldHide;
@@ -139,6 +146,14 @@ onUnmounted(() => {
         >
             Button
         </button>
+
+        <!-- Circular Button (Test Sticky Shape) -->
+        <div class="flex items-center justify-center w-16">
+            <button 
+                class="w-8 h-8 rounded-full border border-zinc-300 bg-zinc-100 hover:bg-black hover:border-black transition-colors"
+                title="Circle Test"
+            ></button>
+        </div>
 
         <!-- Link/Text -->
         <div class="flex items-center px-8 text-sm font-bold text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer" 
