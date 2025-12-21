@@ -67,6 +67,10 @@ export class Supermouse {
       (enabled) => { if (!enabled) this.resetPosition(); }
     );
 
+    if (this.options.plugins) {
+      this.options.plugins.forEach(p => this.use(p));
+    }
+
     this.init();
   }
 

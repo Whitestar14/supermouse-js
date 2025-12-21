@@ -12,6 +12,22 @@ export interface ShapeState {
   borderRadius: number;
 }
 
+/**
+ * The Interface for interaction state.
+ * Plugins should use Module Augmentation to add their specific properties to this interface.
+ * 
+ * @example
+ * declare module '@supermousejs/core' {
+ *   interface InteractionState {
+ *     myProp: string;
+ *   }
+ * }
+ */
+export interface InteractionState {
+  /** Allow arbitrary data-supermouse-* attributes */
+  [key: string]: any;
+}
+
 export interface MouseState {
   /** The raw position of the input pointer (mouse/touch). */
   pointer: MousePosition;
@@ -46,8 +62,9 @@ export interface MouseState {
   /**
    * Centralized store for hover metadata.
    * Populated by Input system from `data-cursor` JSON or `data-supermouse-*` attributes.
+   * Typed via module augmentation by plugins.
    */
-  interaction: Record<string, any>;
+  interaction: InteractionState;
 }
 
 /**
@@ -89,6 +106,10 @@ export interface SupermouseOptions {
    * @default true
    */
   hideOnLeave?: boolean;
+  /**
+   * List of plugins to initialize with the instance.
+   */
+  plugins?: SupermousePlugin[];
 }
 
 /**
