@@ -8,9 +8,7 @@ export interface StickOptions {
   padding?: ValueOrGetter<number>;
 }
 
-/**
- * Internal utility to measure an element for sticky positioning.
- */
+// Local Utility
 function getStickyDimensions(target: HTMLElement, padding: number = 0) {
   const rect = target.getBoundingClientRect();
   const style = window.getComputedStyle(target);
@@ -30,7 +28,7 @@ export const Stick = (options: StickOptions = {}) => {
   const getPadding = normalize(options.padding, 10);
   
   let lastTarget: HTMLElement | null = null;
-  let cache: ReturnType<typeof getStickyDimensions> | null = null;
+  let cache: { width: number; height: number; radius: number; x: number; y: number } | null = null;
 
   return definePlugin({
     name: options.name || 'stick',
@@ -43,8 +41,9 @@ export const Stick = (options: StickOptions = {}) => {
 
     update(app) {
       const target = app.state.hoverTarget;
+      const isSticky = app.state.interaction.stick === true || app.state.interaction.stick === 'true';
       
-      if (target && target.hasAttribute('data-supermouse-stick')) {
+      if (target && isSticky) {
         
         // Recalculate only if target changed or on first frame
         if (target !== lastTarget || !cache) {
@@ -53,11 +52,11 @@ export const Stick = (options: StickOptions = {}) => {
         }
 
         if (cache) {
-          // 1. Override Target (Physics)
+          // 1. Override Target (Physics) - Snap target to center of element
           app.state.target.x = cache.x;
           app.state.target.y = cache.y;
 
-          // 2. Set Shape (Visuals)
+          // 2. Set Shape (Visuals) - Visual plugins like Ring will read this
           app.state.shape = {
             width: cache.width,
             height: cache.height,

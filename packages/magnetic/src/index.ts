@@ -31,7 +31,7 @@ export const Magnetic = (options: MagneticOptions = {}) => {
 
     update(app) {
       const target = app.state.hoverTarget;
-      const isMagnetic = target?.hasAttribute("data-supermouse-magnetic");
+      const isMagnetic = app.state.interaction.magnetic === true || app.state.interaction.magnetic === 'true';
 
       if (isMagnetic && target !== lastTarget) {
         lastTarget = target!;

@@ -102,15 +102,14 @@ export const TextRing = (options: TextRingOptions = {}) => {
     },
 
     update: (app, container) => {
-      const target = app.state.hoverTarget;
       let text = getText(app.state);
       const radius = getRadius(app.state);
       const fontSize = getFontSize(app.state);
       const speed = getSpeed(app.state);
 
-      if (target?.hasAttribute('data-supermouse-text-ring')) {
-        const attr = target.getAttribute('data-supermouse-text-ring');
-        if (attr) text = attr;
+      const interactionText = app.state.interaction.textRing;
+      if (interactionText) {
+        text = typeof interactionText === 'string' ? interactionText : text;
       }
 
       if (radius !== lastRadius) {

@@ -1,7 +1,7 @@
 
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
-import { lerp } from './utils';
+import { lerp, angle } from './utils';
 import pkg from '../package.json';
 
 /**
@@ -23,7 +23,7 @@ export class Supermouse {
   private isRunning: boolean = false;
   
   private hoverSelectors: Set<string> = new Set([
-    'a', 'button', 'input', 'textarea', '[data-hover]'
+    'a', 'button', 'input', 'textarea', '[data-hover]', '[data-cursor]'
   ]);
 
   /**
@@ -46,13 +46,15 @@ export class Supermouse {
       target: { x: -100, y: -100 },
       smooth: { x: -100, y: -100 },
       velocity: { x: 0, y: 0 },
+      angle: 0,
       isDown: false,
       isHover: false,
       isNative: false,
       hoverTarget: null,
       reducedMotion: false,
       hasReceivedInput: false,
-      shape: null
+      shape: null,
+      interaction: {}
     };
 
     this.stage = new Stage(!!this.options.hideCursor);
@@ -165,8 +167,10 @@ export class Supermouse {
     this.state.target = { ...off };
     this.state.smooth = { ...off };
     this.state.velocity = { x: 0, y: 0 };
+    this.state.angle = 0;
     this.state.hasReceivedInput = false;
     this.state.shape = null;
+    this.state.interaction = {};
   }
 
   private startLoop() {
@@ -211,14 +215,23 @@ export class Supermouse {
       this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
       this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);
       
-      this.state.velocity.x = this.state.target.x - this.state.smooth.x;
-      this.state.velocity.y = this.state.target.y - this.state.smooth.y;
+      const vx = this.state.target.x - this.state.smooth.x;
+      const vy = this.state.target.y - this.state.smooth.y;
+      
+      this.state.velocity.x = vx;
+      this.state.velocity.y = vy;
+
+      if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
+        this.state.angle = angle(vx, vy);
+      }
 
     } else {
       this.state.smooth.x = -100;
       this.state.smooth.y = -100;
       this.state.pointer.x = -100;
       this.state.pointer.y = -100;
+      this.state.velocity.x = 0;
+      this.state.velocity.y = 0;
       
       this.pluginList.forEach((plugin) => {
         if (plugin.isEnabled !== false) {

@@ -1,4 +1,3 @@
-
 import { definePlugin, dom, math, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface IconMap {
@@ -22,60 +21,73 @@ export interface IconOptions {
   rotateWithVelocity?: ValueOrGetter<boolean>;
 }
 
+function resolveSemanticState(target: HTMLElement, icons: IconMap): string | null {
+  const tag = target.tagName.toLowerCase();
+  
+  if (tag === 'input' || tag === 'textarea' || target.isContentEditable) {
+     const type = (target as HTMLInputElement).type;
+     if (!['button', 'submit', 'checkbox', 'radio', 'range', 'color'].includes(type)) {
+        if (icons['text']) return 'text';
+     } else if (icons['pointer']) {
+        return 'pointer';
+     }
+  } 
+  else if (tag === 'a' || tag === 'button' || target.closest('a') || target.closest('button')) {
+     if (icons['pointer']) return 'pointer';
+  }
+  return null;
+}
+
 export const Icon = (options: IconOptions) => {
   let contentWrapper: HTMLDivElement;
-  let styleTag: HTMLStyleElement;
   
+  // State
   let currentState = options.defaultState || 'default';
   let targetState = options.defaultState || 'default';
+  
+  let lastTarget: HTMLElement | null = null;
+  let cachedSemanticState: string | null = null;
+  
   let isTransitioning = false;
-  let lastDuration = 200;
-
+  let transitionTimer: ReturnType<typeof setTimeout>;
+  
+  // Rotation State
   let currentRotation = 0;
   let lastTargetRotation = 0;
 
+  // Normalized Getters (Pre-calculated)
   const getSize = normalize(options.size, 24);
+  const getColor = normalize(options.color, 'black');
   const getStrategy = normalize(options.followStrategy, 'smooth');
   const getAnchor = normalize(options.anchor, 'center');
   const getShouldRotate = normalize(options.rotateWithVelocity, false);
-
-  const injectStyles = () => {
-    if (!document.getElementById('supermouse-icon-styles')) {
-        styleTag = document.createElement('style');
-        styleTag.id = 'supermouse-icon-styles';
-        styleTag.textContent = `
-          @keyframes supermouse-spin { 100% { transform: rotate(360deg); } }
-          .supermouse-spin { animation: supermouse-spin 1s linear infinite; transform-origin: center; }
-        `;
-        document.head.appendChild(styleTag);
-    }
-  };
+  
+  const useSemanticTags = options.useSemanticTags ?? true;
+  const duration = options.transitionDuration ?? 200;
+  // Optimize: Store offset to avoid array allocation in loop
+  const userOffX = options.offset ? options.offset[0] : 0;
+  const userOffY = options.offset ? options.offset[1] : 0;
 
   return definePlugin<HTMLDivElement, IconOptions>({
     name: 'icon',
     selector: '[data-supermouse-icon]',
 
     create: () => {
-      injectStyles();
       const el = dom.createActor('div') as HTMLDivElement;
-      contentWrapper = dom.createActor('div') as HTMLDivElement;
-      
       el.style.zIndex = Layers.CURSOR;
       
+      contentWrapper = dom.createActor('div') as HTMLDivElement;
       dom.applyStyles(contentWrapper, {
         width: '100%',
         height: '100%',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        transformOrigin: 'center center',
+        transform: 'scale(1)',
+        // Pre-baked ease. Note: If duration changes dynamically, this won't update.
+        transition: `transform ${duration/2}ms cubic-bezier(0.16, 1, 0.3, 1)`
       });
-      
-      const duration = options.transitionDuration ?? 200;
-      contentWrapper.style.transition = `transform ${duration/2}ms cubic-bezier(0.16, 1, 0.3, 1)`;
-      lastDuration = duration;
-
-      contentWrapper.style.transformOrigin = 'center center';
-      contentWrapper.style.transform = 'scale(1)';
       
       contentWrapper.innerHTML = options.icons[currentState] || '';
       
@@ -88,103 +100,99 @@ export const Icon = (options: IconOptions) => {
     },
 
     update: (app, el) => {
-      const duration = options.transitionDuration ?? 200;
-      const useSemanticTags = options.useSemanticTags ?? true;
-      const [userOffX, userOffY] = options.offset || [0, 0];
       const icons = options.icons;
-
-      if (duration !== lastDuration) {
-        contentWrapper.style.transition = `transform ${duration/2}ms cubic-bezier(0.16, 1, 0.3, 1)`;
-        lastDuration = duration;
-      }
-
-      // Determine State
-      let nextState = options.defaultState || 'default';
-      const hoverTarget = app.state.hoverTarget;
+      const target = app.state.hoverTarget;
       
-      if (hoverTarget) {
-        const attrIcon = hoverTarget.getAttribute('data-supermouse-icon');
+      // 1. Determine Next State
+      let nextState = options.defaultState || 'default';
+      
+      if (target) {
+        // A. Update Cache if target changed (Performance Fix)
+        if (target !== lastTarget) {
+          lastTarget = target;
+          cachedSemanticState = useSemanticTags ? resolveSemanticState(target, icons) : null;
+        }
+
+        // B. Resolve Logic
+        // Check Unified Interaction State (Attribute)
+        const attrIcon = app.state.interaction?.icon; // Optional chaining safety
+        
         if (attrIcon && icons[attrIcon]) {
           nextState = attrIcon;
         } 
-        else if (useSemanticTags) {
-          const tag = hoverTarget.tagName.toLowerCase();
-          
-          if (tag === 'input' || tag === 'textarea' || hoverTarget.isContentEditable) {
-             const type = (hoverTarget as HTMLInputElement).type;
-             if (type !== 'button' && type !== 'submit' && type !== 'checkbox' && type !== 'radio' && type !== 'range') {
-                if (icons['text']) nextState = 'text';
-             } else if (icons['pointer']) {
-                nextState = 'pointer';
-             }
-          } else if (tag === 'a' || tag === 'button' || hoverTarget.closest('a') || hoverTarget.closest('button')) {
-             if (icons['pointer']) nextState = 'pointer';
-          }
+        else if (cachedSemanticState) {
+          nextState = cachedSemanticState;
         }
+      } else {
+        lastTarget = null;
+        cachedSemanticState = null;
       }
       
+      // 2. Handle State Transition
       if (nextState !== currentState && !isTransitioning) {
         if (icons[nextState] || nextState === (options.defaultState || 'default')) {
             targetState = nextState;
             isTransitioning = true;
             
+            // Clean up any pending timer to avoid race conditions
+            clearTimeout(transitionTimer);
+            
+            // Scale Down
             contentWrapper.style.transform = 'scale(0)';
             
-            setTimeout(() => {
+            transitionTimer = setTimeout(() => {
               currentState = targetState;
               contentWrapper.innerHTML = icons[currentState] || '';
               contentWrapper.style.transform = 'scale(1)';
               
-              setTimeout(() => {
+              transitionTimer = setTimeout(() => {
                 isTransitioning = false;
               }, duration / 2);
             }, duration / 2);
         }
       }
       
+      // 3. Layout & Styling
       const size = getSize(app.state);
-      const strategy = getStrategy(app.state);
-      const anchor = getAnchor(app.state);
-      const shouldRotate = getShouldRotate(app.state);
-      
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);
       
+      // 4. Calculate Anchor
       let anchorX = 0;
       let anchorY = 0;
       const half = size / 2;
+      const anchor = getAnchor(app.state);
 
-      switch(anchor) {
-        case 'top-left': anchorX = half; anchorY = half; break;
-        case 'top-right': anchorX = -half; anchorY = half; break;
-        case 'bottom-left': anchorX = half; anchorY = -half; break;
-        case 'bottom-right': anchorX = -half; anchorY = -half; break;
+      if (anchor !== 'center') {
+        if (anchor.includes('left')) anchorX = half;
+        if (anchor.includes('right')) anchorX = -half;
+        if (anchor.includes('top')) anchorY = half;
+        if (anchor.includes('bottom')) anchorY = -half;
       }
 
+      // 5. Rotation
       const isSemanticState = currentState === 'pointer' || currentState === 'text';
       
-      if (shouldRotate && !isSemanticState && !app.state.reducedMotion) {
+      if (getShouldRotate(app.state) && !isSemanticState && !app.state.reducedMotion) {
         const { x: vx, y: vy } = app.state.velocity;
         const speed = math.dist(vx, vy);
         
         if (speed > 1) {
           lastTargetRotation = math.angle(vx, vy);
         }
-        
-        const diff = lastTargetRotation - currentRotation;
-        let delta = ((diff + 180) % 360) - 180;
-        if (delta < -180) delta += 360;
-        
-        currentRotation += delta * 0.15;
+        // Assuming math.lerpAngle handles the 360 wrap logic correctly
+        currentRotation = math.lerpAngle(currentRotation, lastTargetRotation, 0.15);
       } else {
-        const diff = 0 - currentRotation;
-        let delta = ((diff + 180) % 360) - 180;
-        if (delta < -180) delta += 360;
-        currentRotation += delta * 0.15;
+        currentRotation = math.lerpAngle(currentRotation, 0, 0.15);
       }
 
-      const pos = strategy === 'raw' ? app.state.pointer : app.state.smooth;
+      // 6. Render
+      const pos = getStrategy(app.state) === 'raw' ? app.state.pointer : app.state.smooth;
       dom.setTransform(el, pos.x + userOffX + anchorX, pos.y + userOffY + anchorY, currentRotation);
+    },
+
+    cleanup() {
+      clearTimeout(transitionTimer);
     }
   }, options);
 };

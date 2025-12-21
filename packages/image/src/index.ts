@@ -49,8 +49,8 @@ export const Image = (options: ImageOptions = {}) => {
     },
 
     update: (app, container) => {
-      const target = app.state.hoverTarget;
-      const src = target?.getAttribute('data-supermouse-img');
+      // Use parsed interaction data
+      const src = app.state.interaction.img;
 
       if (app.state.isHover && src) {
         if (src !== lastSrc) {

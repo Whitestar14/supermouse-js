@@ -49,11 +49,10 @@ export const Dot = (options: DotOptions = {}) => {
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);
 
-      // Handle Color
-      const target = app.state.hoverTarget;
-      if (target?.hasAttribute('data-supermouse-color')) {
-        const override = target.getAttribute('data-supermouse-color')!;
-        dom.setStyle(el, 'backgroundColor', override);
+      // Handle Color via Interaction State
+      const interactionColor = app.state.interaction.color;
+      if (interactionColor) {
+        dom.setStyle(el, 'backgroundColor', interactionColor);
       } else {
         dom.setStyle(el, 'backgroundColor', getColor(app.state));
       }

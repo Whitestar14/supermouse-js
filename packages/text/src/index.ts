@@ -20,7 +20,7 @@ export const Text = (options: TextOptions = {}) => {
     name: 'text',
     selector: '[data-supermouse-text]',
 
-    create: () => {
+    create: (app) => {
       const el = dom.createActor('div') as HTMLDivElement;
       el.classList.add(className);
       
@@ -38,8 +38,8 @@ export const Text = (options: TextOptions = {}) => {
     },
 
     update: (app, el) => {
-      const target = app.state.hoverTarget;
-      const text = target?.getAttribute('data-supermouse-text');
+      // Use pre-parsed interaction data instead of querying DOM
+      const text = app.state.interaction.text;
 
       if (app.state.isHover && text) {
         textNode.innerText = text;

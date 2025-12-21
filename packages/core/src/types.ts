@@ -21,6 +21,8 @@ export interface MouseState {
   smooth: MousePosition;
   /** The current velocity vector of the smooth position. */
   velocity: MousePosition;
+  /** The angle of movement in degrees. Calculated from velocity. */
+  angle: number;
   /** Whether the pointer is currently pressed down. */
   isDown: boolean;
   /** Whether the pointer is currently hovering over a registered interactive element. */
@@ -41,6 +43,11 @@ export interface MouseState {
    * Set by logic plugins like Stick. Visual plugins should morph to this if present.
    */
   shape: ShapeState | null;
+  /**
+   * Centralized store for hover metadata.
+   * Populated by Input system from `data-cursor` JSON or `data-supermouse-*` attributes.
+   */
+  interaction: Record<string, any>;
 }
 
 /**

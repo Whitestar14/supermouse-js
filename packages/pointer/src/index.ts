@@ -71,7 +71,7 @@ export const Pointer = (options: PointerOptions = {}) => {
       let targetRotation = lastRotation;
       
       if (speed > 1) {
-        targetRotation = math.angle(vx, vy);
+        targetRotation = app.state.angle;
         lastRotation = targetRotation;
         stopTime = now;
       } else {

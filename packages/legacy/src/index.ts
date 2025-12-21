@@ -34,10 +34,9 @@ export default class Supermouse {
     // 3. Resolve Theme Colors
     const theme = this.resolveTheme(this.options.theme);
 
-    // 4. Add Dot Plugin (Map pointerSize)
+    // Visuals
     let dotSize = 8;
     if (this.options.pointerSize) {
-      // v1 allowed [w, h] arrays, v2 prefers single number (diameter)
       dotSize = Array.isArray(this.options.pointerSize) 
         ? Math.max(...this.options.pointerSize) 
         : this.options.pointerSize;
@@ -46,10 +45,9 @@ export default class Supermouse {
     this.app.use(Dot({
       size: dotSize,
       color: theme.dotColor,
-      zIndex: '9999'
+      zIndex: '9999',
     }));
 
-    // 5. Add Ring Plugin (Map ringSize)
     let ringSize = 20;
     if (this.options.ringSize) {
       ringSize = Array.isArray(this.options.ringSize) 
@@ -61,8 +59,7 @@ export default class Supermouse {
       size: ringSize,
       color: theme.ringColor,
       borderWidth: this.options.ringThickness || 2,
-      enableStick: true, // v1 had sticky behavior implicitly on hovers sometimes
-      enableSkew: true   // Enable the new physics skew for extra flair
+      enableSkew: true
     }));
   }
 
@@ -100,8 +97,6 @@ export default class Supermouse {
     this.app?.disable();
   }
 
-  // Legacy setters - mapped to internal state updates if possible, 
-  // or no-ops if they require a full re-init (v2 is declarative).
   setTheme() { console.warn('[Supermouse] setTheme is deprecated in v2.'); return this; }
   setPointerSize() { console.warn('[Supermouse] setPointerSize is deprecated in v2.'); return this; }
   setRingSize() { console.warn('[Supermouse] setRingSize is deprecated in v2.'); return this; }

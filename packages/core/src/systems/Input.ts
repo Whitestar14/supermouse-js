@@ -3,7 +3,7 @@ import { MouseState, SupermouseOptions } from '../types';
 
 /**
  * Handles input events (mouse/touch) and manages the `isNative`/`isHover` state logic.
- * Also handles mobile/touch disabling and reduced-motion preferences.
+ * Also handles mobile/touch disabling, reduced-motion preferences, and attribute parsing.
  */
 export class Input {
   private mediaQueryList?: MediaQueryList;
@@ -46,6 +46,45 @@ export class Input {
   private updateEnabledState(enabled: boolean) {
     this.isEnabled = enabled;
     this.onEnableChange(enabled);
+  }
+
+  // --- Interaction Parsing ---
+
+  /**
+   * Parses `data-cursor` (JSON) and `data-supermouse-*` attributes into a unified object.
+   */
+  private parseInteraction(element: HTMLElement) {
+    const data: Record<string, any> = {};
+
+    // 1. JSON Configuration (data-cursor='{"color":"red"}')
+    const jsonAttr = element.getAttribute('data-cursor');
+    if (jsonAttr) {
+      try {
+        const parsed = JSON.parse(jsonAttr);
+        Object.assign(data, parsed);
+      } catch (e) {
+        console.warn(`[Supermouse] Invalid JSON in data-cursor:`, jsonAttr);
+      }
+    }
+
+    // 2. Legacy/Individual Attributes (data-supermouse-color="red")
+    // Iterate attributes to find matches dynamically
+    if (element.hasAttributes()) {
+      for (const attr of element.attributes) {
+        if (attr.name.startsWith('data-supermouse-')) {
+          // Remove prefix
+          const key = attr.name.slice(16); 
+          // Convert kebab-case to camelCase (e.g. text-color -> textColor)
+          const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+          
+          // If empty string (boolean attribute), treat as true
+          data[camelKey] = attr.value === '' ? true : attr.value;
+        }
+      }
+    }
+
+    // Update state
+    this.state.interaction = data;
   }
 
   // --- Handlers ---
@@ -98,6 +137,7 @@ export class Input {
     if (hoverable) {
       this.state.isHover = true;
       this.state.hoverTarget = hoverable as HTMLElement;
+      this.parseInteraction(this.state.hoverTarget);
     }
 
     // 2. Semantic Native Cursor Check (Auto-detection)
@@ -120,6 +160,7 @@ export class Input {
        if (!e.relatedTarget || !(this.state.hoverTarget?.contains(e.relatedTarget as Node))) {
           this.state.isHover = false;
           this.state.hoverTarget = null;
+          this.state.interaction = {}; // Clear interaction data
        }
     }
 

@@ -1,4 +1,3 @@
-
 import { definePlugin, dom, math, effects, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface RingOptions {
@@ -11,8 +10,6 @@ export interface RingOptions {
   borderWidth?: ValueOrGetter<number>;
   mixBlendMode?: string;
   enableSkew?: boolean;
-  /** @deprecated Use @supermousejs/stick plugin instead. */
-  enableStick?: boolean;
   className?: string;
 }
 
@@ -35,7 +32,6 @@ export const Ring = (options: RingOptions = {}) => {
   let currentW = defSize;
   let currentH = defSize;
   
-  // NEW: Track Rotation instead of Skew
   let currentRot = 0;
   let currentScaleX = 1;
   let currentScaleY = 1;
@@ -70,81 +66,68 @@ export const Ring = (options: RingOptions = {}) => {
       const border = getBorder(app.state);
       let color = getColor(app.state);
 
-      const target = app.state.hoverTarget;
-      const shape = app.state.shape; // Sticky State
-      
+      const shape = app.state.shape; 
+      const interaction = app.state.interaction;
+
       let targetW = baseSize;
       let targetH = baseSize;
-      
-      // --- GEOMETRY ---
-      
+      let targetRadius = '50%';
+
       if (shape) {
+        // Sticky State
         targetW = shape.width;
         targetH = shape.height;
-        dom.setStyle(el, 'borderRadius', `${shape.borderRadius}px`);
+        targetRadius = `${shape.borderRadius}px`;
       } else {
-        dom.setStyle(el, 'borderRadius', '50%');
-
-        if (target && target.hasAttribute('data-supermouse-color')) {
-             color = target.getAttribute('data-supermouse-color')!;
-        }
-
+        // Standard State
         if (app.state.isHover) {
           targetW = hoverSize;
           targetH = hoverSize;
         }
         if (app.state.isDown) {
-          targetW *= 0.8;
-          targetH *= 0.8;
+          targetW *= 0.9;
+          targetH *= 0.9;
         }
       }
 
-      dom.setStyle(el, 'borderColor', color);
-      dom.setStyle(el, 'borderWidth', `${border}px`);
+      if (interaction && interaction.color) {
+        color = interaction.color;
+      }
 
       currentW = math.lerp(currentW, targetW, 0.2);
       currentH = math.lerp(currentH, targetH, 0.2);
 
       dom.setStyle(el, 'width', `${currentW}px`);
       dom.setStyle(el, 'height', `${currentH}px`);
+      dom.setStyle(el, 'borderRadius', targetRadius);
+      dom.setStyle(el, 'borderColor', color);
+      dom.setStyle(el, 'borderWidth', `${border}px`);
 
-      // --- POSITION & DISTORTION ---
-      
-      const x = app.state.smooth.x;
-      const y = app.state.smooth.y;
+      const { x, y } = app.state.smooth;
       
       let targetRot = 0;
       let targetScaleX = 1;
       let targetScaleY = 1;
 
       if (shape) {
-        // Stuck: Reset transform immediately for clean morph
-        targetRot = 0;
-        targetScaleX = 1;
-        targetScaleY = 1;
-        
-        currentRot = 0; 
+        currentRot = 0;
       } 
       else if (enableSkew && !app.state.reducedMotion) {
-        // Moving Freely: Apply Distortion
         const { velocity } = app.state;
         const distortion = effects.getVelocityDistortion(velocity.x, velocity.y);
         
         targetRot = distortion.rotation;
         targetScaleX = distortion.scaleX;
         targetScaleY = distortion.scaleY;
-      }
-
-      // Smooth Interpolation for Transform
-      // (Except rotation if stuck, handled above)
-      if (!shape) {
-        currentRot = math.lerp(currentRot, targetRot, 0.15);
+        
+        currentRot = math.lerpAngle(currentRot, targetRot, 0.15);
+      } else {
+        currentRot = 0;
       }
       
       currentScaleX = math.lerp(currentScaleX, targetScaleX, 0.15);
       currentScaleY = math.lerp(currentScaleY, targetScaleY, 0.15);
 
-      // Render
       dom.setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
     }
   }, options);
