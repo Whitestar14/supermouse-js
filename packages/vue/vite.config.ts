@@ -6,14 +6,15 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'Vue',
-      fileName: (format) => `index.${format}.js`,
+      name: 'SupermouseVue',
+      fileName: (format) => `supermouse-vue.${format}.js`,
     },
     rollupOptions: {
-      external: ['@supermousejs/core'],
+      external: ['vue', '@supermousejs/core'],
       output: {
         globals: {
-          '@supermousejs/core': 'SupermouseCore'
+          vue: 'Vue',
+          '@supermousejs/core': 'Supermouse'
         }
       }
     }

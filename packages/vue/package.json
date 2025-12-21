@@ -1,0 +1,19 @@
+{
+  "name": "@supermousejs/vue",
+  "version": "1.0.0",
+  "main": "dist/supermouse-vue.umd.js",
+  "module": "dist/supermouse-vue.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.2.0"
+  },
+  "devDependencies": {
+    "vue": "^3.2.0"
+  }
+}
