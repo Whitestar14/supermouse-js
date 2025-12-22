@@ -8,21 +8,67 @@ export const DEFAULT_HOVER_SELECTORS = [
 ];
 
 /**
- * The core runtime for Supermouse.js.
- * Manages the animation loop, input state, and plugin orchestration.
+ * The Central Conductor & Runtime Loop of Supermouse.
+ * 
+ * This class orchestrates the application state, manages the animation loop (`requestAnimationFrame`),
+ * and coordinates data flow between the Input system, the Stage system, and the Plugins.
+ * 
+ * ## Architecture
+ * 1. **Input System**: Captures raw events and writes to `state.pointer`.
+ * 2. **Logic Plugins**: (Priority < 0) Read `pointer`, modify `state.target` (e.g. Magnetic, Stick).
+ * 3. **Physics**: Core interpolates `state.smooth` towards `state.target`.
+ * 4. **Visual Plugins**: (Priority >= 0) Read `state.smooth`, update DOM transforms.
+ * 
+ * @example
+ * ```ts
+ * const app = new Supermouse({ smoothness: 0.15 });
+ * app.use(Dot({ color: 'red' }));
+ * ```
  */
 export class Supermouse {
   /** The current version of Supermouse.js */
   public static readonly version: string = __VERSION__;
   public readonly version: string = __VERSION__;
 
+  /**
+   * The Single Source of Truth.
+   * 
+   * This object is shared by reference. `Input` writes to it; `Supermouse` physics reads/writes to it;
+   * Plugins read/write to it.
+   * 
+   * - **pointer**: RAW input coordinates. **Do not modify.**
+   * - **target**: The destination the physics engine is trying to reach. **Logic plugins may modify this** to redirect the cursor (e.g. magnetic effect).
+   * - **smooth**: The interpolated render position. **Visual plugins must read this.** Do not modify.
+   * - **velocity**: The current speed vector. Read-only.
+   */
   state: MouseState;
+
+  /**
+   * Configuration options.
+   * Modifications to `options.smoothness` or `options.hideCursor` at runtime are generally respected by the loop.
+   */
   options: SupermouseOptions;
+
+  /**
+   * Registry of active plugins.
+   * @internal Use `use()`, `enablePlugin()`, or `disablePlugin()` to interact with this.
+   */
   plugins: Map<string, SupermousePlugin> = new Map();
   
   private pluginList: SupermousePlugin[] = [];
+  
+  /**
+   * The Stage System responsible for the DOM container and CSS injection.
+   * @internal
+   */
   private stage: Stage;
+
+  /**
+   * The Input System responsible for event listeners.
+   * @internal
+   */
   private input: Input;
+  
   private rafId: number = 0;
   private lastTime: number = 0;
   private isRunning: boolean = false;
@@ -31,7 +77,9 @@ export class Supermouse {
 
   /**
    * Creates a new Supermouse instance.
+   * 
    * @param options - Global configuration options.
+   * @throws Will throw if running in a non-browser environment (window/document undefined).
    */
   constructor(options: SupermouseOptions = {}) {
     this.options = {
@@ -77,6 +125,7 @@ export class Supermouse {
     this.stage = new Stage(this.options.container, !!this.options.hideCursor);
     this.hoverSelectors.forEach(s => this.stage.addSelector(s));
 
+    // Pass state by reference to Input. Input will mutate this state directly.
     this.input = new Input(
       this.state, 
       this.options,
@@ -92,14 +141,15 @@ export class Supermouse {
   }
 
   /**
-   * Retrieves a registered plugin by name.
+   * Retrieves a registered plugin instance by its unique name.
    */
   public getPlugin(name: string) {
     return this.plugins.get(name);
   }
 
   /**
-   * Enables a specific plugin.
+   * Enables a specific plugin by name.
+   * Triggers the `onEnable` lifecycle hook of the plugin.
    */
   public enablePlugin(name: string) {
     const plugin = this.plugins.get(name);
@@ -110,7 +160,12 @@ export class Supermouse {
   }
 
   /**
-   * Disables a specific plugin.
+   * Disables a specific plugin by name.
+   * Triggers the `onDisable` lifecycle hook.
+   * 
+   * @remarks
+   * Visual plugins should use `onDisable` to fade out their elements (e.g. opacity: 0)
+   * rather than removing them from the DOM, to prevent GC thrashing.
    */
   public disablePlugin(name: string) {
     const plugin = this.plugins.get(name);
@@ -132,9 +187,14 @@ export class Supermouse {
   }
 
   /**
-   * Adds a CSS selector to the list of interactive elements.
-   * When hovered, `state.isHover` becomes true and `state.hoverTarget` is set.
-   * Also hides the native cursor for these elements if `hideCursor` is true.
+   * Registers a CSS selector as an "Interactive Target".
+   * 
+   * When the mouse hovers over an element matching this selector:
+   * 1. `state.isHover` becomes `true`.
+   * 2. `state.hoverTarget` is set to the element.
+   * 3. The `Stage` system injects CSS to hide the native cursor for this element (if `hideCursor: true`).
+   * 
+   * @param selector - A valid CSS selector string (e.g., `.my-button`, `[data-trigger]`).
    */
   public registerHoverTarget(selector: string) {
     if (!this.hoverSelectors.has(selector)) {
@@ -143,7 +203,13 @@ export class Supermouse {
     }
   }
 
-  /** The fixed container element where cursor visuals are rendered. */
+  /** 
+   * The fixed container element where plugins should append their DOM nodes.
+   * 
+   * @remarks
+   * This is a proxy getter for `stage.element`. Plugins should NOT create their own containers
+   * attached to `document.body`; they must append here to ensure z-indexing and scoping works.
+   */
   public get container(): HTMLDivElement { return this.stage.element; }
   
   private init() { 
@@ -152,15 +218,26 @@ export class Supermouse {
     }
   }
 
-  /** Starts the loop and enables input listeners. */
+  /** 
+   * Starts the update loop and enables input listeners.
+   * Hides the native cursor if configured.
+   */
   public enable() { this.input.isEnabled = true; this.stage.setNativeCursor('none'); }
   
-  /** Stops the loop, disables listeners, and resets cursor style. */
+  /** 
+   * Stops the update loop, disables listeners, and restores the native cursor. 
+   * Resets internal state positions to off-screen.
+   */
   public disable() { this.input.isEnabled = false; this.stage.setNativeCursor('auto'); this.resetPosition(); }
 
   /**
    * Registers a new plugin.
-   * Logic plugins (priority < 0) run before Visual plugins.
+   * 
+   * @remarks
+   * Plugins are sorted by `priority` immediately after registration.
+   * - **Negative Priority (< 0)**: Logic plugins (run before physics).
+   * - **Positive Priority (>= 0)**: Visual plugins (run after physics).
+   * 
    * @param plugin - The plugin object to install.
    */
   public use(plugin: SupermousePlugin) {
@@ -207,7 +284,9 @@ export class Supermouse {
 
   /**
    * Manually steps the animation loop.
-   * Useful when integrating with external game loops (e.g., Three.js, PixiJS).
+   * Useful when integrating with external game loops (e.g., Three.js, PixiJS) where
+   * you want to disable the internal RAF and drive `Supermouse` from your own ticker.
+   * 
    * @param time Current timestamp in milliseconds.
    */
   public step(time: number) {
@@ -225,31 +304,44 @@ export class Supermouse {
     }
   }
 
+  /**
+   * The Heartbeat.
+   * Runs on every animation frame.
+   */
   private tick = (time: number) => {
-    // Delta Time in Seconds for Physics
+    // 1. Calculate Delta Time (in seconds)
+    // We cap dt at 0.1s (100ms) to prevent massive jumps if the tab is inactive for a while.
     const dtMs = time - this.lastTime;
-    const dt = Math.min(dtMs / 1000, 0.1); // Cap dt at 100ms to prevent huge jumps on lag spikes
+    const dt = Math.min(dtMs / 1000, 0.1); 
     this.lastTime = time;
 
+    // 2. Visibility Logic
+    // Stage is visible only if input is active, it's not a native-cursor override situation,
+    // and we have actually received mouse coordinates.
     const shouldShowStage = this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
     this.stage.setVisibility(shouldShowStage);
 
+    // 3. Native Cursor Hiding Logic
     if (this.input.isEnabled && this.options.hideCursor) {
        const shouldHideNative = this.state.hasReceivedInput && !this.state.isNative;
        this.stage.setNativeCursor(shouldHideNative ? 'none' : 'auto');
     }
 
     if (this.input.isEnabled) {
+      // 4. Sync Target
+      // By default, target = raw pointer. Logic plugins may override this in the next step.
       this.state.target.x = this.state.pointer.x;
       this.state.target.y = this.state.pointer.y;
 
-      // Plugins: Update Logic & Visuals (Sorted by priority)
-      // Wrapped in Error Boundary to prevent core crash
+      // 5. Run Plugins
+      // This iterates through the priority-sorted list.
+      // - Logic Plugins (Magnetic) run first and modify this.state.target
+      // - Visual Plugins (Dot, Ring) run last and read this.state.smooth
       for (let i = 0; i < this.pluginList.length; i++) {
         this.runPluginSafe(this.pluginList[i], dtMs);
       }
 
-      // Physics: Time-Corrected Damping
+      // 6. Physics Integration (Damping)
       // Convert abstract smoothness (0-1) to damping factor (1-50 approx)
       const userSmooth = this.options.smoothness!;
       // Map 0.15 (floaty) -> ~10, 0.5 (snappy) -> ~25
@@ -264,11 +356,13 @@ export class Supermouse {
       this.state.velocity.x = vx;
       this.state.velocity.y = vy;
 
+      // Only update angle if moving significantly (prevents jitter at rest)
       if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
         this.state.angle = angle(vx, vy);
       }
 
     } else {
+      // Inactive State: Force positions off-screen
       this.state.smooth.x = -100;
       this.state.smooth.y = -100;
       this.state.pointer.x = -100;
@@ -276,6 +370,7 @@ export class Supermouse {
       this.state.velocity.x = 0;
       this.state.velocity.y = 0;
       
+      // Still run plugins (e.g. for exit animations)
       for (let i = 0; i < this.pluginList.length; i++) {
         this.runPluginSafe(this.pluginList[i], dtMs);
       }
@@ -286,7 +381,10 @@ export class Supermouse {
     }
   };
   
-  /** Cleans up all resources, plugins, and DOM elements. */
+  /** 
+   * Destroys the instance.
+   * Stops the loop, removes all DOM elements, removes all event listeners, and calls destroy on all plugins.
+   */
   public destroy() {
     this.isRunning = false;
     cancelAnimationFrame(this.rafId);

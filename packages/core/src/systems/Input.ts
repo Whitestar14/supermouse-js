@@ -1,16 +1,29 @@
-
 import { MouseState, SupermouseOptions, InteractionState } from '../types';
 
 /**
- * Handles input events (mouse/touch) and manages the `isNative`/`isHover` state logic.
+ * The Sensor / State Writer.
+ * 
+ * This class listens to browser events (mousemove, touch, hover) and mutates the shared `MouseState` object.
+ * It acts as the "Producer" of data for the Supermouse system.
+ * 
+ * @internal This is an internal system class instantiated by `Supermouse`.
  */
 export class Input {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;
   private motionQuery?: MediaQueryList;
+  
+  /**
+   * Master switch for input processing. 
+   * Toggled by `Supermouse.enable()`/`disable()` or automatically by device capability checks.
+   */
   public isEnabled: boolean = true;
 
-  // Performance: Cache parsed interaction data to avoid constant regex/JSON parsing on hover
+  /**
+   * Performance Optimization:
+   * Parsing data attributes (regex + JSON.parse) is expensive to do on every `mouseover`.
+   * We cache the resolved InteractionState for every element we encounter in a WeakMap.
+   */
   private interactionCache = new WeakMap<HTMLElement, InteractionState>();
 
   constructor(
@@ -24,6 +37,10 @@ export class Input {
     this.bindEvents();
   }
 
+  /**
+   * Automatically disables the custom cursor on devices without fine pointer control (e.g. phones/tablets).
+   * Relies on `matchMedia('(pointer: fine)')`.
+   */
   private checkDeviceCapability() {
     if (!this.options.autoDisableOnMobile) return;
 
@@ -36,6 +53,10 @@ export class Input {
     this.mediaQueryList.addEventListener('change', this.mediaQueryHandler);
   }
 
+  /**
+   * Checks for `prefers-reduced-motion`.
+   * If true, the core physics engine will switch to instant snapping (high damping) to avoid motion sickness.
+   */
   private checkMotionPreference() {
    this.motionQuery = window.matchMedia('(prefer-reduced-motion: reduce)');
    this.state.reducedMotion = this.motionQuery.matches;
@@ -53,9 +74,14 @@ export class Input {
   // --- Interaction Parsing ---
 
   /**
-   * Extract interaction state from the element.
-   * Scrapes `data-supermouse-*` attributes and checks semantic rules.
-   * Uses WeakMap caching for performance.
+   * Scrapes the DOM element for metadata to populate `state.interaction`.
+   * 
+   * **Strategy:**
+   * 1. Check WeakMap cache.
+   * 2. Apply config-based `rules` (e.g. `a: { icon: 'pointer' }`).
+   * 3. Parse `data-cursor` JSON (Legacy/Advanced).
+   * 4. Scrape individual `data-supermouse-*` attributes.
+   * 5. Cache result.
    */
   private parseDOMInteraction(element: HTMLElement) {
     // 0. Custom Strategy override
@@ -81,6 +107,7 @@ export class Input {
       }
     }
 
+    // 3. JSON Configuration (data-cursor='{"color":"red"}')
     const jsonAttr = element.getAttribute('data-cursor');
     if (jsonAttr) {
       try {
@@ -91,12 +118,14 @@ export class Input {
       }
     }
 
+    // 4. Attribute Scraping (data-supermouse-color="red")
     if (element.hasAttributes()) {
       for (const attr of element.attributes) {
         if (attr.name.startsWith('data-supermouse-')) {
           const key = attr.name.slice(16); 
           const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
           
+          // If empty string (boolean attribute), treat as true
           data[camelKey] = attr.value === '' ? true : attr.value;
         }
       }
@@ -127,6 +156,7 @@ export class Input {
     let y = clientY;
 
     // Handle Custom Container Coordinates
+    // If the cursor is confined to a specific div, we must normalize coordinates relative to that div.
     if (this.options.container && this.options.container !== document.body) {
       const rect = this.options.container.getBoundingClientRect();
       x = clientX - rect.left;
@@ -136,7 +166,9 @@ export class Input {
     this.state.pointer.x = x;
     this.state.pointer.y = y;
 
-    // Invisible Until Active Strategy:
+    // "Invisible Until Active" Strategy:
+    // We keep the cursor hidden (-100, -100) until the first real user input event.
+    // This prevents the cursor from "flying in" from the corner on page load.
     if (!this.state.hasReceivedInput) {
       this.state.hasReceivedInput = true;
       this.state.target.x = x;
@@ -154,12 +186,14 @@ export class Input {
     const target = e.target as HTMLElement;
 
     // 0. THE VETO: Explicit Ignore
+    // If an element (or ancestor) has `data-supermouse-ignore`, we force native cursor.
     if (target.closest('[data-supermouse-ignore]')) {
       this.state.isNative = true;
       return;
     }
 
     // 1. Dynamic Hover Check
+    // Checks if the target matches any registered selector (default: a, button, etc.)
     const selector = this.getHoverSelector();
     const hoverable = target.closest(selector);
 
@@ -170,6 +204,8 @@ export class Input {
     }
 
     // 2. Semantic Native Cursor Check (Auto-detection)
+    // If the browser computes the cursor as 'text' (e.g. on input) or something non-standard,
+    // we assume the native cursor is needed for utility and hide the custom one.
     if (this.options.ignoreOnNative) {
       const style = window.getComputedStyle(target).cursor;
       const supermouseAllowed = ['default', 'auto', 'pointer', 'none', 'inherit'];
@@ -185,6 +221,7 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
+    // Only clear hover state if we are truly leaving the hover target (not bubbling from a child)
     if (target === this.state.hoverTarget || target.contains(this.state.hoverTarget)) {
        if (!e.relatedTarget || !(this.state.hoverTarget?.contains(e.relatedTarget as Node))) {
           this.state.isHover = false;
@@ -197,6 +234,7 @@ export class Input {
       this.state.isNative = false;
     }
 
+    // Window Leave Detection
     if (this.options.hideOnLeave && e.relatedTarget === null) {
       this.state.hasReceivedInput = false;
     }
