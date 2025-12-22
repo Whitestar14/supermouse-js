@@ -1,27 +1,29 @@
-import { onMounted, onUnmounted, provide, inject, ref, type Ref } from 'vue';
+import { onMounted, onUnmounted, provide, inject, shallowRef, type Ref, type InjectionKey } from 'vue';
 import { Supermouse, type SupermouseOptions, type SupermousePlugin } from '@supermousejs/core';
 
-const SupermouseSymbol = Symbol('Supermouse');
+export const SupermouseKey: InjectionKey<Ref<Supermouse | null>> = Symbol('Supermouse');
 
 /**
- * Initializes Supermouse in a Vue component.
- * Automatically handles mounting and unmounting.
+ * Initializes a Supermouse instance, handles its lifecycle, and provides it to the component tree.
+ * Use this in your root component (e.g., App.vue).
  * 
  * @param options Core configuration options
  * @param plugins Array of plugins to install immediately
  */
-export function useSupermouse(
+export function provideSupermouse(
   options: SupermouseOptions = {}, 
   plugins: SupermousePlugin[] = []
-) {
-  const instance = ref<Supermouse | null>(null);
+): Ref<Supermouse | null> {
+  const instance = shallowRef<Supermouse | null>(null);
 
   onMounted(() => {
-    // Prevent duplicate instances if called multiple times erroneously
+    // Prevent duplicate instances
     if (instance.value) return;
 
+    // Initialize core
     const mouse = new Supermouse(options);
     
+    // Install plugins
     plugins.forEach(p => mouse.use(p));
     
     instance.value = mouse;
@@ -34,31 +36,21 @@ export function useSupermouse(
     }
   });
 
+  // Provide the Ref so children can react to the instance becoming available
+  provide(SupermouseKey, instance);
+  
   return instance;
 }
 
 /**
- * Advanced: Provides a global Supermouse instance to all child components.
- * Ideal for App.vue.
+ * Injects the global Supermouse instance from a parent component.
+ * Returns a Ref that resolves to the instance once mounted.
  */
-export function provideSupermouse(
-  options: SupermouseOptions = {}, 
-  plugins: SupermousePlugin[] = []
-) {
-  const instance = useSupermouse(options, plugins);
-  provide(SupermouseSymbol, instance);
-  return instance;
-}
-
-/**
- * Access the global Supermouse instance from any child component.
- * Useful for toggling cursor states or enabling specific plugins dynamically.
- */
-export function injectSupermouse(): Ref<Supermouse | null> {
-  const instance = inject<Ref<Supermouse | null>>(SupermouseSymbol);
+export function useSupermouse(): Ref<Supermouse | null> {
+  const instance = inject(SupermouseKey);
   if (!instance) {
-    console.warn('[Supermouse] No instance provided. Did you call provideSupermouse() in App.vue?');
-    return ref(null);
+    console.warn('[Supermouse] No instance provided. Ensure provideSupermouse() is called in a parent component.');
+    return shallowRef(null);
   }
   return instance;
 }

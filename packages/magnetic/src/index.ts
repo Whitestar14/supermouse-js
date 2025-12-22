@@ -31,7 +31,8 @@ export const Magnetic = (options: MagneticOptions = {}) => {
 
     update(app) {
       const target = app.state.hoverTarget;
-      const isMagnetic = app.state.interaction.magnetic === true || app.state.interaction.magnetic === 'true';
+      const val = app.state.interaction.magnetic;
+      const isMagnetic = val === true || val === 'true' || (typeof val === 'number' && val > 0);
 
       if (isMagnetic && target !== lastTarget) {
         lastTarget = target!;
@@ -51,7 +52,7 @@ export const Magnetic = (options: MagneticOptions = {}) => {
         const range = getDistance(app.state);
 
         if (dist < range) {
-          const attraction = getAttraction(app.state);
+          const attraction = typeof val === 'number' ? val : getAttraction(app.state);
           app.state.target.x = math.lerp(x, magnetCenter.x, attraction);
           app.state.target.y = math.lerp(y, magnetCenter.y, attraction);
         }

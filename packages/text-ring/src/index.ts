@@ -10,6 +10,7 @@ export interface TextRingOptions {
   fontSize?: ValueOrGetter<number>;
   speed?: ValueOrGetter<number>;
   color?: ValueOrGetter<string>;
+  opacity?: ValueOrGetter<number>;
   className?: string;
   spread?: boolean;
 }
@@ -36,6 +37,7 @@ export const TextRing = (options: TextRingOptions = {}) => {
   const getRadius = normalize(options.radius, defRadius);
   const getFontSize = normalize(options.fontSize, defFontSize);
   const getSpeed = normalize(options.speed, defSpeed);
+  const getOpacity = normalize(options.opacity, 1);
 
   let currentRotation = 0;
   let lastText = '';
@@ -59,7 +61,9 @@ export const TextRing = (options: TextRingOptions = {}) => {
         alignItems: 'center',
         justifyContent: 'center'
       });
-      if (className) container.classList.add(className);
+      if (className) {
+        container.classList.add(...className.split(' ').filter(Boolean));
+      }
 
       svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.style.overflow = 'visible';
@@ -106,10 +110,17 @@ export const TextRing = (options: TextRingOptions = {}) => {
       const radius = getRadius(app.state);
       const fontSize = getFontSize(app.state);
       const speed = getSpeed(app.state);
+      const opacity = getOpacity(app.state);
 
-      const interactionText = app.state.interaction.textRing;
-      if (interactionText) {
-        text = typeof interactionText === 'string' ? interactionText : text;
+      // Force update opacity
+      dom.setStyle(container, 'opacity', String(opacity));
+
+      const ia = app.state.interaction;
+      // Prefer specific "textRing" property, fallback to generic "text", then default option
+      if (ia.textRing && typeof ia.textRing === 'string') {
+        text = ia.textRing;
+      } else if (ia.text && typeof ia.text === 'string') {
+        text = ia.text;
       }
 
       if (radius !== lastRadius) {

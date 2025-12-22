@@ -21,6 +21,7 @@ export const Dot = (options: DotOptions = {}) => {
   // Normalize options once during setup
   const getSize = normalize(options.size, defSize);
   const getColor = normalize(options.color, defColor);
+  const getOpacity = normalize(options.opacity, 1);
 
   return definePlugin<HTMLDivElement, DotOptions>({
     name: 'dot',
@@ -40,9 +41,7 @@ export const Dot = (options: DotOptions = {}) => {
       return el;
     },
 
-    styles: {
-      opacity: 'opacity'
-    },
+    styles: {}, 
 
     update: (app, el) => {
       const size = getSize(app.state);
@@ -57,11 +56,13 @@ export const Dot = (options: DotOptions = {}) => {
         dom.setStyle(el, 'backgroundColor', getColor(app.state));
       }
 
+      let targetOpacity = getOpacity(app.state);
+
       if (hideOnShape && app.state.shape) {
-        dom.setStyle(el, 'opacity', '0');
-      } else {
-        dom.setStyle(el, 'opacity', '1');
+        targetOpacity = 0;
       }
+
+      dom.setStyle(el, 'opacity', String(targetOpacity));
 
       const { x, y } = app.state.target;
       dom.setTransform(el, x, y);

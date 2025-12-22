@@ -1,4 +1,3 @@
-
 import { definePlugin, dom, math, Layers, Easings } from '@supermousejs/core';
 
 export interface ImageOptions {
@@ -28,7 +27,9 @@ export const Image = (options: ImageOptions = {}) => {
 
     create: (app) => {
       const container = dom.createActor('div') as HTMLDivElement;
-      container.classList.add(className);
+      if (className) {
+        container.classList.add(...className.split(' ').filter(Boolean));
+      }
       
       img = document.createElement('img');
       dom.applyStyles(img, {

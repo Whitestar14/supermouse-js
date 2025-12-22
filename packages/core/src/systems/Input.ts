@@ -1,15 +1,17 @@
 
-import { MouseState, SupermouseOptions } from '../types';
+import { MouseState, SupermouseOptions, InteractionState } from '../types';
 
 /**
  * Handles input events (mouse/touch) and manages the `isNative`/`isHover` state logic.
- * Also handles mobile/touch disabling, reduced-motion preferences, and attribute parsing.
  */
 export class Input {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;
   private motionQuery?: MediaQueryList;
   public isEnabled: boolean = true;
+
+  // Performance: Cache parsed interaction data to avoid constant regex/JSON parsing on hover
+  private interactionCache = new WeakMap<HTMLElement, InteractionState>();
 
   constructor(
     private state: MouseState,
@@ -51,14 +53,34 @@ export class Input {
   // --- Interaction Parsing ---
 
   /**
-   * extracting data-cursor-* attributes into state.interaction.
-   * This is a convenience for DOM-based cursors. 
-   * Logic plugins (e.g. Physics) might write to interaction directly.
+   * Extract interaction state from the element.
+   * Scrapes `data-supermouse-*` attributes and checks semantic rules.
+   * Uses WeakMap caching for performance.
    */
   private parseDOMInteraction(element: HTMLElement) {
+    // 0. Custom Strategy override
+    if (this.options.resolveInteraction) {
+      this.state.interaction = this.options.resolveInteraction(element);
+      return;
+    }
+
+    // 1. Check Cache
+    if (this.interactionCache.has(element)) {
+      this.state.interaction = this.interactionCache.get(element)!;
+      return;
+    }
+
     const data: Record<string, any> = {};
 
-    // 1. JSON Configuration (data-cursor='{"color":"red"}')
+    // 2. Semantic Rules (Config-based)
+    if (this.options.rules) {
+      for (const [selector, rules] of Object.entries(this.options.rules)) {
+        if (element.matches(selector)) {
+          Object.assign(data, rules);
+        }
+      }
+    }
+
     const jsonAttr = element.getAttribute('data-cursor');
     if (jsonAttr) {
       try {
@@ -69,46 +91,52 @@ export class Input {
       }
     }
 
-    // 2. Legacy/Individual Attributes (data-supermouse-color="red")
-    // Iterate attributes to find matches dynamically
     if (element.hasAttributes()) {
       for (const attr of element.attributes) {
         if (attr.name.startsWith('data-supermouse-')) {
-          // Remove prefix
           const key = attr.name.slice(16); 
-          // Convert kebab-case to camelCase (e.g. text-color -> textColor)
           const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
           
-          // If empty string (boolean attribute), treat as true
           data[camelKey] = attr.value === '' ? true : attr.value;
         }
       }
     }
 
-    // Update state
+    // 5. Cache and Set
+    this.interactionCache.set(element, data);
     this.state.interaction = data;
   }
 
   // --- Handlers ---
- private handleMove = (e: MouseEvent | TouchEvent) => {
+  private handleMove = (e: MouseEvent | TouchEvent) => {
     if (!this.isEnabled) return;
-    let x = 0;
-    let y = 0;
+    let clientX = 0;
+    let clientY = 0;
 
     if (e instanceof MouseEvent) {
-      x = e.clientX;
-      y = e.clientY;
+      clientX = e.clientX;
+      clientY = e.clientY;
     } else if (e.touches?.[0]) {
-      x = e.touches[0].clientX;
-      y = e.touches[0].clientY;
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      return;
+    }
+
+    let x = clientX;
+    let y = clientY;
+
+    // Handle Custom Container Coordinates
+    if (this.options.container && this.options.container !== document.body) {
+      const rect = this.options.container.getBoundingClientRect();
+      x = clientX - rect.left;
+      y = clientY - rect.top;
     }
 
     this.state.pointer.x = x;
     this.state.pointer.y = y;
 
     // Invisible Until Active Strategy:
-    // If this is the first input (or re-entry), snap everything to the exact position
-    // to prevent the cursor from "flying in" from 0,0 or -100,-100.
     if (!this.state.hasReceivedInput) {
       this.state.hasReceivedInput = true;
       this.state.target.x = x;
@@ -126,10 +154,9 @@ export class Input {
     const target = e.target as HTMLElement;
 
     // 0. THE VETO: Explicit Ignore
-    // If the target (or any parent) has the ignore attribute, force Native Mode.
     if (target.closest('[data-supermouse-ignore]')) {
       this.state.isNative = true;
-      return; // Stop processing hover effects
+      return;
     }
 
     // 1. Dynamic Hover Check
@@ -170,9 +197,6 @@ export class Input {
       this.state.isNative = false;
     }
 
-    // Window Exit Detection:
-    // If relatedTarget is null, the mouse has likely left the viewport window.
-    // If configured to hide on leave, we disable hasReceivedInput.
     if (this.options.hideOnLeave && e.relatedTarget === null) {
       this.state.hasReceivedInput = false;
     }

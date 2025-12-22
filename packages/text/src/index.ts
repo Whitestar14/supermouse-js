@@ -1,4 +1,3 @@
-
 import { definePlugin, dom, Layers, Easings, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface TextOptions {
@@ -22,7 +21,9 @@ export const Text = (options: TextOptions = {}) => {
 
     create: (app) => {
       const el = dom.createActor('div') as HTMLDivElement;
-      el.classList.add(className);
+      if (className) {
+        el.classList.add(...className.split(' ').filter(Boolean));
+      }
       
       textNode = document.createElement('span');
       el.appendChild(textNode);

@@ -11,6 +11,7 @@ export interface PointerOptions {
   restingAngle?: ValueOrGetter<number>;
   returnToRest?: ValueOrGetter<boolean>;
   restDelay?: ValueOrGetter<number>;
+  opacity?: ValueOrGetter<number>;
 }
 
 const DEFAULT_SVG = `
@@ -22,13 +23,13 @@ const DEFAULT_SVG = `
 export const Pointer = (options: PointerOptions = {}) => {
   const defSize = 32;
   const smoothing = options.rotationSmoothing || 0.15;
-  // SVG content is static to prevent constant re-parsing.
   const svgContent = options.svg || DEFAULT_SVG;
   
   const getSize = normalize(options.size, defSize);
   const getRestingAngle = normalize(options.restingAngle, -45);
   const getReturnToRest = normalize(options.returnToRest, true);
   const getRestDelay = normalize(options.restDelay, 200);
+  const getOpacity = normalize(options.opacity, 1);
 
   let currentRotation = 0;
   let lastRotation = 0;
@@ -60,9 +61,11 @@ export const Pointer = (options: PointerOptions = {}) => {
       const restingAngle = getRestingAngle(app.state);
       const returnToRest = getReturnToRest(app.state);
       const restDelay = getRestDelay(app.state);
+      const opacity = getOpacity(app.state);
 
       dom.setStyle(el, 'width', `${size}px`);
       dom.setStyle(el, 'height', `${size}px`);
+      dom.setStyle(el, 'opacity', String(opacity));
 
       const { x: vx, y: vy } = app.state.velocity;
       const speed = math.dist(vx, vy);

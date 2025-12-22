@@ -39,6 +39,13 @@ interface VisualConfig<E extends HTMLElement, O extends object> {
   destroy?: never; // Visual plugins use cleanup(), not destroy()
 }
 
+// Helper Type Guard to safely distinguish VisualConfig at runtime
+function isVisualConfig<E extends HTMLElement, O extends object>(
+  config: LogicConfig | VisualConfig<E, O>
+): config is VisualConfig<E, O> {
+  return 'create' in config && typeof (config as any).create === 'function';
+}
+
 // --- THE OVERLOADS ---
 
 // Overload 1: Visual Plugin (Infer Element E and Options O)
@@ -55,22 +62,22 @@ export function definePlugin(
 
 // --- THE IMPLEMENTATION ---
 
-export function definePlugin(config: any, userOptions: any = {}): SupermousePlugin {
+export function definePlugin(
+  config: LogicConfig | VisualConfig<HTMLElement, any>, 
+  userOptions: any = {}
+): SupermousePlugin {
   const name = userOptions.name || config.name;
   const initialEnabled = userOptions.isEnabled ?? true;
 
-  // MODE A: VISUAL (Has 'create' method)
-  if (typeof config.create === 'function') {
+  // MODE A: VISUAL
+  if (isVisualConfig(config)) {
     let element: HTMLElement;
 
     // PRE-COMPILE STYLE SETTERS
-    // Instead of iterating Object.entries() every frame (allocation heavy),
-    // we create an array of specific update functions once.
     const styleSetters: ((app: Supermouse, el: HTMLElement) => void)[] = [];
     
     if (config.styles) {
       for (const [optKey, cssProp] of Object.entries(config.styles)) {
-        // Normalize once. Now we have a fast getter.
         const getter = normalize(userOptions[optKey], undefined);
         const prop = cssProp as any;
         
@@ -100,8 +107,9 @@ export function definePlugin(config: any, userOptions: any = {}): SupermousePlug
       },
 
       update(app, dt) {
+        if (!element) return;
+
         // 3. Run Pre-compiled Style Setters
-        // Using a plain for loop is faster than forEach for high-freq code
         for (let i = 0; i < styleSetters.length; i++) {
           styleSetters[i](app, element);
         }
@@ -111,16 +119,20 @@ export function definePlugin(config: any, userOptions: any = {}): SupermousePlug
       },
 
       onDisable(app) {
-        element.style.opacity = '0';
+        if (!element) return;
+        // Use setStyle to ensure cache remains in sync (0)
+        setStyle(element, 'opacity', 0);
         config.onDisable?.(app, element);
       },
 
       onEnable(app) {
-        element.style.opacity = '1';
+        if (!element) return;
+        setStyle(element, "opacity", 1)
         config.onEnable?.(app, element);
       },
 
       destroy() {
+        if (!element) return;
         config.cleanup?.(element);
         element.remove();
       }
@@ -130,7 +142,7 @@ export function definePlugin(config: any, userOptions: any = {}): SupermousePlug
   // MODE B: LOGIC (Standard Pass-through)
   else {
     return {
-      ...config, // Spread priority, install, etc.
+      ...config,
       name,
       isEnabled: initialEnabled,
     };

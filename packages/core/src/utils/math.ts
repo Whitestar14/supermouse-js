@@ -1,9 +1,21 @@
-
 /**
  * Linear Interpolation between two values.
  */
 export function lerp(start: number, end: number, factor: number): number {
   return start + (end - start) * factor;
+}
+
+/**
+ * Frame-rate independent damping (Time-based Lerp).
+ * Ensures smooth animation consistent across 60hz, 120hz, etc.
+ * 
+ * @param a Current value
+ * @param b Target value
+ * @param lambda Smoothing factor (approx 1-20). Higher is faster.
+ * @param dt Delta time in seconds (not milliseconds)
+ */
+export function damp(a: number, b: number, lambda: number, dt: number): number {
+  return lerp(a, b, 1 - Math.exp(-lambda * dt));
 }
 
 /**

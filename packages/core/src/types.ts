@@ -19,19 +19,23 @@ export interface ShapeState {
  * @example
  * declare module '@supermousejs/core' {
  *   interface InteractionState {
- *     myProp: string;
+ *     magnetic: boolean | number;
+ *     text: string;
  *   }
  * }
  */
 export interface InteractionState {
-  /** Allow arbitrary data-supermouse-* attributes */
+  /** 
+   * Allow arbitrary keys for rapid prototyping. 
+   * For type safety, use module augmentation to define expected keys.
+   */
   [key: string]: any;
 }
 
 export interface MouseState {
   /** The raw position of the input pointer (mouse/touch). */
   pointer: MousePosition;
-  /** The target position the cursor logic wants to reach (modified by logic plugins like Magnetic). */
+  /** The target position the cursor logic wants to reach. */
   target: MousePosition;
   /** The smoothed/interpolated position used for rendering. */
   smooth: MousePosition;
@@ -43,10 +47,7 @@ export interface MouseState {
   isDown: boolean;
   /** Whether the pointer is currently hovering over a registered interactive element. */
   isHover: boolean;
-  /** 
-   * Whether the native cursor is currently forced visible (e.g. over inputs or `data-supermouse-ignore`).
-   * If true, custom cursor elements often hide themselves. 
-   */
+  /** Whether the native cursor is currently forced visible. */
   isNative: boolean;
   /** The DOM element currently being hovered, if any. */
   hoverTarget: HTMLElement | null;
@@ -54,16 +55,9 @@ export interface MouseState {
   reducedMotion: boolean;
   /** Whether the system has received valid input coordinates at least once. */
   hasReceivedInput: boolean;
-  /** 
-   * Defines a specific geometric shape the cursor should conform to.
-   * Set by logic plugins like Stick. Visual plugins should morph to this if present.
-   */
+  /** Defines a specific geometric shape the cursor should conform to. */
   shape: ShapeState | null;
-  /**
-   * Centralized store for hover metadata.
-   * Populated by Input system from `data-cursor` JSON or `data-supermouse-*` attributes.
-   * Typed via module augmentation by plugins.
-   */
+  /** Centralized store for hover metadata from data attributes. */
   interaction: InteractionState;
 }
 
@@ -77,10 +71,10 @@ export interface SupermouseOptions {
    */
   smoothness?: number;
   /**
-   * Selector string used to identify interactive elements. 
-   * Plugins typically register their own selectors automatically.
+   * List of CSS selectors that trigger the "Hover" state.
+   * Overrides the default set if provided.
    */
-  hoverSelector?: string;
+  hoverSelectors?: string[];
   /**
    * Whether to enable custom cursor effects on touch devices.
    * @default false
@@ -110,6 +104,26 @@ export interface SupermouseOptions {
    * List of plugins to initialize with the instance.
    */
   plugins?: SupermousePlugin[];
+  /**
+   * The DOM element to append the cursor stage to.
+   * @default document.body
+   */
+  container?: HTMLElement;
+  /**
+   * Whether to start the internal animation loop automatically.
+   * @default true
+   */
+  autoStart?: boolean;
+  /**
+   * Semantic rules mapping CSS selectors to interaction state.
+   * @example { 'button': { icon: 'pointer' } }
+   */
+  rules?: Record<string, InteractionState>;
+  /**
+   * Custom strategy to resolve interaction state from a hovered element.
+   * Overrides the default data-attribute scraping.
+   */
+  resolveInteraction?: (target: HTMLElement) => InteractionState;
 }
 
 /**
@@ -123,20 +137,12 @@ export type ValueOrGetter<T> = T | ((state: MouseState) => T);
 export interface SupermousePlugin {
   /** Unique name for the plugin. Used for toggling/retrieval. */
   name: string;
-  /** 
-   * Execution priority. Lower numbers run first.
-   * Logic plugins (like Magnetic) should use negative numbers.
-   * Visual plugins (Dot, Ring) default to 0.
-   * @default 0
-   */
+  /** Execution priority. Lower numbers run first. */
   priority?: number;
-  /** 
-   * If false, update() will not be called. 
-   * @default true 
-   */
+  /** If false, update() will not be called. */
   isEnabled?: boolean;
 
-  /** Called when `app.use()` is executed. Use for DOM creation and event binding. */
+  /** Called when `app.use()` is executed. */
   install?: (instance: Supermouse) => void;
   /** Called on every animation frame. */
   update?: (instance: Supermouse, deltaTime: number) => void;

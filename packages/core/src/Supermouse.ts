@@ -1,7 +1,11 @@
 
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
-import { lerp, angle } from './utils';
+import { damp, angle } from './utils';
+
+export const DEFAULT_HOVER_SELECTORS = [
+  'a', 'button', 'input', 'textarea', '[data-hover]', '[data-cursor]'
+];
 
 /**
  * The core runtime for Supermouse.js.
@@ -23,9 +27,7 @@ export class Supermouse {
   private lastTime: number = 0;
   private isRunning: boolean = false;
   
-  private hoverSelectors: Set<string> = new Set([
-    'a', 'button', 'input', 'textarea', '[data-hover]', '[data-cursor]'
-  ]);
+  private hoverSelectors: Set<string>;
 
   /**
    * Creates a new Supermouse instance.
@@ -39,8 +41,15 @@ export class Supermouse {
       ignoreOnNative: true,
       hideCursor: true, 
       hideOnLeave: true,
+      autoStart: true,
+      container: document.body,
       ...options
     };
+
+    // Ensure container is valid (fallback to body if null/undefined passed explicitly)
+    if (!this.options.container) {
+      this.options.container = document.body;
+    }
 
     this.state = {
       pointer: { x: -100, y: -100 },
@@ -58,7 +67,14 @@ export class Supermouse {
       interaction: {}
     };
 
-    this.stage = new Stage(!!this.options.hideCursor);
+    // Initialize Selectors
+    if (this.options.hoverSelectors) {
+      this.hoverSelectors = new Set(this.options.hoverSelectors);
+    } else {
+      this.hoverSelectors = new Set(DEFAULT_HOVER_SELECTORS);
+    }
+
+    this.stage = new Stage(this.options.container, !!this.options.hideCursor);
     this.hoverSelectors.forEach(s => this.stage.addSelector(s));
 
     this.input = new Input(
@@ -130,7 +146,11 @@ export class Supermouse {
   /** The fixed container element where cursor visuals are rendered. */
   public get container(): HTMLDivElement { return this.stage.element; }
   
-  private init() { this.startLoop(); }
+  private init() { 
+    if (this.options.autoStart) {
+        this.startLoop(); 
+    }
+  }
 
   /** Starts the loop and enables input listeners. */
   public enable() { this.input.isEnabled = true; this.stage.setNativeCursor('none'); }
@@ -179,15 +199,36 @@ export class Supermouse {
   }
 
   private startLoop() {
+    if (this.isRunning) return;
     this.isRunning = true;
     this.lastTime = performance.now();
     this.tick(this.lastTime);
   }
 
-  private tick = (time: number) => {
-    if (!this.isRunning) return;
+  /**
+   * Manually steps the animation loop.
+   * Useful when integrating with external game loops (e.g., Three.js, PixiJS).
+   * @param time Current timestamp in milliseconds.
+   */
+  public step(time: number) {
+    this.tick(time);
+  }
 
-    const deltaTime = time - this.lastTime;
+  private runPluginSafe(plugin: SupermousePlugin, deltaTime: number) {
+    if (plugin.isEnabled === false) return;
+    try {
+      plugin.update?.(this, deltaTime);
+    } catch (e) {
+      console.error(`[Supermouse] Plugin '${plugin.name}' crashed and has been disabled.`, e);
+      plugin.isEnabled = false;
+      plugin.onDisable?.(this);
+    }
+  }
+
+  private tick = (time: number) => {
+    // Delta Time in Seconds for Physics
+    const dtMs = time - this.lastTime;
+    const dt = Math.min(dtMs / 1000, 0.1); // Cap dt at 100ms to prevent huge jumps on lag spikes
     this.lastTime = time;
 
     const shouldShowStage = this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
@@ -203,15 +244,19 @@ export class Supermouse {
       this.state.target.y = this.state.pointer.y;
 
       // Plugins: Update Logic & Visuals (Sorted by priority)
-      this.pluginList.forEach((plugin) => {
-        if (plugin.isEnabled !== false) {
-          plugin.update?.(this, deltaTime);
-        }
-      });
+      // Wrapped in Error Boundary to prevent core crash
+      for (let i = 0; i < this.pluginList.length; i++) {
+        this.runPluginSafe(this.pluginList[i], dtMs);
+      }
 
-      const factor = this.state.reducedMotion ? 1 : this.options.smoothness!;
-      this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
-      this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);
+      // Physics: Time-Corrected Damping
+      // Convert abstract smoothness (0-1) to damping factor (1-50 approx)
+      const userSmooth = this.options.smoothness!;
+      // Map 0.15 (floaty) -> ~10, 0.5 (snappy) -> ~25
+      const dampFactor = this.state.reducedMotion ? 1000 : (1 / userSmooth) * 2; 
+
+      this.state.smooth.x = damp(this.state.smooth.x, this.state.target.x, dampFactor, dt);
+      this.state.smooth.y = damp(this.state.smooth.y, this.state.target.y, dampFactor, dt);
       
       const vx = this.state.target.x - this.state.smooth.x;
       const vy = this.state.target.y - this.state.smooth.y;
@@ -231,14 +276,14 @@ export class Supermouse {
       this.state.velocity.x = 0;
       this.state.velocity.y = 0;
       
-      this.pluginList.forEach((plugin) => {
-        if (plugin.isEnabled !== false) {
-          plugin.update?.(this, deltaTime);
-        }
-      });
+      for (let i = 0; i < this.pluginList.length; i++) {
+        this.runPluginSafe(this.pluginList[i], dtMs);
+      }
     }
 
-    this.rafId = requestAnimationFrame(this.tick);
+    if (this.options.autoStart && this.isRunning) {
+      this.rafId = requestAnimationFrame(this.tick);
+    }
   };
   
   /** Cleans up all resources, plugins, and DOM elements. */
