@@ -2,14 +2,15 @@
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
 import { lerp, angle } from './utils';
-import pkg from '../package.json';
 
 /**
  * The core runtime for Supermouse.js.
  * Manages the animation loop, input state, and plugin orchestration.
  */
 export class Supermouse {
-  public readonly version: string = pkg.version;
+  /** The current version of Supermouse.js */
+  public static readonly version: string = __VERSION__;
+  public readonly version: string = __VERSION__;
 
   state: MouseState;
   options: SupermouseOptions;
@@ -189,14 +190,10 @@ export class Supermouse {
     const deltaTime = time - this.lastTime;
     this.lastTime = time;
 
-    // Visibility Logic:
-    // Only show the stage if Input is enabled, we aren't in Native mode (like text input), 
-    // AND we have actually received input coordinates at least once.
     const shouldShowStage = this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
     this.stage.setVisibility(shouldShowStage);
 
     if (this.input.isEnabled && this.options.hideCursor) {
-       // Only hide native cursor if we are showing ours (hasReceivedInput is true) AND not in a native zone
        const shouldHideNative = this.state.hasReceivedInput && !this.state.isNative;
        this.stage.setNativeCursor(shouldHideNative ? 'none' : 'auto');
     }
@@ -212,9 +209,6 @@ export class Supermouse {
         }
       });
 
-      // Smooth: Lerp towards target
-      // If just re-entered/started (hasReceivedInput just flipped true in Input.ts), 
-      // Input.ts snaps state.smooth to state.pointer, so lerp distance is 0.
       const factor = this.state.reducedMotion ? 1 : this.options.smoothness!;
       this.state.smooth.x = lerp(this.state.smooth.x, this.state.target.x, factor);
       this.state.smooth.y = lerp(this.state.smooth.y, this.state.target.y, factor);

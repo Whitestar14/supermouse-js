@@ -51,9 +51,11 @@ export class Input {
   // --- Interaction Parsing ---
 
   /**
-   * Parses `data-cursor` (JSON) and `data-supermouse-*` attributes into a unified object.
+   * extracting data-cursor-* attributes into state.interaction.
+   * This is a convenience for DOM-based cursors. 
+   * Logic plugins (e.g. Physics) might write to interaction directly.
    */
-  private parseInteraction(element: HTMLElement) {
+  private parseDOMInteraction(element: HTMLElement) {
     const data: Record<string, any> = {};
 
     // 1. JSON Configuration (data-cursor='{"color":"red"}')
@@ -137,7 +139,7 @@ export class Input {
     if (hoverable) {
       this.state.isHover = true;
       this.state.hoverTarget = hoverable as HTMLElement;
-      this.parseInteraction(this.state.hoverTarget);
+      this.parseDOMInteraction(this.state.hoverTarget);
     }
 
     // 2. Semantic Native Cursor Check (Auto-detection)
