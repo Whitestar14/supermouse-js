@@ -1,134 +1,56 @@
-import { definePlugin, dom, math, effects, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
+
+import { definePlugin, dom, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
 
 export interface RingOptions {
   name?: string;
   isEnabled?: boolean;
   size?: ValueOrGetter<number>;
-  hoverSize?: ValueOrGetter<number>;
   color?: ValueOrGetter<string>;
-  fill?: ValueOrGetter<string>;
   borderWidth?: ValueOrGetter<number>;
+  opacity?: ValueOrGetter<number>;
   mixBlendMode?: string;
-  enableSkew?: boolean;
-  className?: string;
 }
 
 export const Ring = (options: RingOptions = {}) => {
-  const defSize = 20;
-  const defHoverSize = 40;
-  const defColor = '#ffffff';
-  const defFill = 'transparent';
-  const defBorder = 2;
-  
-  const mixBlendMode = options.mixBlendMode || 'difference';
-  const enableSkew = options.enableSkew ?? false;
-
-  const getSize = normalize(options.size, defSize);
-  const getHoverSize = normalize(options.hoverSize, defHoverSize);
-  const getColor = normalize(options.color, defColor);
-  const getFill = normalize(options.fill, defFill);
-  const getBorder = normalize(options.borderWidth, defBorder);
-
-  let currentW = defSize;
-  let currentH = defSize;
-  
-  let currentRot = 0;
-  let currentScaleX = 1;
-  let currentScaleY = 1;
+  const getSize = normalize(options.size, 20);
+  const getColor = normalize(options.color, '#ffffff');
+  const getBorder = normalize(options.borderWidth, 2);
+  const getOpacity = normalize(options.opacity, 1);
 
   return definePlugin<HTMLDivElement, RingOptions>({
-    name: 'ring',
+    name: options.name || 'ring',
     selector: '[data-supermouse-color]',
 
     create: (app) => {
-      const el = dom.createCircle(getSize(app.state), getFill(app.state));
-      if (options.className) el.classList.add(...options.className.split(' '));
-      
+      const el = dom.createCircle(getSize(app.state), 'transparent');
       dom.applyStyles(el, {
-        borderWidth: `${getBorder(app.state)}px`,
-        borderStyle: 'solid',
-        borderColor: getColor(app.state),
         zIndex: Layers.FOLLOWER,
-        mixBlendMode: mixBlendMode,
-        transition: 'opacity 0.2s ease, border-radius 0.2s ease'
+        mixBlendMode: options.mixBlendMode || 'difference',
+        borderStyle: 'solid',
+        transition: 'opacity 0.2s ease',
+        boxSizing: 'border-box'
       });
-      
       return el;
     },
 
-    styles: {
-      fill: 'backgroundColor'
-    },
-
     update: (app, el) => {
-      const baseSize = getSize(app.state);
-      const hoverSize = getHoverSize(app.state);
-      const border = getBorder(app.state);
+      const size = getSize(app.state);
       let color = getColor(app.state);
-
-      const shape = app.state.shape; 
-      const interaction = app.state.interaction;
-
-      let targetW = baseSize;
-      let targetH = baseSize;
-      let targetRadius = '50%';
-
-      if (shape) {
-        // Sticky State
-        targetW = shape.width;
-        targetH = shape.height;
-        targetRadius = `${shape.borderRadius}px`;
-      } else {
-        // Standard State
-        if (app.state.isHover) {
-          targetW = hoverSize;
-          targetH = hoverSize;
-        }
-        if (app.state.isDown) {
-          targetW *= 0.9;
-          targetH *= 0.9;
-        }
+      
+      // Basic interaction override for color only
+      if (app.state.interaction.color) {
+        color = app.state.interaction.color;
       }
 
-      if (interaction && interaction.color) {
-        color = interaction.color;
-      }
-
-      currentW = math.lerp(currentW, targetW, 0.2);
-      currentH = math.lerp(currentH, targetH, 0.2);
-
-      dom.setStyle(el, 'width', `${currentW}px`);
-      dom.setStyle(el, 'height', `${currentH}px`);
-      dom.setStyle(el, 'borderRadius', targetRadius);
+      dom.setStyle(el, 'width', `${size}px`);
+      dom.setStyle(el, 'height', `${size}px`);
+      dom.setStyle(el, 'borderRadius', '50%');
       dom.setStyle(el, 'borderColor', color);
-      dom.setStyle(el, 'borderWidth', `${border}px`);
+      dom.setStyle(el, 'borderWidth', `${getBorder(app.state)}px`);
+      dom.setStyle(el, 'opacity', String(getOpacity(app.state)));
 
       const { x, y } = app.state.smooth;
-      
-      let targetRot = 0;
-      let targetScaleX = 1;
-      let targetScaleY = 1;
-
-      if (shape) {
-        currentRot = 0;
-      } 
-      else if (enableSkew && !app.state.reducedMotion) {
-        const { velocity } = app.state;
-        const distortion = effects.getVelocityDistortion(velocity.x, velocity.y);
-        
-        targetRot = distortion.rotation;
-        targetScaleX = distortion.scaleX;
-        targetScaleY = distortion.scaleY;
-        
-        currentRot = math.lerpAngle(currentRot, targetRot, 0.15);
-      } else {
-        currentRot = 0;
-      }
-      
-      currentScaleX = math.lerp(currentScaleX, targetScaleX, 0.15);
-      currentScaleY = math.lerp(currentScaleY, targetScaleY, 0.15);
-
-      dom.setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
+      dom.setTransform(el, x, y);
     }
   }, options);
 };
