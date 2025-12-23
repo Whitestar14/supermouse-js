@@ -1,4 +1,4 @@
-import { MouseState, ValueOrGetter } from '../types';
+import type { MouseState, ValueOrGetter } from '@supermousejs/core';
 
 /**
  * Returns a function that always resolves the option value.

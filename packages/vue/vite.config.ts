@@ -14,7 +14,7 @@ export default defineConfig({
       output: {
         globals: {
           vue: 'Vue',
-          '@supermousejs/core': 'Supermouse'
+          '@supermousejs/core': 'SupermouseCore'
         }
       }
     }

@@ -1,7 +1,7 @@
 
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
-import { damp, angle } from './utils';
+import { damp, angle } from './utils/math';
 
 export const DEFAULT_HOVER_SELECTORS = [
   'a', 'button', 'input', 'textarea', '[data-hover]', '[data-cursor]'

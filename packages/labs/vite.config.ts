@@ -10,14 +10,16 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'Labs',
+      name: 'SupermouseLabs',
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      external: ['@supermousejs/core'],
+      external: ['@supermousejs/core', '@supermousejs/zoetrope', '@supermousejs/utils'],
       output: {
         globals: {
           '@supermousejs/core': 'SupermouseCore'
+        , '@supermousejs/utils': 'SupermouseUtils', 
+          '@supermousejs/zoetrope': 'SupermouseZoetrope'
         }
       }
     }

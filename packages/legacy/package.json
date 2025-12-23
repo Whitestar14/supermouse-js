@@ -1,15 +1,14 @@
-
 {
   "name": "supermouse",
   "version": "2.0.0",
-  "description": "Legacy compatibility wrapper for Supermouse v2",
+  "description": "The all-in-one bundle for Supermouse.js. Includes Core, Dot, and Ring plugins with v1 API compatibility.",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "vite build"
   },
-  "devDependencies": {
+  "dependencies": {
     "@supermousejs/core": "workspace:*",
     "@supermousejs/dot": "workspace:*",
     "@supermousejs/ring": "workspace:*"

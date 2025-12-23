@@ -1,5 +1,5 @@
-
-import { definePlugin, dom, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
+import type { ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, normalize, dom, Layers } from '@supermousejs/utils';
 
 export interface TrailOptions {
   name?: string;
@@ -36,7 +36,7 @@ export const Trail = (options: TrailOptions = {}) => {
     },
 
     update: (app) => {
-      const { x, y } = app.state.pointer;
+      const { x, y } = app.state.smooth;
       
       // Shift history
       history.pop();

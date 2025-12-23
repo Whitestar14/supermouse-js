@@ -1,5 +1,5 @@
-
-import { definePlugin, dom, math, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
+import type { ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, normalize, dom, math, Layers } from '@supermousejs/utils';
 
 export interface PointerOptions {
   name?: string;

@@ -1,4 +1,4 @@
-import { definePlugin, dom, Layers, Easings, normalize, type ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, dom, Layers, Easings } from '@supermousejs/utils';
 
 export interface TextOptions {
   name?: string;

@@ -1,5 +1,5 @@
-
-import { definePlugin, dom, Layers, normalize, type ValueOrGetter } from '@supermousejs/core';
+import type { ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, normalize, dom, Layers } from '@supermousejs/utils';
 import { getCirclePath, getCircumference, formatLoopText } from '@supermousejs/zoetrope';
 
 export interface TextRingOptions {

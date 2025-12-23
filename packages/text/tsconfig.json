@@ -9,6 +9,9 @@
     "paths": {
       "@supermousejs/core": [
         "../core/src/index.ts"
+      ],
+      "@supermousejs/utils": [
+        "../utils/src/index.ts"
       ]
     }
   }

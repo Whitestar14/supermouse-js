@@ -1,12 +1,5 @@
-import {
-  definePlugin,
-  dom,
-  math,
-  effects,
-  Layers,
-  normalize,
-  type ValueOrGetter,
-} from "@supermousejs/core";
+import type { ValueOrGetter } from "@supermousejs/core";
+import { definePlugin, normalize, dom, math, effects, Layers } from "@supermousejs/utils";
 
 export interface SmartRingOptions {
   name?: string;

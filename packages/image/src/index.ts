@@ -1,4 +1,4 @@
-import { definePlugin, dom, math, Layers, Easings } from '@supermousejs/core';
+import { definePlugin, dom, math, Layers, Easings } from '@supermousejs/utils';
 
 export interface ImageOptions {
   name?: string;

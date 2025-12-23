@@ -1,4 +1,4 @@
-import { definePlugin } from '@supermousejs/core';
+import { definePlugin } from '@supermousejs/utils';
 
 export interface StatesOptions {
   name?: string;

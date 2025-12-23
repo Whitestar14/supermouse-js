@@ -2,12 +2,15 @@
   "name": "@supermousejs/text",
   "version": "2.0.0",
   "dependencies": {
-    "@supermousejs/core": "workspace:*"
+    "@supermousejs/core": "workspace:*",
+    "@supermousejs/utils": "workspace:*"
   },
   "scripts": {
     "build": "vite build"
   },
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "peerDependencies": {},
+  "devDependencies": {}
 }

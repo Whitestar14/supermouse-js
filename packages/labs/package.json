@@ -1,4 +1,3 @@
-
 {
   "name": "@supermousejs/labs",
   "version": "2.0.0",
@@ -9,8 +8,13 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@supermousejs/core": "workspace:*",
+    "@supermousejs/utils": "workspace:*",
     "@supermousejs/zoetrope": "workspace:*"
   },
-  "devDependencies": {}
+  "peerDependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@supermousejs/core": "workspace:*"
+  }
 }

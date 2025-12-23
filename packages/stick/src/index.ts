@@ -1,5 +1,5 @@
-
-import { definePlugin, normalize, type ValueOrGetter } from '@supermousejs/core';
+import type { ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, normalize } from '@supermousejs/utils';
 
 export interface StickOptions {
   name?: string;

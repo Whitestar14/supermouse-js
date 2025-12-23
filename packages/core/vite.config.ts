@@ -16,7 +16,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'Core',
+      name: 'SupermouseCore',
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {

@@ -1,10 +1,5 @@
-
-import {
-  definePlugin,
-  math,
-  normalize,
-  type ValueOrGetter,
-} from "@supermousejs/core";
+import type { ValueOrGetter } from '@supermousejs/core';
+import { definePlugin, normalize, math } from '@supermousejs/utils';
 
 export interface MagneticOptions {
   name?: string;

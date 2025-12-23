@@ -1,5 +1,4 @@
-import { Supermouse } from '../Supermouse';
-import { SupermousePlugin } from '../types';
+import type { Supermouse, SupermousePlugin } from '@supermousejs/core';
 import { normalize } from './options';
 import { setStyle } from './dom';
 

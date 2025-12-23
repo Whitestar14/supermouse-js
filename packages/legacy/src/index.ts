@@ -59,7 +59,6 @@ export default class Supermouse {
       size: ringSize,
       color: theme.ringColor,
       borderWidth: this.options.ringThickness || 2,
-      enableSkew: true
     }));
   }
 

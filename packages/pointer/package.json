@@ -8,7 +8,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@supermousejs/core": "workspace:*"
+    "@supermousejs/core": "workspace:*",
+    "@supermousejs/utils": "workspace:*"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "peerDependencies": {}
 }
