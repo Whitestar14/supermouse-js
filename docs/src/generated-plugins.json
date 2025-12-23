@@ -2,6 +2,7 @@
   {
     "id": "dot",
     "name": "Dot",
+    "package": "@supermousejs/dot",
     "description": "A minimalist precision point that follows your movements perfectly.",
     "code": "app.use(Dot({ size: 8, color: '#750c7e' }));",
     "recipeId": "basic-dot",
@@ -49,11 +50,13 @@
         "description": "CSS z-index.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "icon",
     "name": "Icon",
+    "package": "@supermousejs/icon",
     "description": "Renders a static SVG icon at the cursor position.",
     "code": "app.use(Icon({ svg: '<svg>...</svg>', size: 24 }));",
     "icon": "context",
@@ -93,11 +96,13 @@
         "description": "Fixed [x, y] offset from cursor center.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "image",
     "name": "Image",
+    "package": "@supermousejs/image",
     "description": "Displays a custom image or thumbnail as the cursor hover state.",
     "code": "app.use(Image({ rounded: true }));",
     "icon": "image",
@@ -130,13 +135,15 @@
         "description": "Lerp factor for image lag.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
-    "id": "labs",
-    "name": "SmartIcon (Labs)",
+    "id": "smart-icon",
+    "name": "SmartIcon",
+    "package": "@supermousejs/labs",
     "description": "Advanced state machine that morphs SVGs based on semantic context.",
-    "code": "app.use(SmartIcon({ icons: { ... } }));",
+    "code": "import { SmartIcon } from '@supermousejs/labs';\n\napp.use(SmartIcon({ icons: { ... } }));",
     "recipeId": "context-icon",
     "icon": "labs",
     "options": [
@@ -182,11 +189,109 @@
         "description": "Morph transition time in ms.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
+  },
+  {
+    "id": "smart-ring",
+    "name": "SmartRing",
+    "package": "@supermousejs/labs",
+    "description": "A reactive ring that distorts with velocity and adapts to stuck elements.",
+    "code": "import { SmartRing } from '@supermousejs/labs';\n\napp.use(SmartRing({ size: 24, color: '#f59e0b', enableSkew: true }));",
+    "icon": "ring",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "20",
+        "description": "Base diameter.",
+        "reactive": true
+      },
+      {
+        "name": "hoverSize",
+        "type": "number",
+        "default": "40",
+        "description": "Diameter on hover.",
+        "reactive": true
+      },
+      {
+        "name": "enableSkew",
+        "type": "boolean",
+        "default": "false",
+        "description": "Distort shape based on velocity.",
+        "reactive": false
+      }
+    ],
+    "version": "2.0.0"
+  },
+  {
+    "id": "sparkles",
+    "name": "Sparkles",
+    "package": "@supermousejs/labs",
+    "description": "Emits particle trails based on movement velocity.",
+    "code": "import { Sparkles } from '@supermousejs/labs';\n\napp.use(Sparkles({ color: '#f59e0b', frequency: 10 }));",
+    "icon": "trail",
+    "options": [
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#ff00ff'",
+        "description": "Particle color.",
+        "reactive": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "default": "10",
+        "description": "Pixels per spawn.",
+        "reactive": false
+      },
+      {
+        "name": "decay",
+        "type": "number",
+        "default": "0.05",
+        "description": "Fade rate.",
+        "reactive": false
+      }
+    ],
+    "version": "2.0.0"
+  },
+  {
+    "id": "text-ring",
+    "name": "TextRing",
+    "package": "@supermousejs/labs",
+    "description": "Rotates text around the cursor position.",
+    "code": "import { TextRing } from '@supermousejs/labs';\n\napp.use(TextRing({ text: 'LOADING • ', radius: 40 }));",
+    "icon": "text",
+    "options": [
+      {
+        "name": "text",
+        "type": "string",
+        "default": "'SUPERMOUSE • '",
+        "description": "Text content.",
+        "reactive": true
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "60",
+        "description": "Ring radius.",
+        "reactive": true
+      },
+      {
+        "name": "speed",
+        "type": "number",
+        "default": "0.5",
+        "description": "Rotation speed deg/frame.",
+        "reactive": true
+      }
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "magnetic",
     "name": "Magnetic",
+    "package": "@supermousejs/magnetic",
     "description": "Attracts the cursor to interactive elements using physics-based magnetism.",
     "code": "app.use(Magnetic({ attraction: 0.4, distance: 100 }));",
     "recipeId": "magnetic-button",
@@ -206,11 +311,13 @@
         "description": "Radius in pixels where attraction begins.",
         "reactive": true
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "pointer",
     "name": "Pointer",
+    "package": "@supermousejs/pointer",
     "description": "A 'Vehicle' style arrow that rotates based on velocity vectors.",
     "code": "app.use(Pointer({ size: 32, color: '#000' }));",
     "recipeId": "vehicle-pointer",
@@ -272,11 +379,13 @@
         "description": "Lerp factor for rotation.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "ring",
     "name": "Ring",
+    "package": "@supermousejs/ring",
     "description": "Adds a lagging outer ring. Simple and performant.",
     "code": "app.use(Ring({ size: 32, color: '#000' }));",
     "recipeId": "magnetic-button",
@@ -317,11 +426,13 @@
         "description": "CSS blend mode.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "states",
     "name": "States",
+    "package": "@supermousejs/states",
     "description": "Logic controller that enables/disables other plugins based on hover attributes.",
     "code": "app.use(States({ default: ['dot'], states: { 'hover': ['ring'] } }));",
     "icon": "context",
@@ -347,11 +458,13 @@
         "description": "DOM attribute to trigger state changes.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "stick",
     "name": "Stick",
+    "package": "@supermousejs/stick",
     "description": "Morphs the cursor shape to match the bounding box of hovered elements.",
     "code": "app.use(Stick({ padding: 10 }));",
     "recipeId": "sticky-element",
@@ -364,11 +477,13 @@
         "description": "Extra padding around the target element in pixels.",
         "reactive": true
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "text",
     "name": "Text",
+    "package": "@supermousejs/text",
     "description": "Injects contextual text bubbles near the cursor on interaction.",
     "code": "app.use(Text({ font: 'Mono' }));",
     "recipeId": "text-cursor",
@@ -395,11 +510,13 @@
         "description": "Fade transition time in ms.",
         "reactive": false
       }
-    ]
+    ],
+    "version": "2.0.0"
   },
   {
     "id": "trail",
     "name": "Trail",
+    "package": "@supermousejs/trail",
     "description": "Generates procedural particles that trail behind your motion.",
     "code": "app.use(Trail({ length: 12, color: '#f0f' }));",
     "recipeId": "ghost-trail",
@@ -426,6 +543,7 @@
         "description": "Color of segments.",
         "reactive": true
       }
-    ]
+    ],
+    "version": "2.0.0"
   }
 ]

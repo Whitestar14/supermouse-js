@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
+import Callout from '../../../components/ui/Callout.vue';
 
 const shellCode = `pnpm add @supermousejs/core @supermousejs/dot @supermousejs/ring`;
 
@@ -19,6 +20,11 @@ app.use(Ring({ size: 20 }));`;
 
 const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
 <a data-supermouse-img="/path/to/img.jpg">Show image on hover</a>`;
+
+const debugCode = `import { doctor } from '@supermousejs/utils';
+
+// Run once to check for conflicts
+doctor();`;
 </script>
 
 <template>
@@ -54,9 +60,21 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
             <p class="text-zinc-600 text-sm">Plugins automatically listen for data attributes on your HTML elements.</p>
             <CodeBlock :code="htmlCode" title="index.html" lang="html" />
             
-            <div class="p-4 border-l-4 border-zinc-900 bg-zinc-50 text-zinc-900 text-sm">
-                <strong>Tip:</strong> Do not manually apply <code>cursor: none</code> in your CSS. Supermouse handles this dynamically to prevent disappearing cursors on touch devices or when the plugin is disabled.
-            </div>
+            <Callout title="Warning: CSS Conflicts" variant="warning">
+                <p class="mb-2"><strong>Do not use <code>cursor: pointer</code> or <code>cursor: none</code> in your own CSS.</strong></p>
+                <p>
+                    Supermouse manages cursor visibility dynamically. Manually setting cursor styles often results in the "double cursor" glitch where the OS cursor reappears on top of the custom one. If you need a pointer state, use the <code>rules</code> config in Supermouse to handle it programmatically.
+                </p>
+            </Callout>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="flex flex-col gap-4 border-t border-zinc-200 pt-8">
+            <h3 class="text-xl font-bold text-zinc-900">Troubleshooting</h3>
+            <p class="text-zinc-600 text-sm">
+                If you see the native cursor flickering, use the <code>doctor</code> utility to find conflicting CSS.
+            </p>
+            <CodeBlock :code="debugCode" title="Debug" lang="typescript" />
         </div>
 
     </div>

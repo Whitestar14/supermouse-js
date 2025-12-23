@@ -19,13 +19,6 @@ let mouse: Supermouse | null = null;
 // Reactive proxy that connects the recipe getters to the current props
 const liveConfig = reactive<Record<string, any>>({});
 
-const lastPos = { x: -100, y: -100 };
-
-const onGlobalMove = (e: MouseEvent) => {
-  lastPos.x = e.clientX;
-  lastPos.y = e.clientY;
-};
-
 // Interaction State
 const isBouncing = ref(false);
 const triggerBounce = () => {
@@ -58,25 +51,42 @@ const initCursor = () => {
   // Sync initial config
   Object.assign(liveConfig, props.config);
 
-  // 1. Create Core
+  // 1. Create Core attached to THIS CONTAINER
+  // Now that plugins use `projectRect`, this works correctly for Sticky/Magnetic.
   mouse = new Supermouse({
+    container: containerRef.value, 
     smoothness: props.globalConfig.smoothness,
-    hideCursor: !props.globalConfig.showNative,
-    ignoreOnNative: true
+    hideCursor: true, 
+    // CRITICAL: Set to false so the custom cursor persists over buttons/links
+    // This allows Stick/Magnetic effects to be visible.
+    ignoreOnNative: true 
   });
 
-  // 2. Pre-seed position
-  if (lastPos.x !== -100) {
-    mouse.state.pointer.x = lastPos.x;
-    mouse.state.pointer.y = lastPos.y;
-    mouse.state.target.x = lastPos.x;
-    mouse.state.target.y = lastPos.y;
-    mouse.state.smooth.x = lastPos.x;
-    mouse.state.smooth.y = lastPos.y;
+  // Apply initial Native Cursor state (if toggled on)
+  if (props.globalConfig.showNative) {
+    mouse.setCursor('auto');
   }
+
+  // 2. Start in DISABLED state. 
+  // We only enable it when the user hovers the preview area.
+  mouse.disable();
 
   // 3. Run Recipe Setup with Reactive Config
   props.recipe.setup(mouse, liveConfig);
+};
+
+// --- Hover Management ---
+
+const isHovering = ref(false);
+
+const onEnter = () => {
+    isHovering.value = true;
+    mouse?.enable();
+};
+
+const onLeave = () => {
+    isHovering.value = false;
+    mouse?.disable();
 };
 
 // --- Reactivity ---
@@ -91,39 +101,45 @@ watch(() => props.config, (newVal) => {
     Object.assign(liveConfig, newVal);
 }, { deep: true });
 
-// 3. Global Config: Semi-Soft (Update core options)
+// 3. Global Config: Update core options via public API
 watch(() => props.globalConfig, (newVal) => {
     if (mouse) {
-        // Update smooth factor directly
+        // Update smooth factor
         mouse.options.smoothness = newVal.smoothness;
         
-        // Handle Native Cursor visibility
-        const shouldHide = !newVal.showNative;
-        if (mouse.options.hideCursor !== shouldHide) {
-            mouse.options.hideCursor = shouldHide;
-            // Force stage update
-            // @ts-ignore - Accessing private/internal for hot-update
-            if (mouse.input.isEnabled) {
-                 // @ts-ignore
-                 mouse.stage.setNativeCursor(shouldHide ? 'none' : 'auto');
-            }
+        // Handle Native Cursor visibility override via public API
+        // If showNative is true, we force it to 'auto'.
+        // If showNative is false, we set it to null (resume auto-detection based on ignoreOnNative)
+        if (newVal.showNative) {
+            mouse.setCursor('auto');
+        } else {
+            mouse.setCursor(null);
         }
     }
 }, { deep: true });
 
 onMounted(() => {
-  window.addEventListener('mousemove', onGlobalMove);
   initCursor();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('mousemove', onGlobalMove);
   mouse?.destroy();
 });
 </script>
 
 <template>
-  <div ref="containerRef" class="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden cursor-none">
+  <!-- 
+    Removed data-supermouse-ignore="true":
+    The container should NOT be ignored by its own Supermouse instance.
+    Since the Global Cursor is disabled when the Editor is open (via App.vue), 
+    we don't need to ignore it here.
+  -->
+  <div 
+    ref="containerRef" 
+    class="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden"
+    @mouseenter="onEnter"
+    @mouseleave="onLeave"
+  >
     <!-- Grid Background -->
     <div class="absolute inset-0 grid-bg opacity-50 pointer-events-none"></div>
 

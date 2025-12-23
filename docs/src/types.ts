@@ -12,6 +12,7 @@ export interface MouseState {
   isDown: boolean;
   isHover: boolean;
   isNative: boolean;
+  forcedCursor: string | null;
   hoverTarget: HTMLElement | null;
   reducedMotion: boolean;
 }
@@ -45,6 +46,7 @@ export interface OptionSchema {
 export interface PluginMeta {
   id: string;
   name: string;
+  package: string;
   description: string;
   code: string;
   icon: string;

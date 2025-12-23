@@ -45,8 +45,23 @@ const POINTER_SVG = `
 
 const ICON_SVGS: Record<string, string> = {
   default: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-45deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>`,
-  hand: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`,
-  text: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8"/><path d="M12 4v16"/><path d="M8 20h8"/></svg>`,
+  
+  hand: `<svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" fill="white" />
+  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" fill="white" />
+  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" fill="white" />
+  <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" fill="white" />
+</svg>`,
+
+  text: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 4V20" stroke="white" stroke-width="4" stroke-linecap="square"/>
+<path d="M12 4V20" stroke="black" stroke-width="2" stroke-linecap="square"/>
+<path d="M8 4H16" stroke="white" stroke-width="4" stroke-linecap="square"/>
+<path d="M8 4H16" stroke="black" stroke-width="2" stroke-linecap="square"/>
+<path d="M8 20H16" stroke="white" stroke-width="4" stroke-linecap="square"/>
+<path d="M8 20H16" stroke="black" stroke-width="2" stroke-linecap="square"/>
+</svg>`,
+
   // CSS Keyframe Animation provided by plugin style injection
   loading: `<svg class="supermouse-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />

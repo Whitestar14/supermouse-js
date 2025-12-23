@@ -4,6 +4,7 @@ import { ref, computed } from 'vue';
 import { usePlayground } from '../composables/usePlayground';
 import { RECIPES } from '../components/playground/recipes';
 
+// Global state controller
 const { open } = usePlayground();
 
 const searchQuery = ref('');
@@ -49,11 +50,12 @@ const filteredRecipes = computed(() => {
               </span>
            </div>
         </div>
-      </div>
+    </div>
 
-      <!-- Content -->
-      <div class="flex flex-col lg:flex-row flex-1 items-stretch">
+    <!-- Content -->
+    <div class="flex flex-col lg:flex-row flex-1 items-stretch">
         <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white"></div>
+        
         <div class="w-full lg:w-[400px] xl:w-[480px] border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white p-8 md:p-12 flex flex-col relative z-10">
             <div class="lg:hidden mb-8">
                <h1 class="font-bold tracking-tight text-zinc-900 text-2xl">Supermouse Labs</h1>

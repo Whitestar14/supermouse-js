@@ -1,10 +1,22 @@
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { GITHUB_URL } from '../constants';
+import { useSupermouse } from '@supermousejs/vue';
 
 const mobileMenuOpen = ref(false);
 const isSpinning = ref(false);
 const showVersionMenu = ref(false);
+const isDev = import.meta.env.DEV;
+
+// Get Docs Supermouse Instance
+const mouse = useSupermouse();
+
+// Dynamic text for the cursor based on enabled state
+const logoCursorText = computed(() => {
+    if (!mouse.value) return 'Loading...';
+    return mouse.value.isEnabled ? 'Switch to Native' : 'Switch to Supermouse';
+});
 
 const toggleMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -12,9 +24,19 @@ const toggleMenu = () => {
 };
 
 const triggerSpin = (e: MouseEvent) => {
+  if (isSpinning.value) return; // Debounce
   isSpinning.value = true;
+  
   setTimeout(() => {
     isSpinning.value = false;
+    // Toggle Cursor Mode (Native vs Custom)
+    if (mouse.value) {
+        if (mouse.value.isEnabled) {
+            mouse.value.disable();
+        } else {
+            mouse.value.enable();
+        }
+    }
   }, 700);
 };
 </script>
@@ -24,8 +46,14 @@ const triggerSpin = (e: MouseEvent) => {
     <div class="flex items-stretch h-16 md:h-20 bg-white relative z-50">
       
       <!-- 1. Logo Column (Fixed Width, Border Right) -->
-      <div class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0 bg-white">
-         <router-link to="/" class="group block p-4" @click.capture="triggerSpin">
+      <!-- Added dynamic data-supermouse-text binding via Vue -->
+      <button 
+        @click="triggerSpin"
+        class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0 bg-white hover:bg-zinc-50 transition-colors outline-none relative"
+        aria-label="Toggle Cursor Mode"
+        :data-supermouse-text="logoCursorText"
+      >
+         <div class="group block p-4 pointer-events-none">
             <!-- App Logo / Cursor SVG -->
             <div 
                 class="w-8 h-8 transition-all duration-500 ease-out"
@@ -40,11 +68,10 @@ const triggerSpin = (e: MouseEvent) => {
                   </g>
                 </svg>
             </div>
-         </router-link>
-      </div>
+         </div>
+      </button>
 
       <!-- 2. Brand Column (Fluid Flex-1, Border Right) -->
-      <!-- This consumes available space, pushing Links/Github to the far right -->
       <div class="flex-1 flex items-center px-6 md:px-8 border-r border-zinc-200 bg-white min-w-0">
         <div class="flex items-center gap-4">
             <router-link to="/" class="flex items-center text-lg md:text-xl font-bold tracking-tighter text-zinc-900 group">
@@ -53,28 +80,27 @@ const triggerSpin = (e: MouseEvent) => {
               </div>
             </router-link>
 
-            <!-- Version Dropdown -->
+            <!-- Brutalist Version Dropdown -->
             <div class="relative group">
                 <button 
                     @click="showVersionMenu = !showVersionMenu" 
                     class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black transition-colors relative top-[1px]"
                 >
-                    v2
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                    v2.0
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" :class="showVersionMenu ? 'rotate-180' : ''" class="transition-transform"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
                 
                 <div v-if="showVersionMenu" 
                      @mouseleave="showVersionMenu = false"
-                     class="absolute top-full left-0 mt-2 w-40 bg-white border border-zinc-200 shadow-xl py-1 z-50">
-                    <div class="px-4 py-2 text-[10px] font-bold text-black uppercase tracking-widest bg-zinc-50">
-                        Select Version
-                    </div>
-                    <a href="#" class="block px-4 py-2 text-xs font-medium text-black hover:bg-zinc-50 flex items-center justify-between">
-                        v2 <span class="w-1.5 h-1.5 bg-black rounded-full"></span>
+                     class="absolute top-full left-0 mt-px w-48 bg-white border border-zinc-200 z-50 flex flex-col"
+                >
+                    <a href="#" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-black bg-white uppercase tracking-widest border-b border-zinc-200">
+                        <span>v2.0 (Stable)</span>
+                        <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div>
                     </a>
-                    <a href="https://github.com/Whitestar14/supermouse-js/" target="_blank" class="block px-4 py-2 text-xs font-medium text-zinc-500 hover:text-black hover:bg-zinc-50 flex items-center justify-between">
-                        v1
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    <a :href="GITHUB_URL" target="_blank" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest">
+                        <span>v1.0 (Legacy)</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                     </a>
                 </div>
             </div>
@@ -82,12 +108,11 @@ const triggerSpin = (e: MouseEvent) => {
         
         <!-- Mobile Trigger (Appears here on mobile) -->
         <div class="md:hidden ml-auto">
-           <button @click="toggleMenu" class="group relative flex items-center justify-center w-10 h-10 outline-none">
-              <div class="flex flex-col gap-1.5">
-                  <span class="w-6 h-0.5 bg-black transition-transform" :class="mobileMenuOpen ? 'rotate-45 translate-y-2' : ''"></span>
-                  <span class="w-6 h-0.5 bg-black transition-opacity" :class="mobileMenuOpen ? 'opacity-0' : ''"></span>
-                  <span class="w-6 h-0.5 bg-black transition-transform" :class="mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''"></span>
-              </div>
+           <button @click="toggleMenu" class="group relative flex items-center justify-center w-12 h-10 outline-none">
+              <span v-if="!mobileMenuOpen" class="mono text-[10px] font-bold uppercase tracking-widest text-black">
+                MENU
+              </span>
+              <div v-else class="w-8 h-px bg-black"></div>
            </button>
         </div>
       </div>
@@ -104,7 +129,7 @@ const triggerSpin = (e: MouseEvent) => {
               active-class="!text-black underline decoration-2 underline-offset-4 decoration-black">
               Docs
             </router-link>
-            <router-link to="/labs" 
+            <router-link v-if="isDev" to="/labs" 
               class="mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors" 
               active-class="!text-black underline decoration-2 underline-offset-4 decoration-black">
               Labs
@@ -113,7 +138,7 @@ const triggerSpin = (e: MouseEvent) => {
 
       <!-- 4. Github Column (Shrink-0) -->
       <div class="hidden md:flex h-full items-center px-8 bg-white shrink-0">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors">
+            <a :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors">
             Github
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
             </a>
@@ -135,11 +160,11 @@ const triggerSpin = (e: MouseEvent) => {
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
               Docs
             </router-link>
-            <router-link to="/labs" @click="toggleMenu" 
+            <router-link v-if="isDev" to="/labs" @click="toggleMenu" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
               Labs
             </router-link>
-            <a href="https://github.com" target="_blank" 
+            <a :href="GITHUB_URL" target="_blank" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
                Github
             </a>

@@ -4,6 +4,7 @@ import { ICONS } from './icons.ts';
 import generatedData from './generated-plugins.json';
 
 export interface ExtendedPluginMeta extends PluginMeta {
+  version: string
   recipeId?: string;
 }
 

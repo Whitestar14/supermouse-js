@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
+import Callout from '../../../components/ui/Callout.vue';
 
 const setupCode = `pnpm install
 pnpm dev`;
@@ -10,17 +11,14 @@ pnpm dev`;
 <template>
   <DocsSection label="Advanced" title="Contributing">
     
-    <p class="text-xl text-zinc-900 font-bold mb-8 max-w-3xl leading-tight">
+    <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
       Supermouse is a modular cursor engine with a plugin-first architecture. 
       Contributions are welcome, but not required to participate in the ecosystem.
-    </p>
-    
-    <p class="text-zinc-600 mb-12 text-lg">
-      This document explains <strong>how to contribute</strong>, <strong>what belongs in this repo</strong>, and <strong>what does not</strong>.
+      This document explains <span class="text-black font-bold border-b-2 border-black/10">how to contribute</span>, <span class="text-black font-bold border-b-2 border-black/10">what belongs in this repo</span>, and <span class="text-black font-bold border-b-2 border-black/10">what does not</span>.
     </p>
 
     <!-- Scope Grid -->
-    <h3 class="text-2xl font-bold text-zinc-900 mb-6">What belongs in this repo</h3>
+    <h3 class="text-2xl font-bold text-zinc-900 mb-6 tracking-tight">What belongs in this repo</h3>
     <p class="text-zinc-600 mb-8">
       This monorepo is intentionally conservative. We maintain the core runtime and reference implementations.
     </p>
@@ -80,12 +78,12 @@ pnpm dev`;
       </div>
     </div>
 
-    <div class="p-6 bg-zinc-900 text-zinc-400 text-sm mb-16 font-mono">
-      <span class="text-white font-bold">Tip:</span> If you’re unsure, open a discussion first. No pressure.
-    </div>
+    <Callout title="Tip">
+        If you’re unsure, open a discussion first. No pressure.
+    </Callout>
 
     <!-- Contributing Code -->
-    <h3 class="text-2xl font-bold text-zinc-900 mb-6">Contributing Code</h3>
+    <h3 class="text-2xl font-bold text-zinc-900 mb-6 tracking-tight">Contributing Code</h3>
     <ul class="space-y-4 text-zinc-600 mb-8 list-none pl-0 text-sm">
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0"></span>
@@ -109,29 +107,32 @@ pnpm dev`;
       <CodeBlock :code="setupCode" lang="bash" title="Setup" />
     </div>
 
-    <!-- Philosophy -->
+    <!-- Philosophy Grid -->
     <div class="border-t border-zinc-200 pt-12">
-      <h3 class="text-2xl font-bold text-zinc-900 mb-6">Philosophy</h3>
-      <p class="text-zinc-600 mb-8">Supermouse optimizes for:</p>
+      <h3 class="text-2xl font-bold text-zinc-900 mb-8 tracking-tight">Philosophy</h3>
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="p-6 border border-zinc-200 bg-white">
-          <span class="block font-bold text-zinc-900 text-sm">Predictable Behavior</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 mb-12">
+        <div class="bg-white p-8">
+            <span class="mono text-xs font-bold text-zinc-400 mb-2 block">01</span>
+            <strong class="block text-zinc-900 font-bold text-sm mb-2">Predictable Behavior</strong>
+            <p class="text-sm text-zinc-600 leading-relaxed">No hidden state. No side effects outside the plugin container. Input -> Output.</p>
         </div>
-        <div class="p-6 border border-zinc-200 bg-white">
-          <span class="block font-bold text-zinc-900 text-sm">Explicit Data Flow</span>
+        <div class="bg-white p-8">
+            <span class="mono text-xs font-bold text-zinc-400 mb-2 block">02</span>
+            <strong class="block text-zinc-900 font-bold text-sm mb-2">Explicit Data Flow</strong>
+            <p class="text-sm text-zinc-600 leading-relaxed">Input -> Logic -> Physics -> Render. One way, every frame. No loops.</p>
         </div>
-        <div class="p-6 border border-zinc-200 bg-white">
-          <span class="block font-bold text-zinc-900 text-sm">Minimal Magic</span>
+        <div class="bg-white p-8">
+            <span class="mono text-xs font-bold text-zinc-400 mb-2 block">03</span>
+            <strong class="block text-zinc-900 font-bold text-sm mb-2">Minimal Magic</strong>
+            <p class="text-sm text-zinc-600 leading-relaxed">We prefer verbose, clear configuration over "auto-magic" guessing.</p>
         </div>
-        <div class="p-6 border border-zinc-200 bg-white">
-          <span class="block font-bold text-zinc-900 text-sm">Userland Extensibility</span>
+        <div class="bg-white p-8">
+            <span class="mono text-xs font-bold text-zinc-400 mb-2 block">04</span>
+            <strong class="block text-zinc-900 font-bold text-sm mb-2">Userland Extensibility</strong>
+            <p class="text-sm text-zinc-600 leading-relaxed">The core is small. The ecosystem is infinite.</p>
         </div>
       </div>
-
-      <p class="mt-12 text-2xl font-bold text-zinc-900 max-w-2xl leading-tight">
-        If a feature can be a plugin, it probably should be.
-      </p>
     </div>
 
   </DocsSection>

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,6 +30,20 @@ code,
 pre,
 kbd {
     font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Supermouse Text Plugin Styling */
+.tooltip-cursor {
+    background-color: #09090b;
+    color: white;
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+    pointer-events: none;
 }
 
 .grid-bg {

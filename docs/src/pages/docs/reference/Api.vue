@@ -10,11 +10,16 @@ const coreClassDef = `class Supermouse {
 
   constructor(options?: SupermouseOptions);
   
+  // Property
+  get isEnabled(): boolean;
+
+  // Methods
   use(plugin: SupermousePlugin): this;
   enable(): void;
   disable(): void;
   destroy(): void;
   
+  setCursor(type: 'auto' | 'none' | null): void;
   enablePlugin(name: string): void;
   disablePlugin(name: string): void;
   registerHoverTarget(selector: string): void;
@@ -39,6 +44,7 @@ const stateData = [
   { name: 'hoverTarget', type: 'HTMLElement | null', desc: 'The specific DOM element triggering the hover state.' },
   { name: 'isDown', type: 'boolean', desc: 'True if mouse button is pressed.' },
   { name: 'isHover', type: 'boolean', desc: 'True if hovering a registered selector.' },
+  { name: 'forcedCursor', type: "'auto' | 'none' | null", desc: 'Override for native cursor visibility. Managed via setCursor().' },
 ];
 
 const pluginHooks = [

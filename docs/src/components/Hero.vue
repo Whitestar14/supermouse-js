@@ -14,13 +14,11 @@ const copyCommand = () => {
 const heroCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 
-// 1. Initialize the core
 const app = new Supermouse();
 
-// 2. Extend with plugins
 app.use(Dot({ 
   size: 8, 
-  color: '#f59e0b', // Amber 500
+  color: '#f59e0b',
   mixBlendMode: 'difference' 
 }));`;
 </script>

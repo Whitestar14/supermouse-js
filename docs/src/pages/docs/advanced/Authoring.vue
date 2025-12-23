@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
+import Callout from '../../../components/ui/Callout.vue';
 
 const helperCode = `import { definePlugin, normalize, dom } from '@supermousejs/utils';
 
@@ -75,11 +76,9 @@ if (color) {
 <template>
   <DocsSection label="Advanced" title="Plugin Authoring">
      
-     <p class="text-xl text-zinc-900 font-bold mb-8 max-w-3xl leading-tight">
+     <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
         Plugins are the primary extension mechanism. The core exists solely to coordinate them.
-     </p>
-     <p class="text-zinc-600 mb-12 max-w-2xl leading-relaxed">
-        You can write plugins in two ways: using the <code>definePlugin</code> helper (recommended for visual effects) or as a plain object (recommended for logic modifiers).
+        You can write plugins in two ways: using the <span class="text-black font-bold border-b-2 border-black/10">definePlugin</span> helper (recommended for visual effects) or as a <span class="text-black font-bold border-b-2 border-black/10">Plain Object</span> (recommended for logic modifiers).
      </p>
 
      <!-- METHOD 1 -->
@@ -87,7 +86,7 @@ if (color) {
         <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">A</span>
         The Helper Strategy (Visuals)
      </h3>
-     <p class="text-zinc-600 mb-6 max-w-2xl">
+     <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
         Most plugins just need to create a DOM element and move it. The <code>definePlugin</code> utility handles the boilerplate: creating the element, appending it to the container, scoping styles, and cleaning up on destroy.
      </p>
      
@@ -100,7 +99,7 @@ if (color) {
         <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">B</span>
         The Raw API (Logic)
      </h3>
-     <p class="text-zinc-600 mb-6 max-w-2xl">
+     <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
         Logic plugins manipulate the cursor's <strong>intent</strong> rather than its appearance. They typically run before visual plugins (negative priority) to modify <code>state.target</code>.
      </p>
 
@@ -110,7 +109,7 @@ if (color) {
 
      <!-- INTERACTION SYSTEM -->
      <div class="border-t border-zinc-200 pt-12 mb-16">
-        <h3 class="text-xl font-bold text-zinc-900 mb-6">Handling Interaction</h3>
+        <h3 class="text-2xl font-bold text-zinc-900 mb-6 tracking-tight">Handling Interaction</h3>
         <p class="text-zinc-600 mb-6 leading-relaxed">
             Supermouse optimizes DOM access. Do <strong>not</strong> query the DOM or read attributes inside the <code>update</code> loop. It causes forced reflows and kills 120fps performance.
         </p>
@@ -121,7 +120,7 @@ if (color) {
      </div>
 
      <!-- LIFECYCLE -->
-     <h3 class="text-xl font-bold text-zinc-900 mb-8">Lifecycle Hooks</h3>
+     <h3 class="text-2xl font-bold text-zinc-900 mb-8 tracking-tight">Lifecycle Hooks</h3>
      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200 mb-16">
         <div class="bg-white p-6">
             <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2">install(app)</strong>

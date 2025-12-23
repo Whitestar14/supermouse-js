@@ -1,11 +1,12 @@
 {
   "extends": "../tsconfig.base.json",
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.json"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@supermousejs/*": ["../packages/*/src/index.ts"]
-    }
+    },
+    "resolveJsonModule": true
   },
   "references": [{ "path": "./tsconfig.node.json" }]
 }
