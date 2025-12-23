@@ -1,9 +1,10 @@
+
 <script setup lang="ts">
 import Navbar from './Navbar.vue';
 import Footer from './Footer.vue';
 import { provideSupermouse } from '@supermousejs/vue';
+import { SmartIcon, SmartRing } from '@supermousejs/labs';
 import { Icon } from '@supermousejs/icon';
-import { Ring } from '@supermousejs/ring';
 import { States } from '@supermousejs/states';
 
 // --- ASSETS ---
@@ -20,37 +21,41 @@ const HAND_CURSOR = `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor"
 const ARROW_CURSOR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/></svg>`;
 
 // --- INITIALIZATION ---
-// provideSupermouse handles the instance creation, lifecycle, and DI.
-// We don't need manual onMounted/onUnmounted hooks here.
 const mouse = provideSupermouse({
   smoothness: 0.15,
   enableTouch: false,
   hideCursor: true,
   ignoreOnNative: true,
+  // Use 'rules' for semantic mapping
+  rules: {
+    'a, button, [role="button"]': { icon: 'pointer' }
+  }
 }, [
-  // 1. Default State (Brand Logo)
-  Icon({ 
+  // 1. Default State (Brand Logo) - Uses smart SmartIcon from Labs
+  SmartIcon({ 
     name: 'default-icon',
     icons: { default: LOGO_CURSOR, pointer: HAND_CURSOR },
     size: 32, 
     color: 'black',
     anchor: 'center', 
-    rotateWithVelocity: true 
+    rotateWithVelocity: true,
   }),
 
   // 2. Card Hover State (Black Circle + Arrow)
-  Ring({
+  // SmartRing needed for accurate sizing/color transitions if we wanted them, 
+  // but here we are using a specific named ring 'card-bg'.
+  SmartRing({
     name: 'card-bg',
     size: 64, hoverSize: 64, 
     fill: 'black', color: 'black', borderWidth: 0, 
     mixBlendMode: 'normal'
-    // Note: 'isEnabled: false' is NOT needed; States plugin handles init logic
   }),
 
+  // Simple dumb icon for the arrow inside
   Icon({
     name: 'card-arrow',
-    icons: { default: ARROW_CURSOR },
-    size: 24, color: 'white', anchor: 'center', rotateWithVelocity: false
+    svg: ARROW_CURSOR,
+    size: 24, color: 'white'
   }),
 
   // 3. State Manager

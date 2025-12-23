@@ -11,10 +11,10 @@ import { AUTHOR, YEAR } from '../constants';
 
       <div class="flex-1 p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-8">
           <div class="flex items-center gap-4">
-             <div class="flex items-baseline mono text-lg font-bold text-zinc-300 tracking-tighter">
-                <span>superm</span>
-                <div class="w-[0.6em] h-[0.6em] bg-current rounded-full mx-[0.05em] relative top-[1px]"></div>
-                <span>use</span>
+             <div class="flex items-baseline text-lg font-bold tracking-tighter text-zinc-300">
+                <span>supermouse</span>
+                <div class="w-[0.2em] h-[0.2em] bg-current rounded-full mx-[0.05em] relative top-[1px]"></div>
+                <span>js</span>
              </div>
              <span class="text-zinc-300">|</span>
              <span class="mono text-xs text-zinc-400 uppercase tracking-widest font-bold">

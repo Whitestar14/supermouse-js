@@ -1,14 +1,15 @@
+
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { injectSupermouse } from '@supermousejs/vue';
+import { useSupermouse } from '@supermousejs/vue';
 import CursorEditor from '../components/playground/CursorEditor.vue';
 import { RECIPES } from '../components/playground/recipes';
 
 const activeRecipeId = ref<string | null>(null);
 const searchQuery = ref('');
 
-// 1. Inject the Global Instance
-const globalMouse = injectSupermouse();
+// 1. Inject the Global Instance using the standard hook
+const globalMouse = useSupermouse();
 
 const filteredRecipes = computed(() => {
   const q = searchQuery.value.toLowerCase().trim();
@@ -22,14 +23,18 @@ const filteredRecipes = computed(() => {
 
 const openEditor = (presetId: string) => {
   // 2. Disable Global Cursor (Native cursor returns, but will be hidden by Editor's local Supermouse)
-  globalMouse.value?.disable();
+  if (globalMouse.value) {
+    globalMouse.value.disable();
+  }
   activeRecipeId.value = presetId;
 };
 
 const closeEditor = () => {
   activeRecipeId.value = null;
   // 3. Re-enable Global Cursor
-  globalMouse.value?.enable();
+  if (globalMouse.value) {
+    globalMouse.value.enable();
+  }
 };
 </script>
 
@@ -43,7 +48,7 @@ const closeEditor = () => {
       <div class="sticky top-0 z-30 flex bg-white border-b border-zinc-200 h-16 md:h-20">
         <div class="w-[80px] md:w-[96px] border-r border-zinc-200 shrink-0 flex items-center justify-center bg-white"></div>
         <div class="hidden lg:flex w-[400px] xl:w-[480px] items-center px-12 border-r border-zinc-200 bg-white">
-           <h1 class="font-bold tracking-tight text-zinc-900 text-lg">Playground</h1>
+           <h1 class="font-bold tracking-tight text-zinc-900 text-lg">Supermouse Labs</h1>
         </div>
         <div class="flex-1 flex items-center bg-zinc-50/50">
            <div class="w-16 h-full flex items-center justify-center text-zinc-400 shrink-0">
@@ -54,7 +59,7 @@ const closeEditor = () => {
            <input 
               type="text" 
               v-model="searchQuery"
-              placeholder="Search presets..." 
+              placeholder="Search experiments..." 
               class="w-full h-full bg-transparent outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 font-mono tracking-tight"
            />
            <div v-if="searchQuery" class="pr-6">
@@ -70,14 +75,14 @@ const closeEditor = () => {
         <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white"></div>
         <div class="w-full lg:w-[400px] xl:w-[480px] border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white p-8 md:p-12 flex flex-col relative z-10">
             <div class="lg:hidden mb-8">
-               <h1 class="font-bold tracking-tight text-zinc-900 text-2xl">Playground</h1>
+               <h1 class="font-bold tracking-tight text-zinc-900 text-2xl">Supermouse Labs</h1>
             </div>
             <div class="lg:sticky lg:top-32">
                 <h2 class="text-5xl mt-8 md:text-6xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[0.95]">
-                    Interactive<br/>Gallery
+                    Plugin<br/>Gallery
                 </h2>
                 <p class="text-lg text-zinc-600 font-medium leading-relaxed mb-8 text-pretty">
-                    Select a preset to enter the Studio Editor. Configure physics, tweak visuals, and export production-ready code.
+                    Explore experimental "Smart" plugins and standard tools. Enter the Studio Editor to configure physics, tweak visuals, and export code.
                 </p>
                 <div class="hidden lg:block mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-4">
                     Select a preset to edit
@@ -95,7 +100,10 @@ const closeEditor = () => {
                     data-supermouse-state="card-hover"
                 >
                     <div class="flex-1 mb-6 relative">
-                        <span class="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-500 block transform group-hover:scale-110 origin-top-left opacity-80 group-hover:opacity-100">{{ preset.icon }}</span>
+                        <span 
+                          class="w-10 h-10 text-zinc-900 filter grayscale group-hover:grayscale-0 transition-all duration-500 block transform group-hover:scale-110 origin-top-left opacity-80 group-hover:opacity-100"
+                          v-html="preset.icon"
+                        ></span>
                     </div>
                     <div class="mt-auto relative z-10">
                         <div class="flex justify-between items-end mb-2">

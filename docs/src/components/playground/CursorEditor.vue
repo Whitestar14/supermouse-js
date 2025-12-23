@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import EditorControls from './EditorControls.vue';
@@ -76,7 +77,7 @@ const copyCode = () => {
             <!-- Desktop Close -->
             <button 
                 @click="emit('close')" 
-                class="absolute top-0 right-0 z-50 h-12 px-8 bg-black text-white text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors hidden lg:flex items-center justify-center"
+                class="absolute top-0 right-0 z-50 h-12 px-8 bg-black text-white text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors hidden lg:flex items-center justify-center border-l border-b border-zinc-900"
             >
                 Close Editor
             </button>
@@ -86,19 +87,20 @@ const copyCode = () => {
                 <div class="w-full lg:w-[400px] border-b lg:border-b-0 lg:border-r border-zinc-200 shrink-0 h-2/5 lg:h-full flex flex-col bg-white z-10">
                     
                     <!-- Tabs -->
-                    <div class="h-12 flex border-b border-zinc-200 shrink-0">
+                    <div class="h-12 flex border-b border-zinc-200 shrink-0 bg-zinc-50">
                        <button 
                           @click="mode = 'config'" 
-                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100"
-                          :class="mode === 'config' ? 'bg-black text-white' : 'text-zinc-400 hover:bg-zinc-50 hover:text-black'"
+                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100 border-r border-zinc-200 relative"
+                          :class="mode === 'config' ? 'bg-white text-black' : 'text-zinc-400 hover:text-black'"
                        >
                           Configuration
+                          <!-- Active Indicator -->
+                          <div v-if="mode === 'config'" class="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
                        </button>
-                       <div class="w-px bg-zinc-200"></div>
                        <button 
                           @click="mode = 'code'" 
-                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100"
-                          :class="mode === 'code' ? 'bg-black text-white' : 'text-zinc-400 hover:bg-zinc-50 hover:text-black'"
+                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100 relative"
+                          :class="mode === 'code' ? 'bg-[#09090b] text-white border-b-0' : 'text-zinc-400 hover:text-black'"
                        >
                           Export Code
                        </button>
@@ -116,14 +118,15 @@ const copyCode = () => {
                         </div>
 
                         <!-- Code View -->
-                        <div v-else class="absolute inset-0 overflow-y-auto bg-[#282c34] flex flex-col">
-                            <div class="flex-1">
-                               <CodeBlock :code="generatedCode" :clean="true" />
+                        <div v-else class="absolute inset-0 overflow-y-auto bg-[#09090b] flex flex-col">
+                            <div class="flex-1 min-h-0 flex flex-col">
+                               <!-- CodeBlock set to fill height, with clean prop to remove internal header -->
+                               <CodeBlock :code="generatedCode" :clean="true" class="h-full" />
                             </div>
                             <button 
                                 @click="copyCode" 
-                                class="h-12 border-t border-zinc-200 text-xs font-bold uppercase tracking-widest shrink-0 sticky bottom-0 transition-colors duration-200 flex items-center justify-center gap-2"
-                                :class="isCopied ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-black hover:bg-black hover:text-white'"
+                                class="h-14 border-t border-zinc-800 text-xs font-bold uppercase tracking-widest shrink-0 sticky bottom-0 transition-colors duration-200 flex items-center justify-center gap-2"
+                                :class="isCopied ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-[#09090b] text-zinc-300 hover:bg-zinc-900 hover:text-white'"
                             >
                                 <span v-if="isCopied">Copied to Clipboard</span>
                                 <span v-else>Copy to Clipboard</span>
@@ -135,12 +138,14 @@ const copyCode = () => {
 
                 <!-- Preview -->
                 <div class="flex-1 bg-zinc-50 relative h-3/5 lg:h-full overflow-hidden">
-                    <div class="absolute top-8 left-8 z-30 hidden lg:block pointer-events-none">
+                    <div class="absolute top-8 left-8 z-30 hidden lg:block pointer-events-none select-none">
                         <div class="flex items-center gap-4">
-                            <span class="text-3xl filter grayscale">{{ currentRecipe.icon }}</span>
+                            <div class="w-12 h-12 flex items-center justify-center border border-zinc-200 bg-white rounded-sm shadow-sm">
+                                <span class="text-2xl filter grayscale" v-html="currentRecipe.icon"></span>
+                            </div>
                             <div>
-                                <h2 class="text-3xl font-bold tracking-tighter text-zinc-900 leading-none">{{ currentRecipe.name }}</h2>
-                                <p class="text-xs text-zinc-500 font-mono mt-2">{{ currentRecipe.description }}</p>
+                                <h2 class="text-2xl font-bold tracking-tighter text-zinc-900 leading-none">{{ currentRecipe.name }}</h2>
+                                <p class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold mt-1">Interactive Preview</p>
                             </div>
                         </div>
                     </div>

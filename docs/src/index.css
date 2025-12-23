@@ -8,8 +8,16 @@
     --text-main: #09090b;
 }
 
+@font-face {
+    font-family: 'Satoshi';
+    src: url('/fonts/Satoshi-Variable.woff2') format('woff2'),
+        url('/fonts/Satoshi-Variable.woff') format('woff');
+    font-feature-settings: "salt" 1, "tnum" 1;
+    font-variant-ligatures: none;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
+    @apply font-sans;
     margin: 0;
     background-color: #fff;
     color: var(--text-main);
@@ -94,8 +102,8 @@ kbd {
 }
 
 ::selection {
-    background: #000;
-    color: #fff;
+    background: #0000000c;
+    color: #000;
 }
 
 ::-webkit-scrollbar {

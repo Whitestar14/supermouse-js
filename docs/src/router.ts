@@ -7,7 +7,7 @@ import Playground from './pages/Playground.vue';
 const routes = [
   { path: '/', component: Landing, name: 'LANDING' },
   { path: '/docs', component: Docs, name: 'DOCS' },
-  { path: '/playground', component: Playground, name: 'PLAYGROUND' },
+  { path: '/labs', component: Playground, name: 'LABS' },
 ];
 
 export const router = createRouter({

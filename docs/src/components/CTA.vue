@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { lerp } from '../utils';
+import { math } from '@supermousejs/utils';
 
 const container = ref<HTMLElement | null>(null);
 
@@ -27,12 +27,12 @@ const loop = () => {
   const smoothness = 0.1;
   
   // Smooth position
-  pos.value.x = lerp(pos.value.x, mouse.value.x, smoothness);
-  pos.value.y = lerp(pos.value.y, mouse.value.y, smoothness);
+  pos.value.x = math.lerp(pos.value.x, mouse.value.x, smoothness);
+  pos.value.y = math.lerp(pos.value.y, mouse.value.y, smoothness);
   
   // Smooth size (Expansion/Contraction)
   const targetR = isHover.value ? 400 : 0;
-  currentRadius.value = lerp(currentRadius.value, targetR, 0.08);
+  currentRadius.value = math.lerp(currentRadius.value, targetR, 0.08);
 
   rafId = requestAnimationFrame(loop);
 };

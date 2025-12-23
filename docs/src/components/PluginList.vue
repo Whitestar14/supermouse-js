@@ -27,10 +27,10 @@ const getSparklinePath = () => {
        <!-- List Container -->
        <div class="flex-1">
           <div class="px-8 py-12 border-b border-zinc-200 bg-zinc-50/20">
-             <h3 class="text-3xl font-bold tracking-tighter mb-4 text-zinc-900">Official Plugins</h3>
+             <h3 class="text-3xl font-bold tracking-tighter mb-4 text-zinc-900">Standard & Labs</h3>
              <p class="text-zinc-600 max-w-2xl font-medium leading-relaxed">
-                We are the creators and maintainers of the core effect suite. 
-                Each plugin is isolated, tree-shakeable, and built for speed.
+                Standard plugins are dumb, fast, and stable. 
+                <span class="text-black font-bold">@supermousejs/labs</span> contains smart, state-aware components for complex UIs.
              </p>
           </div>
 
@@ -40,8 +40,10 @@ const getSparklinePath = () => {
                 
                 <!-- Icon & Title -->
                 <div class="flex-1 p-8 flex items-center gap-8">
-                   <div class="w-16 h-16 bg-white border border-zinc-200 rounded-lg shadow-sm flex items-center justify-center text-3xl shrink-0 group-hover:scale-105 transition-transform group-hover:border-zinc-300">
-                      {{ plugin.icon }}
+                   <div 
+                      class="w-16 h-16 bg-white border border-zinc-200 rounded-lg shadow-sm flex items-center justify-center p-4 text-zinc-900 shrink-0 group-hover:scale-105 transition-transform group-hover:border-zinc-300"
+                      v-html="plugin.icon"
+                   >
                    </div>
                    <div>
                       <div class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold mb-1">

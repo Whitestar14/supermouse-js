@@ -2,13 +2,13 @@
 import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
-import { Sparkles } from '@supermousejs/sparkles';
 import { Text } from '@supermousejs/text';
-import { TextRing } from '@supermousejs/text-ring';
 import { Magnetic } from '@supermousejs/magnetic';
 import { Pointer } from '@supermousejs/pointer';
-import { Icon } from '@supermousejs/icon';
 import { Stick } from '@supermousejs/stick';
+// Use Labs for complex plugins
+import { SmartIcon, SmartRing, TextRing, Sparkles } from '@supermousejs/labs';
+import { ICONS } from '../../icons';
 
 export type ControlType = 'range' | 'color' | 'toggle' | 'text' | 'select';
 
@@ -50,16 +50,16 @@ const ICON_SVGS: Record<string, string> = {
   // CSS Keyframe Animation provided by plugin style injection
   loading: `<svg class="supermouse-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>`
+  </svg>`,
+  pointer: POINTER_SVG // Used for the vehicle recipe
 };
-ICON_SVGS.pointer = ICON_SVGS.hand;
 
 export const RECIPES: PresetRecipe[] = [
   {
     id: 'basic-dot',
     name: 'Precision Dot',
     description: 'The standard verified cursor. Minimalist and fast.',
-    icon: '●',
+    icon: ICONS.dot,
     schema: [
       { key: 'size', label: 'Size', type: 'range', min: 4, max: 40, step: 1, defaultValue: 10, unit: 'px', description: 'Diameter in pixels' },
       { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
@@ -77,24 +77,27 @@ export const RECIPES: PresetRecipe[] = [
     id: 'context-icon',
     name: 'Context Icons',
     description: 'Swaps SVG icons based on semantic tags (links, inputs) or custom attributes.',
-    icon: '⬡',
+    icon: ICONS.labs,
     schema: [
         { key: 'size', label: 'Size', type: 'range', min: 16, max: 48, defaultValue: 24, unit: 'px' },
         { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
         { key: 'transitionDuration', label: 'Transition', type: 'range', min: 0, max: 500, defaultValue: 200, unit: 'ms', description: 'Morph duration' },
-        { key: 'followStrategy', label: 'Follow Mode', type: 'select', options: ['smooth', 'raw'], defaultValue: 'smooth' },
-        { key: 'rotateWithVelocity', label: 'Rotate w/ Velocity', type: 'toggle', defaultValue: false },
         { key: 'anchor', label: 'Anchor Point', type: 'select', options: ['center', 'top-left'], defaultValue: 'top-left', description: 'Align "Top Left" for arrows.' }
     ],
     setup: (app, config) => {
         app.options.ignoreOnNative = false;
-        app.use(Icon({
+        
+        // Define rules via standard options
+        app.options.rules = {
+          'a, button': { icon: 'hand' },
+          'input': { icon: 'text' }
+        };
+
+        app.use(SmartIcon({
             icons: ICON_SVGS,
             size: () => config.size,
             color: () => config.color,
             transitionDuration: config.transitionDuration, 
-            followStrategy: () => config.followStrategy,
-            rotateWithVelocity: () => config.rotateWithVelocity,
             anchor: () => config.anchor
         }));
     }
@@ -103,7 +106,7 @@ export const RECIPES: PresetRecipe[] = [
     id: 'vehicle-pointer',
     name: 'Vehicle Pointer',
     description: 'A brutalist arrow that rotates based on velocity.',
-    icon: '➤',
+    icon: ICONS.pointer,
     schema: [
         { key: 'size', label: 'Size', type: 'range', min: 16, max: 64, defaultValue: 32, unit: 'px' },
         { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
@@ -126,7 +129,7 @@ export const RECIPES: PresetRecipe[] = [
     id: 'text-ring',
     name: 'Text Ring',
     description: 'Rotates a text message around your cursor.',
-    icon: '◎',
+    icon: ICONS.text,
     schema: [
       { key: 'text', label: 'Message', type: 'text', defaultValue: 'SUPERMOUSE • V2 • ' },
       { key: 'radius', label: 'Radius', type: 'range', min: 20, max: 100, defaultValue: 60, unit: 'px' },
@@ -151,7 +154,7 @@ export const RECIPES: PresetRecipe[] = [
     id: 'magnetic-button',
     name: 'Magnetic Force',
     description: 'Attracts the cursor to interactive elements using the Magnetic plugin.',
-    icon: '🧲',
+    icon: ICONS.magnetic,
     schema: [
       { key: 'attraction', label: 'Attraction', type: 'range', min: 0.1, max: 1, step: 0.1, defaultValue: 0.4, description: 'How strongly it sticks (0-1)' },
       { key: 'distance', label: 'Range', type: 'range', min: 50, max: 200, step: 10, defaultValue: 120, unit: 'px', description: 'Capture radius' }
@@ -175,7 +178,7 @@ export const RECIPES: PresetRecipe[] = [
     id: 'sticky-element',
     name: 'Sticky Element',
     description: 'The Ring cursor morphs to match the shape of the hovered element.',
-    icon: '🔳',
+    icon: ICONS.stick,
     schema: [
       { key: 'padding', label: 'Padding', type: 'range', min: 0, max: 30, step: 1, defaultValue: 10, unit: 'px' },
       { key: 'color', label: 'Ring Color', type: 'color', defaultValue: '#000000' },
@@ -188,7 +191,7 @@ export const RECIPES: PresetRecipe[] = [
         color: config.color, 
         hideOnShape: config.hideDot 
       }));
-      app.use(Ring({ 
+      app.use(SmartRing({ 
         size: 30, 
         color: config.color, 
         enableSkew: true 
@@ -205,7 +208,7 @@ export const RECIPES: PresetRecipe[] = [
     id: 'ghost-trail',
     name: 'Ghost Trail',
     description: 'A high-latency trail effect using transparency.',
-    icon: '👻',
+    icon: ICONS.ghost,
     schema: [
         { key: 'size', label: 'Size', type: 'range', min: 10, max: 50, defaultValue: 20, unit: 'px' },
         { key: 'color', label: 'Color', type: 'color', defaultValue: '#6366f1' },
@@ -213,7 +216,7 @@ export const RECIPES: PresetRecipe[] = [
     ],
     setup: (app, config) => {
        app.use(Dot({ size: 4, color: () => config.color }));
-       app.use(Ring({
+       app.use(SmartRing({
          size: () => config.size,
          color: () => config.color,
          mixBlendMode: 'normal',
@@ -225,7 +228,7 @@ export const RECIPES: PresetRecipe[] = [
     id: 'sparkles',
     name: 'Fairy Dust',
     description: 'Emits particles while moving. Magical.',
-    icon: '✨',
+    icon: ICONS.trail,
     schema: [
       { key: 'color', label: 'Sparkle Color', type: 'color', defaultValue: '#fbbf24' },
       { key: 'velocity', label: 'Min Speed', type: 'range', min: 0, max: 50, defaultValue: 10, unit: 'px/f', description: 'Speed required to spawn' }
@@ -234,6 +237,7 @@ export const RECIPES: PresetRecipe[] = [
       app.use(Dot({ size: 8, color: () => config.color }));
       app.use(Sparkles({
         color: () => config.color,
+        frequency: config.velocity
       }));
     }
   },
@@ -241,12 +245,12 @@ export const RECIPES: PresetRecipe[] = [
     id: 'text-cursor',
     name: 'Context Label',
     description: 'Displays a label next to the cursor when hovering elements.',
-    icon: '💬',
+    icon: ICONS.context,
     schema: [
         { key: 'offsetY', label: 'Vertical Offset', type: 'range', min: 10, max: 50, defaultValue: 24, unit: 'px' }
     ],
     setup: (app, config) => {
-        app.use(Dot({ size: 8, color: 'black' }));
+        app.use(Dot({ size: 8, color: '#000000' }));
         app.use(Text({
             offset: [0, config.offsetY], // Static option
             duration: 200

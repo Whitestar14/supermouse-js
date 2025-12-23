@@ -16,16 +16,17 @@
     "@supermousejs/core": "workspace:*",
     "@supermousejs/dot": "workspace:*",
     "@supermousejs/ring": "workspace:*",
-    "@supermousejs/sparkles": "workspace:*",
     "@supermousejs/text": "workspace:*",
-    "@supermousejs/text-ring": "workspace:*",
     "@supermousejs/image": "workspace:*",
     "@supermousejs/magnetic": "workspace:*",
     "@supermousejs/pointer": "workspace:*",
     "@supermousejs/icon": "workspace:*",
     "@supermousejs/states": "workspace:*",
     "@supermousejs/stick": "workspace:*",
-    "@supermousejs/vue": "workspace:*"
+    "@supermousejs/vue": "workspace:*",
+    "@supermousejs/labs": "workspace:*",
+    "@supermousejs/trail": "workspace:*",
+    "@supermousejs/utils": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3",

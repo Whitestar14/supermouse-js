@@ -82,24 +82,26 @@ const serialize = (node: ASTValue, indentLevel = 0): string => {
 
 const PLUGIN_IMPORTS: Record<string, string> = {
   'basic-dot': 'Dot',
-  'ghost-trail': 'Dot, Ring',
+  'ghost-trail': 'Dot, SmartRing',
   'magnetic-button': 'Dot, Ring, Magnetic',
-  'sticky-element': 'Dot, Ring, Stick',
+  'sticky-element': 'Dot, SmartRing, Stick',
   'sparkles': 'Dot, Sparkles',
   'text-cursor': 'Dot, Text',
   'text-ring': 'Dot, TextRing',
-  'vehicle-pointer': 'Pointer',
-  'context-icon': 'Icon'
+  'vehicle-pointer': 'Pointer', 
+  'context-icon': 'SmartIcon'
 };
 
 const PKG_MAP: Record<string, string> = {
   'Dot': '@supermousejs/dot',
   'Ring': '@supermousejs/ring',
-  'Sparkles': '@supermousejs/sparkles',
+  'Sparkles': '@supermousejs/labs',
   'Text': '@supermousejs/text',
-  'TextRing': '@supermousejs/text-ring',
+  'TextRing': '@supermousejs/labs',
   'Magnetic': '@supermousejs/magnetic',
   'Pointer': '@supermousejs/pointer',
+  'SmartIcon': '@supermousejs/labs',
+  'SmartRing': '@supermousejs/labs',
   'Icon': '@supermousejs/icon',
   'Stick': '@supermousejs/stick'
 };
@@ -107,14 +109,20 @@ const PKG_MAP: Record<string, string> = {
 // --- Main Generator ---
 
 export const generateCode = (recipeId: string, config: any, globalConfig: any) => {
-  const imports = new Set<string>();
   const chain: CallNode[] = [];
 
   // 1. Core Config
   const coreOptions: Record<string, any> = {};
   if (globalConfig.smoothness !== 0.15) coreOptions.smoothness = globalConfig.smoothness;
   if (!globalConfig.showNative) coreOptions.hideCursor = true;
-  if (recipeId === 'context-icon') coreOptions.ignoreOnNative = false;
+  
+  if (recipeId === 'context-icon') {
+    coreOptions.ignoreOnNative = false;
+    coreOptions.rules = obj({
+      "'a, button'": obj({ icon: 'hand' }),
+      "'input'": obj({ icon: 'text' })
+    });
+  }
 
   // 2. Plugin Nodes
   if (recipeId === 'basic-dot') {
@@ -130,16 +138,16 @@ export const generateCode = (recipeId: string, config: any, globalConfig: any) =
       color: config.color,
       restingAngle: config.restingAngle,
       returnToRest: config.returnToRest,
-      restDelay: config.restDelay
+      restDelay: config.restDelay,
+      svg: id('POINTER_SVG')
     })));
   }
   else if (recipeId === 'context-icon') {
-    chain.push(call('Icon', obj({
+    chain.push(call('SmartIcon', obj({
       icons: id('icons'), // Reference variable
       size: config.size,
       color: config.color,
       transitionDuration: config.transitionDuration,
-      followStrategy: config.followStrategy,
       anchor: config.anchor
     })));
   }
@@ -162,11 +170,11 @@ export const generateCode = (recipeId: string, config: any, globalConfig: any) =
   else if (recipeId === 'sticky-element') {
     chain.push(call('Stick', obj({ padding: config.padding })));
     chain.push(call('Dot', obj({ size: 8, color: config.color, hideOnShape: config.hideDot })));
-    chain.push(call('Ring', obj({ size: 30, color: config.color, enableSkew: true })));
+    chain.push(call('SmartRing', obj({ size: 30, color: config.color, enableSkew: true })));
   }
   else if (recipeId === 'ghost-trail') {
     chain.push(call('Dot', obj({ size: 4, color: config.color })));
-    chain.push(call('Ring', obj({ 
+    chain.push(call('SmartRing', obj({ 
       size: config.size, 
       color: config.color, 
       mixBlendMode: 'normal' 
@@ -176,7 +184,7 @@ export const generateCode = (recipeId: string, config: any, globalConfig: any) =
     chain.push(call('Dot', obj({ size: 8, color: config.color })));
     chain.push(call('Sparkles', obj({ 
       color: config.color, 
-      minVelocity: config.velocity 
+      frequency: config.velocity 
     })));
   }
   else if (recipeId === 'text-cursor') {
@@ -201,12 +209,13 @@ export const generateCode = (recipeId: string, config: any, globalConfig: any) =
   if (recipeId === 'context-icon') {
     lines.push(`const icons = {`);
     lines.push(`  default: \`<svg>...</svg>\`,`);
-    lines.push(`  pointer: \`<svg>...</svg>\`,`);
-    lines.push(`  text:    \`<svg>...</svg>\``);
+    lines.push(`  hand: \`<svg>...</svg>\`,`);
+    lines.push(`  text: \`<svg>...</svg>\``);
     lines.push(`};\n`);
   }
 
   lines.push(`const app = new Supermouse(${serialize(obj(coreOptions))});`);
+  
   lines.push('');
   
   // Serialize Chain

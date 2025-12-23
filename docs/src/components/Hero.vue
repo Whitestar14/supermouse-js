@@ -49,7 +49,7 @@ app.use(Dot({
 
                     <!-- Headline -->
                     <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[1.05]">
-                      Cursor Library <br />
+                      Cursor Engine <br />
                       for Modern Tooling.
                     </h1>
 

@@ -1,12 +1,10 @@
 
-import pkg from '../../packages/core/package.json';
-
 /**
  * Global application constants and metadata.
  * Source of truth for versioning and stats.
  */
 
-export const APP_VERSION = `v${pkg.version}`;
+export const APP_VERSION = `v${__SUPERMOUSE_VERSION__}`;
 export const APP_NAME = 'Supermouse';
 export const LAST_UPDATED = 'Jan 2025';
 export const BUNDLE_SIZE = '1.2kb'; // Gzipped Core

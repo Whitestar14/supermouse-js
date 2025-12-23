@@ -1,23 +1,17 @@
+
 <script setup lang="ts">
 import { ref } from 'vue';
-import { APP_VERSION } from '../constants';
 
 const mobileMenuOpen = ref(false);
 const isSpinning = ref(false);
+const showVersionMenu = ref(false);
 
 const toggleMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
-  if (mobileMenuOpen.value) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-  }
+  document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : '';
 };
 
 const triggerSpin = (e: MouseEvent) => {
-  // Don't navigate if clicking specifically for the animation demo (optional, but good for UX in docs)
-  // But here it's a router link, so navigation is expected. 
-  // We just add the spin visual.
   isSpinning.value = true;
   setTimeout(() => {
     isSpinning.value = false;
@@ -29,15 +23,10 @@ const triggerSpin = (e: MouseEvent) => {
   <nav class="relative w-full border-b border-zinc-200 bg-white z-[50]">
     <div class="flex items-stretch h-16 md:h-20 bg-white relative z-50">
       
-      <!-- Left Column (Logo) -->
+      <!-- 1. Logo Column (Fixed Width, Border Right) -->
       <div class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0 bg-white">
          <router-link to="/" class="group block p-4" @click.capture="triggerSpin">
             <!-- App Logo / Cursor SVG -->
-            <!-- 
-                 Base Rotation: -45deg to look like a standard cursor.
-                 Hover: Scale up.
-                 Click: Spin 360 + base.
-            -->
             <div 
                 class="w-8 h-8 transition-all duration-500 ease-out"
                 :class="[
@@ -54,89 +43,106 @@ const triggerSpin = (e: MouseEvent) => {
          </router-link>
       </div>
 
-      <!-- Middle Column (Brand Name) -->
-      <div class="flex-1 flex items-center px-6 md:px-8 justify-between bg-white">
-        <router-link to="/" class="flex items-center text-lg md:text-xl font-bold tracking-tighter text-zinc-900 group cursor-none">
-          <div class="flex items-baseline">
-            <span>superm</span>
-            <div class="w-[0.6em] h-[0.6em] bg-current rounded-full mx-[0.05em] relative top-[1px]"></div>
-            <span>use</span>
-          </div>
-          <span class="ml-3 text-[10px] font-bold text-zinc-400 tracking-widest uppercase relative top-[2px] opacity-60">{{ APP_VERSION }}</span>
-        </router-link>
+      <!-- 2. Brand Column (Fluid Flex-1, Border Right) -->
+      <!-- This consumes available space, pushing Links/Github to the far right -->
+      <div class="flex-1 flex items-center px-6 md:px-8 border-r border-zinc-200 bg-white min-w-0">
+        <div class="flex items-center gap-4">
+            <router-link to="/" class="flex items-center text-lg md:text-xl font-bold tracking-tighter text-zinc-900 group">
+              <div class="flex items-baseline">
+                <span>supermouse</span><div class="w-[0.2em] h-[0.2em] bg-current rounded-full mx-[0.05em] relative top-[1px]"></div><span>js</span>
+              </div>
+            </router-link>
 
-        <!-- Mobile Menu Trigger -->
-        <div class="md:hidden">
-           <button @click="toggleMenu" class="group relative flex items-center justify-center w-14 h-full outline-none">
-              <!-- Text State -->
-              <span 
-                class="absolute font-bold text-[10px] uppercase tracking-widest transition-all duration-300 transform origin-center"
-                :class="mobileMenuOpen ? 'opacity-0 scale-75 rotate-90' : 'opacity-100 scale-100 rotate-0'"
-              >
-                Menu
-              </span>
-              <!-- Line State -->
-              <span 
-                class="absolute h-[2px] bg-black transition-all duration-300 transform origin-center"
-                :class="mobileMenuOpen ? 'w-6 opacity-100' : 'w-0 opacity-0'"
-              ></span>
+            <!-- Version Dropdown -->
+            <div class="relative group">
+                <button 
+                    @click="showVersionMenu = !showVersionMenu" 
+                    class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black transition-colors relative top-[1px]"
+                >
+                    v2
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                
+                <div v-if="showVersionMenu" 
+                     @mouseleave="showVersionMenu = false"
+                     class="absolute top-full left-0 mt-2 w-40 bg-white border border-zinc-200 shadow-xl py-1 z-50">
+                    <div class="px-4 py-2 text-[10px] font-bold text-black uppercase tracking-widest bg-zinc-50">
+                        Select Version
+                    </div>
+                    <a href="#" class="block px-4 py-2 text-xs font-medium text-black hover:bg-zinc-50 flex items-center justify-between">
+                        v2 <span class="w-1.5 h-1.5 bg-black rounded-full"></span>
+                    </a>
+                    <a href="https://github.com/Whitestar14/supermouse-js/" target="_blank" class="block px-4 py-2 text-xs font-medium text-zinc-500 hover:text-black hover:bg-zinc-50 flex items-center justify-between">
+                        v1
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Trigger (Appears here on mobile) -->
+        <div class="md:hidden ml-auto">
+           <button @click="toggleMenu" class="group relative flex items-center justify-center w-10 h-10 outline-none">
+              <div class="flex flex-col gap-1.5">
+                  <span class="w-6 h-0.5 bg-black transition-transform" :class="mobileMenuOpen ? 'rotate-45 translate-y-2' : ''"></span>
+                  <span class="w-6 h-0.5 bg-black transition-opacity" :class="mobileMenuOpen ? 'opacity-0' : ''"></span>
+                  <span class="w-6 h-0.5 bg-black transition-transform" :class="mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''"></span>
+              </div>
            </button>
         </div>
       </div>
 
-      <!-- Right Column (Desktop Links) -->
-      <div class="hidden md:flex border-l border-zinc-200 items-center px-8 gap-8 mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-600 shrink-0 bg-white">
-        <router-link to="/" class="hover:text-black transition-colors cursor-none" active-class="text-black underline decoration-2 underline-offset-4 decoration-black">Home</router-link>
-        <router-link to="/docs" class="hover:text-black transition-colors cursor-none" active-class="text-black underline decoration-2 underline-offset-4 decoration-black">Docs</router-link>
-        <router-link to="/playground" class="hover:text-black transition-colors cursor-none text-purple-600" active-class="font-extrabold">Playground</router-link>
-        
-        <!-- Divider -->
-        <div class="h-6 w-px bg-zinc-200 mx-2"></div>
+      <!-- 3. Navigation Links Column (Shrink-0, Border Right) -->
+      <div class="hidden md:flex h-full border-r border-zinc-200 items-center px-8 gap-8 bg-white shrink-0">
+            <router-link to="/" 
+              class="mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors" 
+              active-class="!text-black underline decoration-2 underline-offset-4 decoration-black">
+              Home
+            </router-link>
+            <router-link to="/docs" 
+              class="mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors" 
+              active-class="!text-black underline decoration-2 underline-offset-4 decoration-black">
+              Docs
+            </router-link>
+            <router-link to="/labs" 
+              class="mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors" 
+              active-class="!text-black underline decoration-2 underline-offset-4 decoration-black">
+              Labs
+            </router-link>
+      </div>
 
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="hover:text-black transition-colors cursor-none flex items-center gap-2">
-          Github
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
-        </a>
+      <!-- 4. Github Column (Shrink-0) -->
+      <div class="hidden md:flex h-full items-center px-8 bg-white shrink-0">
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 mono text-[11px] uppercase tracking-[0.1em] font-bold text-zinc-400 hover:text-black transition-colors">
+            Github
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+            </a>
       </div>
     </div>
 
     <!-- Mobile Menu Overlay -->
-    <div class="md:hidden fixed inset-x-0 top-16 bottom-0 bg-white z-40 transition-all duration-300 ease-in-out origin-top flex flex-col"
+    <div class="md:hidden fixed inset-0 top-[64px] bg-white z-40 transition-all duration-300 ease-in-out flex flex-col"
          :class="mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'">
          
-         <!-- Background Grid -->
-         <div class="absolute inset-0 grid-bg opacity-100 pointer-events-none mix-blend-multiply"></div>
+         <div class="absolute inset-0 grid-bg opacity-50 pointer-events-none"></div>
          
-         <!-- Links -->
          <div class="relative z-10 flex flex-col gap-8 p-12 mt-4">
             <router-link to="/" @click="toggleMenu" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
-              <div class="w-2 h-2 bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               Home
             </router-link>
             <router-link to="/docs" @click="toggleMenu" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
-               <div class="w-2 h-2 bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
               Docs
             </router-link>
-            <router-link to="/playground" @click="toggleMenu" 
-               class="text-4xl font-bold tracking-tighter text-purple-600 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
-               <div class="w-2 h-2 bg-purple-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              Playground
+            <router-link to="/labs" @click="toggleMenu" 
+               class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+              Labs
             </router-link>
             <a href="https://github.com" target="_blank" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
-               <div class="w-2 h-2 bg-black rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              Github
+               Github
             </a>
-         </div>
-         
-         <!-- Footer info in menu -->
-         <div class="mt-auto relative z-10 p-12 border-t border-zinc-100 bg-white/50 backdrop-blur-sm">
-            <div class="flex flex-col gap-2">
-               <span class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Latest Release</span>
-               <span class="text-sm font-bold text-zinc-900">{{ APP_VERSION }} Stable</span>
-            </div>
          </div>
     </div>
   </nav>
