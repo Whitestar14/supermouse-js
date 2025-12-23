@@ -1,215 +1,179 @@
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, reactive } from 'vue';
-import { Supermouse } from '@supermousejs/core';
+import { ref, reactive, onMounted } from 'vue';
+import { provideSupermouse } from '@supermousejs/vue';
 import { Dot } from '@supermousejs/dot';
-import { Ring } from '@supermousejs/ring';
-import { Pointer } from '@supermousejs/pointer';
 import { Text } from '@supermousejs/text';
-import { Sparkles } from '@supermousejs/sparkles';
 import { Magnetic } from '@supermousejs/magnetic';
 import { Image } from '@supermousejs/image';
+import { Stick } from '@supermousejs/stick';
+import { Pointer } from '@supermousejs/pointer';
+import { Trail } from '@supermousejs/trail';
+import { SmartRing, SmartIcon, TextRing, Sparkles } from '@supermousejs/labs';
 
-let mouse: Supermouse | null = null;
-const isEnabled = ref(true);
+const ICONS = {
+  default: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-45deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>`,
+  hand: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>`,
+};
 
-const plugins = reactive({
+// --- STATE ---
+const pluginsState = reactive<Record<string, boolean>>({
   dot: true,
-  pointer: false,
   ring: true,
-  sparkles: true,
-  magnetic: true
+  trail: false,
+  sparkles: false,
+  text: true,
+  'text-ring': false,
+  image: true,
+  icon: false,
+  pointer: false,
+  magnetic: true,
+  stick: true
 });
 
-onMounted(() => {
-  mouse = new Supermouse({
-    enableTouch: false,
-    ignoreOnNative: true, 
-    hideCursor: true,
-  });
+const isMobileMenuOpen = ref(false);
 
-  mouse
-    // Logic Plugins first (Calculates positions)
-    .use(Magnetic({ attraction: 0.8 }))
-    // Visual Plugins next
-    .use(Pointer({ size: 24, isEnabled: false })) // Disabled by default, toggled via UI
-    .use(Dot({ size: 8, color: 'var(--cursor-color)', hideOnStick: true }))
-    .use(Ring({ size: 20, hoverSize: 45, color: 'var(--cursor-color)', enableStick: true, enableSkew: true }))
-    .use(Text({ className: 'custom-tooltip' }))
-    .use(Image({ offset: [20, 20], smoothness: 0.15 }))
-    .use(Sparkles({ color: 'var(--cursor-color)', maxParticles: 30 }));
-    
-  document.documentElement.style.setProperty('--cursor-color', '#750c7e');
-});
-
-onUnmounted(() => {
-  mouse?.destroy();
-});
-
-const toggleCursor = () => {
-  if (isEnabled.value) {
-    mouse?.disable(); 
-  } else {
-    mouse?.enable(); 
+// --- SETUP ---
+const mouse = provideSupermouse({
+  smoothness: 0.15,
+  hideCursor: true,
+  ignoreOnNative: true,
+  rules: {
+    'a': { icon: 'hand' }
   }
-  isEnabled.value = !isEnabled.value;
-};
+}, [
+  Dot({ name: 'dot', size: 8, color: '#f0f' }),
+  SmartRing({ name: 'ring', size: 24, color: '#f0f', enableSkew: true }),
+  Trail({ name: 'trail', color: '#f0f', isEnabled: false }),
+  Sparkles({ name: 'sparkles', color: '#f0f', isEnabled: false }),
+  Text({ name: 'text', offset: [20, 20] }),
+  TextRing({ name: 'text-ring', text: 'SUPERMOUSE • V2 • ', color: '#0ff', isEnabled: false }),
+  Image({ name: 'image', offset: [30, 30] }),
+  SmartIcon({ name: 'icon', icons: ICONS, size: 24, color: '#000', isEnabled: false }),
+  Pointer({ name: 'pointer', size: 32, color: '#ff0', isEnabled: false }),
+  Magnetic({ name: 'magnetic' }),
+  Stick({ name: 'stick' })
+]);
 
-const switchTheme = () => {
-  const current = document.documentElement.style.getPropertyValue('--cursor-color').trim();
-  const next = current === '#750c7e' ? '#00ff00' : '#750c7e';
-  document.documentElement.style.setProperty('--cursor-color', next);
-};
-
-// Plugin Toggle Handler
-const togglePlugin = (name: 'dot' | 'ring' | 'sparkles' | 'magnetic' | 'pointer') => {
-  mouse?.togglePlugin(name);
-  plugins[name] = !plugins[name];
-  
-  // Exclusive toggles for demo clarity
-  if (name === 'pointer' && plugins.pointer) {
-    if (plugins.dot) { mouse?.disablePlugin('dot'); plugins.dot = false; }
-    if (plugins.ring) { mouse?.disablePlugin('ring'); plugins.ring = false; }
-  } else if ((name === 'dot' || name === 'ring') && plugins[name]) {
-    if (plugins.pointer) { mouse?.disablePlugin('pointer'); plugins.pointer = false; }
+const togglePlugin = (name: string) => {
+  pluginsState[name] = !pluginsState[name];
+  if (mouse.value) {
+    if (pluginsState[name]) mouse.value.enablePlugin(name);
+    else mouse.value.disablePlugin(name);
   }
 };
+
 </script>
 
 <template>
-  <div class="min-h-screen p-10 font-sans bg-gray-950 text-white"> 
+  <div class="flex h-screen bg-zinc-950 text-white font-sans overflow-hidden">
     
-    <header class="text-center mb-16">
-      <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-        Supermouse V2
-      </h1>
-      <p class="text-gray-400">Vue 3 Integration Test</p>
-    </header>
+    <!-- LEFT: Test Area -->
+    <main class="flex-1 relative overflow-y-auto p-8 md:p-12 flex flex-col gap-12">
+      <!-- Grid BG -->
+      <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <header class="relative z-10">
+        <h1 class="text-4xl font-bold tracking-tighter mb-2">Supermouse<span class="text-purple-500">.js</span></h1>
+        <p class="text-zinc-500 font-mono text-sm">v2.0.0 Dev Playground</p>
+      </header>
+
+      <!-- TEST ZONES -->
+      <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        
+        <!-- Magnetic -->
+        <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
+          <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Magnetic</span>
+          <div class="flex gap-4">
+             <button class="w-12 h-12 rounded-full border border-zinc-700 hover:border-purple-500 transition-colors" data-supermouse-magnetic></button>
+             <button class="w-12 h-12 rounded-full border border-zinc-700 hover:border-purple-500 transition-colors" data-supermouse-magnetic></button>
+          </div>
+        </div>
+
+        <!-- Sticky -->
+        <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
+          <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Stick</span>
+          <button class="px-8 py-4 bg-zinc-800 rounded hover:bg-zinc-700 transition-colors" data-supermouse-stick>
+            Sticky Button
+          </button>
+        </div>
+
+        <!-- Text Hover -->
+        <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
+          <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Text Tooltip</span>
+          <div class="w-full h-16 bg-zinc-800 rounded border border-dashed border-zinc-700 flex items-center justify-center" 
+               data-supermouse-text="Hello World!">
+             Hover Me
+          </div>
+        </div>
+
+        <!-- Image Hover -->
+        <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
+          <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Image Preview</span>
+          <div class="w-full h-16 bg-zinc-800 rounded border border-dashed border-zinc-700 flex items-center justify-center" 
+               data-supermouse-img="https://images.unsplash.com/photo-1721332155545-c7a8005a2501?w=400&q=80">
+             Hover for Image
+          </div>
+        </div>
+
+        <!-- Icon Trigger -->
+        <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
+          <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Icon Trigger</span>
+          <div class="w-16 h-16 bg-zinc-800 rounded flex items-center justify-center" 
+               data-supermouse-icon="search">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+        </div>
+
+        <!-- Text Ring -->
+        <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
+          <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Text Ring</span>
+          <div class="w-24 h-24 rounded-full border border-zinc-700 flex items-center justify-center"
+               data-supermouse-text-ring="LOADING • LOADING • ">
+             <span class="text-xs">Hover</span>
+          </div>
+        </div>
+
+      </div>
       
-      <!-- Card 1: Basic -->
-      <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
-        <h3 class="text-xl font-semibold text-gray-200">Basic Interaction</h3>
-        <button class="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-500 transition-colors">
-          Hover Me
-        </button>
+      <!-- Footer links -->
+      <div class="relative z-10 flex gap-6 text-sm text-zinc-500">
+         <a href="#" class="hover:text-white transition-colors">Standard Link</a>
+         <a href="#" class="hover:text-white transition-colors">Another Link</a>
       </div>
 
-      <!-- Card 2: Magnetic -->
-      <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
-        <h3 class="text-xl font-semibold text-gray-200">Magnetic</h3>
-        <button class="px-6 py-3 border border-white rounded-full hover:bg-white hover:text-black transition-colors" 
-                data-supermouse-magnetic>
-          Snap to Center
-        </button>
-      </div>
+    </main>
 
-      <!-- Card 3: Stick -->
-      <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
-        <h3 class="text-xl font-semibold text-gray-200">Stick Effect</h3>
-        <button class="px-8 py-4 bg-gray-800 rounded-xl" data-supermouse-stick>
-          Stick to Shape
-        </button>
+    <!-- RIGHT: Control Panel -->
+    <aside class="w-[320px] border-l border-zinc-800 bg-zinc-900 flex flex-col shrink-0 relative z-20">
+      <div class="p-6 border-b border-zinc-800">
+        <h2 class="font-bold text-white mb-1">Plugins</h2>
+        <p class="text-xs text-zinc-500">Toggle enabled state in real-time.</p>
       </div>
-
-      <!-- Card 4: Text Label -->
-      <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
-        <h3 class="text-xl font-semibold text-gray-200">Text Tooltip</h3>
-        <div class="w-full h-20 bg-gray-800 rounded-lg flex items-center justify-center" 
-             data-supermouse-text="VIEW PROJECT">
-          Hover Area
+      
+      <div class="flex-1 overflow-y-auto p-6 space-y-2">
+        <div v-for="(enabled, name) in pluginsState" :key="name" 
+             class="flex items-center justify-between p-3 bg-black/20 rounded border border-zinc-800 hover:border-zinc-700 transition-colors">
+           <span class="capitalize text-sm font-medium" :class="enabled ? 'text-white' : 'text-zinc-500'">{{ name }}</span>
+           
+           <button @click="togglePlugin(name)" 
+                   class="w-10 h-5 rounded-full relative transition-colors duration-200 ease-in-out"
+                   :class="enabled ? 'bg-purple-600' : 'bg-zinc-700'">
+              <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform duration-200"
+                   :class="enabled ? 'translate-x-5' : 'translate-x-0'"></div>
+           </button>
         </div>
       </div>
 
-      <!-- Card 5: Image Hover -->
-      <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
-        <h3 class="text-xl font-semibold text-gray-200">Image Reveal</h3>
-        <div class="text-2xl font-bold underline decoration-purple-500"
-             data-supermouse-img="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400">
-          Hover This Title
-        </div>
+      <div class="p-6 border-t border-zinc-800 bg-black/20">
+         <div class="text-xs text-zinc-500 font-mono mb-2">Instance Status</div>
+         <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full" :class="mouse ? 'bg-green-500' : 'bg-red-500'"></div>
+            <span class="text-sm font-bold">{{ mouse ? 'Active' : 'Initializing...' }}</span>
+         </div>
       </div>
-
-      <!-- Card 6: Native Inputs -->
-      <div class="bg-gray-900 p-8 rounded-2xl border border-gray-800 flex flex-col items-center gap-4">
-        <h3 class="text-xl font-semibold text-gray-200">Native Input</h3>
-        <input type="text" placeholder="Cursor should vanish..." 
-               class="w-full px-4 py-2 bg-black border border-gray-700 rounded focus:border-purple-500 outline-none" />
-      </div>
-
-    </div>
-
-    <!-- Controls (Bottom Left) -->
-    <div class="fixed bottom-8 left-8 flex gap-4 z-50 cursor-default" data-supermouse-ignore
-         @mousedown.stop>
-      <button @click="toggleCursor" 
-              class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono transition-colors">
-        {{ isEnabled ? 'Disable Cursor' : 'Enable Cursor' }}
-      </button>
-      <button @click="switchTheme" 
-              class="px-4 py-2 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer text-sm font-mono transition-colors">
-        Switch Theme
-      </button>
-    </div>
-
-    <!-- Plugin Toggles (Bottom Right) -->
-    <div class="fixed bottom-8 right-8 flex flex-col gap-2 z-50 cursor-default" data-supermouse-ignore
-         @mousedown.stop>
-      <div class="text-xs text-gray-500 font-mono mb-1 text-right">PLUGINS</div>
-      
-      <button @click="togglePlugin('dot')" 
-              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
-              :class="plugins.dot ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
-        Dot: {{ plugins.dot ? 'ON' : 'OFF' }}
-      </button>
-
-      <button @click="togglePlugin('ring')" 
-              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
-              :class="plugins.ring ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
-        Ring: {{ plugins.ring ? 'ON' : 'OFF' }}
-      </button>
-      
-      <button @click="togglePlugin('pointer')" 
-              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
-              :class="plugins.pointer ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
-        Pointer: {{ plugins.pointer ? 'ON' : 'OFF' }}
-      </button>
-
-      <button @click="togglePlugin('sparkles')" 
-              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
-              :class="plugins.sparkles ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
-        Sparkles: {{ plugins.sparkles ? 'ON' : 'OFF' }}
-      </button>
-      
-      <button @click="togglePlugin('magnetic')" 
-              class="px-3 py-1 rounded text-xs font-mono border transition-all cursor-pointer"
-              :class="plugins.magnetic ? 'bg-purple-900 border-purple-500 text-purple-200' : 'bg-gray-900 border-gray-800 text-gray-500'">
-        Magnetic: {{ plugins.magnetic ? 'ON' : 'OFF' }}
-      </button>
-    </div>
+    </aside>
 
   </div>
 </template>
-
-<style>
-.custom-tooltip {
-  background: white;
-  color: black;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 11px;
-  letter-spacing: 1px;
-  pointer-events: none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.supermouse-image {
-  width: 200px;
-  height: 140px;
-  border-radius: 8px;
-  border: 2px solid white;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-}
-</style>

@@ -12,6 +12,8 @@
     "create:plugin": "node scripts/create-plugin.js", 
     "remove:plugin": "node scripts/remove-plugin.js",
     "sync": "node scripts/sync-configs.js",
+    "sync:utils": "node scripts/sync-utils.js",
+    "fix:names": "node scripts/fix-umd-names.js",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish"
@@ -30,6 +32,7 @@
     "web"
   ],
   "author": "O.S David",
+  "url": "https://github.com/Whitestar14",
   "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "^2.29.8",

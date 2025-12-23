@@ -1,26 +1,35 @@
 {
   "name": "supermouse-playground",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@supermousejs/core": "workspace:*",
-    "@supermousejs/dot": "workspace:*",
-    "@supermousejs/image": "workspace:*",
-    "@supermousejs/magnetic": "workspace:*",
-    "@supermousejs/ring": "workspace:*",
-    "@supermousejs/sparkles": "workspace:*",
-    "@supermousejs/text": "workspace:*",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "vue": "^3.5.26",
-    "@supermousejs/text-ring": "workspace:*",
+    "vue-router": "4.2.5",
+    "@supermousejs/core": "workspace:*",
+    "@supermousejs/dot": "workspace:*",
+    "@supermousejs/ring": "workspace:*",
+    "@supermousejs/text": "workspace:*",
+    "@supermousejs/image": "workspace:*",
+    "@supermousejs/magnetic": "workspace:*",
     "@supermousejs/pointer": "workspace:*",
-    "@supermousejs/icon": "workspace:*"
+    "@supermousejs/icon": "workspace:*",
+    "@supermousejs/states": "workspace:*",
+    "@supermousejs/stick": "workspace:*",
+    "@supermousejs/vue": "workspace:*",
+    "@supermousejs/labs": "workspace:*",
+    "@supermousejs/trail": "workspace:*",
+    "@supermousejs/utils": "workspace:*"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.3"
+    "@vitejs/plugin-vue": "^6.0.3",
+    "vue-tsc": "^1.8.0"
   }
 }
