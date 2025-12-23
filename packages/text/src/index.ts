@@ -1,3 +1,4 @@
+
 import { definePlugin, dom, Layers, Easings } from '@supermousejs/utils';
 
 export interface TextOptions {
@@ -21,6 +22,15 @@ export const Text = (options: TextOptions = {}) => {
 
     create: (app) => {
       const el = dom.createActor('div') as HTMLDivElement;
+      
+      dom.applyStyles(el, {
+        zIndex: Layers.OVERLAY,
+        opacity: '0',
+        transition: `opacity ${duration}ms ${Easings.SMOOTH}`,
+        whiteSpace: 'nowrap',
+        pointerEvents: 'none'
+      });
+
       if (className) {
         el.classList.add(...className.split(' ').filter(Boolean));
       }
@@ -28,12 +38,6 @@ export const Text = (options: TextOptions = {}) => {
       textNode = document.createElement('span');
       el.appendChild(textNode);
 
-      dom.applyStyles(el, {
-        zIndex: Layers.OVERLAY,
-        opacity: '0',
-        transition: `opacity ${duration}ms ${Easings.SMOOTH}`,
-        whiteSpace: 'nowrap'
-      });
       dom.setTransform(el, -100, -100);
       return el;
     },
@@ -47,7 +51,7 @@ export const Text = (options: TextOptions = {}) => {
         dom.setStyle(el, 'opacity', '1');
         
         // Dynamic position based on pointer
-        const { x, y } = app.state.pointer;
+        const { x, y } = app.state.smooth;
         dom.setTransform(el, x + offX, y + offY);
       } else {
         dom.setStyle(el, 'opacity', '0');

@@ -34,10 +34,19 @@ export interface SupermousePlugin {
   destroy?: (app: any) => void;
 }
 
+export interface OptionSchema {
+  name: string;
+  type: string;
+  default?: string;
+  description: string;
+  reactive?: boolean; // True if it accepts ValueOrGetter<T>
+}
+
 export interface PluginMeta {
   id: string;
   name: string;
   description: string;
   code: string;
   icon: string;
+  options?: OptionSchema[];
 }

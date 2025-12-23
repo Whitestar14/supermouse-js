@@ -5,3 +5,4 @@ export * from './layers';
 export * from './css';
 export * from './plugin';
 export * from './options';
+export * from './doctor';

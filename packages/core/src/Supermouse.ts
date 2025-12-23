@@ -108,6 +108,7 @@ export class Supermouse {
       isDown: false,
       isHover: false,
       isNative: false,
+      forcedCursor: null, // Default: Auto-detect
       hoverTarget: null,
       reducedMotion: false,
       hasReceivedInput: false,
@@ -145,6 +146,13 @@ export class Supermouse {
    */
   public getPlugin(name: string) {
     return this.plugins.get(name);
+  }
+
+  /**
+   * Returns whether the cursor system is currently enabled (processing input).
+   */
+  public get isEnabled(): boolean {
+    return this.input.isEnabled;
   }
 
   /**
@@ -212,6 +220,50 @@ export class Supermouse {
    */
   public get container(): HTMLDivElement { return this.stage.element; }
   
+  /**
+   * Projects a DOM element's bounding box into the coordinate space of this Supermouse instance.
+   * 
+   * If the instance is attached to `document.body`, this returns the standard `getBoundingClientRect()`.
+   * If attached to a specific container, it returns coordinates relative to that container's top-left.
+   * 
+   * This ensures that logic plugins (like Sticky or Magnetic) calculate targets that match the 
+   * coordinate system used by the internal physics engine and visual renderers.
+   */
+  public projectRect(element: HTMLElement): DOMRect {
+    const rect = element.getBoundingClientRect();
+
+    if (this.options.container && this.options.container !== document.body) {
+      const containerRect = this.options.container.getBoundingClientRect();
+      const x = rect.left - containerRect.left;
+      const y = rect.top - containerRect.top;
+
+      // Return a DOMRect-compatible object relative to the container
+      return {
+        x,
+        y,
+        width: rect.width,
+        height: rect.height,
+        top: y,
+        left: x,
+        right: x + rect.width,
+        bottom: y + rect.height,
+        toJSON: () => ({})
+      } as DOMRect;
+    }
+
+    return rect;
+  }
+
+  /**
+   * Manually override the native cursor visibility.
+   * Useful for drag-and-drop operations, modals, or special UI states.
+   * 
+   * @param type 'auto' (Show Native), 'none' (Hide Native), or null (Resume Auto-detection)
+   */
+  public setCursor(type: 'auto' | 'none' | null) {
+    this.state.forcedCursor = type;
+  }
+
   private init() { 
     if (this.options.autoStart) {
         this.startLoop(); 
@@ -323,8 +375,20 @@ export class Supermouse {
 
     // 3. Native Cursor Hiding Logic
     if (this.input.isEnabled && this.options.hideCursor) {
-       const shouldHideNative = this.state.hasReceivedInput && !this.state.isNative;
-       this.stage.setNativeCursor(shouldHideNative ? 'none' : 'auto');
+       let targetState: 'none' | 'auto' = 'auto';
+
+       // PRIORITY 1: Manual Override (User/Plugin says so)
+       if (this.state.forcedCursor !== null) {
+         targetState = this.state.forcedCursor;
+       } 
+       // PRIORITY 2: Auto-Detection (Default behavior)
+       else {
+         // Show native if we are in a "Native Zone" (Input) OR if we haven't moved mouse yet
+         const showNative = this.state.isNative || !this.state.hasReceivedInput;
+         targetState = showNative ? 'auto' : 'none';
+       }
+
+       this.stage.setNativeCursor(targetState);
     }
 
     if (this.input.isEnabled) {

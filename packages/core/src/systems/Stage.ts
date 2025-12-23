@@ -1,3 +1,4 @@
+
 let stageCount = 0;
 
 /**
@@ -23,6 +24,9 @@ export class Stage {
   private styleTag: HTMLStyleElement;
   private id: string;
   private scopeClass: string;
+  
+  // Cache to prevent redundant DOM updates
+  private currentCursorState: 'none' | 'auto' | '' | null = null;
 
   // Defaults for CSS hiding. We must override user-agent styles on these elements
   // to prevent the native cursor from popping through.
@@ -107,6 +111,10 @@ export class Stage {
   public setNativeCursor(type: 'none' | 'auto' | '') {
     // If global hiding is disabled via options, do nothing (unless specifically forcing auto)
     if (!this.hideNativeCursor && type === 'none') return;
+
+    // PERFORMANCE FIX: Don't touch DOM if state hasn't changed
+    if (type === this.currentCursorState) return;
+    this.currentCursorState = type;
 
     if (type === 'none') {
       // 1. Hide on container directly (covers background/empty space)

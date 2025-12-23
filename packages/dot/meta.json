@@ -1,0 +1,17 @@
+{
+  "id": "dot",
+  "name": "Dot",
+  "package": "@supermousejs/dot",
+  "description": "A minimalist precision point that follows your movements perfectly.",
+  "code": "app.use(Dot({ size: 8, color: '#750c7e' }));",
+  "recipeId": "basic-dot",
+  "icon": "dot",
+  "options": [
+    { "name": "size", "type": "number", "default": "8", "description": "Diameter of the dot in pixels.", "reactive": true },
+    { "name": "color", "type": "string", "default": "'#750c7e'", "description": "Background color.", "reactive": true },
+    { "name": "opacity", "type": "number", "default": "1", "description": "Opacity level (0-1).", "reactive": true },
+    { "name": "mixBlendMode", "type": "string", "default": "'difference'", "description": "CSS blend mode.", "reactive": false },
+    { "name": "hideOnShape", "type": "boolean", "default": "true", "description": "Fade out when a shape (like Stick) is active.", "reactive": false },
+    { "name": "zIndex", "type": "string", "default": "'300'", "description": "CSS z-index.", "reactive": false }
+  ]
+}

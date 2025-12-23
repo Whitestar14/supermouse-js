@@ -1,11 +1,14 @@
 
 <script setup lang="ts">
+import { watch } from 'vue';
 import Navbar from './Navbar.vue';
 import Footer from './Footer.vue';
+import CursorEditor from './playground/CursorEditor.vue';
 import { provideSupermouse } from '@supermousejs/vue';
 import { SmartIcon, SmartRing } from '@supermousejs/labs';
 import { Icon } from '@supermousejs/icon';
 import { States } from '@supermousejs/states';
+import { usePlayground } from '../composables/usePlayground';
 
 // --- ASSETS ---
 const LOGO_CURSOR = `
@@ -26,12 +29,10 @@ const mouse = provideSupermouse({
   enableTouch: false,
   hideCursor: true,
   ignoreOnNative: true,
-  // Use 'rules' for semantic mapping
   rules: {
     'a, button, [role="button"]': { icon: 'pointer' }
   }
 }, [
-  // 1. Default State (Brand Logo) - Uses smart SmartIcon from Labs
   SmartIcon({ 
     name: 'default-icon',
     icons: { default: LOGO_CURSOR, pointer: HAND_CURSOR },
@@ -40,25 +41,17 @@ const mouse = provideSupermouse({
     anchor: 'center', 
     rotateWithVelocity: true,
   }),
-
-  // 2. Card Hover State (Black Circle + Arrow)
-  // SmartRing needed for accurate sizing/color transitions if we wanted them, 
-  // but here we are using a specific named ring 'card-bg'.
   SmartRing({
     name: 'card-bg',
     size: 64, hoverSize: 64, 
     fill: 'black', color: 'black', borderWidth: 0, 
     mixBlendMode: 'normal'
   }),
-
-  // Simple dumb icon for the arrow inside
   Icon({
     name: 'card-arrow',
     svg: ARROW_CURSOR,
     size: 24, color: 'white'
   }),
-
-  // 3. State Manager
   States({
     default: ['default-icon'],
     states: {
@@ -66,6 +59,17 @@ const mouse = provideSupermouse({
     }
   })
 ]);
+
+// --- GLOBAL EDITOR STATE ---
+const { isOpen, activeRecipeId, close } = usePlayground();
+
+// Automatically disable the global cursor when the editor is open
+watch(isOpen, (open) => {
+  if (mouse.value) {
+    if (open) mouse.value.disable();
+    else mouse.value.enable();
+  }
+});
 </script>
 
 <template>
@@ -77,5 +81,12 @@ const mouse = provideSupermouse({
       </main>
       <Footer />
     </div>
+
+    <!-- Global Editor Overlay -->
+    <CursorEditor 
+      v-if="isOpen"
+      :activeRecipeId="activeRecipeId" 
+      @close="close" 
+    />
   </div>
 </template>

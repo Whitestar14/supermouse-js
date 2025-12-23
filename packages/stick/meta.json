@@ -1,0 +1,13 @@
+
+{
+  "id": "stick",
+  "name": "Stick",
+  "package": "@supermousejs/stick",
+  "description": "Morphs the cursor shape to match the bounding box of hovered elements.",
+  "code": "app.use(Stick({ padding: 10 }));",
+  "recipeId": "sticky-element",
+  "icon": "stick",
+  "options": [
+    { "name": "padding", "type": "number", "default": "10", "description": "Extra padding around the target element in pixels.", "reactive": true }
+  ]
+}

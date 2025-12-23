@@ -18,14 +18,14 @@ interface LanguageGrammar {
 }
 
 const COLORS = {
-  purple: 'text-[#c678dd]',
-  green: 'text-[#98c379]',
-  red: 'text-[#e06c75]',
-  blue: 'text-[#61afef]',
-  orange: 'text-[#d19a66]',
-  yellow: 'text-[#e5c07b]',
-  grey: 'text-[#5c6370] italic',
-  cyan: 'text-[#56b6c2]',
+  purple: 'text-amber-500', // Keywords -> Amber
+  green: 'text-zinc-500',   // Strings -> Grey
+  red: 'text-zinc-600',     // Tags -> Darker Grey
+  blue: 'text-zinc-300',    // Functions -> Light Grey (Subtle)
+  orange: 'text-zinc-500',  // Numbers -> Grey
+  yellow: 'text-zinc-400',  // Builtins -> Light Grey
+  grey: 'text-zinc-600 italic', // Comments
+  white: 'text-zinc-100',   // Base text (handled by parent mostly)
 };
 
 const JS_GRAMMAR: LanguageGrammar = {
@@ -153,16 +153,6 @@ export function highlight(code: string, lang: string = 'js'): string {
   let lastIndex = 0;
 
   for (const m of seaMatches) {
-    // Check for overlap with placeholders (shouldn't happen if regexes are good, but placeholders are plain text now)
-    // Actually, placeholders look like `___ISLAND_0___`. 
-    // Keywords generally won't match `___`, but numbers might match `0`.
-    // Simple fix: Ensure match doesn't start inside the last processed range.
-    
-    // Also check if match intersects with a placeholder pattern? 
-    // Since we Masked first, `maskedCode` contains placeholders.
-    // If a keyword rule matches "ISLAND", we are in trouble.
-    // Fortunately our keywords are "import", "class", etc.
-    
     if (m.index >= lastIndex) {
       validMatches.push(m);
       lastIndex = m.index + m.length;

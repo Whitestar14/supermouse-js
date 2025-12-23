@@ -1,0 +1,16 @@
+
+{
+  "id": "icon",
+  "name": "Icon",
+  "package": "@supermousejs/icon",
+  "description": "Renders a static SVG icon at the cursor position.",
+  "code": "app.use(Icon({ svg: '<svg>...</svg>', size: 24 }));",
+  "icon": "context",
+  "options": [
+    { "name": "svg", "type": "string", "default": "undefined", "description": "SVG content string. (Required)", "reactive": false },
+    { "name": "size", "type": "number", "default": "24", "description": "Size of the icon container.", "reactive": true },
+    { "name": "color", "type": "string", "default": "'black'", "description": "CSS color (currentColor).", "reactive": true },
+    { "name": "opacity", "type": "number", "default": "1", "description": "Opacity level (0-1).", "reactive": true },
+    { "name": "offset", "type": "[number, number]", "default": "[0, 0]", "description": "Fixed [x, y] offset from cursor center.", "reactive": false }
+  ]
+}

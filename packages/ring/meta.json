@@ -1,0 +1,17 @@
+
+{
+  "id": "ring",
+  "name": "Ring",
+  "package": "@supermousejs/ring",
+  "description": "Adds a lagging outer ring. Simple and performant.",
+  "code": "app.use(Ring({ size: 32, color: '#000' }));",
+  "recipeId": "magnetic-button",
+  "icon": "ring",
+  "options": [
+    { "name": "size", "type": "number", "default": "20", "description": "Diameter of the ring in pixels.", "reactive": true },
+    { "name": "color", "type": "string", "default": "'#ffffff'", "description": "Border color.", "reactive": true },
+    { "name": "borderWidth", "type": "number", "default": "2", "description": "Stroke width in pixels.", "reactive": true },
+    { "name": "opacity", "type": "number", "default": "1", "description": "Opacity level (0-1).", "reactive": true },
+    { "name": "mixBlendMode", "type": "string", "default": "'difference'", "description": "CSS blend mode.", "reactive": false }
+  ]
+}

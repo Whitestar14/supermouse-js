@@ -1,15 +1,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useSupermouse } from '@supermousejs/vue';
-import CursorEditor from '../components/playground/CursorEditor.vue';
+import { usePlayground } from '../composables/usePlayground';
 import { RECIPES } from '../components/playground/recipes';
 
-const activeRecipeId = ref<string | null>(null);
-const searchQuery = ref('');
+const { open } = usePlayground();
 
-// 1. Inject the Global Instance using the standard hook
-const globalMouse = useSupermouse();
+const searchQuery = ref('');
 
 const filteredRecipes = computed(() => {
   const q = searchQuery.value.toLowerCase().trim();
@@ -20,28 +17,12 @@ const filteredRecipes = computed(() => {
     r.id.toLowerCase().includes(q)
   );
 });
-
-const openEditor = (presetId: string) => {
-  // 2. Disable Global Cursor (Native cursor returns, but will be hidden by Editor's local Supermouse)
-  if (globalMouse.value) {
-    globalMouse.value.disable();
-  }
-  activeRecipeId.value = presetId;
-};
-
-const closeEditor = () => {
-  activeRecipeId.value = null;
-  // 3. Re-enable Global Cursor
-  if (globalMouse.value) {
-    globalMouse.value.enable();
-  }
-};
 </script>
 
 <template>
   <div class="text-zinc-900 relative min-h-screen bg-white">
     
-    <!-- Layout Logic (Unchanged) -->
+    <!-- Layout Logic -->
     <div class="flex flex-col min-h-[calc(100vh-80px)]">
       
       <!-- Header -->
@@ -95,7 +76,7 @@ const closeEditor = () => {
                 <button 
                     v-for="preset in filteredRecipes" 
                     :key="preset.id"
-                    @click="openEditor(preset.id)"
+                    @click="open(preset.id)"
                     class="group bg-white p-10 text-left hover:bg-zinc-50 transition-colors flex flex-col h-[280px] outline-none relative"
                     data-supermouse-state="card-hover"
                 >
@@ -121,11 +102,5 @@ const closeEditor = () => {
         </div>
       </div>
     </div>
-
-    <CursorEditor 
-        :activeRecipeId="activeRecipeId" 
-        @close="closeEditor" 
-    />
-
   </div>
 </template>

@@ -1,3 +1,4 @@
+
 import { MouseState, SupermouseOptions, InteractionState } from '../types';
 
 /**
@@ -233,9 +234,10 @@ export class Input {
     if (this.state.isNative) {
       this.state.isNative = false;
     }
+  };
 
-    // Window Leave Detection
-    if (this.options.hideOnLeave && e.relatedTarget === null) {
+  private handleWindowLeave = (e: MouseEvent) => {
+    if (this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
     }
   };
@@ -246,6 +248,7 @@ export class Input {
     window.addEventListener('mouseup', this.handleUp);
     document.addEventListener('mouseover', this.handleMouseOver);
     document.addEventListener('mouseout', this.handleMouseOut);
+    document.addEventListener('mouseleave', this.handleWindowLeave);
 
     if (this.options.enableTouch) {
       window.addEventListener('touchmove', this.handleMove, { passive: true });
@@ -263,6 +266,7 @@ export class Input {
     window.removeEventListener('mouseup', this.handleUp);
     document.removeEventListener('mouseover', this.handleMouseOver);
     document.removeEventListener('mouseout', this.handleMouseOut);
+    document.removeEventListener('mouseleave', this.handleWindowLeave);
     
     if (this.options.enableTouch) {
       window.removeEventListener('touchmove', this.handleMove);

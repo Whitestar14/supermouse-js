@@ -1,0 +1,20 @@
+
+{
+  "id": "pointer",
+  "name": "Pointer",
+  "package": "@supermousejs/pointer",
+  "description": "A 'Vehicle' style arrow that rotates based on velocity vectors.",
+  "code": "app.use(Pointer({ size: 32, color: '#000' }));",
+  "recipeId": "vehicle-pointer",
+  "icon": "pointer",
+  "options": [
+    { "name": "size", "type": "number", "default": "32", "description": "Size of the pointer in pixels.", "reactive": true },
+    { "name": "color", "type": "string", "default": "'black'", "description": "Fill color of the SVG.", "reactive": true },
+    { "name": "svg", "type": "string", "default": "Default Arrow", "description": "Custom SVG content string.", "reactive": false },
+    { "name": "restingAngle", "type": "number", "default": "-45", "description": "Angle when stationary (degrees).", "reactive": true },
+    { "name": "returnToRest", "type": "boolean", "default": "true", "description": "Snap back to resting angle when stopped.", "reactive": true },
+    { "name": "restDelay", "type": "number", "default": "200", "description": "Milliseconds to wait before returning to rest.", "reactive": true },
+    { "name": "opacity", "type": "number", "default": "1", "description": "Opacity level (0-1).", "reactive": true },
+    { "name": "rotationSmoothing", "type": "number", "default": "0.15", "description": "Lerp factor for rotation.", "reactive": false }
+  ]
+}

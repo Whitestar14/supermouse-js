@@ -1,3 +1,4 @@
+
 import type { ValueOrGetter } from '@supermousejs/core';
 import { definePlugin, normalize } from '@supermousejs/utils';
 
@@ -6,22 +7,6 @@ export interface StickOptions {
   isEnabled?: boolean;
   /** Extra padding around the element when calculating shape. Default 10. */
   padding?: ValueOrGetter<number>;
-}
-
-// Local Utility
-function getStickyDimensions(target: HTMLElement, padding: number = 0) {
-  const rect = target.getBoundingClientRect();
-  const style = window.getComputedStyle(target);
-  
-  return {
-    width: rect.width + padding,
-    height: rect.height + padding,
-    // Try to parse px value, fallback to 0 if %, but stick works best with px
-    radius: parseFloat(style.borderRadius) || 0,
-    // Center point
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2
-  };
 }
 
 export const Stick = (options: StickOptions = {}) => {
@@ -48,7 +33,22 @@ export const Stick = (options: StickOptions = {}) => {
         // Recalculate only if target changed or on first frame
         if (target !== lastTarget || !cache) {
           lastTarget = target;
-          cache = getStickyDimensions(target, getPadding(app.state));
+          
+          // Use projectRect to ensure we get coordinates relative to the app container
+          // instead of global viewport coordinates.
+          const rect = app.projectRect(target);
+          const style = window.getComputedStyle(target);
+          const padding = getPadding(app.state);
+
+          cache = {
+            width: rect.width + padding,
+            height: rect.height + padding,
+            // Try to parse px value, fallback to 0 if %, but stick works best with px
+            radius: parseFloat(style.borderRadius) || 0,
+            // Center point (already relative because of projectRect)
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+          };
         }
 
         if (cache) {

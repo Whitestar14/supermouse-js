@@ -1,0 +1,431 @@
+[
+  {
+    "id": "dot",
+    "name": "Dot",
+    "description": "A minimalist precision point that follows your movements perfectly.",
+    "code": "app.use(Dot({ size: 8, color: '#750c7e' }));",
+    "recipeId": "basic-dot",
+    "icon": "dot",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "8",
+        "description": "Diameter of the dot in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#750c7e'",
+        "description": "Background color.",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "1",
+        "description": "Opacity level (0-1).",
+        "reactive": true
+      },
+      {
+        "name": "mixBlendMode",
+        "type": "string",
+        "default": "'difference'",
+        "description": "CSS blend mode.",
+        "reactive": false
+      },
+      {
+        "name": "hideOnShape",
+        "type": "boolean",
+        "default": "true",
+        "description": "Fade out when a shape (like Stick) is active.",
+        "reactive": false
+      },
+      {
+        "name": "zIndex",
+        "type": "string",
+        "default": "'300'",
+        "description": "CSS z-index.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "icon",
+    "name": "Icon",
+    "description": "Renders a static SVG icon at the cursor position.",
+    "code": "app.use(Icon({ svg: '<svg>...</svg>', size: 24 }));",
+    "icon": "context",
+    "options": [
+      {
+        "name": "svg",
+        "type": "string",
+        "default": "undefined",
+        "description": "SVG content string. (Required)",
+        "reactive": false
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "24",
+        "description": "Size of the icon container.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'black'",
+        "description": "CSS color (currentColor).",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "1",
+        "description": "Opacity level (0-1).",
+        "reactive": true
+      },
+      {
+        "name": "offset",
+        "type": "[number, number]",
+        "default": "[0, 0]",
+        "description": "Fixed [x, y] offset from cursor center.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "image",
+    "name": "Image",
+    "description": "Displays a custom image or thumbnail as the cursor hover state.",
+    "code": "app.use(Image({ rounded: true }));",
+    "icon": "image",
+    "options": [
+      {
+        "name": "className",
+        "type": "string",
+        "default": "'supermouse-image'",
+        "description": "CSS class added to container.",
+        "reactive": false
+      },
+      {
+        "name": "offset",
+        "type": "[number, number]",
+        "default": "[0, 30]",
+        "description": "X/Y offset from cursor.",
+        "reactive": false
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "default": "200",
+        "description": "Fade transition time in ms.",
+        "reactive": false
+      },
+      {
+        "name": "smoothness",
+        "type": "number",
+        "default": "1",
+        "description": "Lerp factor for image lag.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "labs",
+    "name": "SmartIcon (Labs)",
+    "description": "Advanced state machine that morphs SVGs based on semantic context.",
+    "code": "app.use(SmartIcon({ icons: { ... } }));",
+    "recipeId": "context-icon",
+    "icon": "labs",
+    "options": [
+      {
+        "name": "icons",
+        "type": "Record<string, string>",
+        "default": "{}",
+        "description": "Map of state names to SVG strings.",
+        "reactive": false
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "24",
+        "description": "Size of the icon container.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'black'",
+        "description": "Icon fill color (currentColor).",
+        "reactive": true
+      },
+      {
+        "name": "anchor",
+        "type": "string",
+        "default": "'center'",
+        "description": "Alignment (center, top-left, etc).",
+        "reactive": true
+      },
+      {
+        "name": "offset",
+        "type": "[number, number]",
+        "default": "[0, 0]",
+        "description": "Fixed offset.",
+        "reactive": false
+      },
+      {
+        "name": "transitionDuration",
+        "type": "number",
+        "default": "200",
+        "description": "Morph transition time in ms.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "magnetic",
+    "name": "Magnetic",
+    "description": "Attracts the cursor to interactive elements using physics-based magnetism.",
+    "code": "app.use(Magnetic({ attraction: 0.4, distance: 100 }));",
+    "recipeId": "magnetic-button",
+    "icon": "magnetic",
+    "options": [
+      {
+        "name": "attraction",
+        "type": "number",
+        "default": "0.3",
+        "description": "Strength of the pull (0-1).",
+        "reactive": true
+      },
+      {
+        "name": "distance",
+        "type": "number",
+        "default": "100",
+        "description": "Radius in pixels where attraction begins.",
+        "reactive": true
+      }
+    ]
+  },
+  {
+    "id": "pointer",
+    "name": "Pointer",
+    "description": "A 'Vehicle' style arrow that rotates based on velocity vectors.",
+    "code": "app.use(Pointer({ size: 32, color: '#000' }));",
+    "recipeId": "vehicle-pointer",
+    "icon": "pointer",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "32",
+        "description": "Size of the pointer in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'black'",
+        "description": "Fill color of the SVG.",
+        "reactive": true
+      },
+      {
+        "name": "svg",
+        "type": "string",
+        "default": "Default Arrow",
+        "description": "Custom SVG content string.",
+        "reactive": false
+      },
+      {
+        "name": "restingAngle",
+        "type": "number",
+        "default": "-45",
+        "description": "Angle when stationary (degrees).",
+        "reactive": true
+      },
+      {
+        "name": "returnToRest",
+        "type": "boolean",
+        "default": "true",
+        "description": "Snap back to resting angle when stopped.",
+        "reactive": true
+      },
+      {
+        "name": "restDelay",
+        "type": "number",
+        "default": "200",
+        "description": "Milliseconds to wait before returning to rest.",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "1",
+        "description": "Opacity level (0-1).",
+        "reactive": true
+      },
+      {
+        "name": "rotationSmoothing",
+        "type": "number",
+        "default": "0.15",
+        "description": "Lerp factor for rotation.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "ring",
+    "name": "Ring",
+    "description": "Adds a lagging outer ring. Simple and performant.",
+    "code": "app.use(Ring({ size: 32, color: '#000' }));",
+    "recipeId": "magnetic-button",
+    "icon": "ring",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "20",
+        "description": "Diameter of the ring in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#ffffff'",
+        "description": "Border color.",
+        "reactive": true
+      },
+      {
+        "name": "borderWidth",
+        "type": "number",
+        "default": "2",
+        "description": "Stroke width in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "1",
+        "description": "Opacity level (0-1).",
+        "reactive": true
+      },
+      {
+        "name": "mixBlendMode",
+        "type": "string",
+        "default": "'difference'",
+        "description": "CSS blend mode.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "states",
+    "name": "States",
+    "description": "Logic controller that enables/disables other plugins based on hover attributes.",
+    "code": "app.use(States({ default: ['dot'], states: { 'hover': ['ring'] } }));",
+    "icon": "context",
+    "options": [
+      {
+        "name": "default",
+        "type": "string[]",
+        "default": "[]",
+        "description": "List of plugin names active by default.",
+        "reactive": false
+      },
+      {
+        "name": "states",
+        "type": "Record<string, string[]>",
+        "default": "{}",
+        "description": "Map of state names to lists of active plugins.",
+        "reactive": false
+      },
+      {
+        "name": "attribute",
+        "type": "string",
+        "default": "'data-supermouse-state'",
+        "description": "DOM attribute to trigger state changes.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "stick",
+    "name": "Stick",
+    "description": "Morphs the cursor shape to match the bounding box of hovered elements.",
+    "code": "app.use(Stick({ padding: 10 }));",
+    "recipeId": "sticky-element",
+    "icon": "stick",
+    "options": [
+      {
+        "name": "padding",
+        "type": "number",
+        "default": "10",
+        "description": "Extra padding around the target element in pixels.",
+        "reactive": true
+      }
+    ]
+  },
+  {
+    "id": "text",
+    "name": "Text",
+    "description": "Injects contextual text bubbles near the cursor on interaction.",
+    "code": "app.use(Text({ font: 'Mono' }));",
+    "recipeId": "text-cursor",
+    "icon": "text",
+    "options": [
+      {
+        "name": "className",
+        "type": "string",
+        "default": "'supermouse-text'",
+        "description": "CSS class added to container.",
+        "reactive": false
+      },
+      {
+        "name": "offset",
+        "type": "[number, number]",
+        "default": "[0, 24]",
+        "description": "X/Y offset from cursor.",
+        "reactive": false
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "default": "200",
+        "description": "Fade transition time in ms.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "trail",
+    "name": "Trail",
+    "description": "Generates procedural particles that trail behind your motion.",
+    "code": "app.use(Trail({ length: 12, color: '#f0f' }));",
+    "recipeId": "ghost-trail",
+    "icon": "trail",
+    "options": [
+      {
+        "name": "length",
+        "type": "number",
+        "default": "10",
+        "description": "Number of trail segments.",
+        "reactive": false
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "6",
+        "description": "Size of trail particles.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#ff00ff'",
+        "description": "Color of segments.",
+        "reactive": true
+      }
+    ]
+  }
+]

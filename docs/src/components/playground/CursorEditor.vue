@@ -126,7 +126,7 @@ const copyCode = () => {
                             <button 
                                 @click="copyCode" 
                                 class="h-14 border-t border-zinc-800 text-xs font-bold uppercase tracking-widest shrink-0 sticky bottom-0 transition-colors duration-200 flex items-center justify-center gap-2"
-                                :class="isCopied ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-[#09090b] text-zinc-300 hover:bg-zinc-900 hover:text-white'"
+                                :class="isCopied ? 'bg-white text-black border-white' : 'bg-[#09090b] text-zinc-300 hover:bg-zinc-900 hover:text-white'"
                             >
                                 <span v-if="isCopied">Copied to Clipboard</span>
                                 <span v-else>Copy to Clipboard</span>

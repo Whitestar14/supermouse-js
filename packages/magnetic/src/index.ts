@@ -1,3 +1,4 @@
+
 import type { ValueOrGetter } from '@supermousejs/core';
 import { definePlugin, normalize, math } from '@supermousejs/utils';
 
@@ -31,7 +32,7 @@ export const Magnetic = (options: MagneticOptions = {}) => {
 
       if (isMagnetic && target !== lastTarget) {
         lastTarget = target!;
-        const rect = target!.getBoundingClientRect();
+        const rect = app.projectRect(target!);
         magnetCenter.x = rect.left + rect.width / 2;
         magnetCenter.y = rect.top + rect.height / 2;
         isActive = true;

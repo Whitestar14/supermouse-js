@@ -47,8 +47,15 @@ export interface MouseState {
   isDown: boolean;
   /** Whether the pointer is currently hovering over a registered interactive element. */
   isHover: boolean;
-  /** Whether the native cursor is currently forced visible. */
+  /** Whether the native cursor is currently forced visible by internal logic (e.g. input elements). */
   isNative: boolean;
+  /** 
+   * If set, this overrides all auto-detection logic. 
+   * 'auto' = Force Native Cursor (Show)
+   * 'none' = Force Custom Cursor (Hide Native)
+   * null = Let the Core decide based on isNative/isHover
+   */
+  forcedCursor: 'auto' | 'none' | null;
   /** The DOM element currently being hovered, if any. */
   hoverTarget: HTMLElement | null;
   /** Whether the user has `prefers-reduced-motion` enabled. */

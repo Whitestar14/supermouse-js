@@ -70,7 +70,7 @@ const getSparklinePath = () => {
                 <div class="hidden xl:flex w-[180px] border-l border-zinc-200 p-8 items-center justify-center bg-zinc-50/30">
                    <div class="w-full h-12 relative overflow-hidden opacity-50 grayscale group-hover:grayscale-0 transition-all">
                       <!-- Simple Sparkline SVG -->
-                      <svg viewBox="0 0 100 40" class="w-full h-full stroke-current text-zinc-300 group-hover:text-purple-500" fill="none" stroke-width="2">
+                      <svg viewBox="0 0 100 40" class="w-full h-full stroke-current text-zinc-300 group-hover:text-amber-500" fill="none" stroke-width="2">
                          <path :d="getSparklinePath()" />
                       </svg>
                    </div>
