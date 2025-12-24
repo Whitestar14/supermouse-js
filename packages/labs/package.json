@@ -9,12 +9,20 @@
   },
   "dependencies": {
     "@supermousejs/utils": "workspace:*",
-    "@supermousejs/zoetrope": "workspace:*"
+    "@supermousejs/zoetrope": "workspace:*",
+    "@supermousejs/core": "workspace:*"
   },
   "peerDependencies": {
     "@supermousejs/core": "workspace:*"
   },
   "devDependencies": {
     "@supermousejs/core": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.js"
+    }
   }
 }

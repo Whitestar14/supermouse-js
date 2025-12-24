@@ -1,4 +1,9 @@
 
+// Declare global version injection for consumers compiling from source
+// This allows other packages in the monorepo to compile this file without
+// needing __VERSION__ defined in their own build config.
+declare const __VERSION__: string;
+
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
 import { Stage, Input } from './systems';
 import { damp, angle } from './utils/math';

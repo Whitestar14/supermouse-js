@@ -24,7 +24,7 @@ export const Icon = (options: IconOptions) => {
   return definePlugin<HTMLDivElement, IconOptions>({
     name: options.name || 'icon',
     
-    create: (app) => {
+    create: () => {
       const el = dom.createActor('div') as HTMLDivElement;
       el.style.zIndex = Layers.CURSOR;
       el.style.display = 'flex';

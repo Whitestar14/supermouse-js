@@ -20,7 +20,7 @@ export const Trail = (options: TrailOptions = {}) => {
   return definePlugin<HTMLDivElement, TrailOptions>({
     name: options.name || 'trail',
     
-    create: (app) => {
+    create: () => {
       const container = dom.createActor('div') as HTMLDivElement;
       container.style.zIndex = Layers.TRACE;
       

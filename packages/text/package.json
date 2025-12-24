@@ -12,5 +12,12 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "peerDependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.js"
+    }
+  }
 }

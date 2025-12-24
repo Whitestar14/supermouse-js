@@ -7,7 +7,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'SupermouseVue',
-      fileName: (format) => `supermouse-vue.${format}.js`,
+      fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
     },
     rollupOptions: {
       external: ['vue', '@supermousejs/core'],

@@ -74,7 +74,6 @@ export const SmartIcon = (options: SmartIconOptions) => {
 
   // Normalized Getters (Pre-calculated)
   const getSize = normalize(options.size, 24);
-  const getColor = normalize(options.color, "black");
   const getStrategy = normalize(options.followStrategy, "smooth");
   const getAnchor = normalize(options.anchor, "center");
   const getShouldRotate = normalize(options.rotateWithVelocity, false);

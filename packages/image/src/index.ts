@@ -25,7 +25,7 @@ export const Image = (options: ImageOptions = {}) => {
     name: 'image',
     selector: '[data-supermouse-img]',
 
-    create: (app) => {
+    create: () => {
       const container = dom.createActor('div') as HTMLDivElement;
       if (className) {
         container.classList.add(...className.split(' ').filter(Boolean));

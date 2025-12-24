@@ -7,7 +7,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'SupermouseRing',
-      fileName: (format) => `index.${format}.js`,
+      fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
     },
     rollupOptions: {
       external: ['@supermousejs/core', '@supermousejs/utils'],

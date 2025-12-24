@@ -10,11 +10,11 @@
       "@supermousejs/core": [
         "../core/src/index.ts"
       ],
-      "@supermousejs/zoetrope": [
-        "../zoetrope/src/index.ts"
-      ],
       "@supermousejs/utils": [
         "../utils/src/index.ts"
+      ],
+      "@supermousejs/zoetrope": [
+        "../zoetrope/src/index.ts"
       ]
     }
   }

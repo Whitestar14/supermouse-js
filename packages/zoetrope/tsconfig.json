@@ -1,8 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "compilerOptions": {
     "outDir": "dist",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@supermousejs/core": [
+        "../core/src/index.ts"
+      ]
+    }
   }
 }

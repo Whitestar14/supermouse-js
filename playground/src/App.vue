@@ -1,6 +1,5 @@
-
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { reactive } from 'vue';
 import { provideSupermouse } from '@supermousejs/vue';
 import { Dot } from '@supermousejs/dot';
 import { Text } from '@supermousejs/text';
@@ -32,8 +31,6 @@ const pluginsState = reactive<Record<string, boolean>>({
   stick: true
 });
 
-const isMobileMenuOpen = ref(false);
-
 // --- SETUP ---
 const mouse = provideSupermouse({
   smoothness: 0.15,
@@ -43,10 +40,10 @@ const mouse = provideSupermouse({
     'a': { icon: 'hand' }
   }
 }, [
-  Dot({ name: 'dot', size: 8, color: '#f0f' }),
-  SmartRing({ name: 'ring', size: 24, color: '#f0f', enableSkew: true }),
-  Trail({ name: 'trail', color: '#f0f', isEnabled: false }),
-  Sparkles({ name: 'sparkles', color: '#f0f', isEnabled: false }),
+  Dot({ name: 'dot', size: 8, color: '#f59e0b' }),
+  SmartRing({ name: 'ring', size: 24, color: '#f59e0b', enableSkew: true }),
+  Trail({ name: 'trail', color: '#f59e0b', isEnabled: false }),
+  Sparkles({ name: 'sparkles', color: '#f59e0b', isEnabled: false }),
   Text({ name: 'text', offset: [20, 20] }),
   TextRing({ name: 'text-ring', text: 'SUPERMOUSE • V2 • ', color: '#0ff', isEnabled: false }),
   Image({ name: 'image', offset: [30, 30] }),
@@ -75,7 +72,7 @@ const togglePlugin = (name: string) => {
       <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px); background-size: 40px 40px;"></div>
 
       <header class="relative z-10">
-        <h1 class="text-4xl font-bold tracking-tighter mb-2">Supermouse<span class="text-purple-500">.js</span></h1>
+        <h1 class="text-4xl font-bold tracking-tighter mb-2">Supermouse<span class="text-amber-500">.js</span></h1>
         <p class="text-zinc-500 font-mono text-sm">v2.0.0 Dev Playground</p>
       </header>
 
@@ -86,8 +83,8 @@ const togglePlugin = (name: string) => {
         <div class="p-8 border border-zinc-800 bg-zinc-900/50 rounded-xl flex flex-col gap-4 items-center justify-center min-h-[200px]">
           <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Magnetic</span>
           <div class="flex gap-4">
-             <button class="w-12 h-12 rounded-full border border-zinc-700 hover:border-purple-500 transition-colors" data-supermouse-magnetic></button>
-             <button class="w-12 h-12 rounded-full border border-zinc-700 hover:border-purple-500 transition-colors" data-supermouse-magnetic></button>
+             <button class="w-12 h-12 rounded-full border border-zinc-700 hover:border-amber-500 transition-colors" data-supermouse-magnetic></button>
+             <button class="w-12 h-12 rounded-full border border-zinc-700 hover:border-amber-500 transition-colors" data-supermouse-magnetic></button>
           </div>
         </div>
 
@@ -159,7 +156,7 @@ const togglePlugin = (name: string) => {
            
            <button @click="togglePlugin(name)" 
                    class="w-10 h-5 rounded-full relative transition-colors duration-200 ease-in-out"
-                   :class="enabled ? 'bg-purple-600' : 'bg-zinc-700'">
+                   :class="enabled ? 'bg-amber-500' : 'bg-zinc-700'">
               <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform duration-200"
                    :class="enabled ? 'translate-x-5' : 'translate-x-0'"></div>
            </button>
@@ -169,7 +166,7 @@ const togglePlugin = (name: string) => {
       <div class="p-6 border-t border-zinc-800 bg-black/20">
          <div class="text-xs text-zinc-500 font-mono mb-2">Instance Status</div>
          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full" :class="mouse ? 'bg-green-500' : 'bg-red-500'"></div>
+            <div class="w-2 h-2 rounded-full" :class="mouse ? 'bg-emerald-500' : 'bg-red-500'"></div>
             <span class="text-sm font-bold">{{ mouse ? 'Active' : 'Initializing...' }}</span>
          </div>
       </div>

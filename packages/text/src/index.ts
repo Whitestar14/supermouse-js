@@ -1,4 +1,3 @@
-
 import { definePlugin, dom, Layers, Easings } from '@supermousejs/utils';
 
 export interface TextOptions {
@@ -20,7 +19,7 @@ export const Text = (options: TextOptions = {}) => {
     name: 'text',
     selector: '[data-supermouse-text]',
 
-    create: (app) => {
+    create: () => {
       const el = dom.createActor('div') as HTMLDivElement;
       
       dom.applyStyles(el, {

@@ -236,7 +236,7 @@ export class Input {
     }
   };
 
-  private handleWindowLeave = (e: MouseEvent) => {
+  private handleWindowLeave = () => {
     if (this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
     }

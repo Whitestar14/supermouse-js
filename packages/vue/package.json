@@ -1,8 +1,8 @@
 {
   "name": "@supermousejs/vue",
-  "version": "1.0.0",
-  "main": "dist/supermouse-vue.umd.js",
-  "module": "dist/supermouse-vue.mjs",
+  "version": "2.0.0",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "vite build"
@@ -15,5 +15,12 @@
   },
   "devDependencies": {
     "vue": "^3.2.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.js"
+    }
   }
 }
