@@ -1,5 +1,14 @@
 # @supermousejs/pointer
 
+## 2.0.1
+
+### Patch Changes
+
+- Add minimal README.md files to packages
+- Updated dependencies
+  - @supermousejs/utils@2.0.1
+  - @supermousejs/core@2.0.1
+
 ## 2.0.0
 
 ### Major Changes
