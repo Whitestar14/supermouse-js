@@ -86,9 +86,9 @@ import { APP_VERSION, BUNDLE_SIZE } from '../../../constants';
                 </p>
             </div>
             <div class="p-6">
-                <strong class="block text-zinc-900 text-sm mb-2">2. Unopinionated</strong>
+                <strong class="block text-zinc-900 text-sm mb-2">2. Modular Defaults</strong>
                 <p class="text-xs text-zinc-500 leading-relaxed">
-                    Supermouse Core renders nothing. It is a mathematical engine. If you want a dot, install <code>@supermousejs/dot</code>. If you want a custom WebGL trailer, write a plugin.
+                    Supermouse ships with performance-optimized defaults that work out of the box. However, nothing is locked in. You can replace the renderer, logic, or input system entirely via plugins.
                 </p>
             </div>
             <div class="p-6">

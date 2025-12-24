@@ -186,6 +186,8 @@ const triggerSpin = (e: MouseEvent) => {
             <a :href="GITHUB_URL" target="_blank" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
                Github
+               <!-- Added Top-Right Arrow -->
+               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-zinc-300 group-hover:text-black"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
             </a>
          </div>
     </div>

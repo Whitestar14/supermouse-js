@@ -6,38 +6,38 @@
       <div class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0">
         <span class="mono text-lg font-bold text-zinc-900">03</span>
       </div>
-      <div class="flex-1 px-8 flex items-center justify-between">
-         <h2 class="text-xl font-bold tracking-tighter text-zinc-900">Impact</h2>
-         <span class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">analytics.json</span>
+      <div class="flex-1 px-6 md:px-8 flex items-center justify-between">
+         <h2 class="text-lg md:text-xl font-bold tracking-tighter text-zinc-900">Impact</h2>
+         <span class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold hidden sm:inline-block">analytics.json</span>
       </div>
     </div>
 
-    <div class="border-b border-zinc-200 overflow-hidden relative min-h-[500px] flex flex-col">
+    <div class="border-b border-zinc-200 overflow-hidden relative min-h-[400px] md:min-h-[500px] flex flex-col">
        <div class="flex-1 flex">
           <!-- Gutter -->
           <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 z-10 bg-white/50"></div>
           
-          <div class="flex-1 relative flex flex-col p-8 md:p-16 lg:p-24">
+          <div class="flex-1 relative flex flex-col px-6 py-12 md:p-16 lg:p-24">
              <div class="relative z-10 max-w-3xl">
-                <h2 class="text-4xl md:text-5xl font-bold text-zinc-900 tracking-tighter leading-[1.1] mb-6">
-                   Our projects are already trusted by <br/>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 tracking-tighter leading-[1.1] mb-6">
+                   Our projects are already trusted by <br class="hidden sm:block"/>
                    thousands of developers around the world.
                 </h2>
-                <div class="flex gap-8 mt-12">
+                <div class="flex flex-wrap gap-8 mt-12">
                    <div>
-                      <div class="text-4xl font-bold font-mono text-zinc-900">2.4M</div>
+                      <div class="text-3xl sm:text-4xl font-bold font-mono text-zinc-900">2.4M</div>
                       <div class="text-xs uppercase font-bold tracking-widest text-zinc-400 mt-2">Monthly Downloads</div>
                    </div>
-                   <div class="w-px h-16 bg-zinc-200"></div>
+                   <div class="w-px h-16 bg-zinc-200 hidden sm:block"></div>
                    <div>
-                      <div class="text-4xl font-bold font-mono text-zinc-900">14ms</div>
+                      <div class="text-3xl sm:text-4xl font-bold font-mono text-zinc-900">14ms</div>
                       <div class="text-xs uppercase font-bold tracking-widest text-zinc-400 mt-2">Avg. Load Time</div>
                    </div>
                 </div>
              </div>
              
              <!-- Big Graph Background -->
-             <div class="absolute inset-x-0 bottom-0 h-[300px] pointer-events-none">
+             <div class="absolute inset-x-0 bottom-0 h-[200px] md:h-[300px] pointer-events-none">
                 <div class="absolute inset-0 grid-bg opacity-30"></div>
                 <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 300">
                    <defs>

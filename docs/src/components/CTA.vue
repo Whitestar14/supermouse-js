@@ -53,7 +53,7 @@ onUnmounted(() => {
       <div class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0">
         <span class="mono text-lg font-bold text-zinc-900">04</span>
       </div>
-      <div class="flex-1 px-8 flex items-center">
+      <div class="flex-1 px-6 md:px-8 flex items-center">
            <span class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">CallToAction.vue</span>
       </div>
     </div>
@@ -61,7 +61,7 @@ onUnmounted(() => {
     <!-- Main Interactive Container -->
     <div 
       ref="container"
-      class="relative min-h-[500px] flex flex-col group bg-white cursor-none"
+      class="relative min-h-[400px] md:min-h-[500px] flex flex-col group bg-white cursor-none"
       @mousemove="updateMouse"
       @mouseenter="isHover = true"
       @mouseleave="isHover = false"
@@ -72,22 +72,22 @@ onUnmounted(() => {
           <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-zinc-50/50"></div>
           
           <!-- Content -->
-          <div class="flex-1 p-10 md:p-16 lg:p-24 flex flex-col justify-center items-start lg:items-center lg:flex-row gap-12 lg:gap-20">
+          <div class="flex-1 px-6 py-12 md:p-16 lg:p-24 flex flex-col justify-center items-start lg:items-center lg:flex-row gap-6 sm:gap-10 lg:gap-20">
              <div class="flex-1 max-w-2xl relative z-10">
                 <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none mix-blend-multiply"></div>
-                <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tighter mb-8 text-black relative z-10">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tighter mb-6 md:mb-8 text-black relative z-10">
                   Ready to upgrade your interaction game?
                 </h2>
-                <p class="text-zinc-600 text-lg md:text-xl font-medium leading-relaxed relative z-10">
+                <p class="text-zinc-600 text-base sm:text-lg md:text-xl font-medium leading-relaxed relative z-10">
                   Supermouse v2 is designed to vanish into your workflow while making your UI stand out.
                 </p>
              </div>
              
              <div class="relative z-10 shrink-0 w-full lg:w-auto">
-                 <router-link to="/docs" class="inline-flex w-full lg:w-auto items-center justify-center h-16 px-10 bg-black text-white font-bold text-lg tracking-tight hover:scale-105 transition-transform duration-300">
+                 <router-link to="/docs" class="inline-flex w-full lg:w-auto items-center justify-center h-14 md:h-16 px-8 md:px-10 bg-black text-white font-bold text-base md:text-lg tracking-tight hover:scale-105 transition-transform duration-300">
                    Get Started
                  </router-link>
-                 <div class="mt-4 mono text-[10px] text-zinc-400 uppercase tracking-widest">
+                 <div class="mt-4 mono text-[10px] text-zinc-400 uppercase tracking-widest text-center lg:text-left">
                     Available on npm
                  </div>
              </div>
@@ -100,7 +100,7 @@ onUnmounted(() => {
            Black Text + White Circle (Difference) = White
       -->
       <div 
-        class="absolute top-0 left-0 pointer-events-none z-50 mix-blend-difference will-change-transform"
+        class="absolute top-0 left-0 pointer-events-none z-50 mix-blend-difference will-change-transform hidden md:block"
         :style="{
           transform: `translate(${pos.x}px, ${pos.y}px)`,
         }"

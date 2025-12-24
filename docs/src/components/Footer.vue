@@ -9,7 +9,7 @@ import { AUTHOR, YEAR, GITHUB_URL, TWITTER_URL } from '../constants';
       <!-- Left Gutter -->
       <div class="hidden md:block w-[96px] border-r border-zinc-200 shrink-0"></div>
 
-      <div class="flex-1 p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-8">
+      <div class="flex-1 px-6 py-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div class="flex items-center gap-4">
              <div class="flex items-baseline text-lg font-bold tracking-tighter text-zinc-300">
                 <span>supermouse</span>

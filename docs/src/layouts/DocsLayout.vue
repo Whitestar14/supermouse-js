@@ -103,9 +103,9 @@ const isActive = (path: string) => route.path === path;
             </div>
         </button>
 
-        <!-- Mobile Menu Dropdown (Absolute to sticky header) -->
-        <div v-if="mobileMenuOpen" class="absolute top-full left-0 w-full bg-white border-b border-zinc-200 shadow-2xl flex flex-col max-h-[70vh] overflow-y-auto">
-             <nav class="flex flex-col p-6 gap-6">
+        <!-- Mobile Menu Drawer (Fixed, Full Height below header) -->
+        <div v-if="mobileMenuOpen" class="fixed inset-0 top-12 bg-white z-40 overflow-y-auto">
+             <nav class="flex flex-col p-6 gap-6 min-h-full bg-white">
                 <div v-for="group in DOCS_NAVIGATION" :key="group.title">
                     <button 
                         @click.stop="toggleGroup(group.title)"
@@ -124,10 +124,10 @@ const isActive = (path: string) => route.path === path;
                             <path d="M6 9l6 6 6-6"/>
                         </svg>
                     </button>
-                    <!-- Removed border-l here as well -->
+                    <!-- Group Items -->
                     <div 
                         v-show="activeGroup === group.title"
-                        class="flex flex-col pl-5 gap-2 pb-2"
+                        class="flex flex-col pl-5 gap-3 pb-2 border-l border-zinc-100 ml-0.5"
                     >
                         <router-link 
                         v-for="item in group.items" 
@@ -140,9 +140,10 @@ const isActive = (path: string) => route.path === path;
                         </router-link>
                     </div>
                 </div>
+                
+                <!-- Spacer for scroll -->
+                <div class="h-20"></div>
              </nav>
-             <!-- Backdrop to close -->
-             <div class="h-screen bg-black/5 backdrop-blur-sm lg:hidden" @click="mobileMenuOpen = false"></div>
         </div>
     </div>
 
@@ -154,7 +155,7 @@ const isActive = (path: string) => route.path === path;
 
       <!-- 2. Sidebar Navigation (Desktop) -->
       <aside class="hidden lg:block w-[260px] border-r border-zinc-200 shrink-0 relative bg-zinc-50/30">
-        <!-- Changed height to h-screen so it fills the viewport when sticky -->
+        <!-- Sticky Sidebar -->
         <div class="sticky top-0 h-screen overflow-y-auto py-12 px-8 scrollbar-thin">
           <nav class="flex flex-col gap-8 pb-32">
             <div v-for="group in DOCS_NAVIGATION" :key="group.title">
@@ -181,7 +182,7 @@ const isActive = (path: string) => route.path === path;
                   </svg>
               </button>
 
-              <!-- Group Items (Removed border-l) -->
+              <!-- Group Items -->
               <div 
                   v-show="activeGroup === group.title"
                   class="flex flex-col pl-5 gap-1.5"

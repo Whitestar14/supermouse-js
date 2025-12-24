@@ -53,7 +53,7 @@ app.use(Dot({
 
                     <!-- Subtext -->
                     <p class="text-xl text-zinc-600 font-medium max-w-md mb-12 leading-relaxed text-pretty">
-                      A modular, <span class="text-black font-bold border-b-2 border-black/10">unopinionated</span> engine for creating fluid, physics-based pointer interactions.
+                      A modular engine with <span class="text-black font-bold border-b-2 border-black/10">optimized defaults</span>. Fully replaceable parts for maximum control.
                     </p>
 
                     <!-- Actions -->
