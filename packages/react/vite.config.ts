@@ -1,22 +1,20 @@
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
+      entry: path.resolve(__dirname, 'src/index.tsx'),
       name: 'SupermouseReact',
       fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
     },
     rollupOptions: {
-      external: ['@supermousejs/core'],
+      external: ['react', 'react-dom', '@supermousejs/core'],
       output: {
         globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
           '@supermousejs/core': 'SupermouseCore'
         }
       }

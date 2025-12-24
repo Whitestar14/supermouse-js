@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/vue",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -22,5 +22,8 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.umd.js"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
