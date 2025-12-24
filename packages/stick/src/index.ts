@@ -1,6 +1,6 @@
 
 import type { ValueOrGetter } from '@supermousejs/core';
-import { definePlugin, normalize } from '@supermousejs/utils';
+import { definePlugin, normalize, dom } from '@supermousejs/utils';
 
 export interface StickOptions {
   name?: string;
@@ -25,6 +25,7 @@ export const Stick = (options: StickOptions = {}) => {
     },
 
     update(app) {
+      // Check normalized interaction key (camelCase, no prefix)
       const target = app.state.hoverTarget;
       const isSticky = app.state.interaction.stick === true || app.state.interaction.stick === 'true';
       
@@ -34,18 +35,14 @@ export const Stick = (options: StickOptions = {}) => {
         if (target !== lastTarget || !cache) {
           lastTarget = target;
           
-          // Use projectRect to ensure we get coordinates relative to the app container
-          // instead of global viewport coordinates.
-          const rect = app.projectRect(target);
+          const rect = dom.projectRect(target, app.container);
           const style = window.getComputedStyle(target);
           const padding = getPadding(app.state);
 
           cache = {
             width: rect.width + padding,
             height: rect.height + padding,
-            // Try to parse px value, fallback to 0 if %, but stick works best with px
             radius: parseFloat(style.borderRadius) || 0,
-            // Center point (already relative because of projectRect)
             x: rect.left + rect.width / 2,
             y: rect.top + rect.height / 2
           };

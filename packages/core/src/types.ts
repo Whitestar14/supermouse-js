@@ -68,6 +68,8 @@ export interface MouseState {
   interaction: InteractionState;
 }
 
+export type NativeIgnoreStrategy = 'auto' | 'tag' | 'css';
+
 /**
  * Configuration options passed to the Supermouse constructor.
  */
@@ -93,10 +95,14 @@ export interface SupermouseOptions {
    */
   autoDisableOnMobile?: boolean;
   /**
-   * Whether to fallback to native cursor on semantic elements like inputs/textareas.
-   * @default true
+   * Strategy for detecting when to fallback to the native cursor.
+   * - `true` / `'auto'`: Checks both HTML tags and CSS cursor styles (Accurate but slower).
+   * - `'tag'`: Checks only semantic tags like <input>, <textarea> (Fastest, prevents layout thrashing).
+   * - `'css'`: Checks only computed CSS cursor styles (Slow, triggers reflow).
+   * - `false`: Never fallback to native cursor.
+   * @default 'auto'
    */
-  ignoreOnNative?: boolean;
+  ignoreOnNative?: boolean | NativeIgnoreStrategy;
   /**
    * Whether to hide the native cursor via global CSS injection.
    * @default true

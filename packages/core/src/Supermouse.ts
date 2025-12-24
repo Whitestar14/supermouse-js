@@ -1,7 +1,3 @@
-
-// Declare global version injection for consumers compiling from source
-// This allows other packages in the monorepo to compile this file without
-// needing __VERSION__ defined in their own build config.
 declare const __VERSION__: string;
 
 import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
@@ -40,17 +36,11 @@ export class Supermouse {
    * 
    * This object is shared by reference. `Input` writes to it; `Supermouse` physics reads/writes to it;
    * Plugins read/write to it.
-   * 
-   * - **pointer**: RAW input coordinates. **Do not modify.**
-   * - **target**: The destination the physics engine is trying to reach. **Logic plugins may modify this** to redirect the cursor (e.g. magnetic effect).
-   * - **smooth**: The interpolated render position. **Visual plugins must read this.** Do not modify.
-   * - **velocity**: The current speed vector. Read-only.
    */
   state: MouseState;
 
   /**
    * Configuration options.
-   * Modifications to `options.smoothness` or `options.hideCursor` at runtime are generally respected by the loop.
    */
   options: SupermouseOptions;
 
@@ -58,9 +48,7 @@ export class Supermouse {
    * Registry of active plugins.
    * @internal Use `use()`, `enablePlugin()`, or `disablePlugin()` to interact with this.
    */
-  plugins: Map<string, SupermousePlugin> = new Map();
-  
-  private pluginList: SupermousePlugin[] = [];
+  private plugins: SupermousePlugin[] = [];
   
   /**
    * The Stage System responsible for the DOM container and CSS injection.
@@ -91,7 +79,7 @@ export class Supermouse {
       smoothness: 0.15,
       enableTouch: false,
       autoDisableOnMobile: true,
-      ignoreOnNative: true,
+      ignoreOnNative: 'auto',
       hideCursor: true, 
       hideOnLeave: true,
       autoStart: true,
@@ -113,7 +101,7 @@ export class Supermouse {
       isDown: false,
       isHover: false,
       isNative: false,
-      forcedCursor: null, // Default: Auto-detect
+      forcedCursor: null,
       hoverTarget: null,
       reducedMotion: false,
       hasReceivedInput: false,
@@ -150,7 +138,7 @@ export class Supermouse {
    * Retrieves a registered plugin instance by its unique name.
    */
   public getPlugin(name: string) {
-    return this.plugins.get(name);
+    return this.plugins.find(p => p.name === name);
   }
 
   /**
@@ -165,7 +153,7 @@ export class Supermouse {
    * Triggers the `onEnable` lifecycle hook of the plugin.
    */
   public enablePlugin(name: string) {
-    const plugin = this.plugins.get(name);
+    const plugin = this.getPlugin(name);
     if (plugin && plugin.isEnabled === false) {
       plugin.isEnabled = true;
       plugin.onEnable?.(this);
@@ -175,13 +163,9 @@ export class Supermouse {
   /**
    * Disables a specific plugin by name.
    * Triggers the `onDisable` lifecycle hook.
-   * 
-   * @remarks
-   * Visual plugins should use `onDisable` to fade out their elements (e.g. opacity: 0)
-   * rather than removing them from the DOM, to prevent GC thrashing.
    */
   public disablePlugin(name: string) {
-    const plugin = this.plugins.get(name);
+    const plugin = this.getPlugin(name);
     if (plugin && plugin.isEnabled !== false) {
       plugin.isEnabled = false;
       plugin.onDisable?.(this);
@@ -192,7 +176,7 @@ export class Supermouse {
    * Toggles the enabled state of a plugin.
    */
   public togglePlugin(name: string) {
-    const plugin = this.plugins.get(name);
+    const plugin = this.getPlugin(name);
     if (plugin) {
       if (plugin.isEnabled === false) this.enablePlugin(name);
       else this.disablePlugin(name);
@@ -218,47 +202,9 @@ export class Supermouse {
 
   /** 
    * The fixed container element where plugins should append their DOM nodes.
-   * 
-   * @remarks
-   * This is a proxy getter for `stage.element`. Plugins should NOT create their own containers
-   * attached to `document.body`; they must append here to ensure z-indexing and scoping works.
    */
   public get container(): HTMLDivElement { return this.stage.element; }
   
-  /**
-   * Projects a DOM element's bounding box into the coordinate space of this Supermouse instance.
-   * 
-   * If the instance is attached to `document.body`, this returns the standard `getBoundingClientRect()`.
-   * If attached to a specific container, it returns coordinates relative to that container's top-left.
-   * 
-   * This ensures that logic plugins (like Sticky or Magnetic) calculate targets that match the 
-   * coordinate system used by the internal physics engine and visual renderers.
-   */
-  public projectRect(element: HTMLElement): DOMRect {
-    const rect = element.getBoundingClientRect();
-
-    if (this.options.container && this.options.container !== document.body) {
-      const containerRect = this.options.container.getBoundingClientRect();
-      const x = rect.left - containerRect.left;
-      const y = rect.top - containerRect.top;
-
-      // Return a DOMRect-compatible object relative to the container
-      return {
-        x,
-        y,
-        width: rect.width,
-        height: rect.height,
-        top: y,
-        left: x,
-        right: x + rect.width,
-        bottom: y + rect.height,
-        toJSON: () => ({})
-      } as DOMRect;
-    }
-
-    return rect;
-  }
-
   /**
    * Manually override the native cursor visibility.
    * Useful for drag-and-drop operations, modals, or special UI states.
@@ -298,7 +244,7 @@ export class Supermouse {
    * @param plugin - The plugin object to install.
    */
   public use(plugin: SupermousePlugin) {
-    if (this.plugins.has(plugin.name)) {
+    if (this.plugins.find(p => p.name === plugin.name)) {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
       return this;
     }
@@ -307,17 +253,11 @@ export class Supermouse {
       plugin.isEnabled = true;
     }
 
-    this.plugins.set(plugin.name, plugin);
-    this.updatePluginList();
+    this.plugins.push(plugin);
+    this.plugins.sort((a, b) => (a.priority || 0) - (b.priority || 0));
     
     plugin.install?.(this);
     return this;
-  }
-
-  private updatePluginList() {
-    this.pluginList = Array.from(this.plugins.values()).sort((a, b) => {
-      return (a.priority || 0) - (b.priority || 0);
-    });
   }
 
   private resetPosition() {
@@ -406,8 +346,8 @@ export class Supermouse {
       // This iterates through the priority-sorted list.
       // - Logic Plugins (Magnetic) run first and modify this.state.target
       // - Visual Plugins (Dot, Ring) run last and read this.state.smooth
-      for (let i = 0; i < this.pluginList.length; i++) {
-        this.runPluginSafe(this.pluginList[i], dtMs);
+      for (let i = 0; i < this.plugins.length; i++) {
+        this.runPluginSafe(this.plugins[i], dtMs);
       }
 
       // 6. Physics Integration (Damping)
@@ -440,8 +380,8 @@ export class Supermouse {
       this.state.velocity.y = 0;
       
       // Still run plugins (e.g. for exit animations)
-      for (let i = 0; i < this.pluginList.length; i++) {
-        this.runPluginSafe(this.pluginList[i], dtMs);
+      for (let i = 0; i < this.plugins.length; i++) {
+        this.runPluginSafe(this.plugins[i], dtMs);
       }
     }
 
@@ -460,7 +400,6 @@ export class Supermouse {
     this.input.destroy();
     this.stage.destroy();
     this.plugins.forEach(p => p.destroy?.(this));
-    this.plugins.clear();
-    this.pluginList = [];
+    this.plugins = [];
   }
 }

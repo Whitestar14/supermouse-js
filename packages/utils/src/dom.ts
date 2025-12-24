@@ -61,6 +61,34 @@ export function setTransform(
 }
 
 /**
+ * Calculates the bounding rectangle of an element relative to a container.
+ * Useful for logic plugins when the cursor is confined to a specific div.
+ */
+export function projectRect(element: HTMLElement, container: HTMLElement = document.body): DOMRect {
+  const rect = element.getBoundingClientRect();
+
+  if (container !== document.body) {
+    const containerRect = container.getBoundingClientRect();
+    const x = rect.left - containerRect.left;
+    const y = rect.top - containerRect.top;
+
+    return {
+      x,
+      y,
+      width: rect.width,
+      height: rect.height,
+      top: y,
+      left: x,
+      right: x + rect.width,
+      bottom: y + rect.height,
+      toJSON: () => ({})
+    } as DOMRect;
+  }
+
+  return rect;
+}
+
+/**
  * Creates a standard Supermouse actor element with optimal performance settings.
  * Includes absolute positioning, pointer-events: none, and will-change: transform.
  * 
