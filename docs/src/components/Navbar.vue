@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { GITHUB_URL } from '../constants';
+import { GITHUB_URL, GITHUB_LEGACY_URL } from '../constants';
 import { useSupermouse } from '@supermousejs/vue';
 
 const emit = defineEmits(['openSearch']);
@@ -99,7 +99,7 @@ const triggerSpin = () => {
                         <span>v2.0 (Stable)</span>
                         <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div>
                     </a>
-                    <a :href="GITHUB_URL" target="_blank" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest">
+                    <a :href="GITHUB_LEGACY_URL" target="_blank" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest">
                         <span>v1.0 (Legacy)</span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                     </a>
