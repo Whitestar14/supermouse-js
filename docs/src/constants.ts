@@ -5,9 +5,9 @@
  */
 
 export const APP_VERSION = `v${__SUPERMOUSE_VERSION__}`;
-export const APP_NAME = 'Supermouse';
-export const LAST_UPDATED = 'Jan 2025';
-export const BUNDLE_SIZE = '1.2kb'; // Gzipped Core
+export const APP_NAME = 'Supermousejs';
+export const LAST_UPDATED = 'Dec 24, 2025';
+export const BUNDLE_SIZE = '6.24kb';
 export const LICENSE = 'MIT';
 export const AUTHOR = 'Stud.io Inc.';
 export const YEAR = '2024-2025';

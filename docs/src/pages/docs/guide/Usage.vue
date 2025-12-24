@@ -3,27 +3,34 @@
 import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
 
-const initCode = `const app = new Supermouse({
-  // Motion Physics (0.01 - 1.0)
-  // Lower = more lag/floaty. Higher = snappy.
+const initCode = `import { Supermouse } from '@supermousejs/core';
+import { Dot } from '@supermousejs/dot';
+import { Ring } from '@supermousejs/ring';
+
+const app = new Supermouse({
+  // Register plugins declaratively
+  plugins: [
+    Dot({ size: 8 }),
+    Ring({ size: 24 })
+  ],
+
+  // Physics (0.01 - 1.0)
   smoothness: 0.15,
 
   // Native Cursor Hiding
-  // Injects scoped CSS to hide the OS cursor on body + interactive elements
   hideCursor: true,
 
-  // Ignore Semantic Elements
-  // If true, reverts to native cursor on text inputs and textareas
-  ignoreOnNative: true
+  // Native Fallback Strategy ('auto' | 'tag' | 'css')
+  // 'tag' checks HTML tags (fastest). 'auto' checks CSS too (safer).
+  ignoreOnNative: 'tag'
 });`;
 
-const chainingCode = `import { Dot } from '@supermousejs/dot';
-import { Ring } from '@supermousejs/ring';
+const chainingCode = `// You can also add plugins imperatively at runtime
+// This is useful for conditional loading or lazy-loaded effects.
 
-// Chainable API
-app
-  .use(Dot({ size: 8 }))
-  .use(Ring({ size: 30 }));`;
+if (prefersComplexEffects) {
+  app.use(Sparkles({ color: 'gold' }));
+}`;
 
 const interactionCode = `// 1. Configure Rules
 const app = new Supermouse({
@@ -77,7 +84,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DocsSection label="Guide" title="Basic Usage">
+  <DocsSection label="Guide" title="Usage">
     
     <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
       Supermouse is a singleton runtime. It manages the animation loop, input listeners, and the plugin pipeline. You initialize it once when your application mounts.
@@ -86,16 +93,16 @@ onUnmounted(() => {
     <!-- Configuration -->
     <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">1. Configuration</h3>
     <p class="text-zinc-600 mb-6">
-      The constructor accepts a <code>SupermouseOptions</code> object. These settings control the physics engine and how the library interacts with the DOM.
+      The constructor accepts a <code>SupermouseOptions</code> object. You can pass plugins directly in the configuration array.
     </p>
     <div class="mb-12">
         <CodeBlock :code="initCode" title="main.ts" lang="typescript" class="border border-zinc-200" />
     </div>
 
     <!-- Plugins -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">2. Registering Plugins</h3>
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">2. Runtime Registration</h3>
     <p class="text-zinc-600 mb-6">
-      The core library renders nothing. You must register plugins to see a cursor. The <code>use()</code> method is chainable.
+      If you need to add plugins later (e.g. lazy loading), you can use the chainable <code>use()</code> method.
     </p>
     <div class="mb-12">
         <CodeBlock :code="chainingCode" title="main.ts" lang="typescript" class="border border-zinc-200" />

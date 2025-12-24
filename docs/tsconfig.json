@@ -3,6 +3,8 @@
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.json"],
   "compilerOptions": {
     "baseUrl": ".",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "paths": {
       "@supermousejs/*": ["../packages/*/src/index.ts"]
     },

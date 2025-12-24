@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import DocsSection from '../../components/docs/DocsSection.vue';
 import CodeBlock from '../../components/CodeBlock.vue';
 import { PLUGINS } from '../../plugin-data';
 

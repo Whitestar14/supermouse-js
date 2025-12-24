@@ -4,55 +4,88 @@ import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
 import Callout from '../../../components/ui/Callout.vue';
 
+const rawVisualCode = `// A "Raw" Visual Plugin
+// No helpers. Just the lifecycle methods.
+
+export const RawSquare = () => {
+  let el: HTMLElement;
+
+  return {
+    name: 'raw-square',
+    
+    install(app) {
+      // 1. Create DOM
+      el = document.createElement('div');
+      Object.assign(el.style, {
+        width: '20px',
+        height: '20px',
+        backgroundColor: 'red',
+        position: 'absolute',
+        pointerEvents: 'none' // Critical so it doesn't block clicks
+      });
+      
+      // 2. Mount
+      app.container.appendChild(el);
+    },
+
+    update(app) {
+      // 3. Render Loop
+      const { x, y } = app.state.smooth;
+      // Use translate3d for GPU acceleration
+      el.style.transform = \`translate3d(\${x}px, \${y}px, 0)\`;
+    },
+
+    destroy(app) {
+      // 4. Cleanup
+      el.remove();
+    }
+  };
+};`;
+
 const helperCode = `import { definePlugin, normalize, dom } from '@supermousejs/utils';
 
-export const MySquare = (options = {}) => {
-  // 1. Normalize options (Value or Getter)
-  // This allows users to pass static values OR functions
+export const SmartSquare = (options = {}) => {
+  // Normalize allows users to pass static values ('blue') 
+  // OR reactive getters (state => state.isHover ? 'red' : 'blue')
   const getSize = normalize(options.size, 20);
-  const getColor = normalize(options.color, 'blue');
 
-  // 2. Use the helper
   return definePlugin({
-    name: 'my-square',
+    name: 'smart-square',
     
-    // Auto-registers [data-supermouse-square] to hide native cursor
-    selector: '[data-supermouse-square]', 
-
-    // Create the DOM element once. 
+    // 1. Setup: Create and return the primary element.
     // The helper handles appending to app.container and cleanup.
     create: (app) => {
-      const el = dom.createActor('div'); // Standard absolute/pointer-events:none div
-      return el; 
+      // dom.createActor creates a div with absolute position & pointer-events: none
+      return dom.createActor('div'); 
     },
 
-    // Optional: Auto-map user options to CSS properties
+    // 2. Auto-Binding: Map options keys to CSS properties.
+    // The helper watches 'options.color' and updates 'el.style.backgroundColor'.
+    // If 'options.color' is a function, it re-evaluates it every frame.
     styles: {
-      color: 'backgroundColor' 
+      color: 'backgroundColor', 
+      opacity: 'opacity'
     },
 
-    // Run every frame (~60fps)
+    // 3. Loop: 'el' is passed in automatically.
     update: (app, el, dt) => {
+      // Manual updates for things that aren't simple CSS mappings
       const size = getSize(app.state);
-      const { x, y } = app.state.smooth;
-      
-      // Use fast DOM setters provided by utils
       dom.setStyle(el, 'width', \`\${size}px\`);
       dom.setStyle(el, 'height', \`\${size}px\`);
       
-      // Universal transform setter (handles centering automatically)
+      const { x, y } = app.state.smooth;
+      // dom.setTransform handles centering (-50%, -50%) automatically
       dom.setTransform(el, x, y);
     }
   }, options);
 };`;
 
-const rawCode = `// Logic plugins don't need the DOM helper.
-// They usually modify state.target to influence movement.
-
-export const Gravity = (intensity = 5) => ({
+const logicCode = `export const Gravity = (intensity = 5) => ({
   name: 'gravity',
   
-  // Critical: Negative priority runs BEFORE visual plugins
+  // Critical: Run BEFORE visual plugins (which are usually priority 0)
+  // Logic modifies the 'target'. Visuals read the 'target' (indirectly via smooth).
   priority: -10, 
   
   update(app, dt) {
@@ -61,11 +94,13 @@ export const Gravity = (intensity = 5) => ({
   }
 });`;
 
-const interactionCode = `// ❌ BAD: Causes layout thrashing (Read + Write in loop)
-// const data = document.querySelector('.hovered')?.getAttribute('data-color');
+const interactionCode = `// ❌ BAD: Layout Thrashing
+// Reading DOM properties forces the browser to recalculate layout mid-frame.
+// const data = el.getAttribute('data-color');
 
-// ✅ GOOD: Read from pre-parsed cache
-// The Input system scrapes data attributes once on mouseover.
+// ✅ GOOD: State Cache
+// The Input system pre-scrapes attributes on mouseover.
+// Access is O(1).
 const color = app.state.interaction.color; 
 
 if (color) {
@@ -78,33 +113,60 @@ if (color) {
      
      <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
         Plugins are the primary extension mechanism. The core exists solely to coordinate them.
-        You can write plugins in two ways: using the <span class="text-black font-bold border-b-2 border-black/10">definePlugin</span> helper (recommended for visual effects) or as a <span class="text-black font-bold border-b-2 border-black/10">Plain Object</span> (recommended for logic modifiers).
+        You can write plugins in two ways: using the <span class="text-black font-bold border-b-2 border-black/10">Raw Interface</span> (full control) or the <span class="text-black font-bold border-b-2 border-black/10">definePlugin Helper</span> (recommended for visuals).
      </p>
 
      <!-- METHOD 1 -->
      <h3 class="text-2xl font-bold text-zinc-900 mb-6 flex items-center gap-3">
         <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">A</span>
-        The Helper Strategy (Visuals)
+        The Raw Interface (The Source of Truth)
      </h3>
      <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
-        Most plugins just need to create a DOM element and move it. The <code>definePlugin</code> utility handles the boilerplate: creating the element, appending it to the container, scoping styles, and cleaning up on destroy.
+        At its simplest, a plugin is just an object with a name and lifecycle methods. You don't <em>need</em> any helpers to write a plugin. Understanding this structure is key for advanced use cases (like plugins that manage multiple elements or canvas contexts).
      </p>
      
      <div class="mb-16">
-        <CodeBlock :code="helperCode" title="MySquare.ts" />
+        <CodeBlock :code="rawVisualCode" title="RawPlugin.ts" />
      </div>
 
      <!-- METHOD 2 -->
      <h3 class="text-2xl font-bold text-zinc-900 mb-6 flex items-center gap-3">
         <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">B</span>
-        The Raw API (Logic)
+        The Helper Strategy (definePlugin)
      </h3>
      <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
-        Logic plugins manipulate the cursor's <strong>intent</strong> rather than its appearance. They typically run before visual plugins (negative priority) to modify <code>state.target</code>.
+        For 90% of visual plugins, you just want to create a single DOM element, style it based on options, and move it. 
+        <code>definePlugin</code> creates a standard wrapper that handles the boilerplate.
+     </p>
+
+     <div class="mb-8">
+        <CodeBlock :code="helperCode" title="SmartSquare.ts" />
+     </div>
+
+     <Callout title="What is the 'styles' object?">
+        <p class="mb-2">
+            The <code>styles</code> property in <code>definePlugin</code> is a declarative map.
+            It tells the runtime: <em>"Take the value of <code>options.key</code> and assign it to <code>element.style.property</code> every frame."</em>
+        </p>
+        <div class="font-mono text-xs bg-white p-4 border border-zinc-200 rounded-sm mt-4 mb-4">
+            styles: { opacity: 'opacity' } <span class="text-zinc-400">// maps options.opacity -> style.opacity</span>
+        </div>
+        <p class="mt-2 text-xs text-zinc-500">
+            It is optimized to only touch the DOM if the value actually changes (dirty checking).
+        </p>
+     </Callout>
+
+     <!-- LOGIC PLUGINS -->
+     <h3 class="text-2xl font-bold text-zinc-900 mb-6 flex items-center gap-3 mt-16">
+        <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">C</span>
+        Logic Plugins
+     </h3>
+     <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
+        Logic plugins manipulate the cursor's <strong>intent</strong> rather than its appearance. They typically run before visual plugins (negative priority) to modify <code>state.target</code>. They should use the Raw Interface as they rarely need DOM elements.
      </p>
 
      <div class="mb-16">
-        <CodeBlock :code="rawCode" title="Gravity.ts" />
+        <CodeBlock :code="logicCode" title="Gravity.ts" />
      </div>
 
      <!-- INTERACTION SYSTEM -->

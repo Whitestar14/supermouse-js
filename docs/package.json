@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -26,10 +26,11 @@
     "@supermousejs/vue": "workspace:*",
     "@supermousejs/labs": "workspace:*",
     "@supermousejs/trail": "workspace:*",
-    "@supermousejs/utils": "workspace:*"
+    "@supermousejs/utils": "workspace:*",
+    "@supermousejs/react": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3",
-    "vue-tsc": "^1.8.0"
+    "vue-tsc": "^3.0.0"
   }
 }

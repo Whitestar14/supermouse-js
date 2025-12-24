@@ -3,13 +3,18 @@ import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-rou
 import Landing from './pages/Landing.vue';
 import Playground from './pages/Playground.vue';
 import DocsLayout from './layouts/DocsLayout.vue';
+import NotFound from './pages/NotFound.vue';
 
 // Dynamic imports for docs pages
 const Introduction = () => import('./pages/docs/guide/Introduction.vue');
 const Installation = () => import('./pages/docs/guide/Installation.vue');
 const Usage = () => import('./pages/docs/guide/Usage.vue');
-const Toolchain = () => import('./pages/docs/guide/Toolchain.vue');
+const Troubleshooting = () => import('./pages/docs/guide/Troubleshooting.vue');
+const Cookbook = () => import('./pages/docs/guide/Cookbook.vue');
+
 const VueIntegration = () => import('./pages/docs/integrations/VueIntegration.vue');
+const ReactIntegration = () => import('./pages/docs/integrations/ReactIntegration.vue');
+
 const Architecture = () => import('./pages/docs/advanced/Architecture.vue');
 const Authoring = () => import('./pages/docs/advanced/Authoring.vue');
 const Contributing = () => import('./pages/docs/advanced/Contributing.vue');
@@ -28,9 +33,11 @@ const routes: RouteRecordRaw[] = [
         { path: 'guide/introduction', component: Introduction, name: 'DOCS_INTRO' },
         { path: 'guide/installation', component: Installation, name: 'DOCS_INSTALL' },
         { path: 'guide/usage', component: Usage, name: 'DOCS_USAGE' },
-        { path: 'guide/toolchain', component: Toolchain, name: 'DOCS_TOOLCHAIN' },
+        { path: 'guide/troubleshooting', component: Troubleshooting, name: 'DOCS_TROUBLESHOOTING' },
+        { path: 'guide/cookbook', component: Cookbook, name: 'DOCS_COOKBOOK' },
         
         { path: 'integrations/vue', component: VueIntegration, name: 'DOCS_INTEGRATION_VUE' },
+        { path: 'integrations/react', component: ReactIntegration, name: 'DOCS_INTEGRATION_REACT' },
         // Backwards compatibility for old link if needed, or just 404
         { path: 'adapters/vue', redirect: '/docs/integrations/vue' },
 
@@ -41,6 +48,8 @@ const routes: RouteRecordRaw[] = [
         { path: 'plugins/:id', component: PluginPage, props: true, name: 'DOCS_PLUGIN' }
     ]
   },
+  // Catch-all for 404
+  { path: '/:pathMatch(.*)*', component: NotFound, name: 'NOT_FOUND' }
 ];
 
 // Conditionally add Labs route in Dev mode only
@@ -55,7 +64,7 @@ if (isDev) {
 export const router = createRouter({
   history: createWebHashHistory(),
   routes,
-  scrollBehavior(to) {
+  scrollBehavior(to, from, savedPosition) {
     if (to.hash) {
       return {
         el: to.hash,

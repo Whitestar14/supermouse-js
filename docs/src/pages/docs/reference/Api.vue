@@ -4,24 +4,33 @@ import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
 
 const coreClassDef = `class Supermouse {
+  // Static
+  static readonly version: string;
+
+  // Instance Properties
+  readonly version: string;
   state: MouseState;
   options: SupermouseOptions;
-  container: HTMLElement;
-
-  constructor(options?: SupermouseOptions);
-  
-  // Property
+  get container(): HTMLDivElement;
   get isEnabled(): boolean;
 
-  // Methods
+  constructor(options?: SupermouseOptions);
+
+  // Plugin Management
   use(plugin: SupermousePlugin): this;
+  getPlugin(name: string): SupermousePlugin | undefined;
+  enablePlugin(name: string): void;
+  disablePlugin(name: string): void;
+  togglePlugin(name: string): void;
+
+  // Runtime Control
   enable(): void;
   disable(): void;
   destroy(): void;
+  step(time: number): void;
   
+  // Interaction & Visibility
   setCursor(type: 'auto' | 'none' | null): void;
-  enablePlugin(name: string): void;
-  disablePlugin(name: string): void;
   registerHoverTarget(selector: string): void;
 }`;
 
@@ -29,7 +38,7 @@ const optionsData = [
   { name: 'smoothness', type: 'number', default: '0.15', desc: 'Physics damping factor (0-1). Lower is floatier, higher is snappier.' },
   { name: 'hideCursor', type: 'boolean', default: 'true', desc: 'Injects CSS to hide the native cursor on the body and interactive elements.' },
   { name: 'enableTouch', type: 'boolean', default: 'false', desc: 'If true, the cursor system runs on touch devices (not recommended).' },
-  { name: 'ignoreOnNative', type: 'boolean', default: 'true', desc: 'Automatically unhides native cursor over inputs, textareas, and text selection.' },
+  { name: 'ignoreOnNative', type: "boolean | 'auto' | 'tag' | 'css'", default: "'auto'", desc: "Strategy for unhiding native cursor. 'tag' is fastest (HTML only). 'css' checks computed style." },
   { name: 'autoDisableOnMobile', type: 'boolean', default: 'true', desc: 'Disables the system entirely if (pointer: coarse) is detected.' },
   { name: 'rules', type: 'Record<string, object>', default: '{}', desc: 'Map of CSS selectors to interaction state objects.' },
   { name: 'container', type: 'HTMLElement', default: 'document.body', desc: 'The root element to append cursor elements to.' },
@@ -45,6 +54,20 @@ const stateData = [
   { name: 'isDown', type: 'boolean', desc: 'True if mouse button is pressed.' },
   { name: 'isHover', type: 'boolean', desc: 'True if hovering a registered selector.' },
   { name: 'forcedCursor', type: "'auto' | 'none' | null", desc: 'Override for native cursor visibility. Managed via setCursor().' },
+];
+
+const methodsData = [
+  { name: 'use', params: 'plugin', return: 'this', desc: 'Registers a plugin. Chainable.' },
+  { name: 'enable', params: '-', return: 'void', desc: 'Starts the loop and input listeners.' },
+  { name: 'disable', params: '-', return: 'void', desc: 'Stops the loop and restores native cursor.' },
+  { name: 'destroy', params: '-', return: 'void', desc: 'Full cleanup.' },
+  { name: 'setCursor', params: "type: 'auto' | 'none' | null", return: 'void', desc: 'Force native cursor visibility.' },
+  { name: 'getPlugin', params: 'name: string', return: 'Plugin | undefined', desc: 'Get a plugin instance.' },
+  { name: 'enablePlugin', params: 'name: string', return: 'void', desc: 'Enable a specific plugin.' },
+  { name: 'disablePlugin', params: 'name: string', return: 'void', desc: 'Disable a specific plugin.' },
+  { name: 'togglePlugin', params: 'name: string', return: 'void', desc: 'Toggle plugin state.' },
+  { name: 'registerHoverTarget', params: 'selector: string', return: 'void', desc: 'Add selector to hover detection.' },
+  { name: 'step', params: 'time: number', return: 'void', desc: 'Manual frame tick.' },
 ];
 
 const pluginHooks = [
@@ -123,6 +146,35 @@ const pluginHooks = [
         </div>
     </div>
 
+    <!-- Methods Table -->
+    <div class="mb-16">
+        <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between">
+            <span>Instance Methods</span>
+            <span class="text-zinc-400 font-normal">Public API</span>
+        </h3>
+        
+        <div class="border border-zinc-200 bg-white overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-zinc-50 border-b border-zinc-200">
+                    <tr>
+                        <th class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/6">Method</th>
+                        <th class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4">Parameters</th>
+                        <th class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/6">Return</th>
+                        <th class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200">
+                    <tr v-for="m in methodsData" :key="m.name" class="group hover:bg-zinc-50 transition-colors">
+                        <td class="px-4 py-3 font-mono text-zinc-900 font-bold">{{ m.name }}</td>
+                        <td class="px-4 py-3 font-mono text-zinc-500 text-xs">{{ m.params }}</td>
+                        <td class="px-4 py-3 font-mono text-amber-600 text-xs">{{ m.return }}</td>
+                        <td class="px-4 py-3 text-zinc-600 leading-snug">{{ m.desc }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Plugin Interface -->
     <div class="mb-16">
         <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between">
@@ -130,11 +182,21 @@ const pluginHooks = [
             <span class="text-zinc-400 font-normal">Lifecycle Hooks</span>
         </h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
-            <div v-for="hook in pluginHooks" :key="hook.name" class="bg-white p-6">
-                <code class="text-sm font-bold text-black block mb-2">{{ hook.name }}</code>
-                <p class="text-sm text-zinc-600 leading-relaxed">{{ hook.desc }}</p>
-            </div>
+        <div class="border border-zinc-200 bg-white overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-zinc-50 border-b border-zinc-200">
+                    <tr>
+                        <th class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4">Hook</th>
+                        <th class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-200">
+                    <tr v-for="hook in pluginHooks" :key="hook.name" class="group hover:bg-zinc-50 transition-colors">
+                        <td class="px-4 py-3 font-mono text-zinc-900 font-bold">{{ hook.name }}</td>
+                        <td class="px-4 py-3 text-zinc-600 leading-snug">{{ hook.desc }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

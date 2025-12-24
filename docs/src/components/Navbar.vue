@@ -4,6 +4,8 @@ import { ref, computed } from 'vue';
 import { GITHUB_URL } from '../constants';
 import { useSupermouse } from '@supermousejs/vue';
 
+const emit = defineEmits(['openSearch']);
+
 const mobileMenuOpen = ref(false);
 const isSpinning = ref(false);
 const showVersionMenu = ref(false);
@@ -46,7 +48,6 @@ const triggerSpin = (e: MouseEvent) => {
     <div class="flex items-stretch h-16 md:h-20 bg-white relative z-50">
       
       <!-- 1. Logo Column (Fixed Width, Border Right) -->
-      <!-- Added dynamic data-supermouse-text binding via Vue -->
       <button 
         @click="triggerSpin"
         class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0 bg-white hover:bg-zinc-50 transition-colors outline-none relative"
@@ -72,7 +73,7 @@ const triggerSpin = (e: MouseEvent) => {
       </button>
 
       <!-- 2. Brand Column (Fluid Flex-1, Border Right) -->
-      <div class="flex-1 flex items-center px-6 md:px-8 border-r border-zinc-200 bg-white min-w-0">
+      <div class="flex-1 flex items-center px-6 md:px-8 border-r border-zinc-200 bg-white min-w-0 justify-between">
         <div class="flex items-center gap-4">
             <router-link to="/" class="flex items-center text-lg md:text-xl font-bold tracking-tighter text-zinc-900 group">
               <div class="flex items-baseline">
@@ -81,7 +82,7 @@ const triggerSpin = (e: MouseEvent) => {
             </router-link>
 
             <!-- Brutalist Version Dropdown -->
-            <div class="relative group">
+            <div class="relative group hidden sm:block">
                 <button 
                     @click="showVersionMenu = !showVersionMenu" 
                     class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black transition-colors relative top-[1px]"
@@ -105,8 +106,20 @@ const triggerSpin = (e: MouseEvent) => {
                 </div>
             </div>
         </div>
+
+        <!-- SEARCH BUTTON (Desktop) -->
+        <button 
+            @click="$emit('openSearch')"
+            class="hidden lg:flex w-1/4 justify-between items-center gap-3 px-1.5 py-1 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 transition-colors group outline-none"
+        >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-zinc-400 group-hover:text-black">
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span class="text-xs text-zinc-400 group-hover:text-zinc-600 font-medium">Search...</span>
+            <span class="mono text-[10px] text-zinc-300 group-hover:text-zinc-500 font-bold bg-white px-1.5 border border-zinc-200 rounded-sm">⌘K</span>
+        </button>
         
-        <!-- Mobile Trigger (Appears here on mobile) -->
+        <!-- Mobile Trigger -->
         <div class="md:hidden ml-auto">
            <button @click="toggleMenu" class="group relative flex items-center justify-center w-12 h-10 outline-none">
               <span v-if="!mobileMenuOpen" class="mono text-[10px] font-bold uppercase tracking-widest text-black">
@@ -152,6 +165,12 @@ const triggerSpin = (e: MouseEvent) => {
          <div class="absolute inset-0 grid-bg opacity-50 pointer-events-none"></div>
          
          <div class="relative z-10 flex flex-col gap-8 p-12 mt-4">
+            <!-- Mobile Search Trigger -->
+            <button @click="$emit('openSearch'); toggleMenu()" 
+               class="text-left text-4xl font-bold tracking-tighter text-zinc-400 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+               Search...
+            </button>
+
             <router-link to="/" @click="toggleMenu" 
                class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
               Home
