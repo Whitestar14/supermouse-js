@@ -1,0 +1,15 @@
+
+{
+  "id": "trail",
+  "name": "Trail",
+  "package": "@supermousejs/trail",
+  "description": "Generates procedural particles that trail behind your motion.",
+  "code": "app.use(Trail({ length: 12, color: '#f0f' }));",
+  "recipeId": "ghost-trail",
+  "icon": "trail",
+  "options": [
+    { "name": "length", "type": "number", "default": "10", "description": "Number of trail segments.", "reactive": false },
+    { "name": "size", "type": "number", "default": "6", "description": "Size of trail particles.", "reactive": true },
+    { "name": "color", "type": "string", "default": "'#ff00ff'", "description": "Color of segments.", "reactive": true }
+  ]
+}

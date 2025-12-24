@@ -1,0 +1,31 @@
+{
+  "name": "@supermousejs/labs",
+  "version": "2.0.1",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@supermousejs/utils": "workspace:*",
+    "@supermousejs/zoetrope": "workspace:*",
+    "@supermousejs/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

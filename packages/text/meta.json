@@ -1,0 +1,15 @@
+
+{
+  "id": "text",
+  "name": "Text",
+  "package": "@supermousejs/text",
+  "description": "Injects contextual text bubbles near the cursor on interaction.",
+  "code": "app.use(Text({ font: 'Mono' }));",
+  "recipeId": "text-cursor",
+  "icon": "text",
+  "options": [
+    { "name": "className", "type": "string", "default": "'supermouse-text'", "description": "CSS class added to container.", "reactive": false },
+    { "name": "offset", "type": "[number, number]", "default": "[0, 24]", "description": "X/Y offset from cursor.", "reactive": false },
+    { "name": "duration", "type": "number", "default": "200", "description": "Fade transition time in ms.", "reactive": false }
+  ]
+}

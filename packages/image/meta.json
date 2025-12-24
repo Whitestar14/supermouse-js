@@ -1,0 +1,15 @@
+
+{
+  "id": "image",
+  "name": "Image",
+  "package": "@supermousejs/image",
+  "description": "Displays a custom image or thumbnail as the cursor hover state.",
+  "code": "app.use(Image({ rounded: true }));",
+  "icon": "image",
+  "options": [
+    { "name": "className", "type": "string", "default": "'supermouse-image'", "description": "CSS class added to container.", "reactive": false },
+    { "name": "offset", "type": "[number, number]", "default": "[0, 30]", "description": "X/Y offset from cursor.", "reactive": false },
+    { "name": "duration", "type": "number", "default": "200", "description": "Fade transition time in ms.", "reactive": false },
+    { "name": "smoothness", "type": "number", "default": "1", "description": "Lerp factor for image lag.", "reactive": false }
+  ]
+}

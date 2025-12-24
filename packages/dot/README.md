@@ -1,0 +1,24 @@
+# @supermousejs/dot
+
+The standard Dot cursor plugin for **Supermouse v2**.
+
+## Installation
+
+```bash
+pnpm add @supermousejs/dot
+```
+
+## Usage
+
+```ts
+import { Supermouse } from '@supermousejs/core';
+import { Dot } from '@supermousejs/dot';
+
+const app = new Supermouse();
+
+app.use(Dot({
+  size: 8,
+  color: '#ff0000',
+  mixBlendMode: 'difference'
+}));
+```

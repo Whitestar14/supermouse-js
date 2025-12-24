@@ -1,7 +1,11 @@
 node_modules/
 dist/
+copied_packages/
 demo/
 demo
+notes.MD
+supercopy.py
+*.zip
 .DS_Store
 *.log
 npm-debug.log*
