@@ -26,7 +26,8 @@
     "@supermousejs/vue": "workspace:*",
     "@supermousejs/labs": "workspace:*",
     "@supermousejs/trail": "workspace:*",
-    "@supermousejs/utils": "workspace:*"
+    "@supermousejs/utils": "workspace:*",
+    "@supermousejs/react": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3",

@@ -1,3 +1,4 @@
+
 # supermouse plugins
 
 plugins are the primary extension mechanism in supermouse.
@@ -39,25 +40,34 @@ the `@supermousejs/*` org is reserved for core runtime, utilities, reference imp
 
 some community plugins may be promoted later, but this is optional and rare.
 
-## runtime model (mental map)
+## runtime model (the pipeline)
 
-supermouse runs a deterministic pipeline every frame:
+supermouse runs a deterministic pipeline every frame (~16ms). understanding this order is critical for preventing visual jitter.
 
-1. input system updates raw pointer
-2. **logic plugins** (`priority < 0`) may modify `state.target`
-3. core physics interpolates `state.smooth`
-4. **visual plugins** (`priority >= 0`) render using `state.smooth`
+1. **Input System**: Captures events, normalizes coordinates, scrapes attributes. Updates `state.pointer`.
+2. **Logic Plugins** (`priority < 0`): Read `pointer`, modify `state.target`.
+3. **Core Physics**: Interpolates `state.smooth` towards `state.target` using frame-independent damping.
+4. **Visual Plugins** (`priority >= 0`): Read `state.smooth`, render to DOM.
 
-> plugins are sorted by priority **once**, at registration.
+### priority & the "tearing" bug
+logic plugins (like `Magnetic` or `Stick`) **must** have negative priority (e.g. `-10`).
+
+if a logic plugin has default priority (`0`), it runs mixed in with visual plugins. this causes "tearing":
+- visuals registered *before* it will render the **old** position (frame N-1).
+- visuals registered *after* it will render the **new** position (frame N).
+
+this results in the cursor dot snapping correctly, while the ring trails behind for a single frame.
+
+> **rule:** always set `priority: -10` for logic that affects position.
 
 ## logic vs visual plugins
 
-logic plugins modify where the cursor goes and write to `app.state.target`. they generally should not touch the DOM and usually use negative priority to run before visual plugins do
+logic plugins modify where the cursor goes and write to `app.state.target`. they generally should not touch the DOM.
 
 ```ts
 const Gravity = {
   name: 'gravity',
-  priority: -10,
+  priority: -10, // Must run BEFORE physics
   update(app) {
     app.state.target.y += 5;
   }
@@ -66,7 +76,42 @@ const Gravity = {
 
 visual plugins render at the cursor position (`app.state.pointer`) or read `app.state.smooth`. they own DOM or canvas elements and are usually non-negative priority.
 
->if you write plugins with the plain object, there's no strict rule that says you can't write visual and logic code in the same file, however **it is recommended** to keep them apart.
+```ts
+const Dot = {
+  name: 'dot',
+  priority: 0, // Runs AFTER physics
+  update(app) {
+    const { x, y } = app.state.smooth; // Read interpolated value
+    dom.setTransform(el, x, y);
+  }
+};
+```
+
+## native cursor state
+
+supermouse automatically handles detecting when to show the native OS cursor (e.g., over `<input>` fields or text) based on the `ignoreOnNative` configuration.
+
+this state is exposed to plugins via `app.state.isNative`.
+
+### why allow native fallback?
+custom cursors often break usability on native controls (inputs, text selection, drag handles). `ignoreOnNative` allows the app to briefly yield control back to the OS cursor for these interactions, ensuring accessibility isn't compromised for style.
+
+## inter-plugin communication
+
+plugins often need to coordinate. supermouse provides specific state channels for this.
+
+### `state.shape` (morphing)
+
+logic plugins like **Stick** calculate geometry but don't render. visual plugins like **Ring** render but don't calculate geometry. `state.shape` bridges them.
+
+1. **Stick** (Logic) measures the hovered element and writes `{ width, height, borderRadius }` to `state.shape`.
+2. **Ring** (Visual) checks `state.shape`. If present, it morphs to those dimensions. If null, it stays a circle.
+
+this decoupling allows you to swap the visual plugin (e.g. use a `Square` cursor instead of `Ring`) without rewriting the sticky logic.
+
+### `state.interaction` (metadata)
+
+populated by the core input system. plugins read this to react to specific element attributes (like `data-supermouse-color`).
 
 ## plugin lifecycle
 
@@ -162,24 +207,29 @@ export const RedDot = () =>
 | logic-only plugin             | plain object |
 
 ## performance contract (non-negotiable)
-supermousejs is optimized for performance, therefore when writing plugins, these general rules should help guide you through writing for an engine running at 60fps on the hot path.
+supermousejs is optimized for performance. plugins running at 60-240fps on the main thread must be disciplined.
 
-1. do not create or destroy dom in update. Use pooling instead
-2. do not read layout or query the dom in update (use `app.state.interaction` if you have to)
-3. use transforms, not top/left
-4. cache everything you can
-5. respect reduced motion
+### 1. the dom firewall (`state.interaction`)
+**why?** reading DOM attributes (`getAttribute`) or layout (`getBoundingClientRect`, `getComputedStyle`) inside the loop forces the browser to synchronously recalculate layout. this is called "Layout Thrashing" and causes stutter.
 
-plugins that violate this affect the entire app.
+**solution:** the input system scrapes interactive data *once* on `mouseover` and caches it in `state.interaction`.
+*   ❌ `el.getAttribute('data-color')` inside `update()`
+*   ✅ `app.state.interaction.color` inside `update()`
 
-### interaction state (input-derived metadata)
+### 2. frame rate independence (`dt`)
+**why?** users have different refresh rates (60hz vs 144hz). if you move `x += 5` every frame, the cursor moves 2.4x faster on a gaming monitor.
 
-to improve performance by avoiding querying the dom at the refresh rate of client monitor, `app.state.interaction` is pre-populated by the input system and ran once, representing metadata scraped from the currently hovered DOM element. `interaction` exists to avoid repeated DOM queries at 60–144fps. it is a perf cache, not a state store.
-<br />
-if you care about performance at all, read from it instead of querying the DOM yourself.
+**solution:** use the `deltaTime` (dt) argument or the provided math helpers (`damp`, `lerp`).
+*   ❌ `current += (target - current) * 0.1`
+*   ✅ `current = damp(current, target, 10, dt)`
 
->mutating `interaction` is allowed but discouraged.
-changes are not persistent and may affect other plugins reading in the same frame.
+### 3. allocation discipline
+**why?** creating objects (`{ x, y }`) or arrays every frame triggers Garbage Collection pauses.
+
+**solution:**
+*   reuse vectors/objects where possible.
+*   do not create DOM elements in `update`.
+*   use CSS transforms (GPU) instead of `top`/`left` (CPU Layout).
 
 ##  common footguns (read before publishing)
 ### plugin instances are singletons

@@ -19,6 +19,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@supermousejs/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
       '@supermousejs/utils': path.resolve(__dirname, '../packages/utils/src/index.ts'),
       '@supermousejs/trail': path.resolve(__dirname, '../packages/trail/src/index.ts'),
       '@supermousejs/labs': path.resolve(__dirname, '../packages/labs/src/index.ts'),

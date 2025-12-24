@@ -1,3 +1,4 @@
+
 # supermouse.js
 
 **supermouse** is a modular, high-performance cursor engine for the web.
@@ -32,20 +33,54 @@ pnpm add @supermousejs/dot @supermousejs/ring
 
 ## basic usage
 
+You can pass plugins directly to the constructor (declarative) or chain them (imperative).
+
 ```ts
 import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
 
 const app = new Supermouse({
-  smoothness: 0.15,
-  hideCursor: true,
+  plugins: [
+    Dot({ size: 8 }),
+    Ring({ size: 24 })
+  ]
 });
-
-app.use(Dot({ size: 8 }));
-app.use(Ring({ size: 24 }));
 ```
 
+## configuration
+
+supermouse is tunable for performance and accuracy.
+
+```ts
+const app = new Supermouse({
+  // Motion Physics (0.01 - 1.0)
+  // Lower = more lag/floaty. Higher = snappy.
+  smoothness: 0.15,
+
+  // Native Cursor Hiding
+  // Injects scoped CSS to hide the OS cursor on body + interactive elements
+  hideCursor: true,
+
+  // Native Fallback Strategy
+  // Determines when to show the native cursor (e.g. over inputs).
+  // - 'auto': Checks tags AND css (default, safest).
+  // - 'tag': Checks <input>, <textarea>, <select> only. O(1) performance.
+  // - 'css': Checks `cursor: auto/text` in computed styles. Causes reflows.
+  ignoreOnNative: 'tag'
+});
+```
+
+## how it works
+
+supermouse treats the cursor like a game character. every frame (~16ms), it runs a pipeline:
+
+1.  **Sense:** Captures input and scrapes data attributes (e.g. `data-supermouse-stick`) from the hovered element into a cache.
+2.  **Logic:** Plugins like `Magnetic` read the input and modify the cursor's *target* position.
+3.  **Physics:** The core interpolates the cursor's current position towards the target using frame-rate independent damping.
+4.  **Render:** Plugins like `Dot` or `Ring` read the smoothed position and update the DOM.
+
+this separation allows magnetic effects to "pull" the cursor without making the input feel laggy or glitchy.
 
 ## interaction model
 

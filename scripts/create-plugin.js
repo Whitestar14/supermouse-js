@@ -1,3 +1,4 @@
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -21,13 +22,11 @@ const toPascalCase = (str) =>
   str.replace(/(^\w|-\w)/g, (text) => text.replace(/-/, "").toUpperCase());
 
 const pascalName = toPascalCase(pluginName);
+const umdName = `Supermouse${pascalName}`;
 const pluginDir = path.join(rootDir, "packages", pluginName);
 
 // --- Templates ---
 const getTemplates = () => {
-  const dependencies =
-    pluginName === "core" ? {} : { "@supermousejs/core": "workspace:*" };
-
   return {
     packageJson: {
       name: `@supermousejs/${pluginName}`,
@@ -35,11 +34,20 @@ const getTemplates = () => {
       main: "dist/index.umd.js",
       module: "dist/index.mjs",
       types: "dist/index.d.ts",
+      exports: {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "import": "./dist/index.mjs",
+          "require": "./dist/index.umd.js"
+        }
+      },
       scripts: {
         build: "vite build",
       },
-      dependencies: dependencies,
-      devDependencies: {}, // Inherited from root
+      dependencies: {
+        "@supermousejs/core": "workspace:*"
+      },
+      devDependencies: {},
     },
 
     tsConfig: {
@@ -48,13 +56,9 @@ const getTemplates = () => {
       compilerOptions: {
         outDir: "dist",
         baseUrl: ".",
-        ...(pluginName !== "core"
-          ? {
-              paths: {
-                "@supermousejs/core": ["../core/src/index.ts"],
-              },
-            }
-          : {}),
+        paths: {
+          "@supermousejs/core": ["../core/src/index.ts"]
+        }
       },
     },
 
@@ -71,11 +75,11 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: '${pascalName}',
-      fileName: (format) => \`index.\${format}.js\`,
+      name: '${umdName}',
+      fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
     },
     rollupOptions: {
-      external: ${pluginName === "core" ? "[]" : "['@supermousejs/core']"},
+      external: ['@supermousejs/core'],
       output: {
         globals: {
           '@supermousejs/core': 'SupermouseCore'
@@ -90,53 +94,26 @@ export default defineConfig({
     indexTs: `
 import type { SupermousePlugin } from '@supermousejs/core';
 
-/**
- * Options for the ${pascalName} plugin.
- */
 export interface ${pascalName}Options {
-  /**
-   * Example option.
-   * @default true
-   */
-  enabled?: boolean;
+  name?: string;
+  isEnabled?: boolean;
 }
 
-/**
- * ${pascalName} Plugin.
- * @param options - Configuration options.
- */
 export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlugin => {
-  // Local state variables
-  let isSetup = false;
-
   return {
     name: '${pluginName}',
     isEnabled: true,
 
     install(app) {
-      // 1. Create DOM elements
-      // 2. Append to app.container
-      // 3. Register event listeners or hover targets
-      isSetup = true;
+      // Setup logic here
     },
 
-    update(app, deltaTime) {
-      if (!isSetup) return;
-      // Calculate physics, update DOM transforms
+    update(app, dt) {
+      // Frame loop logic here
     },
-
-    onEnable(app) {
-      // Called when plugin is enabled via app.enablePlugin('${pluginName}')
-      // Restore visibility (e.g. opacity = 1)
-    },
-
-    onDisable(app) {
-      // Called when plugin is disabled via app.disablePlugin('${pluginName}')
-      // Hide visuals (e.g. opacity = 0) to prevent ghosting
-    },
-
+    
     destroy(app) {
-      // Cleanup DOM elements and listeners
+      // Cleanup logic here
     }
   };
 };
@@ -148,16 +125,13 @@ export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlu
 
 async function run() {
   const templates = getTemplates();
-  let mode = "create"; // 'create' | 'update'
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  // 2. Determine Mode
+  // 2. Safety Check
   if (fs.existsSync(pluginDir)) {
-    mode = "update";
     const answer = await new Promise((resolve) => {
       rl.question(
         `\n[!] Plugin "@supermousejs/${pluginName}" already exists.\n` +
@@ -165,87 +139,60 @@ async function run() {
         resolve
       );
     });
+    
     if (answer.toLowerCase() !== "y") {
-      console.log("[-] Aborted.");
+      console.log("[-] Aborted. If you want to update configs non-destructively, use 'pnpm sync' instead.");
       process.exit(0);
     }
-  } else {
-    mode = "create";
-  }
+  } 
   rl.close();
 
-  console.log(
-    `\n>> ${
-      mode === "create" ? "Scaffolding" : "Updating configs for"
-    } @supermousejs/${pluginName}...`
-  );
+  console.log(`\n>> Scaffolding @supermousejs/${pluginName}...`);
 
   // 3. Create Directory
   if (!fs.existsSync(pluginDir)) {
     fs.mkdirSync(path.join(pluginDir, "src"), { recursive: true });
   }
 
-  // 4. Write Configs (Always overwrite)
+  // 4. Write Configs
   console.log(">> Writing configuration files...");
 
-  let finalPackageJson = templates.packageJson;
-
   // Preserve version if updating
-  if (mode === "update") {
+  let finalPackageJson = templates.packageJson;
+  if (fs.existsSync(path.join(pluginDir, "package.json"))) {
     try {
-      const currentPkg = JSON.parse(
-        fs.readFileSync(path.join(pluginDir, "package.json"), "utf-8")
-      );
+      const currentPkg = JSON.parse(fs.readFileSync(path.join(pluginDir, "package.json"), "utf-8"));
       finalPackageJson.version = currentPkg.version;
-    } catch (e) {
-      /* ignore */
-    }
+    } catch (e) {}
   }
 
-  fs.writeFileSync(
-    path.join(pluginDir, "package.json"),
-    JSON.stringify(finalPackageJson, null, 2)
-  );
-  fs.writeFileSync(
-    path.join(pluginDir, "tsconfig.json"),
-    JSON.stringify(templates.tsConfig, null, 2)
-  );
-  fs.writeFileSync(
-    path.join(pluginDir, "vite.config.ts"),
-    templates.viteConfig
-  );
+  fs.writeFileSync(path.join(pluginDir, "package.json"), JSON.stringify(finalPackageJson, null, 2));
+  fs.writeFileSync(path.join(pluginDir, "tsconfig.json"), JSON.stringify(templates.tsConfig, null, 2));
+  fs.writeFileSync(path.join(pluginDir, "vite.config.ts"), templates.viteConfig);
 
-  // 5. Write Source (Only if create)
+  // 5. Write Source (Only if missing)
   const indexTsPath = path.join(pluginDir, "src/index.ts");
-  if (mode === "create") {
+  if (!fs.existsSync(indexTsPath)) {
     fs.writeFileSync(indexTsPath, templates.indexTs);
     console.log("   [+] Created src/index.ts");
   } else {
     console.log("   [~] Preserved src/index.ts");
   }
 
-  // 6. Update Consumers (Playground, Docs)
+  // 6. Update Consumers
   if (pluginName !== "core") {
     updateConsumer("playground", pluginName);
     updateConsumer("docs", pluginName);
   }
 
   console.log(`\n[ok] @supermousejs/${pluginName} is ready.`);
-  if (mode === "create") {
-    console.log('    Run "pnpm install" to link dependencies.');
-  }
+  console.log('\n    Run "pnpm install" to link dependencies.');
 }
 
 function updateConsumer(folderName, pluginName) {
   const consumerPath = path.join(rootDir, folderName);
+  if (!fs.existsSync(consumerPath)) return;
 
-  // Check existence
-  if (!fs.existsSync(consumerPath)) {
-    console.log(`   [~] Skipping ${folderName} (not found).`);
-    return;
-  }
-
-  console.log(`>> Linking to ${folderName}...`);
   const pkgPath = path.join(consumerPath, "package.json");
   const vitePath = path.join(consumerPath, "vite.config.ts");
 
@@ -256,13 +203,10 @@ function updateConsumer(folderName, pluginName) {
       pkg.dependencies = pkg.dependencies || {};
       pkg.dependencies[`@supermousejs/${pluginName}`] = "workspace:*";
       fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-      console.log(`   [+] Added dependency to ${folderName}/package.json`);
-    } catch (e) {
-      console.error(`   [!] Failed to update ${folderName}/package.json`);
-    }
+    } catch (e) {}
   }
 
-  // 2. Add Vite Alias
+  // 2. Add Vite Alias (Regex Append)
   if (fs.existsSync(vitePath)) {
     try {
       let viteContent = fs.readFileSync(vitePath, "utf-8");
@@ -270,21 +214,11 @@ function updateConsumer(folderName, pluginName) {
 
       if (!viteContent.includes(`@supermousejs/${pluginName}`)) {
         if (viteContent.includes("alias: {")) {
-          viteContent = viteContent.replace(
-            /(alias:\s*{)/,
-            `$1\n      ${aliasEntry},`
-          );
+          viteContent = viteContent.replace(/(alias:\s*{)/, `$1\n      ${aliasEntry},`);
           fs.writeFileSync(vitePath, viteContent);
-          console.log(`   [+] Added alias to ${folderName}/vite.config.ts`);
-        } else {
-          console.warn(
-            `   [!] Could not find "alias: {" block in ${folderName}/vite.config.ts`
-          );
         }
       }
-    } catch (e) {
-      console.error(`   [!] Failed to update ${folderName}/vite.config.ts`);
-    }
+    } catch (e) {}
   }
 }
 

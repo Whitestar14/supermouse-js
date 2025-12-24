@@ -19,9 +19,10 @@ The user interface should feel like a high-precision tool, not a marketing websi
 ### Colors
 *   **Primary:** Black (`#09090b`), White (`#ffffff`).
 *   **Zinc:** Used for borders (`#e4e4e7`) and subtle backgrounds (`#fafafa`).
-*   **Accents:** Strictly functional. 
-    *   Purple (`#750c7e`): Brand/Active state.
-    *   Emerald (`#10b981`): Success/Copied state.
+*   **Accents:** Strictly functional and sparse.
+    *   **Amber (`#f59e0b`):** Primary highlight, focus states, and key callouts.
+    *   **Red (`#ef4444`):** Errors, rejections, or destructive actions.
+    *   **Monochrome Success:** Use Bold Black text or inverted colors (Black BG/White Text) instead of Green.
 
 ### Typography
 *   **Headings:** Sans-serif (Inter/Satoshi). Tight tracking (`tracking-tighter`). Low line-height.

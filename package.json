@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev:play": "pnpm --filter supermouse-playground dev",
-    "dev:docs": "pnpm --filter supermouse-docs dev",
-    "build": "pnpm -r run build",
+    "dev:docs": "node scripts/generate-docs-data.js && pnpm --filter supermouse-docs dev",
+    "build": "node scripts/generate-docs-data.js && pnpm -r run build",
     "test": "pnpm -r run test",
+    "check:size": "node scripts/check-size.js",
     "manage": "node scripts/manage.js",
     "create:plugin": "node scripts/create-plugin.js", 
     "remove:plugin": "node scripts/remove-plugin.js",
