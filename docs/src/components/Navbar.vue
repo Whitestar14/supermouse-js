@@ -25,8 +25,8 @@ const toggleMenu = () => {
   document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : '';
 };
 
-const triggerSpin = (e: MouseEvent) => {
-  if (isSpinning.value) return; // Debounce
+const triggerSpin = () => {
+  if (isSpinning.value) return;
   isSpinning.value = true;
   
   setTimeout(() => {

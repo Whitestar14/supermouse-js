@@ -7,13 +7,6 @@ const debugCode = `import { doctor } from '@supermousejs/utils';
 
 // Run in console or call in your app
 doctor();`;
-
-const iframeCode = `/* CSS in the parent page */
-iframe {
-  pointer-events: none; /* If you don't need interaction */
-  /* OR */
-  cursor: none; /* If you can control iframe CSS */
-}`;
 </script>
 
 <template>

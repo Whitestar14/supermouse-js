@@ -21,7 +21,7 @@ onMounted(() => {
     tl.to(cursorRef.value, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.7)' });
 
     // Loop through nodes
-    nodes.forEach((node, i) => {
+    nodes.forEach((node) => {
       // 1. Move to Node
       tl.to(cursorRef.value, {
         top: gsap.getProperty(node, 'top'),
