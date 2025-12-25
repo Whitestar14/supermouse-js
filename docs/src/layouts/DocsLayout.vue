@@ -105,7 +105,7 @@ const isActive = (path: string) => route.path === path;
 
         <!-- Mobile Menu Drawer (Fixed, Full Height below header) -->
         <div v-if="mobileMenuOpen" class="fixed inset-0 top-12 bg-white z-40 overflow-y-auto">
-             <nav class="flex flex-col p-6 gap-6 min-h-full bg-white">
+             <nav class="flex flex-col p-12 gap-6 min-h-full bg-white">
                 <div v-for="group in DOCS_NAVIGATION" :key="group.title">
                     <button 
                         @click.stop="toggleGroup(group.title)"
@@ -117,7 +117,7 @@ const isActive = (path: string) => route.path === path;
                             {{ group.title }}
                         </div>
                         <svg 
-                            width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
                             class="transition-transform duration-200"
                             :class="activeGroup === group.title ? 'rotate-180 text-black' : 'rotate-0 text-zinc-300'"
                         >
