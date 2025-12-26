@@ -51,7 +51,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "icon",
@@ -97,7 +97,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "image",
@@ -136,7 +136,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "smart-icon",
@@ -190,7 +190,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "smart-ring",
@@ -222,7 +222,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "sparkles",
@@ -254,7 +254,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "text-ring",
@@ -286,7 +286,7 @@
         "reactive": true
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "magnetic",
@@ -312,7 +312,7 @@
         "reactive": true
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "pointer",
@@ -380,7 +380,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "ring",
@@ -427,7 +427,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "states",
@@ -459,7 +459,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "stick",
@@ -478,7 +478,7 @@
         "reactive": true
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "text",
@@ -511,7 +511,7 @@
         "reactive": false
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "trail",
@@ -544,6 +544,6 @@
         "reactive": true
       }
     ],
-    "version": "2.0.1"
+    "version": "2.0.2"
   }
 ]

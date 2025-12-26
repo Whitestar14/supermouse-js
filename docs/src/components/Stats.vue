@@ -25,7 +25,7 @@
                 </h2>
                 <div class="flex flex-wrap gap-8 mt-12">
                    <div>
-                      <div class="text-3xl sm:text-4xl font-bold font-mono text-zinc-900">2.4M</div>
+                      <div class="text-3xl sm:text-4xl font-bold font-mono text-zinc-900">1.2K</div>
                       <div class="text-xs uppercase font-bold tracking-widest text-zinc-400 mt-2">Monthly Downloads</div>
                    </div>
                    <div class="w-px h-16 bg-zinc-200 hidden sm:block"></div>
