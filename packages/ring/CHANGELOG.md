@@ -1,5 +1,14 @@
 # @supermousejs/ring
 
+## 2.0.2
+
+### Patch Changes
+
+- ae219a0: Update READMEs with correct link to documentation
+- Updated dependencies [ae219a0]
+  - @supermousejs/utils@2.0.2
+  - @supermousejs/core@2.0.2
+
 ## 2.0.1
 
 ### Patch Changes
