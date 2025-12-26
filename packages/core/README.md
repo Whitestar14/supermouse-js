@@ -28,4 +28,4 @@ app.use(Dot({ size: 8, color: '#f59e0b' }));
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermousejs.vercel.app) (or your repo URL).
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

@@ -33,3 +33,7 @@ import { useSupermouse } from '@supermousejs/vue';
 const mouse = useSupermouse(); // Returns Ref<Supermouse | null>
 </script>
 ```
+
+## Documentation
+
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

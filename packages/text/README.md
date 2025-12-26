@@ -27,3 +27,7 @@ app.use(Text({
 ```html
 <button data-supermouse-text="Click Me">Hover Here</button>
 ```
+
+## Documentation
+
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

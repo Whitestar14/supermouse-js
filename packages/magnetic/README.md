@@ -28,3 +28,7 @@ app.use(Magnetic({
 ```html
 <button data-supermouse-magnetic="true">Magnetic Button</button>
 ```
+
+## Documentation
+
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

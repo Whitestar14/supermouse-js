@@ -38,3 +38,7 @@ app.use(States({
 <div data-supermouse-state="hover">Hover me</div>
 <div data-supermouse-state="info" data-supermouse-text="Hello">Info</div>
 ```
+
+## Documentation
+
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

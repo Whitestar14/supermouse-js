@@ -36,3 +36,7 @@ Rotates text around the cursor position.
 import { TextRing } from '@supermousejs/labs';
 app.use(TextRing({ text: 'LOADING • ' }));
 ```
+
+## Documentation
+
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
