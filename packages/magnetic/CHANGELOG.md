@@ -1,5 +1,13 @@
 # @supermousejs/magnetic
 
+## 2.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @supermousejs/core@2.0.3
+  - @supermousejs/utils@2.0.3
+
 ## 2.0.2
 
 ### Patch Changes

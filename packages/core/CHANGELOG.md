@@ -1,5 +1,11 @@
 # @supermousejs/core
 
+## 2.0.3
+
+### Patch Changes
+
+- Add keywords to core package
+
 ## 2.0.2
 
 ### Patch Changes

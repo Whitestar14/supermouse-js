@@ -1,0 +1,8 @@
+{
+  "id": "supermousejs",
+  "name": "Supermouse JS (Standard)",
+  "package": "supermousejs",
+  "description": "The official unscoped bundle for v2. Quickest way to get started with the standard Dot & Ring setup.",
+  "code": "import Supermouse, { Dot, Ring } from 'supermousejs';\n\nconst app = new Supermouse();\napp.use(Dot()).use(Ring());",
+  "icon": "dot"
+}

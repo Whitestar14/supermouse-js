@@ -1,13 +1,23 @@
 {
-  "name": "supermouse",
-  "version": "2.0.3",
-  "description": "The all-in-one bundle for Supermouse.js. Includes Core, Dot, and Ring plugins with v1 API compatibility.",
+  "name": "supermousejs",
+  "version": "2.0.0",
+  "description": "The official all-in-one bundle for Supermouse.js v2. High-performance, modular cursor engine.",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "vite build"
   },
+  "keywords": [
+    "cursor",
+    "pointer",
+    "mouse",
+    "animation",
+    "supermouse",
+    "supermousejs"
+  ],
+  "author": "O.S David",
+  "license": "MIT",
   "dependencies": {
     "@supermousejs/core": "workspace:*",
     "@supermousejs/dot": "workspace:*",

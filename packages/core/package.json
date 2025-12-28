@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/core",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -8,6 +8,19 @@
     "build": "vite build",
     "test": "vitest"
   },
+  "keywords": [
+    "cursor",
+    "pointer",
+    "interactive-cursor",
+    "customizable pointer",
+    "web UI",
+    "animation",
+    "custom-cursor",
+    "mouse",
+    "ui-interaction",
+    "javascript",
+    "web"
+  ],
   "dependencies": {},
   "devDependencies": {},
   "exports": {
