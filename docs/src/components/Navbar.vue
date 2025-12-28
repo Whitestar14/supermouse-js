@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { GITHUB_URL, GITHUB_LEGACY_URL } from '../constants';
+import { GITHUB_URL } from '../constants';
 import { useSupermouse } from '@supermousejs/vue';
 
 const emit = defineEmits(['openSearch']);
@@ -25,8 +25,8 @@ const toggleMenu = () => {
   document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : '';
 };
 
-const triggerSpin = () => {
-  if (isSpinning.value) return;
+const triggerSpin = (e: MouseEvent) => {
+  if (isSpinning.value) return; // Debounce
   isSpinning.value = true;
   
   setTimeout(() => {
@@ -99,7 +99,7 @@ const triggerSpin = () => {
                         <span>v2.0 (Stable)</span>
                         <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div>
                     </a>
-                    <a :href="GITHUB_LEGACY_URL" target="_blank" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest">
+                    <a :href="GITHUB_URL" target="_blank" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest">
                         <span>v1.0 (Legacy)</span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                     </a>
@@ -110,7 +110,7 @@ const triggerSpin = () => {
         <!-- SEARCH BUTTON (Desktop) -->
         <button 
             @click="$emit('openSearch')"
-            class="hidden lg:flex w-1/4 justify-between items-center gap-3 px-1.5 py-1 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 transition-colors group outline-none"
+            class="hidden lg:flex items-center gap-3 px-4 py-2 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 transition-colors group outline-none"
         >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-zinc-400 group-hover:text-black">
                 <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -167,27 +167,27 @@ const triggerSpin = () => {
          <div class="relative z-10 flex flex-col gap-8 p-12 mt-4">
             <!-- Mobile Search Trigger -->
             <button @click="$emit('openSearch'); toggleMenu()" 
-               class="text-left text-4xl font-bold tracking-tighter text-zinc-400 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+               class="text-left text-4xl font-bold tracking-tighter text-zinc-400 inline-flex items-center gap-4 group">
                Search...
             </button>
 
             <router-link to="/" @click="toggleMenu" 
-               class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+               class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group">
               Home
             </router-link>
             <router-link to="/docs" @click="toggleMenu" 
-               class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+               class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group">
               Docs
             </router-link>
             <router-link v-if="isDev" to="/labs" @click="toggleMenu" 
-               class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+               class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group">
               Labs
             </router-link>
             <a :href="GITHUB_URL" target="_blank" 
-               class="text-4xl font-bold tracking-tighter text-zinc-900 transition-transform hover:translate-x-2 inline-flex items-center gap-4 group">
+               class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group">
                Github
-               <!-- Added Top-Right Arrow -->
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-zinc-300 group-hover:text-black"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+               <!-- Top-Right Arrow (Static Black) -->
+               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-black"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
             </a>
          </div>
     </div>

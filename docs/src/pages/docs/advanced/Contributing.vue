@@ -197,14 +197,10 @@ const removePluginCode = `pnpm run remove:plugin <name>`;
         </div>
       </div>
 
-      <div class="py-12 border-t border-zinc-100 flex items-center justify-center text-center">
-          <blockquote class="max-w-2xl">
-            <p class="text-2xl md:text-3xl font-bold tracking-tighter leading-tight text-zinc-900">
-              "If a feature can be a plugin,<br/> it probably should be."
-            </p>
-          </blockquote>
+        <Callout>
+          If a feature can be a plugin, it probably should be.
+        </Callout>
       </div>
-    </div>
 
   </DocsSection>
 </template>

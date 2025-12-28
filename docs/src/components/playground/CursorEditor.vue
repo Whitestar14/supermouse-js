@@ -86,21 +86,19 @@ const copyCode = () => {
                 <!-- Sidebar -->
                 <div class="w-full lg:w-[400px] border-b lg:border-b-0 lg:border-r border-zinc-200 shrink-0 h-2/5 lg:h-full flex flex-col bg-white z-10">
                     
-                    <!-- Tabs -->
+                    <!-- Tabs - Consistent Styling (Solid Fill) -->
                     <div class="h-12 flex border-b border-zinc-200 shrink-0 bg-zinc-50">
                        <button 
                           @click="mode = 'config'" 
-                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100 border-r border-zinc-200 relative"
-                          :class="mode === 'config' ? 'bg-white text-black' : 'text-zinc-400 hover:text-black'"
+                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100 border-r border-zinc-200"
+                          :class="mode === 'config' ? 'bg-black text-white' : 'text-zinc-400 bg-white hover:text-black hover:bg-zinc-50'"
                        >
                           Configuration
-                          <!-- Active Indicator -->
-                          <div v-if="mode === 'config'" class="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
                        </button>
                        <button 
                           @click="mode = 'code'" 
-                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100 relative"
-                          :class="mode === 'code' ? 'bg-[#09090b] text-white border-b-0' : 'text-zinc-400 hover:text-black'"
+                          class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100"
+                          :class="mode === 'code' ? 'bg-black text-white' : 'text-zinc-400 bg-white hover:text-black hover:bg-zinc-50'"
                        >
                           Export Code
                        </button>
@@ -109,7 +107,11 @@ const copyCode = () => {
                     <!-- Content -->
                     <div class="flex-1 overflow-hidden relative">
                         <!-- Config View -->
-                        <div v-if="mode === 'config'" class="absolute inset-0 overflow-y-auto">
+                        <div 
+                            v-if="mode === 'config'" 
+                            class="absolute inset-0 overflow-y-auto"
+                            data-lenis-prevent
+                        >
                             <EditorControls 
                                 :schema="currentRecipe.schema" 
                                 v-model:config="config"
@@ -118,9 +120,12 @@ const copyCode = () => {
                         </div>
 
                         <!-- Code View -->
-                        <div v-else class="absolute inset-0 overflow-y-auto bg-[#09090b] flex flex-col">
+                        <div 
+                            v-else 
+                            class="absolute inset-0 overflow-y-auto bg-[#09090b] flex flex-col"
+                            data-lenis-prevent
+                        >
                             <div class="flex-1 min-h-0 flex flex-col">
-                               <!-- CodeBlock set to fill height, with clean prop to remove internal header -->
                                <CodeBlock :code="generatedCode" :clean="true" class="h-full" />
                             </div>
                             <button 

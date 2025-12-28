@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import DocsSection from '../../../components/docs/DocsSection.vue';
 import CodeBlock from '../../../components/CodeBlock.vue';
+import Callout from '../../../components/ui/Callout.vue';
 
 const initCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
@@ -24,6 +25,11 @@ const app = new Supermouse({
   // 'tag' checks HTML tags (fastest). 'auto' checks CSS too (safer).
   ignoreOnNative: 'tag'
 });`;
+
+const globalUsageCode = `// When using a CDN, all standard exports are on the global Supermouse object
+const app = new Supermouse({ smoothness: 0.1 });
+app.use(Supermouse.Dot());
+app.use(Supermouse.Ring());`;
 
 const chainingCode = `// You can also add plugins imperatively at runtime
 // This is useful for conditional loading or lazy-loaded effects.
@@ -95,12 +101,19 @@ onUnmounted(() => {
     <p class="text-zinc-600 mb-6">
       The constructor accepts a <code>SupermouseOptions</code> object. You can pass plugins directly in the configuration array.
     </p>
-    <div class="mb-12">
-        <CodeBlock :code="initCode" title="main.ts" lang="typescript" class="border border-zinc-200" />
+    <div class="mb-8">
+        <CodeBlock :code="initCode" title="main.ts (ES Modules)" lang="typescript" class="border border-zinc-200" />
     </div>
 
+    <Callout title="Global Usage">
+        If you are using the <strong>CDN bundle</strong>, the core and standard plugins are available on the global <code>window.Supermouse</code> object.
+        <div class="mt-4">
+            <CodeBlock :code="globalUsageCode" lang="javascript" :clean="true" />
+        </div>
+    </Callout>
+
     <!-- Plugins -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">2. Runtime Registration</h3>
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6 mt-16">2. Runtime Registration</h3>
     <p class="text-zinc-600 mb-6">
       If you need to add plugins later (e.g. lazy loading), you can use the chainable <code>use()</code> method.
     </p>

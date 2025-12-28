@@ -8,7 +8,6 @@ import { readFileSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Read core package.json to sync version numbers
 const corePkgPath = path.resolve(__dirname, '../packages/core/package.json');
 const corePkg = JSON.parse(readFileSync(corePkgPath, 'utf-8'));
 

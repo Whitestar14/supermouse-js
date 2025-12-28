@@ -140,8 +140,12 @@ watch(query, () => { selectedIndex.value = 0; });
         <div class="mono text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-400 font-bold">ESC</div>
       </div>
 
-      <!-- Results -->
-      <div v-if="results.length > 0" class="p-2 bg-zinc-50 max-h-[300px] overflow-y-auto">
+      <!-- Results (Lenis Prevent applied here) -->
+      <div 
+        v-if="results.length > 0" 
+        class="p-2 bg-zinc-50 max-h-[300px] overflow-y-auto"
+        data-lenis-prevent
+      >
         <div class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-3 py-2">
             Results
         </div>

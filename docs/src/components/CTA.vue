@@ -72,7 +72,7 @@ onUnmounted(() => {
           <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-zinc-50/50"></div>
           
           <!-- Content -->
-          <div class="flex-1 px-6 py-12 md:p-16 lg:p-24 flex flex-col justify-center items-start lg:items-center lg:flex-row gap-6 sm:gap-10 lg:gap-20">
+          <div class="flex-1 px-6 py-12 md:p-16 lg:p-24 flex flex-col justify-center items-start lg:items-center lg:flex-row gap-10 lg:gap-20">
              <div class="flex-1 max-w-2xl relative z-10">
                 <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none mix-blend-multiply"></div>
                 <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tighter mb-6 md:mb-8 text-black relative z-10">
@@ -84,7 +84,7 @@ onUnmounted(() => {
              </div>
              
              <div class="relative z-10 shrink-0 w-full lg:w-auto">
-                 <router-link to="/docs" class="inline-flex w-full lg:w-auto items-center justify-center h-14 md:h-16 px-8 md:px-10 bg-black text-white font-bold text-base md:text-lg tracking-tight hover:scale-105 transition-transform duration-300">
+                 <router-link to="/docs" class="inline-flex w-full lg:w-auto items-center justify-center h-14 md:h-16 px-8 md:px-10 bg-black text-white font-bold text-base md:text-lg tracking-tight hover:bg-zinc-800 transition-colors">
                    Get Started
                  </router-link>
                  <div class="mt-4 mono text-[10px] text-zinc-400 uppercase tracking-widest text-center lg:text-left">

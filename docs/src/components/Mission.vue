@@ -12,50 +12,52 @@ onMounted(() => {
     const tl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
     
     // Initial State
-    gsap.set(cursorRef.value, { xPercent: -50, yPercent: -50, opacity: 0, scale: 0.5 });
-    
-    // Define Nodes (selectors)
-    const nodes = ['.node-1', '.node-2', '.node-3'];
+    gsap.set(cursorRef.value, { top: '50%', left: '50%', xPercent: -50, yPercent: -50, opacity: 0, scale: 0.5 });
     
     // Entrance
     tl.to(cursorRef.value, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.7)' });
 
-    // Loop through nodes
-    nodes.forEach((node) => {
+    // Loop through nodes hardcoded
+    const targets = [
+        { top: '30%', left: '20%', sel: '.node-1' },
+        { top: '20%', left: '80%', sel: '.node-2' },
+        { top: '70%', left: '50%', sel: '.node-3' }
+    ];
+
+    targets.forEach((target) => {
       // 1. Move to Node
       tl.to(cursorRef.value, {
-        top: gsap.getProperty(node, 'top'),
-        left: gsap.getProperty(node, 'left'),
+        top: target.top,
+        left: target.left,
         duration: 0.8,
         ease: 'power3.inOut'
       });
 
-      // 2. Click Animation (Cursor scales down, Node scales up)
+      // 2. Click Animation
       tl.to(cursorRef.value, { scale: 0.8, duration: 0.1, ease: 'power1.out' })
-        .to(node, { 
+        .to(target.sel, { 
             scale: 1.05, 
             backgroundColor: '#000', 
             borderColor: '#000', 
             duration: 0.1 
         }, '<');
 
-      // 3. Ripple Effect (Box Shadow Expansion) - Reduced Spread
-      tl.fromTo(node, 
+      // 3. Ripple
+      tl.fromTo(target.sel, 
         { boxShadow: '0 0 0 0px rgba(0,0,0,0.2)' },
         { 
-            boxShadow: '0 0 0 10px rgba(0,0,0,0)', // Reduced from 40px
-            duration: 0.5, // Slightly faster
+            boxShadow: '0 0 0 20px rgba(0,0,0,0)',
+            duration: 0.5,
             ease: 'power1.out',
-            clearProps: 'boxShadow' // Clean up for next loop
+            clearProps: 'boxShadow'
         }, 
-        '<' // Start with click
+        '<'
       );
 
-      // 4. Release (Cursor scales up, Node relaxes)
+      // 4. Release
       tl.to(cursorRef.value, { scale: 1, duration: 0.2, ease: 'back.out(2)' }, '+=0.1')
-        .to(node, { scale: 1, backgroundColor: '#FFF', borderColor: '#e4e4e7', duration: 0.4 }, '<');
+        .to(target.sel, { scale: 1, backgroundColor: '#FFF', borderColor: '#e4e4e7', duration: 0.4 }, '<');
       
-      // Pause briefly
       tl.to({}, { duration: 0.3 });
     });
 
@@ -63,7 +65,7 @@ onMounted(() => {
     tl.to(cursorRef.value, { top: '50%', left: '50%', duration: 0.6, ease: 'power2.inOut' })
       .to(cursorRef.value, { opacity: 0, scale: 0.5, duration: 0.4 }, '+=0.2');
 
-  }, container.value!); // Scope to container
+  }, container.value!);
 });
 
 onUnmounted(() => {
@@ -114,7 +116,6 @@ onUnmounted(() => {
           <!-- Simulation Nodes -->
           <div class="node-1 absolute top-[30%] left-[20%] w-20 h-20 border border-zinc-200 bg-white shadow-sm transform -translate-x-1/2 -translate-y-1/2 rounded-sm"></div>
           
-          <!-- Node 2: Changed from rounded-full to rounded-sm -->
           <div class="node-2 absolute top-[20%] left-[80%] w-24 h-24 border border-zinc-200 bg-white shadow-sm transform -translate-x-1/2 -translate-y-1/2 rounded-sm"></div>
           
           <div class="node-3 absolute top-[70%] left-[50%] w-48 h-16 border border-zinc-200 bg-white shadow-sm transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-sm">

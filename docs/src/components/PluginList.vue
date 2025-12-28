@@ -16,14 +16,11 @@ onMounted(() => {
     const tl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
 
     // Initial Positions
-    // Module starts at bottom-right area
-    gsap.set(moduleRef.value, { top: '75%', left: '25%', opacity: 1, backgroundColor: '#18181b', color: '#fff', scale: 1, borderColor: '#18181b' });
-    // Cursor starts outside
+    gsap.set(moduleRef.value, { top: '75%', left: '25%', opacity: 1, scale: 1, backgroundColor: '#18181b', color: '#fff', borderColor: '#18181b', boxShadow: 'none' });
     gsap.set(cursorRef.value, { top: '80%', left: '80%', opacity: 0, scale: 1 });
-    // Slot border reset
     gsap.set('.slot-target', { borderColor: '#e4e4e7', backgroundColor: 'transparent' });
-    // Stack items reset
-    gsap.set([coreRef.value, renderRef.value], { borderColor: '#e4e4e7', color: '#a1a1aa' });
+    gsap.set([coreRef.value, renderRef.value], { borderColor: '#e4e4e7', color: '#a1a1aa', backgroundColor: '#ffffff', scale: 1 });
+    gsap.set('.pluginDot', { backgroundColor: '#fbbf24'} );
 
     // 1. Cursor Enters
     tl.to(cursorRef.value, { opacity: 1, top: '78%', left: '30%', duration: 0.6, ease: 'power2.out' })
@@ -33,7 +30,6 @@ onMounted(() => {
     .to(moduleRef.value, { scale: 1.05, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', duration: 0.1 }, '<')
     
     // 3. Drags to Slot
-    // We use the slot's actual position
     .to([cursorRef.value, moduleRef.value], { 
       top: '50%', 
       left: '50%', 
@@ -45,38 +41,32 @@ onMounted(() => {
     .to(cursorRef.value, { scale: 1, duration: 0.15 })
     .to(moduleRef.value, { scale: 1, boxShadow: 'none', duration: 0.15 }, '<')
     
-    // 5. WATERFALL CONNECTION EFFECT
-    // Stagger activation: Core -> Module -> Render
+    // 4.5 Light up effect
+    .to('.pluginDot', { backgroundColor: '#34d399' } )
+    // 5. Connect Effect
     .to([coreRef.value, moduleRef.value, renderRef.value], {
         borderColor: '#000000',
         color: '#000000',
         backgroundColor: '#ffffff',
-        scale: 1.01, // Toned down from 1.02
+        scale: 1.01,
         duration: 0.1,
-        stagger: 0.08, // Slightly faster
+        stagger: 0.08,
         ease: 'power1.out'
     })
-    // 6. Slot Highlight (Sync with module)
     .to('.slot-target', { borderColor: 'transparent', duration: 0.1 }, '-=0.2')
 
-    // 7. Cursor Leaves
+    // 6. Cursor Leaves
     .to(cursorRef.value, { top: '20%', left: '80%', opacity: 0, duration: 0.5, ease: 'power2.in' }, '+=0.2')
 
-    // 8. Reset Sequence (Fade out module, reset stack)
+    // 7. Reset Sequence
     .to(moduleRef.value, { opacity: 0, duration: 0.3, delay: 0.5 })
-    
-    // Reset Stack appearance
     .to([coreRef.value, renderRef.value], {
         borderColor: '#e4e4e7',
         color: '#a1a1aa',
         backgroundColor: '#ffffff',
         scale: 1,
         duration: 0.3
-    }, '<')
-
-    // Reset Module Position & State hidden
-    .set(moduleRef.value, { top: '75%', left: '25%', backgroundColor: '#18181b', color: '#fff', borderColor: '#18181b' }) 
-    .set('.slot-target', { borderColor: '#e4e4e7' }); // Reset Slot
+    }, '<');
 
   }, container.value!);
 });
@@ -109,9 +99,6 @@ onUnmounted(() => {
           <!-- Text Block -->
           <div class="flex-1 px-6 py-12 md:p-16 lg:p-24 bg-white relative z-10">
              <div class="max-w-2xl">
-                <span class="inline-block px-3 py-1 bg-zinc-100 text-zinc-900 mono text-[10px] uppercase font-bold tracking-widest mb-6">
-                    Architecture
-                </span>
                 <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter text-zinc-900 mb-6 md:mb-8 leading-[1.05]">
                     Plugins are first-class citizens.
                 </h3>
@@ -151,24 +138,18 @@ onUnmounted(() => {
                   </div>
               </div>
 
-              <!-- Draggable Module (Animated) -->
+              <!-- Draggable Module -->
               <div 
                 ref="moduleRef"
                 class="absolute w-48 h-12 bg-zinc-900 border border-zinc-900 shadow-xl flex items-center px-4 z-20 transform -translate-x-1/2 -translate-y-1/2 transition-colors"
               >
-                  <!-- Square Indicator (Was Circle) -->
-                  <div class="w-2 h-2 bg-emerald-400 rounded-sm mr-3 animate-pulse"></div>
+                  <div class="pluginDot w-2 h-2 bg-emerald-400 border-zinc-900 border border-solid rounded-sm mr-3"></div>
                   <span class="mono text-[10px] font-bold inherit uppercase tracking-widest flex-1">
-                    @supermouse/mag
+                    @supermouse/plugin
                   </span>
-                  <!-- Pins -->
-                  <div class="flex gap-1 opacity-50">
-                    <div class="w-1 h-1 bg-current rounded-full"></div>
-                    <div class="w-1 h-1 bg-current rounded-full"></div>
-                  </div>
               </div>
 
-              <!-- Cursor (Animated) -->
+              <!-- Cursor -->
               <div 
                 ref="cursorRef"
                 class="absolute z-30 w-6 h-6 pointer-events-none drop-shadow-xl transform -translate-x-1/2 -translate-y-1/2"

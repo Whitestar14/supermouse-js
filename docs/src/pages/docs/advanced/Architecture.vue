@@ -137,7 +137,7 @@ function tick(time) {
                 The "Double Cursor" glitch happens when an element's CSS (`cursor: pointer`) overrides the body's `cursor: none`.
             </p>
             <p class="text-sm text-zinc-600 leading-relaxed">
-                Supermouse doesn't just hide the body cursor. It injects a dynamic <code>&lt;style&gt;</code> tag that targets every interactive selector registered by plugins (e.g. <code>a, button, [data-hover]</code>) and applies <code>cursor: none !important</code>.
+                Hiding the body cursor won't be enough, so Supermouse injects a dynamic <code>&lt;style&gt;</code> tag that targets every interactive selector registered by plugins (e.g. <code>a, button, [data-hover]</code>) and applies <code>cursor: none !important</code>.
             </p>
         </div>
     </div>

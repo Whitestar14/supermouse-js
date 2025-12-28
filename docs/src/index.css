@@ -18,6 +18,14 @@
     font-variant-ligatures: none;
 }
 
+code {
+    @apply text-[0.9rem];
+}
+
+p {
+    font-feature-settings: "salt" 0;
+}
+
 html.lenis, html.lenis body {
   height: auto;
 }

@@ -14,19 +14,20 @@ const { open } = usePlayground();
       A collection of pre-configured cursor effects. Click "Run" to open the Studio, tweak parameters, and copy the code.
     </p>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
+    <div class="flex flex-wrap border-t border-l border-zinc-200">
         <div 
             v-for="recipe in RECIPES" 
             :key="recipe.id"
-            class="bg-white p-8 group hover:bg-zinc-50 transition-colors flex flex-col h-full"
+            class="w-full md:w-1/2 bg-white p-8 group hover:bg-zinc-50 transition-colors flex flex-col border-b border-r border-zinc-200"
         >
             <div class="flex items-start justify-between mb-6">
                 <div class="w-12 h-12 border border-zinc-100 bg-zinc-50 flex items-center justify-center rounded-sm text-zinc-900">
                     <span v-html="recipe.icon" class="w-6 h-6"></span>
                 </div>
+                <!-- Hidden on mobile -->
                 <button 
                     @click="open(recipe.id)"
-                    class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black border border-zinc-200 px-3 py-1.5 hover:border-black transition-colors"
+                    class="hidden md:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black border border-zinc-200 px-3 py-1.5 hover:border-black transition-colors"
                 >
                     Run in Studio
                 </button>
