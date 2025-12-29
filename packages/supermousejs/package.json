@@ -5,6 +5,7 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "url": "https://github.com/Whitestar14/supermouse-js",
   "scripts": {
     "build": "vite build"
   },

@@ -4,6 +4,9 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "author": "O.S David",
+  "url": "https://github.com/Whitestar14/supermouse-js",
+  "license": "MIT",
   "scripts": {
     "build": "vite build"
   },

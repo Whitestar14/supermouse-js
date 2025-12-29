@@ -8,6 +8,9 @@
     "build": "vite build",
     "test": "vitest"
   },
+  "author": "O.S David",
+  "url": "https://github.com/Whitestar14/supermouse-js",
+  "license": "MIT",
   "keywords": [
     "cursor",
     "pointer",
