@@ -6,7 +6,7 @@ import Callout from '../../../components/ui/Callout.vue';
 
 const shellCode = `pnpm add @supermousejs/core @supermousejs/dot @supermousejs/ring`;
 
-const unscopedCode = `npm install supermousejs`;
+const unscopedCode = `pnpm install supermousejs`;
 
 const cdnCode = `<!-- All-in-one bundle (Core + Dot + Ring) -->
 <script src="https://unpkg.com/supermousejs"><\/script>
