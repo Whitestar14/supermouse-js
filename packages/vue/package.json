@@ -10,14 +10,13 @@
   "scripts": {
     "build": "vite build"
   },
-  "dependencies": {
+  "peerDependencies": {
+    "vue": "^3.2.0",
     "@supermousejs/core": "workspace:*"
   },
-  "peerDependencies": {
-    "vue": "^3.2.0"
-  },
   "devDependencies": {
-    "vue": "^3.2.0"
+    "vue": "^3.2.0",
+    "@supermousejs/core": "workspace:*"
   },
   "exports": {
     ".": {

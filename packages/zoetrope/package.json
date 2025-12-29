@@ -10,10 +10,9 @@
   "scripts": {
     "build": "vite build"
   },
-  "dependencies": {
+  "devDependencies": {
     "@supermousejs/core": "workspace:*"
   },
-  "devDependencies": {},
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -23,5 +22,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@supermousejs/core": "workspace:*"
   }
 }

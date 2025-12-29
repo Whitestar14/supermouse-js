@@ -2,13 +2,11 @@ import type { Supermouse, SupermousePlugin } from '@supermousejs/core';
 import { normalize } from './options';
 import { setStyle } from './dom';
 
-// --- SHARED OPTIONS ---
 export interface BasePluginOptions {
   name?: string;
   isEnabled?: boolean;
 }
 
-// --- MODE A: LOGIC PLUGIN CONFIG ---
 interface LogicConfig {
   name: string;
   priority?: number;

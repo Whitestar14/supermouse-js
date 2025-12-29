@@ -20,7 +20,6 @@
   "author": "O.S David",
   "license": "MIT",
   "dependencies": {
-    "@supermousejs/core": "workspace:*",
     "@supermousejs/dot": "workspace:*",
     "@supermousejs/ring": "workspace:*"
   },
@@ -30,5 +29,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.umd.js"
     }
+  },
+  "peerDependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@supermousejs/core": "workspace:*"
   }
 }

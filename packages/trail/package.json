@@ -11,11 +11,14 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@supermousejs/core": "workspace:*",
     "@supermousejs/utils": "workspace:*"
   },
-  "devDependencies": {},
-  "peerDependencies": {},
+  "devDependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@supermousejs/core": "workspace:*"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

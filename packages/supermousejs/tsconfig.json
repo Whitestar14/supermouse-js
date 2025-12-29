@@ -4,10 +4,5 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": ".",
-    "paths": {
-      "@supermousejs/core": ["../core/src/index.ts"],
-      "@supermousejs/dot": ["../dot/src/index.ts"],
-      "@supermousejs/ring": ["../ring/src/index.ts"]
-    }
   }
 }

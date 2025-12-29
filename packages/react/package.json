@@ -10,18 +10,17 @@
   "scripts": {
     "build": "vite build"
   },
-  "dependencies": {
-    "@supermousejs/core": "workspace:*"
-  },
   "peerDependencies": {
     "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react-dom": ">=16.8.0",
+    "@supermousejs/core": "workspace:*"
   },
   "devDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "@types/react-dom": "^18.2.0",
+    "@supermousejs/core": "workspace:*"
   },
   "exports": {
     ".": {
