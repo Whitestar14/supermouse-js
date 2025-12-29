@@ -1,5 +1,14 @@
 # @supermousejs/icon
 
+## 2.0.4
+
+### Patch Changes
+
+- 993dc67: Updated supemousejs packages with proper author, license and url descriptors to repo
+- Updated dependencies [993dc67]
+  - @supermousejs/utils@2.0.4
+  - @supermousejs/core@2.0.4
+
 ## 2.0.3
 
 ### Patch Changes
