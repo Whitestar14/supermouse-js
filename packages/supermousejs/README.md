@@ -7,6 +7,10 @@ This package provides a convenient, unscoped entry point for the Supermouse ecos
 ## Installation
 
 ```bash
+pnpm add supermousejs
+```
+or
+```bash
 npm install supermousejs
 ```
 
@@ -29,3 +33,7 @@ If you prefer clean import paths or are using a CDN (like unpkg) and want a sing
 
 For advanced users or those looking to minimize bundle size, we recommend using the modular packages:
 `@supermousejs/core`, `@supermousejs/dot`, etc.
+
+## Documentation
+
+Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

@@ -1,5 +1,11 @@
 # supermousejs
 
+## 2.0.2
+
+### Patch Changes
+
+- Fixed export options causing build failure
+
 ## 2.0.1
 
 ### Patch Changes
