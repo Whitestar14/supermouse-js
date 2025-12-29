@@ -487,7 +487,7 @@
     "description": "The official unscoped bundle for v2. Quickest way to get started with the standard Dot & Ring setup.",
     "code": "import Supermouse, { Dot, Ring } from 'supermousejs';\n\nconst app = new Supermouse();\napp.use(Dot()).use(Ring());",
     "icon": "dot",
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   {
     "id": "text",
