@@ -25,13 +25,12 @@ const toggleMenu = () => {
   document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : '';
 };
 
-const triggerSpin = (e: MouseEvent) => {
-  if (isSpinning.value) return; // Debounce
+const triggerSpin = () => {
+  if (isSpinning.value) return;
   isSpinning.value = true;
   
   setTimeout(() => {
     isSpinning.value = false;
-    // Toggle Cursor Mode (Native vs Custom)
     if (mouse.value) {
         if (mouse.value.isEnabled) {
             mouse.value.disable();
@@ -87,7 +86,7 @@ const triggerSpin = (e: MouseEvent) => {
                     @click="showVersionMenu = !showVersionMenu" 
                     class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black transition-colors relative top-[1px]"
                 >
-                    v2.0
+                    v2.1
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" :class="showVersionMenu ? 'rotate-180' : ''" class="transition-transform"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
                 
@@ -96,7 +95,7 @@ const triggerSpin = (e: MouseEvent) => {
                      class="absolute top-full left-0 mt-px w-48 bg-white border border-zinc-200 z-50 flex flex-col"
                 >
                     <a href="#" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-black bg-white uppercase tracking-widest border-b border-zinc-200">
-                        <span>v2.0 (Stable)</span>
+                        <span>v2.1 (Stable)</span>
                         <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div>
                     </a>
                     <a :href="GITHUB_URL" target="_blank" class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest">

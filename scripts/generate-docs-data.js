@@ -1,4 +1,3 @@
-
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -10,7 +9,7 @@ const docsDataDir = path.join(rootDir, 'docs/src');
 const outputFile = path.join(docsDataDir, 'generated-plugins.json');
 
 function generate() {
-  console.log('📖 Generating documentation data from packages...');
+  console.log('📖 Syncing metadata and auto-generating snippets...');
 
   if (!fs.existsSync(packagesDir)) {
     console.error('❌ packages directory not found');
@@ -21,50 +20,48 @@ function generate() {
   const dirs = fs.readdirSync(packagesDir);
 
   for (const dir of dirs) {
-    const metaPath = path.join(packagesDir, dir, 'meta.json');
     const pkgPath = path.join(packagesDir, dir, 'package.json');
+    const metaPath = path.join(packagesDir, dir, 'meta.json');
+    const readmePath = path.join(packagesDir, dir, 'README.md');
 
-    if (fs.existsSync(metaPath)) {
+    if (fs.existsSync(metaPath) && fs.existsSync(pkgPath)) {
       try {
-        const rawMeta = fs.readFileSync(metaPath, 'utf-8');
-        const meta = JSON.parse(rawMeta);
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
         
-        let version = '0.0.0';
-        if (fs.existsSync(pkgPath)) {
-            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-            version = pkg.version;
-        }
-        
-        // Handle Array (Multi-plugin package) or Object (Single-plugin package)
+        // Skip private packages or the main bundle if you want
+        if (pkg.private) continue;
+
         const items = Array.isArray(meta) ? meta : [meta];
 
         items.forEach(item => {
-            if (item.id && item.name) {
-                // Ensure 'package' field exists, fallback to standard naming if missing
-                if (!item.package) {
-                    item.package = `@supermousejs/${dir}`;
-                }
-                // Inject actual package version
-                item.version = version;
-                
-                plugins.push(item);
-                console.log(`   + Found meta for ${item.name} (${version})`);
-            }
-        });
+          if (item.id && item.name) {
+            const pkgName = pkg.name;
+            
+            // --- AUTOMATION WINS ---
+            // 1. Auto-generate the install command
+            item.installCommand = `pnpm install ${pkgName}`;
+            
+            // 2. Auto-generate the import snippet
+            // (Assuming your export name matches the meta name or a standard)
+            item.importSnippet = `import { ${item.name} } from '${pkgName}'`;
+            
+            // 3. Check if README exists to create a link
+            item.hasDetailedDocs = fs.existsSync(readmePath);
+            
+            item.version = pkg.version;
+            item.package = pkgName;
 
+            plugins.push(item);
+            console.log(`   + Processed ${item.name} v${pkg.version}`);
+          }
+        });
       } catch (e) {
-        console.warn(`   ! Error parsing ${metaPath}:`, e.message);
+        console.warn(`   ! Error in ${dir}:`, e.message);
       }
     }
   }
 
-  // Ensure docs dir exists
-  if (!fs.existsSync(docsDataDir)) {
-    console.error('❌ docs/src directory not found. Is this a supermouse repo?');
-    process.exit(1);
-  }
-
-  // Write file
   fs.writeFileSync(outputFile, JSON.stringify(plugins, null, 2));
   console.log(`✅ Wrote ${plugins.length} plugins to ${outputFile}`);
 }

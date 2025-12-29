@@ -51,7 +51,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/dot",
+    "importSnippet": "import { Dot } from '@supermousejs/dot'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "icon",
@@ -97,7 +100,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/icon",
+    "importSnippet": "import { Icon } from '@supermousejs/icon'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "image",
@@ -136,7 +142,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/image",
+    "importSnippet": "import { Image } from '@supermousejs/image'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "smart-icon",
@@ -190,7 +199,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/labs",
+    "importSnippet": "import { SmartIcon } from '@supermousejs/labs'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "smart-ring",
@@ -222,7 +234,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/labs",
+    "importSnippet": "import { SmartRing } from '@supermousejs/labs'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "sparkles",
@@ -254,7 +269,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/labs",
+    "importSnippet": "import { Sparkles } from '@supermousejs/labs'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "text-ring",
@@ -286,7 +304,10 @@
         "reactive": true
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/labs",
+    "importSnippet": "import { TextRing } from '@supermousejs/labs'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "magnetic",
@@ -312,7 +333,10 @@
         "reactive": true
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/magnetic",
+    "importSnippet": "import { Magnetic } from '@supermousejs/magnetic'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "pointer",
@@ -380,7 +404,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/pointer",
+    "importSnippet": "import { Pointer } from '@supermousejs/pointer'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "ring",
@@ -427,7 +454,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/ring",
+    "importSnippet": "import { Ring } from '@supermousejs/ring'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "states",
@@ -459,7 +489,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/states",
+    "importSnippet": "import { States } from '@supermousejs/states'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "stick",
@@ -478,7 +511,10 @@
         "reactive": true
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/stick",
+    "importSnippet": "import { Stick } from '@supermousejs/stick'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "supermousejs",
@@ -487,7 +523,10 @@
     "description": "The official unscoped bundle for v2. Quickest way to get started with the standard Dot & Ring setup.",
     "code": "import Supermouse, { Dot, Ring } from 'supermousejs';\n\nconst app = new Supermouse();\napp.use(Dot()).use(Ring());",
     "icon": "dot",
-    "version": "2.0.2"
+    "installCommand": "pnpm install supermousejs",
+    "importSnippet": "import { Supermouse JS (Standard) } from 'supermousejs'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "text",
@@ -520,7 +559,10 @@
         "reactive": false
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/text",
+    "importSnippet": "import { Text } from '@supermousejs/text'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   },
   {
     "id": "trail",
@@ -553,6 +595,9 @@
         "reactive": true
       }
     ],
-    "version": "2.0.4"
+    "installCommand": "pnpm install @supermousejs/trail",
+    "importSnippet": "import { Trail } from '@supermousejs/trail'",
+    "hasDetailedDocs": true,
+    "version": "2.1.0"
   }
 ]

@@ -50,9 +50,6 @@ importers:
       '@supermousejs/pointer':
         specifier: workspace:*
         version: link:../packages/pointer
-      '@supermousejs/react':
-        specifier: workspace:*
-        version: link:../packages/react
       '@supermousejs/ring':
         specifier: workspace:*
         version: link:../packages/ring
@@ -71,9 +68,6 @@ importers:
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../packages/utils
-      '@supermousejs/vue':
-        specifier: workspace:*
-        version: link:../packages/vue
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.23(postcss@8.5.6)
@@ -110,79 +104,85 @@ importers:
 
   packages/dot:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/icon:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/image:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
-
-  packages/labs:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/labs:
+    dependencies:
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
       '@supermousejs/zoetrope':
         specifier: workspace:*
         version: link:../zoetrope
-
-  packages/legacy:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/legacy:
+    dependencies:
       '@supermousejs/dot':
         specifier: workspace:*
         version: link:../dot
       '@supermousejs/ring':
         specifier: workspace:*
         version: link:../ring
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/magnetic:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/pointer:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
-
-  packages/react:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/react:
     devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
       '@types/react':
         specifier: ^18.2.0
         version: 18.3.27
@@ -198,79 +198,84 @@ importers:
 
   packages/ring:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/states:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/stick:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
-
-  packages/supermousejs:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/supermousejs:
+    dependencies:
       '@supermousejs/dot':
         specifier: workspace:*
         version: link:../dot
       '@supermousejs/ring':
         specifier: workspace:*
         version: link:../ring
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/text:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/trail:
     dependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
       '@supermousejs/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@supermousejs/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/utils:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
 
   packages/vue:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core
-    devDependencies:
       vue:
         specifier: ^3.2.0
         version: 3.5.26(typescript@5.8.3)
 
   packages/zoetrope:
-    dependencies:
+    devDependencies:
       '@supermousejs/core':
         specifier: workspace:*
         version: link:../core

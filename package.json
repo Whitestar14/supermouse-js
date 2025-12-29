@@ -5,16 +5,21 @@
   "type": "module",
   "scripts": {
     "dev:play": "pnpm --filter supermouse-playground dev",
-    "dev:docs": "node scripts/generate-docs-data.js && pnpm --filter supermouse-docs dev",
-    "build": "node scripts/generate-docs-data.js && pnpm -r run build",
+    "dev:docs": "pnpm generate-docs && pnpm --filter supermouse-docs dev",
+    "build": "pnpm generate-docs && pnpm -r run build",
+    "build:docs": "pnpm generate-docs && pnpm --filter supermouse-docs build",
     "test": "pnpm -r run test",
+    
+    "generate-docs": "node scripts/generate-docs-data.js",
     "check:size": "node scripts/check-size.js",
     "manage": "node scripts/manage.js",
-    "create:plugin": "node scripts/create-plugin.js", 
+    "create:plugin": "node scripts/create-plugin.js",
     "remove:plugin": "node scripts/remove-plugin.js",
     "sync": "node scripts/sync-configs.js",
     "sync:utils": "node scripts/sync-utils.js",
     "fix:names": "node scripts/fix-umd-names.js",
+    "fix:deps": "node scripts/migrate-peerdeps.js",
+
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm install && pnpm build && changeset publish"
