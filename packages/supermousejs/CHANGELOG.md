@@ -1,5 +1,17 @@
 # supermousejs
 
+## 2.1.0
+
+### Minor Changes
+
+- 0a1652d: fixed build architecture and updated plugin metadata
+
+### Patch Changes
+
+- Updated dependencies [0a1652d]
+  - @supermousejs/ring@2.1.0
+  - @supermousejs/dot@2.1.0
+
 ## 2.0.2
 
 ### Patch Changes

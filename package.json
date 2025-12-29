@@ -17,7 +17,7 @@
     "fix:names": "node scripts/fix-umd-names.js",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm install && pnpm build && changeset publish"
   },
   "keywords": [
     "cursor",

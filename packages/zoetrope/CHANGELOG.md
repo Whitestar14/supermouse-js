@@ -1,5 +1,11 @@
 # @supermousejs/zoetrope
 
+## 2.1.0
+
+### Minor Changes
+
+- 0a1652d: fixed build architecture and updated plugin metadata
+
 ## 2.0.4
 
 ### Patch Changes
