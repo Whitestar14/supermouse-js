@@ -1,7 +1,6 @@
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { math } from '@supermousejs/utils';
+import { ref, onMounted, onUnmounted } from "vue";
+import { math } from "@supermousejs/utils";
 
 const container = ref<HTMLElement | null>(null);
 
@@ -16,20 +15,20 @@ let rafId = 0;
 const updateMouse = (e: MouseEvent) => {
   if (container.value) {
     const rect = container.value.getBoundingClientRect();
-    mouse.value = { 
-      x: e.clientX - rect.left, 
-      y: e.clientY - rect.top 
+    mouse.value = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
     };
   }
 };
 
 const loop = () => {
   const smoothness = 0.1;
-  
+
   // Smooth position
   pos.value.x = math.lerp(pos.value.x, mouse.value.x, smoothness);
   pos.value.y = math.lerp(pos.value.y, mouse.value.y, smoothness);
-  
+
   // Smooth size (Expansion/Contraction)
   const targetR = isHover.value ? 400 : 0;
   currentRadius.value = math.lerp(currentRadius.value, targetR, 0.08);
@@ -49,17 +48,24 @@ onUnmounted(() => {
 <template>
   <section class="relative bg-white overflow-hidden">
     <!-- Header -->
-    <div class="flex border-t border-b border-zinc-200 h-16 md:h-20 bg-white relative z-30">
-      <div class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0">
+    <div
+      class="flex border-t border-b border-zinc-200 h-16 md:h-20 bg-white relative z-30"
+    >
+      <div
+        class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0"
+      >
         <span class="mono text-lg font-bold text-zinc-900">04</span>
       </div>
       <div class="flex-1 px-6 md:px-8 flex items-center">
-           <span class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">CallToAction.vue</span>
+        <span
+          class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold"
+          >CallToAction.vue</span
+        >
       </div>
     </div>
 
     <!-- Main Interactive Container -->
-    <div 
+    <div
       ref="container"
       class="relative min-h-[400px] md:min-h-[500px] flex flex-col group bg-white cursor-none"
       @mousemove="updateMouse"
@@ -68,30 +74,73 @@ onUnmounted(() => {
     >
       <!-- Content Layer (Black Text on White) -->
       <div class="absolute inset-0 flex flex-col lg:flex-row bg-white z-10">
-          <!-- Gutter -->
-          <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-zinc-50/50"></div>
-          
-          <!-- Content -->
-          <div class="flex-1 px-6 py-12 md:p-16 lg:p-24 flex flex-col justify-center items-start lg:items-center lg:flex-row gap-10 lg:gap-20">
-             <div class="flex-1 max-w-2xl relative z-10">
-                <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none mix-blend-multiply"></div>
-                <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tighter mb-6 md:mb-8 text-black relative z-10">
-                  Ready to upgrade your interaction game?
-                </h2>
-                <p class="text-zinc-600 text-base sm:text-lg md:text-xl font-medium leading-relaxed relative z-10">
-                  Supermouse v2 is designed to vanish into your workflow while making your UI stand out.
-                </p>
-             </div>
-             
-             <div class="relative z-10 shrink-0 w-full lg:w-auto">
-                 <router-link to="/docs" class="inline-flex w-full lg:w-auto items-center justify-center h-14 md:h-16 px-8 md:px-10 bg-black text-white font-bold text-base md:text-lg tracking-tight hover:bg-zinc-800 transition-colors">
-                   Get Started
-                 </router-link>
-                 <div class="mt-4 mono text-[10px] text-zinc-400 uppercase tracking-widest text-center lg:text-left">
-                    Available on npm
-                 </div>
-             </div>
+        <!-- Gutter -->
+        <div
+          class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-zinc-50/50"
+        ></div>
+
+        <!-- Content -->
+        <div
+          class="flex-1 px-6 py-12 md:p-16 lg:p-24 flex flex-col justify-center items-start lg:items-center lg:flex-row gap-10 lg:gap-20"
+        >
+          <div class="flex-1 max-w-2xl relative z-10">
+            <div
+              class="absolute inset-0 grid-bg opacity-30 pointer-events-none mix-blend-multiply"
+            ></div>
+            <h2
+              class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tighter mb-6 md:mb-8 text-black relative z-10"
+            >
+              Ready to upgrade your interaction game?
+            </h2>
+            <p
+              class="text-zinc-600 text-base sm:text-lg md:text-xl font-medium leading-relaxed relative z-10"
+            >
+              Supermouse v2 is designed to vanish into your workflow while
+              making your UI stand out, try it out today.
+            </p>
           </div>
+
+          <div class="relative z-10 shrink-0 w-full lg:w-auto">
+            <router-link
+              to="/docs"
+              class="relative group inline-flex w-full lg:w-auto items-center justify-center h-14 md:h-16 px-8 md:px-10 bg-black text-white font-bold text-base md:text-lg tracking-tight hover:bg-zinc-800 transition-colors"
+            >
+              <span
+                class="group-hover:opacity-0 transition-opacity duration-200"
+                >Get Started</span
+              >
+              <span
+                class="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                ><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  stroke="#ffffff"
+                  class="size-10"
+                >
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g
+                    id="SVGRepo_tracerCarrier"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.4697 5.46967C13.7626 5.17678 14.2374 5.17678 14.5303 5.46967L20.5303 11.4697C20.8232 11.7626 20.8232 12.2374 20.5303 12.5303L14.5303 18.5303C14.2374 18.8232 13.7626 18.8232 13.4697 18.5303C13.1768 18.2374 13.1768 17.7626 13.4697 17.4697L18.1893 12.75H4C3.58579 12.75 3.25 12.4142 3.25 12C3.25 11.5858 3.58579 11.25 4 11.25H18.1893L13.4697 6.53033C13.1768 6.23744 13.1768 5.76256 13.4697 5.46967Z"
+                      fill="#ffffff"
+                    ></path>
+                  </g></svg
+              ></span>
+            </router-link>
+            <div
+              class="mt-4 mono text-[10px] text-zinc-400 uppercase tracking-widest text-center lg:text-left"
+            >
+              Available on npm
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Spotlight Layer -->
@@ -99,22 +148,21 @@ onUnmounted(() => {
            White Background + White Circle (Difference) = Black
            Black Text + White Circle (Difference) = White
       -->
-      <div 
+      <div
         class="absolute top-0 left-0 pointer-events-none z-50 mix-blend-difference will-change-transform hidden md:block"
         :style="{
           transform: `translate(${pos.x}px, ${pos.y}px)`,
         }"
       >
-        <div 
+        <div
           class="bg-white rounded-full will-change-transform"
           :style="{
             width: `${currentRadius * 2}px`,
             height: `${currentRadius * 2}px`,
-            transform: `translate(-50%, -50%)`
+            transform: `translate(-50%, -50%)`,
           }"
         ></div>
       </div>
-
     </div>
   </section>
 </template>

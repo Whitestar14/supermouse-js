@@ -22,6 +22,10 @@ code {
     @apply text-[0.9rem];
 }
 
+b {
+    @apply text-zinc-600
+}
+
 p {
     font-feature-settings: "salt" 0;
 }

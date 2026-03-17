@@ -3,6 +3,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import CodeBlock from '../../components/CodeBlock.vue';
+import MetadataStrip from '../../components/MetadataStrip.vue';
 import { PLUGINS } from '../../plugin-data';
 
 const route = useRoute();
@@ -15,11 +16,17 @@ const installCode = computed(() => {
     // Dynamic: Uses the explicit package name from metadata
     return `pnpm add ${plugin.value?.package}`;
 });
+
+const metaItems = computed(() => [
+  { label: 'VERSION', content: plugin.value?.version || 'Latest' },
+  { label: 'LICENSE', content: 'MIT' },
+  { label: 'CONFIG', content: `${plugin.value?.options?.length || 0} Options` },
+]);
 </script>
 
 <template>
   <div v-if="plugin">
-    
+
     <!-- Clean Header with Breadcrumbs -->
     <div class="mb-8">
         <div class="flex items-center gap-2 mb-6">
@@ -37,23 +44,7 @@ const installCode = computed(() => {
     </div>
 
     <!-- Meta Strip (Matching Introduction) -->
-    <div class="flex items-center gap-6 mb-12 border-y border-zinc-200 py-4 font-mono text-xs">
-        <div class="flex items-center gap-2">
-            <span class="font-bold text-zinc-900">VERSION</span>
-            <!-- Use the version injected by generate-docs-data.js -->
-            <span class="text-zinc-500">{{ plugin.version || 'Latest' }}</span>
-        </div>
-        <div class="w-px h-4 bg-zinc-200"></div>
-        <div class="flex items-center gap-2">
-            <span class="font-bold text-zinc-900">LICENSE</span>
-            <span class="text-zinc-500">MIT</span>
-        </div>
-        <div class="w-px h-4 bg-zinc-200"></div>
-        <div class="flex items-center gap-2">
-            <span class="font-bold text-zinc-900">CONFIG</span>
-            <span class="text-zinc-500">{{ plugin.options?.length || 0 }} Options</span>
-        </div>
-    </div>
+    <MetadataStrip :items="metaItems" />
 
     <!-- Intro Text -->
     <div class="flex flex-col md:flex-row gap-12 mb-16">
@@ -78,9 +69,9 @@ const installCode = computed(() => {
                 <span class="w-1.5 h-1.5 bg-black"></span>
                 Usage
             </h3>
-            <CodeBlock 
-                :code="plugin.code" 
-                lang="typescript" 
+            <CodeBlock
+                :code="plugin.code"
+                lang="typescript"
                 :recipeId="plugin.recipeId"
                 :clean="true"
                 class="border border-zinc-200 shadow-sm flex-1"
@@ -136,7 +127,7 @@ const installCode = computed(() => {
     </div>
 
   </div>
-  
+
   <!-- 404 State -->
   <div v-else class="min-h-[50vh] flex flex-col items-center justify-center text-center p-8">
     <div class="w-16 h-16 border border-zinc-200 flex items-center justify-center mb-6 text-zinc-300">
