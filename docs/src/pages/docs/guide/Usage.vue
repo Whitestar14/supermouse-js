@@ -4,6 +4,7 @@ import CodeBlock from "@/components/shared/CodeBlock.vue";
 import Callout from "@/components/shared/Callout.vue";
 import SectionHeader from "@/components/shared/SectionHeader.vue";
 import Text from "@/components/shared/Text.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 const initCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
@@ -94,14 +95,16 @@ onUnmounted(() => {
   <DocsSection label="Guide" title="Usage">
     <Text weight="medium" size="lg" class="mb-12">
       Supermouse is a <b>singleton runtime</b>. It manages the animation loop, input listeners, and
-      the plugin pipeline. You initialize it once when your application mounts.
+      the plugin pipeline. You initialize it once when your application mounts. See the
+      <ApiLink to="constructor">constructor options</ApiLink> for all available settings.
     </Text>
 
     <!-- Configuration -->
     <SectionHeader :level="2" class="mb-6"> 1. Configuration </SectionHeader>
     <Text class="mb-6">
-      The constructor accepts a <code>SupermouseOptions</code> object. You can pass plugins directly
-      in the configuration array.
+      The constructor accepts a <code>SupermouseOptions</code> object. You can pass
+      <ApiLink to="plugins">plugins</ApiLink> directly in the configuration array or use
+      <ApiLink to="use">use()</ApiLink> at runtime.
     </Text>
     <div class="mb-8">
       <CodeBlock
@@ -124,7 +127,7 @@ onUnmounted(() => {
     <SectionHeader :level="2" class="mb-6 mt-16"> 2. Runtime Registration </SectionHeader>
     <Text class="mb-6">
       If you need to add plugins later (e.g. lazy loading), you can use the chainable
-      <code>use()</code> method.
+      <ApiLink to="use">use()</ApiLink> method for runtime registration.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -140,20 +143,23 @@ onUnmounted(() => {
 
     <Text class="mb-6">
       Interaction in Supermouse is completely data-driven. The Core does not know what "magnetic"
-      means. It simply parses metadata (State) from the DOM and exposes it to plugins.
+      means. It simply parses metadata (State) from the DOM and exposes it to plugins via
+      <ApiLink to="state.interaction">state.interaction</ApiLink>.
     </Text>
 
     <Callout title="The Concept">
-      The Input system scrapes <code>rules</code> or <code>data-attributes</code> to populate
-      <code>app.state.interaction</code>. Plugins like <strong>Magnetic</strong> or
-      <strong>Dot</strong> read this state to decide what to do.
+      The Input system scrapes <ApiLink to="rules">rules</ApiLink> or
+      <code>data-supermouse-*</code> attributes to populate
+      <ApiLink to="state.interaction">state.interaction</ApiLink>. Plugins like
+      <strong>Magnetic</strong> or <strong>Dot</strong> read this state to decide what to do.
     </Callout>
 
     <div class="grid grid-cols-1 gap-8 mb-12">
       <div>
         <SectionHeader :level="4"> Global Rules (Recommended) </SectionHeader>
         <Text size="sm" class="mb-4">
-          Map CSS selectors to state objects. This keeps your HTML clean.
+          Map CSS selectors to state objects via the <ApiLink to="rules">rules option</ApiLink>.
+          This keeps your HTML clean.
         </Text>
         <CodeBlock
           :code="interactionCode"
@@ -166,8 +172,9 @@ onUnmounted(() => {
       <div>
         <SectionHeader :level="4"> HTML Overrides </SectionHeader>
         <Text size="sm" class="mb-4">
-          Use <code>data-supermouse-*</code> attributes for one-off overrides. These take precedence
-          over rules.
+          Use <code>data-supermouse-*</code> attributes (see
+          <ApiLink to="data-attributes">data attribute docs</ApiLink>) for one-off overrides. These
+          take precedence over rules.
         </Text>
         <CodeBlock :code="htmlCode" title="index.html" lang="html" class="border border-zinc-200" />
       </div>
@@ -177,8 +184,8 @@ onUnmounted(() => {
     <SectionHeader :level="2" class="mb-6"> 4. Scoped Containers </SectionHeader>
     <Text class="mb-6 max-w-2xl">
       By default, Supermouse appends to <code>document.body</code> and tracks the window. You can
-      restrict the cursor to a specific div (e.g., a modal, a canvas wrapper, or a specific section
-      of your site) using the <code>container</code> option.
+      restrict the cursor to a specific div (e.g., a modal, a canvas wrapper) using the
+      <ApiLink to="container">container</ApiLink> option.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -194,7 +201,7 @@ onUnmounted(() => {
     <Text class="mb-6">
       Sometimes you need strict control over the cursor visibility (e.g., drag and drop operations,
       custom modals, or games). Use
-      <code>setCursor</code> to override the internal auto-detection.
+      <ApiLink to="setcursor">setCursor</ApiLink> to override the internal auto-detection.
     </Text>
     <div class="mb-12">
       <CodeBlock :code="visibilityCode" lang="typescript" class="border border-zinc-200" />
@@ -204,7 +211,8 @@ onUnmounted(() => {
     <SectionHeader :level="2" class="mb-6"> 6. Cleanup </SectionHeader>
     <Callout title="Important for SPA Navigation">
       If your app navigates between pages that mount/unmount the cursor (or if you use Hot Module
-      Replacement), you must call destroy to prevent memory leaks and duplicate cursors.
+      Replacement), you must call <ApiLink to="destroy">destroy</ApiLink> to prevent memory leaks
+      and duplicate cursors.
     </Callout>
     <div class="mb-12">
       <CodeBlock :code="cleanupCode" lang="typescript" class="border border-zinc-200" />

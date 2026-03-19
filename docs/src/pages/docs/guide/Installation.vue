@@ -4,7 +4,7 @@ import CodeBlock from "@/components/shared/CodeBlock.vue";
 import Callout from "@/components/shared/Callout.vue";
 import StepCard from "@/components/shared/StepCard.vue";
 import Text from "@/components/shared/Text.vue";
-import CodeCard from "@/components/shared/CodeCard.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 const shellCode = "pnpm add @supermousejs/core @supermousejs/dot @supermousejs/ring";
 
@@ -38,90 +38,51 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
 </script>
 
 <template>
-  <DocsSection
-    label="Guide"
-    title="Installation"
-  >
+  <DocsSection label="Guide" title="Installation">
     <div class="flex flex-col gap-12">
       <!-- Step 1: Package Manager -->
-      <StepCard
-        number="1"
-        title="Via Package Manager"
-      >
+      <StepCard number="1" title="Via Package Manager">
         <Text>
           For modular setups, use the scoped packages. This allows for better tree-shaking.
         </Text>
-        <CodeBlock
-          :code="shellCode"
-          title="Terminal"
-          lang="text"
-        />
+        <CodeBlock :code="shellCode" title="Terminal" lang="text" />
 
         <Text>
           Alternatively, use the unscoped convenience bundle if you prefer clean import paths and
           standard defaults:
         </Text>
-        <CodeBlock
-          :code="unscopedCode"
-          title="Terminal"
-          lang="text"
-        />
+        <CodeBlock :code="unscopedCode" title="Terminal" lang="text" />
       </StepCard>
 
       <!-- Step 2: CDN -->
-      <StepCard
-        number="2"
-        title="CDN / Direct Script"
-        divider
-      >
+      <StepCard number="2" title="CDN / Direct Script" divider>
         <Text>
           If you aren't using a build tool, you can load the all-in-one bundle directly via a CDN
           like Unpkg or JSDelivr.
         </Text>
-        <CodeBlock
-          :code="cdnCode"
-          title="index.html"
-          lang="html"
-        />
+        <CodeBlock :code="cdnCode" title="index.html" lang="html" />
       </StepCard>
 
       <!-- Step 3: Initialization -->
-      <StepCard
-        number="3"
-        title="Initialize (Modules)"
-        divider
-      >
+      <StepCard number="3" title="Initialize (Modules)" divider>
         <Text>
           Create the instance in your app's entry point (e.g.,
           <code>main.ts</code> or a top-level `useEffect`).
         </Text>
-        <CodeBlock
-          :code="mainCode"
-          title="src/main.ts"
-          lang="typescript"
-        />
+        <CodeBlock :code="mainCode" title="src/main.ts" lang="typescript" />
       </StepCard>
 
       <!-- Step 4: Markup Control -->
-      <StepCard
-        number="4"
-        title="Markup Control"
-        divider
-      >
+      <StepCard number="4" title="Markup Control" divider>
         <Text> Plugins automatically listen for data attributes on your HTML elements. </Text>
-        <CodeBlock
-          :code="htmlCode"
-          title="index.html"
-          lang="html"
-        />
+        <CodeBlock :code="htmlCode" title="index.html" lang="html" />
 
-        <Callout
-          title="Warning: CSS Conflicts"
-          variant="warning"
-        >
+        <Callout title="Warning: CSS Conflicts" variant="warning">
           <p class="mb-2">
-            <strong>Do not use <code>cursor: pointer</code> or <code>cursor: none</code> in your own
-              CSS.</strong>
+            <strong
+              >Do not use <code>cursor: pointer</code> or <code>cursor: none</code> in your own
+              CSS.</strong
+            >
           </p>
           <p>
             Supermouse manages cursor visibility dynamically. Manually setting cursor styles often
@@ -138,7 +99,9 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
             class="text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all"
           >
             troubleshooting page
-          </router-link>.
+          </router-link>
+          . Check the <ApiLink to="hidecursor">hideCursor</ApiLink> and
+          <ApiLink to="ignoreonnative">ignoreOnNative</ApiLink> options for more control.
         </Text>
       </StepCard>
     </div>

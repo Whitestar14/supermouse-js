@@ -3,7 +3,6 @@ import DocsSection from "@/components/docs/DocsSection.vue";
 import CodeBlock from "@/components/shared/CodeBlock.vue";
 import Callout from "@/components/shared/Callout.vue";
 import MetadataStrip from "@/components/shared/MetadataStrip.vue";
-import SectionHeader from "@/components/shared/SectionHeader.vue";
 import Text from "@/components/shared/Text.vue";
 import StepCard from "@/components/shared/StepCard.vue";
 
@@ -69,42 +68,23 @@ const metaItems = [
 </script>
 
 <template>
-  <DocsSection
-    label="Integrations"
-    title="React"
-  >
+  <DocsSection label="Integrations" title="React">
     <!-- Meta Data Strip -->
     <MetadataStrip :items="metaItems" />
 
-    <Text
-      size="lg"
-      class="mb-12"
-    >
+    <Text size="lg" class="mb-12">
       The React adapter provides a <code>SupermouseProvider</code> context and hooks to easily
       integrate the cursor engine into your React application lifecycle. It automatically handles
       cleanup to prevent memory leaks in strict mode.
     </Text>
 
     <!-- Installation -->
-    <StepCard
-      number="1"
-      title="Installation"
-      divider
-    >
-      <CodeBlock
-        :code="installCode"
-        title="Terminal"
-        lang="text"
-        class="border border-zinc-200"
-      />
+    <StepCard number="1" title="Installation" divider>
+      <CodeBlock :code="installCode" title="Terminal" lang="text" class="border border-zinc-200" />
     </StepCard>
 
     <!-- Provider -->
-    <StepCard
-      number="2"
-      title="Root Provider"
-      divider
-    >
+    <StepCard number="2" title="Root Provider" divider>
       <Text size="sm">
         Wrap your application in the <code>SupermouseProvider</code>. This creates the instance and
         makes it available throughout your component tree.
@@ -118,11 +98,7 @@ const metaItems = [
     </StepCard>
 
     <!-- Hooks -->
-    <StepCard
-      number="3"
-      title="Usage in Components"
-      divider
-    >
+    <StepCard number="3" title="Usage in Components" divider>
       <Text size="sm">
         Use the <code>useSupermouse</code> hook to access the core instance from any child
         component.
@@ -136,10 +112,7 @@ const metaItems = [
     </StepCard>
 
     <!-- Next.js -->
-    <StepCard
-      number="4"
-      title="Next.js (App Router)"
-    >
+    <StepCard number="4" title="Next.js (App Router)">
       <Text size="sm">
         Because Supermouse relies on the `window` object, you must ensure the provider runs on the
         client. However, the package is already marked with
@@ -154,10 +127,7 @@ const metaItems = [
       />
     </StepCard>
 
-    <Callout
-      title="Strict Mode"
-      class="mt-16"
-    >
+    <Callout title="Strict Mode" class="mt-16">
       React 18 Strict Mode mounts components twice in development.
       <code>SupermouseProvider</code> handles this internally, ensuring only one cursor instance is
       active at a time.

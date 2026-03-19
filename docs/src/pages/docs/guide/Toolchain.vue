@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
 import CodeBlock from "@/components/shared/CodeBlock.vue";
-import SectionHeader from "@/components/shared/SectionHeader.vue";
 import Text from "@/components/shared/Text.vue";
 
 const createPluginCode = "pnpm run create:plugin <name>";
