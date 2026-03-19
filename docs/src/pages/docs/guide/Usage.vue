@@ -2,6 +2,8 @@
 import DocsSection from "@/components/docs/DocsSection.vue";
 import CodeBlock from "@/components/CodeBlock.vue";
 import Callout from "@/components/ui/Callout.vue";
+import SectionHeader from "@/components/ui/SectionHeader.vue";
+import Text from "@/components/ui/Text.vue";
 
 const initCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
@@ -90,20 +92,18 @@ onUnmounted(() => {
 
 <template>
   <DocsSection label="Guide" title="Usage">
-    <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
+    <Text weight="medium" size="lg" class="mb-12">
       Supermouse is a <b>singleton runtime</b>. It manages the animation loop,
       input listeners, and the plugin pipeline. You initialize it once when your
       application mounts.
-    </p>
+    </Text>
 
     <!-- Configuration -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      1. Configuration
-    </h3>
-    <p class="text-zinc-600 mb-6">
+    <SectionHeader level="2" class="mb-6">1. Configuration</SectionHeader>
+    <Text class="mb-6">
       The constructor accepts a <code>SupermouseOptions</code> object. You can
       pass plugins directly in the configuration array.
-    </p>
+    </Text>
     <div class="mb-8">
       <CodeBlock
         :code="initCode"
@@ -122,13 +122,13 @@ onUnmounted(() => {
     </Callout>
 
     <!-- Plugins -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6 mt-16">
-      2. Runtime Registration
-    </h3>
-    <p class="text-zinc-600 mb-6">
+    <SectionHeader level="2" class="mb-6 mt-16"
+      >2. Runtime Registration</SectionHeader
+    >
+    <Text class="mb-6">
       If you need to add plugins later (e.g. lazy loading), you can use the
       chainable <code>use()</code> method.
-    </p>
+    </Text>
     <div class="mb-12">
       <CodeBlock
         :code="chainingCode"
@@ -139,39 +139,30 @@ onUnmounted(() => {
     </div>
 
     <!-- Interaction -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      3. Defining Interactions
-    </h3>
+    <SectionHeader level="2" class="mb-6"
+      >3. Defining Interactions</SectionHeader
+    >
 
-    <p class="text-zinc-600 mb-6 leading-relaxed">
+    <Text class="mb-6">
       Interaction in Supermouse is completely data-driven. The Core does not
       know what "magnetic" means. It simply parses metadata (State) from the DOM
       and exposes it to plugins.
-    </p>
+    </Text>
 
-    <div class="bg-zinc-50 border-l-4 border-zinc-900 p-6 mb-8">
-      <strong class="block text-zinc-900 text-sm font-bold mb-2"
-        >The Concept</strong
-      >
-      <p class="text-zinc-600 text-sm leading-relaxed">
-        The Input system scrapes <code>rules</code> or
-        <code>data-attributes</code> to populate
-        <code>app.state.interaction</code>. <br />
-        Plugins like <strong>Magnetic</strong> or <strong>Dot</strong> read this
-        state to decide what to do.
-      </p>
-    </div>
+    <Callout title="The Concept">
+      The Input system scrapes <code>rules</code> or
+      <code>data-attributes</code> to populate
+      <code>app.state.interaction</code>. Plugins like
+      <strong>Magnetic</strong> or <strong>Dot</strong> read this state to
+      decide what to do.
+    </Callout>
 
     <div class="grid grid-cols-1 gap-8 mb-12">
       <div>
-        <h4
-          class="font-bold text-zinc-900 mb-4 text-sm uppercase tracking-widest"
-        >
-          Global Rules (Recommended)
-        </h4>
-        <p class="text-zinc-600 text-sm mb-4">
+        <SectionHeader level="4">Global Rules (Recommended)</SectionHeader>
+        <Text size="sm" class="mb-4">
           Map CSS selectors to state objects. This keeps your HTML clean.
-        </p>
+        </Text>
         <CodeBlock
           :code="interactionCode"
           title="main.ts"
@@ -181,15 +172,11 @@ onUnmounted(() => {
       </div>
 
       <div>
-        <h4
-          class="font-bold text-zinc-900 mb-4 text-sm uppercase tracking-widest"
-        >
-          HTML Overrides
-        </h4>
-        <p class="text-zinc-600 text-sm mb-4">
+        <SectionHeader level="4">HTML Overrides</SectionHeader>
+        <Text size="sm" class="mb-4">
           Use <code>data-supermouse-*</code> attributes for one-off overrides.
           These take precedence over rules.
-        </p>
+        </Text>
         <CodeBlock
           :code="htmlCode"
           title="index.html"
@@ -200,15 +187,13 @@ onUnmounted(() => {
     </div>
 
     <!-- Scoped Containers -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      4. Scoped Containers
-    </h3>
-    <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
+    <SectionHeader level="2" class="mb-6">4. Scoped Containers</SectionHeader>
+    <Text class="mb-6 max-w-2xl">
       By default, Supermouse appends to <code>document.body</code> and tracks
       the window. You can restrict the cursor to a specific div (e.g., a modal,
       a canvas wrapper, or a specific section of your site) using the
       <code>container</code> option.
-    </p>
+    </Text>
     <div class="mb-12">
       <CodeBlock
         :code="containerCode"
@@ -219,14 +204,12 @@ onUnmounted(() => {
     </div>
 
     <!-- Manual Visibility -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      5. Manual Visibility
-    </h3>
-    <p class="text-zinc-600 mb-6 leading-relaxed">
+    <SectionHeader level="2" class="mb-6">5. Manual Visibility</SectionHeader>
+    <Text class="mb-6">
       Sometimes you need strict control over the cursor visibility (e.g., drag
       and drop operations, custom modals, or games). Use
       <code>setCursor</code> to override the internal auto-detection.
-    </p>
+    </Text>
     <div class="mb-12">
       <CodeBlock
         :code="visibilityCode"
@@ -236,21 +219,12 @@ onUnmounted(() => {
     </div>
 
     <!-- Cleanup -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      6. Cleanup
-    </h3>
-    <div
-      class="p-6 bg-zinc-50 border border-zinc-200 border-l-4 border-l-black mb-6"
-    >
-      <strong class="block text-zinc-900 font-bold mb-2"
-        >Important for SPA Navigation</strong
-      >
-      <p class="text-sm text-zinc-600">
-        If your app navigates between pages that mount/unmount the cursor (or if
-        you use Hot Module Replacement), you must call destroy to prevent memory
-        leaks and duplicate cursors.
-      </p>
-    </div>
+    <SectionHeader level="2" class="mb-6">6. Cleanup</SectionHeader>
+    <Callout title="Important for SPA Navigation">
+      If your app navigates between pages that mount/unmount the cursor (or if
+      you use Hot Module Replacement), you must call destroy to prevent memory
+      leaks and duplicate cursors.
+    </Callout>
     <div class="mb-12">
       <CodeBlock
         :code="cleanupCode"

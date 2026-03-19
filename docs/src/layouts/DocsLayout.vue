@@ -1,9 +1,9 @@
-
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import Footer from '../components/Footer.vue';
-import { DOCS_NAVIGATION } from '../navigation';
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import Footer from "../components/Footer.vue";
+import { useDocsSidebar } from "@/composables/useDocsSidebar";
+import { DOCS_NAVIGATION } from "../navigation";
 
 // Note: Cursor and Navbar are now handled by App.vue
 
@@ -24,8 +24,8 @@ const toggleGroup = (title: string) => {
 
 const syncSidebar = () => {
   const currentPath = route.path;
-  const found = DOCS_NAVIGATION.find(group => 
-    group.items.some(item => item.path === currentPath)
+  const found = DOCS_NAVIGATION.find((group) =>
+    group.items.some((item) => item.path === currentPath)
   );
   if (found) {
     activeGroup.value = found.title;
@@ -36,28 +36,32 @@ const syncSidebar = () => {
 const breadcrumbs = computed(() => {
   const currentPath = route.path;
   for (const group of DOCS_NAVIGATION) {
-    const item = group.items.find(i => i.path === currentPath);
+    const item = group.items.find((i) => i.path === currentPath);
     if (item) {
       return { group: group.title, page: item.label };
     }
   }
-  return { group: 'Docs', page: 'Guide' };
+  return { group: "Docs", page: "Guide" };
 });
 
-watch(() => route.path, () => {
-  syncSidebar();
-  mobileMenuOpen.value = false; // Auto-close mobile menu on navigation
-}, { immediate: true });
+watch(
+  () => route.path,
+  () => {
+    syncSidebar();
+    mobileMenuOpen.value = false; // Auto-close mobile menu on navigation
+  },
+  { immediate: true }
+);
 
 // --- Pagination Logic ---
 const flatNav = computed(() => {
-  return DOCS_NAVIGATION.flatMap(group => 
-    group.items.map(item => ({ ...item, group: group.title }))
+  return DOCS_NAVIGATION.flatMap((group) =>
+    group.items.map((item) => ({ ...item, group: group.title }))
   );
 });
 
 const currentIndex = computed(() => {
-  return flatNav.value.findIndex(item => item.path === route.path);
+  return flatNav.value.findIndex((item) => item.path === route.path);
 });
 
 const prevPage = computed(() => {
@@ -66,159 +70,232 @@ const prevPage = computed(() => {
 });
 
 const nextPage = computed(() => {
-  if (currentIndex.value !== -1 && currentIndex.value < flatNav.value.length - 1) {
+  if (
+    currentIndex.value !== -1 &&
+    currentIndex.value < flatNav.value.length - 1
+  ) {
     return flatNav.value[currentIndex.value + 1];
   }
   return null;
 });
 
 const isActive = (path: string) => route.path === path;
+
+// Get right sidebar config from composable
+const { rightSidebarConfig } = useDocsSidebar();
 </script>
 
 <template>
   <div class="flex flex-col h-full min-h-screen">
-    
     <!-- Mobile Sub-header (Nav Trigger + Breadcrumbs) -->
-    <div class="lg:hidden h-12 border-b border-zinc-200 bg-white flex items-center px-6 sticky top-0 z-30 select-none">
-        <button 
-            @click="mobileMenuOpen = true"
-            class="flex items-center justify-between w-full group outline-none"
+    <div
+      class="lg:hidden h-12 border-b border-zinc-200 bg-white flex items-center px-6 sticky top-0 z-30 select-none"
+    >
+      <button
+        @click="mobileMenuOpen = true"
+        class="flex items-center justify-between w-full group outline-none"
+      >
+        <!-- Breadcrumbs -->
+        <div
+          class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
         >
-            <!-- Breadcrumbs -->
-            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+          <span class="text-zinc-400">{{ breadcrumbs.group }}</span>
+          <span class="text-zinc-200">/</span>
+          <span class="text-zinc-900">{{ breadcrumbs.page }}</span>
+        </div>
+
+        <!-- Toggle Icon -->
+        <div
+          class="w-8 h-8 flex items-center justify-center text-zinc-400 group-hover:text-black transition-colors"
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+      </button>
+
+      <!-- Mobile Menu Drawer (Fixed Overlay) -->
+      <Teleport to="body">
+        <div
+          v-if="mobileMenuOpen"
+          class="fixed inset-0 bg-white z-[60] flex flex-col"
+          data-lenis-prevent
+        >
+          <!-- Drawer Header (Internal) -->
+          <div
+            class="h-12 border-b border-zinc-200 bg-white flex items-center px-6 shrink-0"
+          >
+            <button
+              @click="mobileMenuOpen = false"
+              class="flex items-center justify-between w-full group outline-none"
+            >
+              <!-- Breadcrumbs (Same as sticky header) -->
+              <div
+                class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
+              >
                 <span class="text-zinc-400">{{ breadcrumbs.group }}</span>
                 <span class="text-zinc-200">/</span>
                 <span class="text-zinc-900">{{ breadcrumbs.page }}</span>
-            </div>
+              </div>
 
-            <!-- Toggle Icon -->
-            <div class="w-8 h-8 flex items-center justify-center text-zinc-400 group-hover:text-black transition-colors">
-                <svg 
-                    width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+              <!-- Close Icon -->
+              <div class="w-8 h-8 flex items-center justify-center text-black">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  class="rotate-180"
                 >
-                    <path d="M6 9l6 6 6-6"/>
+                  <path d="M6 9l6 6 6-6" />
                 </svg>
-            </div>
-        </button>
+              </div>
+            </button>
+          </div>
 
-        <!-- Mobile Menu Drawer (Fixed Overlay) -->
-        <Teleport to="body">
-            <div v-if="mobileMenuOpen" class="fixed inset-0 bg-white z-[60] flex flex-col" data-lenis-prevent>
-                <!-- Drawer Header (Internal) -->
-                <div class="h-12 border-b border-zinc-200 bg-white flex items-center px-6 shrink-0">
-                    <button 
-                        @click="mobileMenuOpen = false"
-                        class="flex items-center justify-between w-full group outline-none"
-                    >
-                        <!-- Breadcrumbs (Same as sticky header) -->
-                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-                            <span class="text-zinc-400">{{ breadcrumbs.group }}</span>
-                            <span class="text-zinc-200">/</span>
-                            <span class="text-zinc-900">{{ breadcrumbs.page }}</span>
-                        </div>
-
-                        <!-- Close Icon -->
-                        <div class="w-8 h-8 flex items-center justify-center text-black">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="rotate-180">
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </div>
-                    </button>
+          <!-- Nav Content -->
+          <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-white">
+            <div v-for="group in DOCS_NAVIGATION" :key="group.title">
+              <button
+                @click.stop="toggleGroup(group.title)"
+                class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest mb-3 text-left transition-colors"
+                :class="
+                  activeGroup === group.title
+                    ? 'text-black'
+                    : 'text-zinc-400 hover:text-zinc-600'
+                "
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-1.5 h-1.5 transition-colors"
+                    :class="
+                      activeGroup === group.title ? 'bg-black' : 'bg-zinc-200'
+                    "
+                  ></div>
+                  {{ group.title }}
                 </div>
-
-                <!-- Nav Content -->
-                <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-white">
-                    <div v-for="group in DOCS_NAVIGATION" :key="group.title">
-                        <button 
-                            @click.stop="toggleGroup(group.title)"
-                            class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest mb-3 text-left transition-colors"
-                            :class="activeGroup === group.title ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'"
-                        >
-                            <div class="flex items-center gap-3">
-                                <div class="w-1.5 h-1.5 transition-colors" :class="activeGroup === group.title ? 'bg-black' : 'bg-zinc-200'"></div>
-                                {{ group.title }}
-                            </div>
-                            <svg 
-                                width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                                class="transition-transform duration-200"
-                                :class="activeGroup === group.title ? 'rotate-180 text-black' : 'rotate-0 text-zinc-300'"
-                            >
-                                <path d="M6 9l6 6 6-6"/>
-                            </svg>
-                        </button>
-                        <!-- Group Items -->
-                        <div 
-                            v-show="activeGroup === group.title"
-                            class="flex flex-col pl-5 gap-3 pb-2 border-l border-zinc-100 ml-0.5"
-                        >
-                            <router-link 
-                            v-for="item in group.items" 
-                            :key="item.path"
-                            :to="item.path"
-                            class="block py-1 text-sm font-medium tracking-tight transition-colors"
-                            :class="isActive(item.path) ? 'text-black font-bold' : 'text-zinc-500 hover:text-black'"
-                            >
-                            {{ item.label }}
-                            </router-link>
-                        </div>
-                    </div>
-                    
-                    <!-- Spacer for scroll -->
-                    <div class="h-20"></div>
-                </nav>
+                <svg
+                  width="8"
+                  height="8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  class="transition-transform duration-200"
+                  :class="
+                    activeGroup === group.title
+                      ? 'rotate-180 text-black'
+                      : 'rotate-0 text-zinc-300'
+                  "
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              <!-- Group Items -->
+              <div
+                v-show="activeGroup === group.title"
+                class="flex flex-col pl-5 gap-3 pb-2 border-l border-zinc-100 ml-0.5"
+              >
+                <router-link
+                  v-for="item in group.items"
+                  :key="item.path"
+                  :to="item.path"
+                  class="block py-1 text-sm font-medium tracking-tight transition-colors"
+                  :class="
+                    isActive(item.path)
+                      ? 'text-black font-bold'
+                      : 'text-zinc-500 hover:text-black'
+                  "
+                >
+                  {{ item.label }}
+                </router-link>
+              </div>
             </div>
-        </Teleport>
+
+            <!-- Spacer for scroll -->
+            <div class="h-20"></div>
+          </nav>
+        </div>
+      </Teleport>
     </div>
 
     <!-- Main Layout: Gutter + Sidebar + Content -->
     <div class="flex flex-col lg:flex-row flex-1 min-h-0 relative">
-      
       <!-- 1. The Gutter -->
-      <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white"></div>
+      <div
+        class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white"
+      ></div>
 
       <!-- 2. Sidebar Navigation (Desktop) -->
-      <aside class="hidden lg:block w-[260px] border-r border-zinc-200 shrink-0 relative bg-zinc-50/30">
+      <aside
+        class="hidden lg:block w-[260px] border-r border-zinc-200 shrink-0 relative bg-zinc-50/30"
+      >
         <!-- Sticky Sidebar with Lenis Prevent -->
-        <div 
+        <div
           class="sticky top-0 h-screen overflow-y-auto py-12 px-8 scrollbar-thin"
           data-lenis-prevent
         >
           <nav class="flex flex-col gap-8 pb-32">
             <div v-for="group in DOCS_NAVIGATION" :key="group.title">
-              
               <!-- Group Header -->
-              <button 
-                  @click="toggleGroup(group.title)"
-                  class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 group hover:text-black transition-colors"
-                  :class="{ 'text-black': activeGroup === group.title }"
+              <button
+                @click="toggleGroup(group.title)"
+                class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 group hover:text-black transition-colors"
+                :class="{ 'text-black': activeGroup === group.title }"
               >
-                  <div class="flex items-center gap-3">
-                      <div 
-                        class="w-1.5 h-1.5 transition-colors"
-                        :class="activeGroup === group.title ? 'bg-black' : 'bg-zinc-300 group-hover:bg-zinc-400'"
-                      ></div>
-                      {{ group.title }}
-                  </div>
-                  <svg 
-                      width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                      class="transition-transform duration-200"
-                      :class="activeGroup === group.title ? 'rotate-180 text-black' : 'rotate-0 text-zinc-300 group-hover:text-black'"
-                  >
-                      <path d="M6 9l6 6 6-6"/>
-                  </svg>
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-1.5 h-1.5 transition-colors"
+                    :class="
+                      activeGroup === group.title
+                        ? 'bg-black'
+                        : 'bg-zinc-300 group-hover:bg-zinc-400'
+                    "
+                  ></div>
+                  {{ group.title }}
+                </div>
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  class="transition-transform duration-200"
+                  :class="
+                    activeGroup === group.title
+                      ? 'rotate-180 text-black'
+                      : 'rotate-0 text-zinc-300 group-hover:text-black'
+                  "
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
               </button>
 
               <!-- Group Items -->
-              <div 
-                  v-show="activeGroup === group.title"
-                  class="flex flex-col pl-5 gap-1.5"
+              <div
+                v-show="activeGroup === group.title"
+                class="flex flex-col pl-5 gap-1.5"
               >
-                <router-link 
-                  v-for="item in group.items" 
+                <router-link
+                  v-for="item in group.items"
                   :key="item.path"
                   :to="item.path"
                   class="block py-1 text-sm font-medium tracking-tight transition-colors duration-0"
-                  :class="isActive(item.path) ? 'text-black font-bold' : 'text-zinc-500 hover:text-black'"
+                  :class="
+                    isActive(item.path)
+                      ? 'text-black font-bold'
+                      : 'text-zinc-500 hover:text-black'
+                  "
                 >
                   {{ item.label }}
                 </router-link>
@@ -230,50 +307,95 @@ const isActive = (path: string) => route.path === path;
 
       <!-- Main Content -->
       <div class="flex-1 min-w-0 bg-white flex flex-col">
-        <div class="flex-1 max-w-4xl mx-auto px-6 md:px-12 py-12 md:py-20 w-full">
+        <div
+          class="flex-1 max-w-4xl mx-auto px-6 md:px-12 py-12 md:py-20 w-full"
+        >
           <router-view />
         </div>
 
         <!-- Docs Footer Navigation -->
         <div class="max-w-4xl mx-auto w-full px-6 md:px-12 pb-20 mt-auto">
-            <div class="border-t border-zinc-200 pt-8 flex flex-col sm:flex-row justify-between gap-8">
-              <!-- Previous -->
-              <router-link 
-                v-if="prevPage" 
-                :to="prevPage.path"
-                class="group flex flex-col items-start gap-2 sm:max-w-[45%]"
+          <div
+            class="border-t border-zinc-200 pt-8 flex flex-col sm:flex-row justify-between gap-8"
+          >
+            <!-- Previous -->
+            <router-link
+              v-if="prevPage"
+              :to="prevPage.path"
+              class="group flex flex-col items-start gap-2 sm:max-w-[45%]"
+            >
+              <span
+                class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold group-hover:text-black transition-colors"
               >
-                  <span class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold group-hover:text-black transition-colors">
-                    {{ prevPage.group }}
-                  </span>
-                  <div class="flex items-center gap-2 text-lg font-bold text-zinc-900 group-hover:underline decoration-2 underline-offset-4 decoration-zinc-900">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span class="text-pretty leading-tight">{{ prevPage.label }}</span>
-                  </div>
-              </router-link>
-              <div v-else></div>
+                {{ prevPage.group }}
+              </span>
+              <div
+                class="flex items-center gap-2 text-lg font-bold text-zinc-900 group-hover:underline decoration-2 underline-offset-4 decoration-zinc-900"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                <span class="text-pretty leading-tight">{{
+                  prevPage.label
+                }}</span>
+              </div>
+            </router-link>
+            <div v-else></div>
 
-              <!-- Next -->
-              <router-link 
-                v-if="nextPage" 
-                :to="nextPage.path"
-                class="group flex flex-col items-end gap-2 sm:max-w-[45%] text-right"
+            <!-- Next -->
+            <router-link
+              v-if="nextPage"
+              :to="nextPage.path"
+              class="group flex flex-col items-end gap-2 sm:max-w-[45%] text-right"
+            >
+              <span
+                class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold group-hover:text-black transition-colors"
               >
-                  <span class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold group-hover:text-black transition-colors">
-                    {{ nextPage.group }}
-                  </span>
-                  <div class="flex items-center gap-2 text-lg font-bold text-zinc-900 group-hover:underline decoration-2 underline-offset-4 decoration-zinc-900">
-                    <span class="text-pretty leading-tight">{{ nextPage.label }}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  </div>
-              </router-link>
-            </div>
+                {{ nextPage.group }}
+              </span>
+              <div
+                class="flex items-center gap-2 text-lg font-bold text-zinc-900 group-hover:underline decoration-2 underline-offset-4 decoration-zinc-900"
+              >
+                <span class="text-pretty leading-tight">{{
+                  nextPage.label
+                }}</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </div>
+            </router-link>
+          </div>
         </div>
       </div>
-      
-      <!-- Right Sidebar (TOC Placeholder) -->
-      <aside class="hidden xl:block w-[200px] shrink-0 border-l border-zinc-100 bg-white">
-        <!-- Future: On-page TOC -->
+
+      <!-- Right Sidebar (Slottable for TOC and other components) -->
+      <aside
+        v-if="rightSidebarConfig"
+        class="hidden xl:block w-[240px] shrink-0 border-l border-zinc-100 bg-white"
+      >
+        <div
+          class="sticky top-28 h-fit max-h-[calc(100vh-7rem)] overflow-y-auto px-6 py-12 scrollbar-thin"
+        >
+          <component
+            :is="rightSidebarConfig.component"
+            v-bind="rightSidebarConfig.props"
+            v-on="rightSidebarConfig.on"
+          />
+        </div>
       </aside>
     </div>
 

@@ -1,219 +1,82 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref, computed } from "vue";
 import DocsSection from "@/components/docs/DocsSection.vue";
 import CodeBlock from "@/components/CodeBlock.vue";
+import Table from "@/components/Table.vue";
+import TableOfContents from "@/components/docs/TableOfContents.vue";
+import { useDocsSidebar } from "@/composables/useDocsSidebar";
+import {
+  API_SECTIONS,
+  coreClassDef,
+  optionsData,
+  stateData,
+  methodsData,
+  pluginHooks,
+  mathUtilities,
+  domUtilities,
+  effectsUtilities,
+  constantUtilities,
+  otherUtilities,
+} from "@/composables/useApiReference";
 
-const coreClassDef = `class Supermouse {
-  // Static
-  static readonly version: string;
+const activeSection = ref<string>("core-class");
+const { setRightSidebar } = useDocsSidebar();
 
-  // Instance Properties
-  readonly version: string;
-  state: MouseState;
-  options: SupermouseOptions;
-  get container(): HTMLDivElement;
-  get isEnabled(): boolean;
+const scrollTo = (id: string) => {
+  const el = document.getElementById(id);
+  if (!el) return;
 
-  constructor(options?: SupermouseOptions);
+  const offset = 120;
+  const top = el.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: "smooth" });
+  activeSection.value = id;
+};
 
-  // Plugin Management
-  use(plugin: SupermousePlugin): this;
-  getPlugin(name: string): SupermousePlugin | undefined;
-  enablePlugin(name: string): void;
-  disablePlugin(name: string): void;
-  togglePlugin(name: string): void;
+const updateActiveSection = () => {
+  const offset = 120;
+  const fromTop = window.scrollY + offset;
+  let current = API_SECTIONS[0]?.id ?? "";
 
-  // Runtime Control
-  enable(): void;
-  disable(): void;
-  destroy(): void;
-  step(time: number): void;
+  for (const section of API_SECTIONS) {
+    const el = document.getElementById(section.id);
+    if (!el) continue;
 
-  // Interaction & Visibility
-  setCursor(type: 'auto' | 'none' | null): void;
-  registerHoverTarget(selector: string): void;
-}`;
+    if (el.offsetTop <= fromTop) {
+      current = section.id;
+    }
+  }
 
-const optionsData = [
-  {
-    name: "smoothness",
-    type: "number",
-    default: "0.15",
-    desc: "Physics damping factor (0-1). Lower is floatier, higher is snappier.",
-  },
-  {
-    name: "hideCursor",
-    type: "boolean",
-    default: "true",
-    desc: "Injects CSS to hide the native cursor on the body and interactive elements.",
-  },
-  {
-    name: "enableTouch",
-    type: "boolean",
-    default: "false",
-    desc: "If true, the cursor system runs on touch devices (not recommended).",
-  },
-  {
-    name: "ignoreOnNative",
-    type: "boolean | 'auto' | 'tag' | 'css'",
-    default: "'auto'",
-    desc: "Strategy for unhiding native cursor. 'tag' is fastest (HTML only). 'css' checks computed style.",
-  },
-  {
-    name: "autoDisableOnMobile",
-    type: "boolean",
-    default: "true",
-    desc: "Disables the system entirely if (pointer: coarse) is detected.",
-  },
-  {
-    name: "rules",
-    type: "Record<string, object>",
-    default: "{}",
-    desc: "Map of CSS selectors to interaction state objects.",
-  },
-  {
-    name: "container",
-    type: "HTMLElement",
-    default: "document.body",
-    desc: "The root element to append cursor elements to.",
-  },
-];
+  activeSection.value = current;
+};
 
-const stateData = [
-  {
-    name: "pointer",
-    type: "{ x: number, y: number }",
-    desc: "Raw input coordinates from the event listener.",
-  },
-  {
-    name: "smooth",
-    type: "{ x: number, y: number }",
-    desc: "Interpolated coordinates used for rendering.",
-  },
-  {
-    name: "target",
-    type: "{ x: number, y: number }",
-    desc: "The goal position. Mutable by logic plugins (e.g. Magnetic).",
-  },
-  {
-    name: "velocity",
-    type: "{ x: number, y: number }",
-    desc: "Current speed vector calculated from smooth movement.",
-  },
-  {
-    name: "interaction",
-    type: "Record<string, any>",
-    desc: "Metadata scraped from the currently hovered element.",
-  },
-  {
-    name: "hoverTarget",
-    type: "HTMLElement | null",
-    desc: "The specific DOM element triggering the hover state.",
-  },
-  { name: "isDown", type: "boolean", desc: "True if mouse button is pressed." },
-  {
-    name: "isHover",
-    type: "boolean",
-    desc: "True if hovering a registered selector.",
-  },
-  {
-    name: "forcedCursor",
-    type: "'auto' | 'none' | null",
-    desc: "Override for native cursor visibility. Managed via setCursor().",
-  },
-];
+onMounted(() => {
+  updateActiveSection();
+  window.addEventListener("scroll", updateActiveSection, { passive: true });
+  window.addEventListener("resize", updateActiveSection, { passive: true });
 
-const methodsData = [
-  {
-    name: "use",
-    params: "plugin",
-    return: "this",
-    desc: "Registers a plugin. Chainable.",
-  },
-  {
-    name: "enable",
-    params: "-",
-    return: "void",
-    desc: "Starts the loop and input listeners.",
-  },
-  {
-    name: "disable",
-    params: "-",
-    return: "void",
-    desc: "Stops the loop and restores native cursor.",
-  },
-  { name: "destroy", params: "-", return: "void", desc: "Full cleanup." },
-  {
-    name: "setCursor",
-    params: "type: 'auto' | 'none' | null",
-    return: "void",
-    desc: "Force native cursor visibility.",
-  },
-  {
-    name: "getPlugin",
-    params: "name: string",
-    return: "Plugin | undefined",
-    desc: "Get a plugin instance.",
-  },
-  {
-    name: "enablePlugin",
-    params: "name: string",
-    return: "void",
-    desc: "Enable a specific plugin.",
-  },
-  {
-    name: "disablePlugin",
-    params: "name: string",
-    return: "void",
-    desc: "Disable a specific plugin.",
-  },
-  {
-    name: "togglePlugin",
-    params: "name: string",
-    return: "void",
-    desc: "Toggle plugin state.",
-  },
-  {
-    name: "registerHoverTarget",
-    params: "selector: string",
-    return: "void",
-    desc: "Add selector to hover detection.",
-  },
-  {
-    name: "step",
-    params: "time: number",
-    return: "void",
-    desc: "Manual frame tick.",
-  },
-];
+  // Set up right sidebar TOC
+  setRightSidebar({
+    component: TableOfContents,
+    props: {
+      sections: API_SECTIONS,
+      activeSection,
+    },
+    on: {
+      navigate: scrollTo,
+    },
+  });
+});
 
-const pluginHooks = [
-  {
-    name: "install(app)",
-    desc: "Called once when registered. Create DOM elements here.",
-  },
-  {
-    name: "update(app, dt)",
-    desc: "Called every frame. Update transforms here.",
-  },
-  {
-    name: "destroy(app)",
-    desc: "Called when the app is destroyed. Remove DOM elements here.",
-  },
-  {
-    name: "onEnable(app)",
-    desc: "Called when plugin is re-enabled. Restore visibility.",
-  },
-  {
-    name: "onDisable(app)",
-    desc: "Called when plugin is disabled. Hide visibility (opacity: 0).",
-  },
-];
+onUnmounted(() => {
+  window.removeEventListener("scroll", updateActiveSection);
+  window.removeEventListener("resize", updateActiveSection);
+});
 </script>
 
 <template>
   <DocsSection label="Reference" title="API">
-    <!-- Class Definition -->
-    <div class="mb-16">
+    <!-- Core Class -->
+    <div class="mb-16" id="core-class">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-4 pb-2 border-b border-zinc-200"
       >
@@ -228,7 +91,7 @@ const pluginHooks = [
     </div>
 
     <!-- Options -->
-    <div class="mb-16">
+    <div class="mb-16" id="options">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -236,58 +99,33 @@ const pluginHooks = [
         <span class="text-zinc-400 font-normal">Passed to constructor</span>
       </h3>
 
-      <div class="border border-zinc-200 bg-white overflow-hidden">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-zinc-50 border-b border-zinc-200">
-            <tr>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4"
-              >
-                Option
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/6"
-              >
-                Type
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/6"
-              >
-                Default
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase"
-              >
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-200">
-            <tr
-              v-for="opt in optionsData"
-              :key="opt.name"
-              class="group hover:bg-zinc-50 transition-colors"
-            >
-              <td class="px-4 py-3 font-mono text-zinc-900 font-bold">
-                {{ opt.name }}
-              </td>
-              <td class="px-4 py-3 font-mono text-zinc-500 text-xs">
-                {{ opt.type }}
-              </td>
-              <td class="px-4 py-3 font-mono text-zinc-400 text-xs">
-                {{ opt.default }}
-              </td>
-              <td class="px-4 py-3 text-zinc-600 leading-snug">
-                {{ opt.desc }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Table
+        :columns="[
+          { key: 'name', label: 'Option', class: 'w-1/4' },
+          { key: 'type', label: 'Type', class: 'w-1/6' },
+          { key: 'default', label: 'Default', class: 'w-1/6' },
+          { key: 'desc', label: 'Description' },
+        ]"
+        :rows="optionsData"
+        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+      >
+        <template #cell-name="{ row }">
+          <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
+        </template>
+        <template #cell-type="{ row }">
+          <span class="font-mono text-zinc-500 text-xs">{{ row.type }}</span>
+        </template>
+        <template #cell-default="{ row }">
+          <span class="font-mono text-zinc-400 text-xs">{{ row.default }}</span>
+        </template>
+        <template #cell-desc="{ row }">
+          <span class="text-zinc-600 leading-snug">{{ row.desc }}</span>
+        </template>
+      </Table>
     </div>
 
     <!-- State -->
-    <div class="mb-16">
+    <div class="mb-16" id="state">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -295,48 +133,31 @@ const pluginHooks = [
         <span class="text-zinc-400 font-normal">Read/Write via app.state</span>
       </h3>
 
-      <div class="border border-zinc-200 bg-white overflow-hidden">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-zinc-50 border-b border-zinc-200">
-            <tr>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4"
-              >
-                Property
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4"
-              >
-                Type
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase"
-              >
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-200">
-            <tr
-              v-for="p in stateData"
-              :key="p.name"
-              class="group hover:bg-zinc-50 transition-colors"
-            >
-              <td class="px-4 py-3 font-mono text-zinc-900 font-bold">
-                {{ p.name }}
-              </td>
-              <td class="px-4 py-3 font-mono text-zinc-500 text-xs">
-                {{ p.type }}
-              </td>
-              <td class="px-4 py-3 text-zinc-600 leading-snug">{{ p.desc }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Table
+        :columns="[
+          { key: 'name', label: 'Property', class: 'w-1/4' },
+          { key: 'type', label: 'Type', class: 'w-1/4' },
+          { key: 'desc', label: 'Description' },
+        ]"
+        :rows="stateData"
+        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+      >
+        <template #cell-name="{ row }">
+          <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
+        </template>
+
+        <template #cell-type="{ row }">
+          <span class="font-mono text-zinc-500 text-xs">{{ row.type }}</span>
+        </template>
+
+        <template #cell-desc="{ row }">
+          <span class="text-zinc-600 leading-snug">{{ row.desc }}</span>
+        </template>
+      </Table>
     </div>
 
     <!-- Methods Table -->
-    <div class="mb-16">
+    <div class="mb-16" id="methods">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -344,56 +165,36 @@ const pluginHooks = [
         <span class="text-zinc-400 font-normal">Public API</span>
       </h3>
 
-      <div class="border border-zinc-200 bg-white overflow-hidden">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-zinc-50 border-b border-zinc-200">
-            <tr>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/6"
-              >
-                Method
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4"
-              >
-                Parameters
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/6"
-              >
-                Return
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase"
-              >
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-200">
-            <tr
-              v-for="m in methodsData"
-              :key="m.name"
-              class="group hover:bg-zinc-50 transition-colors"
-            >
-              <td class="px-4 py-3 font-mono text-zinc-900 font-bold">
-                {{ m.name }}
-              </td>
-              <td class="px-4 py-3 font-mono text-zinc-500 text-xs">
-                {{ m.params }}
-              </td>
-              <td class="px-4 py-3 font-mono text-amber-600 text-xs">
-                {{ m.return }}
-              </td>
-              <td class="px-4 py-3 text-zinc-600 leading-snug">{{ m.desc }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <Table
+        :columns="[
+          { key: 'name', label: 'Method', class: 'w-1/6' },
+          { key: 'params', label: 'Parameters', class: 'w-1/4' },
+          { key: 'return', label: 'Return', class: 'w-1/6' },
+          { key: 'desc', label: 'Description' },
+        ]"
+        :rows="methodsData"
+        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+      >
+        <template #cell-name="{ row }">
+          <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
+        </template>
+
+        <template #cell-params="{ row }">
+          <span class="font-mono text-zinc-500 text-xs">{{ row.params }}</span>
+        </template>
+
+        <template #cell-return="{ row }">
+          <span class="font-mono text-amber-600 text-xs">{{ row.return }}</span>
+        </template>
+
+        <template #cell-desc="{ row }">
+          <span class="text-zinc-600 leading-snug">{{ row.desc }}</span>
+        </template>
+      </Table>
     </div>
 
     <!-- Plugin Interface -->
-    <div class="mb-16">
+    <div class="mb-16" id="plugin-interface">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -401,37 +202,360 @@ const pluginHooks = [
         <span class="text-zinc-400 font-normal">Lifecycle Hooks</span>
       </h3>
 
-      <div class="border border-zinc-200 bg-white overflow-hidden">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-zinc-50 border-b border-zinc-200">
-            <tr>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase w-1/4"
-              >
-                Hook
-              </th>
-              <th
-                class="px-4 py-3 font-mono text-xs font-bold text-zinc-500 uppercase"
-              >
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-200">
-            <tr
-              v-for="hook in pluginHooks"
-              :key="hook.name"
-              class="group hover:bg-zinc-50 transition-colors"
+      <Table
+        :columns="[
+          { key: 'name', label: 'Hook', class: 'w-1/4' },
+          { key: 'desc', label: 'Description' },
+        ]"
+        :rows="pluginHooks"
+        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+      >
+        <template #cell-name="{ row }">
+          <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
+        </template>
+
+        <template #cell-desc="{ row }">
+          <span class="text-zinc-600 leading-snug">{{ row.desc }}</span>
+        </template>
+      </Table>
+    </div>
+
+    <!-- Utilities -->
+    <div class="mb-16" id="utilities">
+      <h3
+        class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
+      >
+        <span>Utilities</span>
+        <span class="text-zinc-400 font-normal">@supermousejs/utils</span>
+      </h3>
+
+      <p class="text-zinc-600 mb-8 leading-relaxed">
+        The <code>@supermousejs/utils</code> package provides
+        performance-optimized helpers for plugin development. All functions are
+        designed to minimize allocations and layout thrashing during the render
+        loop.
+      </p>
+
+      <!-- Math Utilities -->
+      <div class="mb-12">
+        <h4
+          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-700 mb-4 pb-2 border-b border-zinc-100"
+        >
+          Math Utilities
+        </h4>
+        <p class="text-sm text-zinc-600 mb-4">
+          Frame-independent motion, interpolation, and vector operations.
+        </p>
+        <Table
+          :columns="[
+            { key: 'name', label: 'Function', class: 'w-1/6' },
+            { key: 'signature', label: 'Signature', class: 'w-1/4' },
+            { key: 'params', label: 'Parameters' },
+          ]"
+          :rows="mathUtilities"
+          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+        >
+          <template #cell-name="{ row }">
+            <span class="font-mono text-zinc-900 font-bold">{{
+              row.name
+            }}</span>
+          </template>
+          <template #cell-signature="{ row }">
+            <span class="font-mono text-xs text-zinc-500">{{
+              row.signature
+            }}</span>
+          </template>
+          <template #cell-params="{ row }">
+            <div class="text-xs">
+              <div class="font-mono text-zinc-700 mb-1">
+                {{ row.params }}
+              </div>
+              <div class="text-zinc-600">{{ row.desc }}</div>
+            </div>
+          </template>
+        </Table>
+
+        <CodeBlock
+          lang="typescript"
+          :code="`import { math } from '@supermousejs/utils';
+
+// Frame-rate independent damping
+let pos = 0;
+pos = math.damp(pos, target, 10, deltaTime);
+
+// Rotation on shortest path
+rotation = math.lerpAngle(rotation, newAngle, 0.15);
+
+// Vector math
+const speed = math.dist(vx, vy);
+const direction = math.angle(vx, vy);
+`"
+          :clean="true"
+          title="Usage Example"
+        />
+      </div>
+
+      <!-- DOM Utilities -->
+      <div class="mb-12">
+        <h4
+          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-700 mb-4 pb-2 border-b border-zinc-100"
+        >
+          DOM Utilities
+        </h4>
+        <p class="text-sm text-zinc-600 mb-4">
+          Create and update DOM efficiently. Built-in caching prevents layout
+          thrashing.
+        </p>
+        <Table
+          :columns="[
+            { key: 'name', label: 'Function', class: 'w-1/6' },
+            { key: 'signature', label: 'Signature', class: 'w-1/4' },
+            { key: 'params', label: 'Parameters' },
+          ]"
+          :rows="domUtilities"
+          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+        >
+          <template #cell-name="{ row }">
+            <span class="font-mono text-zinc-900 font-bold">{{
+              row.name
+            }}</span>
+          </template>
+          <template #cell-signature="{ row }">
+            <span class="font-mono text-xs text-zinc-500">{{
+              row.signature
+            }}</span>
+          </template>
+          <template #cell-params="{ row }">
+            <div class="text-xs">
+              <div class="font-mono text-zinc-700 mb-1">
+                {{ row.params }}
+              </div>
+              <div class="text-zinc-600">{{ row.desc }}</div>
+            </div>
+          </template>
+        </Table>
+
+        <CodeBlock
+          lang="typescript"
+          :code="`import { dom, Layers } from '@supermousejs/utils';
+
+// Create optimized cursor element
+const dot = dom.createCircle(8, 'black');
+dom.applyStyles(dot, {
+  zIndex: Layers.CURSOR,
+  pointerEvents: 'none',
+  position: 'fixed',
+});
+document.body.appendChild(dot);
+
+// Update position every frame (with caching)
+const { x, y } = app.state.smooth;
+dom.setTransform(dot, x, y);
+
+// Smart style setter only writes if changed
+dom.setStyle(dot, 'opacity', '0.8');
+`"
+          :clean="true"
+          title="Usage Example"
+        />
+      </div>
+
+      <!-- Effects Utilities -->
+      <div class="mb-12">
+        <h4
+          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-700 mb-4 pb-2 border-b border-zinc-100"
+        >
+          Effects Utilities
+        </h4>
+        <p class="text-sm text-zinc-600 mb-4">
+          Create special effects based on cursor movement and velocity.
+        </p>
+        <Table
+          :columns="[
+            { key: 'name', label: 'Function', class: 'w-1/4' },
+            { key: 'signature', label: 'Signature', class: 'w-1/3' },
+            { key: 'params', label: 'Parameters' },
+          ]"
+          :rows="effectsUtilities"
+          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+        >
+          <template #cell-name="{ row }">
+            <span class="font-mono text-zinc-900 font-bold">{{
+              row.name
+            }}</span>
+          </template>
+          <template #cell-signature="{ row }">
+            <span class="font-mono text-xs text-zinc-500">{{
+              row.signature
+            }}</span>
+          </template>
+          <template #cell-params="{ row }">
+            <div class="text-xs">
+              <div class="font-mono text-zinc-700 mb-1">
+                {{ row.params }}
+              </div>
+              <div class="text-zinc-600 mb-2">{{ row.desc }}</div>
+              <div class="font-mono text-amber-700 bg-amber-50 p-2 rounded">
+                Returns: {{ row.return }}
+              </div>
+            </div>
+          </template>
+        </Table>
+
+        <CodeBlock
+          lang="typescript"
+          :code="`import { effects } from '@supermousejs/utils';
+
+update(app, el) {
+  const { vx, vy } = app.state.velocity;
+
+  // Get squash & stretch from velocity
+  const { rotation, scaleX, scaleY } = effects.getVelocityDistortion(vx, vy);
+
+  const { x, y } = app.state.smooth;
+  dom.setTransform(el, x, y, rotation, scaleX, scaleY);
+}
+`"
+          :clean="true"
+          title="Usage Example"
+        />
+      </div>
+
+      <!-- Constants & Enums -->
+      <div class="mb-12">
+        <h4
+          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-700 mb-4 pb-2 border-b border-zinc-100"
+        >
+          Constants & Enums
+        </h4>
+        <p class="text-sm text-zinc-600 mb-4">
+          Pre-defined values for z-index layering and CSS easings.
+        </p>
+        <Table
+          :columns="[
+            { key: 'name', label: 'Constant', class: 'w-1/4' },
+            { key: 'value', label: 'Value', class: 'w-1/4' },
+            { key: 'desc', label: 'Description' },
+          ]"
+          :rows="constantUtilities"
+          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+        >
+          <template #cell-name="{ row }">
+            <span class="font-mono text-zinc-900 font-bold">{{
+              row.name
+            }}</span>
+          </template>
+          <template #cell-value="{ row }">
+            <span
+              class="font-mono text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded"
+              >{{ row.value }}</span
             >
-              <td class="px-4 py-3 font-mono text-zinc-900 font-bold">
-                {{ hook.name }}
-              </td>
-              <td class="px-4 py-3 text-zinc-600 leading-snug">
-                {{ hook.desc }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          </template>
+          <template #cell-desc="{ row }">
+            <span class="text-zinc-600">{{ row.desc }}</span>
+          </template>
+        </Table>
+
+        <CodeBlock
+          lang="typescript"
+          :code="`import { Layers, Easings } from '@supermousejs/utils';
+
+// Z-Index layering
+const dot = dom.createCircle(8, 'black');
+dot.style.zIndex = Layers.CURSOR;      // 300
+
+const ring = dom.createCircle(30, 'white');
+ring.style.zIndex = Layers.FOLLOWER;   // 200
+
+const trail = document.createElement('div');
+trail.style.zIndex = Layers.TRACE;     // 100
+
+// CSS easing functions
+tooltip.style.transition = \`opacity 0.3s \${Easings.SMOOTH}\`;
+particles.style.transition = \`transform 0.6s \${Easings.ELASTIC_OUT}\`;
+`"
+          :clean="true"
+          title="Usage Example"
+        />
+      </div>
+
+      <!-- Other Utilities -->
+      <div class="mb-12">
+        <h4
+          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-700 mb-4 pb-2 border-b border-zinc-100"
+        >
+          Plugin & Option Helpers
+        </h4>
+        <p class="text-sm text-zinc-600 mb-4">
+          Tools for plugin definition, configuration normalization, and
+          debugging.
+        </p>
+        <Table
+          :columns="[
+            { key: 'name', label: 'Function', class: 'w-1/6' },
+            { key: 'signature', label: 'Signature', class: 'w-1/3' },
+            { key: 'params', label: 'Details' },
+          ]"
+          :rows="otherUtilities"
+          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+        >
+          <template #cell-name="{ row }">
+            <span class="font-mono text-zinc-900 font-bold">{{
+              row.name
+            }}</span>
+          </template>
+          <template #cell-signature="{ row }">
+            <span class="font-mono text-xs text-zinc-500">{{
+              row.signature
+            }}</span>
+          </template>
+          <template #cell-params="{ row }">
+            <div class="text-xs">
+              <div class="font-mono text-zinc-700 mb-1">
+                {{ row.params }}
+              </div>
+              <div class="text-zinc-600">{{ row.desc }}</div>
+            </div>
+          </template>
+        </Table>
+
+        <CodeBlock
+          lang="typescript"
+          :code="`import { normalize, definePlugin, doctor } from '@supermousejs/utils';
+
+// normalize: Accept static or dynamic values
+const getSize = normalize(options.size, 20);
+const getColor = normalize(options.color, '#fff');
+const size = getSize(app.state);        // Evaluate
+
+// definePlugin: Type-safe plugin helper
+export const MyPlugin = (options) =>
+  definePlugin({
+    name: 'my-plugin',
+    create: (app) => dom.createCircle(20, 'white'),
+    update: (app, el) => dom.setTransform(el, x, y)
+  }, options);
+
+// doctor: Debug in browser console
+doctor(); // Reports cursor conflicts & issues
+`"
+          :clean="true"
+          title="Usage Example"
+        />
+      </div>
+
+      <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded mt-8">
+        <p class="text-sm text-blue-900 leading-relaxed">
+          For more advanced patterns and real-world examples using these
+          utilities, see the
+          <router-link
+            to="/docs/advanced/tips-and-tricks"
+            class="font-bold hover:underline"
+          >
+            Tips &amp; Tricks
+          </router-link>
+          page.
+        </p>
       </div>
     </div>
   </DocsSection>

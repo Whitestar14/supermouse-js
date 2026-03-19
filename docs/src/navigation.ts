@@ -44,6 +44,7 @@ export const DOCS_NAVIGATION = [
       { label: 'Plugin Authoring', path: '/docs/advanced/authoring' },
       { label: 'Contributing', path: '/docs/advanced/contributing' },
       { label: 'API Reference', path: '/docs/reference/api' },
+      { label: 'Tips & Tricks', path: '/docs/advanced/tips-and-tricks' },
     ]
   }
 ];

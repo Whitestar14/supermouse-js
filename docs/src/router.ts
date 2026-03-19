@@ -18,6 +18,7 @@ const ReactIntegration = () => import('./pages/docs/integrations/ReactIntegratio
 const Architecture = () => import('./pages/docs/advanced/Architecture.vue');
 const Authoring = () => import('./pages/docs/advanced/Authoring.vue');
 const Contributing = () => import('./pages/docs/advanced/Contributing.vue');
+const TipsAndTricks = () => import('./pages/docs/advanced/TipsAndTricks.vue');
 const PluginPage = () => import('./pages/docs/PluginPage.vue');
 const ApiReference = () => import('./pages/docs/reference/Api.vue');
 
@@ -25,8 +26,8 @@ const isDev = import.meta.env.DEV;
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: Landing, name: 'LANDING' },
-  { 
-    path: '/docs', 
+  {
+    path: '/docs',
     component: DocsLayout,
     children: [
         { path: '', redirect: '/docs/guide/introduction' },
@@ -35,7 +36,7 @@ const routes: RouteRecordRaw[] = [
         { path: 'guide/usage', component: Usage, name: 'DOCS_USAGE' },
         { path: 'guide/troubleshooting', component: Troubleshooting, name: 'DOCS_TROUBLESHOOTING' },
         { path: 'guide/cookbook', component: Cookbook, name: 'DOCS_COOKBOOK' },
-        
+
         { path: 'integrations/vue', component: VueIntegration, name: 'DOCS_INTEGRATION_VUE' },
         { path: 'integrations/react', component: ReactIntegration, name: 'DOCS_INTEGRATION_REACT' },
         // Backwards compatibility for old link if needed, or just 404
@@ -44,6 +45,7 @@ const routes: RouteRecordRaw[] = [
         { path: 'advanced/architecture', component: Architecture, name: 'DOCS_ARCH' },
         { path: 'advanced/authoring', component: Authoring, name: 'DOCS_AUTHORING' },
         { path: 'advanced/contributing', component: Contributing, name: 'DOCS_CONTRIBUTING' },
+        { path: 'advanced/tips-and-tricks', component: TipsAndTricks, name: 'DOCS_TIPS' },
         { path: 'reference/api', component: ApiReference, name: 'DOCS_API' },
         { path: 'plugins/:id', component: PluginPage, props: true, name: 'DOCS_PLUGIN' }
     ]
@@ -54,10 +56,10 @@ const routes: RouteRecordRaw[] = [
 
 // Conditionally add Labs route in Dev mode only
 if (isDev) {
-  routes.push({ 
-    path: '/labs', 
-    component: Playground, 
-    name: 'LABS' 
+  routes.push({
+    path: '/labs',
+    component: Playground,
+    name: 'LABS'
   });
 }
 

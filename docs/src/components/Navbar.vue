@@ -310,7 +310,7 @@ const triggerSpin = () => {
             fill="none"
             stroke="currentColor"
             stroke-width="3"
-            class="text-black transition-transform group-hover:translate-x-1"
+            class="text-black transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"
           >
             <path d="M7 17l9.2-9.2M17 17V7H7" />
           </svg>
