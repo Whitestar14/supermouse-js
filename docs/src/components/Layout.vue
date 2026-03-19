@@ -1,11 +1,10 @@
-
 <script setup lang="ts">
-import { watch } from 'vue';
-import Navbar from './Navbar.vue';
-import Footer from './Footer.vue';
-import CursorEditor from './playground/CursorEditor.vue';
-import { usePlayground } from '../composables/usePlayground';
-import { useAppCursor } from '../composables/useAppCursor';
+import { watch } from "vue";
+import Navbar from "./Navbar.vue";
+import Footer from "./Footer.vue";
+import CursorEditor from "./playground/CursorEditor.vue";
+import { usePlayground } from "../composables/usePlayground";
+import { useAppCursor } from "../composables/useAppCursor";
 
 // --- INITIALIZATION ---
 // Use the unified cursor setup (matches DocsLayout)
@@ -25,7 +24,9 @@ watch(isOpen, (open) => {
 
 <template>
   <div class="relative min-h-screen bg-white">
-    <div class="relative mx-auto max-w-[1440px] bg-white min-h-screen border-x border-zinc-200 shadow-2xl shadow-zinc-100 flex flex-col">
+    <div
+      class="relative mx-auto max-w-[1440px] bg-white min-h-screen border-x border-zinc-200 shadow-2xl shadow-zinc-100 flex flex-col"
+    >
       <Navbar />
       <main class="relative z-10 flex-1">
         <slot />
@@ -34,10 +35,10 @@ watch(isOpen, (open) => {
     </div>
 
     <!-- Global Editor Overlay -->
-    <CursorEditor 
+    <CursorEditor
       v-if="isOpen"
-      :activeRecipeId="activeRecipeId" 
-      @close="close" 
+      :active-recipe-id="activeRecipeId"
+      @close="close"
     />
   </div>
 </template>

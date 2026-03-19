@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref } from "vue";
 
 const isOpen = ref(false);
 const activeRecipeId = ref<string | null>(null);

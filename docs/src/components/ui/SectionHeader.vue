@@ -13,10 +13,13 @@ defineProps<{
       'text-4xl': level === 1,
       'text-3xl': level === 2,
       'text-xl': level === 3 || !level,
-      'text-lg': level === 4,
+      'text-lg': level === 4
     }"
   >
-    <div v-if="dot" class="w-2 h-2 bg-black flex-shrink-0"></div>
+    <div
+      v-if="dot"
+      class="w-2 h-2 bg-black flex-shrink-0"
+    />
     <slot />
   </component>
 </template>

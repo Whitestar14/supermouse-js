@@ -23,23 +23,23 @@ onMounted(() => {
       backgroundColor: "#18181b",
       color: "#fff",
       borderColor: "#18181b",
-      boxShadow: "none",
+      boxShadow: "none"
     });
     gsap.set(cursorRef.value, {
       top: "80%",
       left: "80%",
       opacity: 0,
-      scale: 1,
+      scale: 1
     });
     gsap.set(".slot-target", {
       borderColor: "#e4e4e7",
-      backgroundColor: "transparent",
+      backgroundColor: "transparent"
     });
     gsap.set([coreRef.value, renderRef.value], {
       borderColor: "#e4e4e7",
       color: "#a1a1aa",
       backgroundColor: "#ffffff",
-      scale: 1,
+      scale: 1
     });
     gsap.set(".pluginDot", { backgroundColor: "#fbbf24" });
 
@@ -49,7 +49,7 @@ onMounted(() => {
       top: "78%",
       left: "30%",
       duration: 0.6,
-      ease: "power2.out",
+      ease: "power2.out"
     })
 
       // 2. Grabs Module
@@ -59,7 +59,7 @@ onMounted(() => {
         {
           scale: 1.05,
           boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
-          duration: 0.1,
+          duration: 0.1
         },
         "<"
       )
@@ -69,7 +69,7 @@ onMounted(() => {
         top: "50%",
         left: "50%",
         duration: 0.8,
-        ease: "power3.inOut",
+        ease: "power3.inOut"
       })
 
       // 4. Release & Snap
@@ -86,13 +86,9 @@ onMounted(() => {
         scale: 1.01,
         duration: 0.1,
         stagger: 0.08,
-        ease: "power1.out",
+        ease: "power1.out"
       })
-      .to(
-        ".slot-target",
-        { borderColor: "transparent", duration: 0.1 },
-        "-=0.2"
-      )
+      .to(".slot-target", { borderColor: "transparent", duration: 0.1 }, "-=0.2")
 
       // 6. Cursor Leaves
       .to(
@@ -102,7 +98,7 @@ onMounted(() => {
           left: "80%",
           opacity: 0,
           duration: 0.5,
-          ease: "power2.in",
+          ease: "power2.in"
         },
         "+=0.2"
       )
@@ -116,7 +112,7 @@ onMounted(() => {
           color: "#a1a1aa",
           backgroundColor: "#ffffff",
           scale: 1,
-          duration: 0.3,
+          duration: 0.3
         },
         "<"
       );
@@ -143,16 +139,13 @@ onUnmounted(() => {
         </h2>
         <span
           class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold hidden sm:inline-block"
-          >plugins.json</span
-        >
+        >plugins.json</span>
       </div>
     </div>
 
     <div class="flex flex-col lg:flex-row border-b border-zinc-200">
       <!-- Sidebar Gutter -->
-      <div
-        class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-zinc-50/30"
-      ></div>
+      <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-zinc-50/30" />
 
       <!-- Content Container -->
       <div class="flex-1 flex flex-col lg:flex-row">
@@ -167,11 +160,9 @@ onUnmounted(() => {
             <p
               class="text-base sm:text-lg text-zinc-600 font-medium leading-relaxed mb-8 text-pretty"
             >
-              Supermouse works as a tiny kernel that coordinates independent
-              modules. From the
+              Supermouse works as a tiny kernel that coordinates independent modules. From the
               <span class="text-black font-bold">Dot</span> cursor to the
-              <span class="text-black font-bold">Magnetic</span> effect,
-              everything is a plugin.
+              <span class="text-black font-bold">Magnetic</span> effect, everything is a plugin.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
               <router-link
@@ -195,9 +186,7 @@ onUnmounted(() => {
           ref="container"
           class="w-full lg:w-[480px] shrink-0 border-t lg:border-t-0 lg:border-l border-zinc-200 bg-zinc-50/50 relative min-h-[320px] md:min-h-[400px] flex overflow-hidden"
         >
-          <div
-            class="absolute inset-0 grid-bg opacity-30 pointer-events-none"
-          ></div>
+          <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
           <!-- The Stack -->
           <div
@@ -213,17 +202,13 @@ onUnmounted(() => {
             <div
               class="slot-target h-12 w-full border-2 border-dashed border-zinc-300 bg-zinc-100/50 flex items-center justify-center box-border relative z-0"
             >
-              <span class="mono text-[10px] font-bold text-zinc-300 opacity-50"
-                >SLOT</span
-              >
+              <span class="mono text-[10px] font-bold text-zinc-300 opacity-50">SLOT</span>
             </div>
             <div
               ref="renderRef"
               class="stack-item h-12 w-full bg-white border border-zinc-200 shadow-sm flex items-center px-4 relative z-10 transition-colors"
             >
-              <span class="mono text-[10px] font-bold text-inherit"
-                >RENDER</span
-              >
+              <span class="mono text-[10px] font-bold text-inherit">RENDER</span>
             </div>
           </div>
 
@@ -234,10 +219,8 @@ onUnmounted(() => {
           >
             <div
               class="pluginDot w-2 h-2 bg-emerald-400 border-zinc-900 border border-solid rounded-sm mr-3"
-            ></div>
-            <span
-              class="mono text-[10px] font-bold inherit uppercase tracking-widest flex-1"
-            >
+            />
+            <span class="mono text-[10px] font-bold inherit uppercase tracking-widest flex-1">
               @supermouse/plugin
             </span>
           </div>
@@ -261,9 +244,7 @@ onUnmounted(() => {
           </div>
 
           <div class="absolute bottom-6 left-0 right-0 text-center">
-            <p
-              class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold"
-            >
+            <p class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">
               Modular Runtime
             </p>
           </div>

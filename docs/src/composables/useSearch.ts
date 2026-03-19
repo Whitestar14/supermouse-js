@@ -23,25 +23,10 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "write",
     "builder",
     "api",
-    "custom",
+    "custom"
   ],
-  "/docs/guide/installation": [
-    "setup",
-    "add",
-    "pnpm",
-    "npm",
-    "yarn",
-    "start",
-    "import",
-  ],
-  "/docs/guide/usage": [
-    "config",
-    "options",
-    "init",
-    "setup",
-    "main",
-    "provider",
-  ],
+  "/docs/guide/installation": ["setup", "add", "pnpm", "npm", "yarn", "start", "import"],
+  "/docs/guide/usage": ["config", "options", "init", "setup", "main", "provider"],
   "/docs/guide/troubleshooting": [
     "fix",
     "bug",
@@ -50,16 +35,9 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "glitch",
     "problem",
     "debug",
-    "doctor",
+    "doctor"
   ],
-  "/docs/advanced/architecture": [
-    "core",
-    "loop",
-    "physics",
-    "math",
-    "internal",
-    "lifecycle",
-  ],
+  "/docs/advanced/architecture": ["core", "loop", "physics", "math", "internal", "lifecycle"],
   "/docs/advanced/contributing": [
     "pr",
     "github",
@@ -71,7 +49,7 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "generate",
     "script",
     "command",
-    "terminal",
+    "terminal"
   ],
   "/docs/integrations/vue": ["component", "composable", "hook", "nuxt"],
   "/docs/integrations/react": ["component", "hook", "nextjs", "useeffect"],
@@ -87,7 +65,7 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "utilities",
     "math",
     "dom",
-    "effects",
+    "effects"
   ],
   "/docs/advanced/tips-and-tricks": [
     "tips",
@@ -96,8 +74,8 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "performance",
     "optimization",
     "cache",
-    "priority",
-  ],
+    "priority"
+  ]
 };
 
 function normalizeQuery(q: string): string {
@@ -128,7 +106,7 @@ export function useSearch() {
           path: item.path,
           type: "Guide",
           section: group.title,
-          keywords: PAGE_KEYWORDS[item.path] || [],
+          keywords: PAGE_KEYWORDS[item.path] || []
         });
       });
     });
@@ -146,7 +124,7 @@ export function useSearch() {
         description: p.description,
         path: `/docs/plugins/${p.id}`,
         type: "Plugin",
-        keywords: keywords.filter((k) => k.length > 0),
+        keywords: keywords.filter((k) => k.length > 0)
       });
     });
 
@@ -164,18 +142,13 @@ export function useSearch() {
         const labelScore = scoreMatch(q, item.label, 3);
 
         // Score keywords
-        const keywordScore = Math.max(
-          0,
-          ...item.keywords.map((k) => scoreMatch(q, k, 2))
-        );
+        const keywordScore = Math.max(0, ...item.keywords.map((k) => scoreMatch(q, k, 2)));
 
         // Score path
         const pathScore = scoreMatch(q, item.path, 1);
 
         // Score description
-        const descScore = item.description
-          ? scoreMatch(q, item.description, 1)
-          : 0;
+        const descScore = item.description ? scoreMatch(q, item.description, 1) : 0;
 
         const totalScore = labelScore + keywordScore + pathScore + descScore;
 
@@ -191,6 +164,6 @@ export function useSearch() {
 
   return {
     query,
-    results,
+    results
   };
 }

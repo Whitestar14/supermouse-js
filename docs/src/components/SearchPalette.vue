@@ -20,8 +20,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     selectedIndex.value = (selectedIndex.value + 1) % results.value.length;
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
-    selectedIndex.value =
-      (selectedIndex.value - 1 + results.value.length) % results.value.length;
+    selectedIndex.value = (selectedIndex.value - 1 + results.value.length) % results.value.length;
   } else if (e.key === "Enter") {
     e.preventDefault();
     if (results.value[selectedIndex.value]) {
@@ -47,14 +46,12 @@ watch(query, () => {
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] px-4"
-  >
+  <div class="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] px-4">
     <!-- Backdrop -->
     <div
       class="absolute inset-0 bg-white/80 backdrop-blur-sm"
       @click="emit('close')"
-    ></div>
+    />
 
     <!-- Modal -->
     <div
@@ -71,8 +68,17 @@ watch(query, () => {
           stroke-width="2"
           class="text-zinc-400 mr-4"
         >
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <circle
+            cx="11"
+            cy="11"
+            r="8"
+          />
+          <line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+          />
         </svg>
         <input
           ref="searchInput"
@@ -80,10 +86,8 @@ watch(query, () => {
           type="text"
           placeholder="Search docs, plugins, and guides..."
           class="flex-1 h-full outline-none text-lg font-medium placeholder:text-zinc-300 bg-transparent"
-        />
-        <div
-          class="mono text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-400 font-bold"
         >
+        <div class="mono text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-400 font-bold">
           ESC
         </div>
       </div>
@@ -94,35 +98,29 @@ watch(query, () => {
         class="p-2 bg-zinc-50 max-h-[300px] overflow-y-auto"
         data-lenis-prevent
       >
-        <div
-          class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-3 py-2"
-        >
+        <div class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-3 py-2">
           Results
         </div>
         <button
           v-for="(res, i) in results"
           :key="res.id"
-          @click="navigate(res.path)"
           class="w-full text-left px-4 py-3 flex items-start justify-between gap-4 group transition-colors border border-transparent"
           :class="
             i === selectedIndex
               ? 'bg-white border-zinc-200 shadow-sm'
               : 'hover:bg-white hover:border-zinc-200'
           "
+          @click="navigate(res.path)"
         >
           <div class="flex-1 min-w-0">
-            <span class="text-sm font-bold text-zinc-900 block">{{
-              res.label
-            }}</span>
+            <span class="text-sm font-bold text-zinc-900 block">{{ res.label }}</span>
             <span
               v-if="res.description"
               class="text-[10px] text-zinc-500 block line-clamp-1"
             >
               {{ res.description }}
             </span>
-            <span class="text-[10px] text-zinc-400 block truncate">{{
-              res.path
-            }}</span>
+            <span class="text-[10px] text-zinc-400 block truncate">{{ res.path }}</span>
           </div>
           <span
             class="mono text-[10px] uppercase tracking-widest font-bold whitespace-nowrap flex-shrink-0"
@@ -130,8 +128,8 @@ watch(query, () => {
               res.type === 'Plugin'
                 ? 'text-amber-600'
                 : res.type === 'Guide'
-                ? 'text-blue-600'
-                : 'text-purple-600'
+                  ? 'text-blue-600'
+                  : 'text-purple-600'
             "
           >
             {{ res.type }}
@@ -140,13 +138,19 @@ watch(query, () => {
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="query" class="p-8 text-center">
+      <div
+        v-else-if="query"
+        class="p-8 text-center"
+      >
         <p class="text-zinc-400 font-mono text-xs">
           No results found for "{{ query }}"
         </p>
       </div>
 
-      <div v-else class="p-8 text-center">
+      <div
+        v-else
+        class="p-8 text-center"
+      >
         <p class="text-zinc-300 font-mono text-xs uppercase tracking-widest">
           Type to search...
         </p>

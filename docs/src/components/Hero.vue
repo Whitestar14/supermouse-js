@@ -26,54 +26,41 @@ app.use(Dot({
   <div class="relative border-b border-zinc-200 bg-white">
     <div class="flex flex-col lg:flex-row min-h-[640px]">
       <!-- Sidebar Spacer -->
-      <div
-        class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white z-10"
-      ></div>
+      <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white z-10" />
 
       <!-- Main Content Area -->
       <div class="flex-1 relative flex flex-col lg:flex-row items-center">
         <!-- Background Grid -->
         <div
           class="absolute inset-0 grid-bg opacity-100 pointer-events-none mix-blend-multiply"
-        ></div>
+        />
 
-        <div
-          class="w-full h-full flex flex-col lg:flex-row max-w-7xl mx-auto z-10"
-        >
+        <div class="w-full h-full flex flex-col lg:flex-row max-w-7xl mx-auto z-10">
           <!-- Text Column -->
           <div
             class="flex-1 py-16 px-6 md:px-12 lg:px-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white/95 backdrop-blur-sm"
           >
             <!-- Version Badge -->
             <div class="inline-flex items-center gap-2 mb-10">
-              <span
-                class="mono text-[11px] uppercase tracking-widest text-zinc-500 font-bold"
-                >v2.0 Stable</span
-              >
+              <span class="mono text-[11px] uppercase tracking-widest text-zinc-500 font-bold">v2.0 Stable</span>
             </div>
 
             <!-- Headline -->
             <h1
               class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[1.05]"
             >
-              Cursor Engine <br />
+              Cursor Engine <br>
               for Modern Tooling.
             </h1>
 
             <!-- Subtext -->
-            <p
-              class="text-xl text-zinc-600 font-medium max-w-md mb-12 leading-relaxed text-pretty"
-            >
+            <p class="text-xl text-zinc-600 font-medium max-w-md mb-12 leading-relaxed text-pretty">
               A modular engine with
-              <span class="text-black font-bold border-b-2 border-black/10"
-                >optimized defaults</span
-              >. Fully replaceable parts for maximum control.
+              <span class="text-black font-bold border-b-2 border-black/10">optimized defaults</span>. Fully replaceable parts for maximum control.
             </p>
 
             <!-- Actions -->
-            <div
-              class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
-            >
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <router-link
                 to="/docs"
                 class="h-12 px-8 bg-black text-white text-sm font-bold flex items-center justify-center hover:bg-zinc-800 transition-colors"
@@ -82,13 +69,11 @@ app.use(Dot({
               </router-link>
 
               <button
-                @click="copyCommand"
                 class="group h-12 px-5 bg-white border border-zinc-200 flex items-center gap-4 hover:border-zinc-400 transition-colors"
+                @click="copyCommand"
               >
                 <span class="mono text-zinc-400 text-xs select-none">$</span>
-                <code class="mono flex-1 text-sm text-zinc-900 font-bold"
-                  >pnpm add @supermousejs/core</code
-                >
+                <code class="mono flex-1 text-sm text-zinc-900 font-bold">pnpm add @supermousejs/core</code>
                 <div class="relative size-4 justify-self-end ml-2">
                   <svg
                     v-if="!copied"
@@ -105,10 +90,8 @@ app.use(Dot({
                       height="13"
                       rx="2"
                       ry="2"
-                    ></rect>
-                    <path
-                      d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                    ></path>
+                    />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                   </svg>
                   <svg
                     v-else
@@ -118,7 +101,7 @@ app.use(Dot({
                     stroke="currentColor"
                     stroke-width="2"
                   >
-                    <polyline points="20 6 9 17 4 12"></polyline>
+                    <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
               </button>
@@ -137,9 +120,9 @@ app.use(Dot({
 
             <div class="mt-8 flex gap-8 justify-center opacity-40 grayscale">
               <!-- Fake logos/tech badges -->
-              <div class="h-6 w-6 rounded-full bg-zinc-300"></div>
-              <div class="h-6 w-6 rounded-full bg-zinc-300"></div>
-              <div class="h-6 w-6 rounded-full bg-zinc-300"></div>
+              <div class="h-6 w-6 rounded-full bg-zinc-300" />
+              <div class="h-6 w-6 rounded-full bg-zinc-300" />
+              <div class="h-6 w-6 rounded-full bg-zinc-300" />
             </div>
           </div>
         </div>

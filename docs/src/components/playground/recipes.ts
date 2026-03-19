@@ -1,16 +1,15 @@
-
-import { Supermouse } from '@supermousejs/core';
-import { Dot } from '@supermousejs/dot';
-import { Ring } from '@supermousejs/ring';
-import { Text } from '@supermousejs/text';
-import { Magnetic } from '@supermousejs/magnetic';
-import { Pointer } from '@supermousejs/pointer';
-import { Stick } from '@supermousejs/stick';
+import { Supermouse } from "@supermousejs/core";
+import { Dot } from "@supermousejs/dot";
+import { Ring } from "@supermousejs/ring";
+import { Text } from "@supermousejs/text";
+import { Magnetic } from "@supermousejs/magnetic";
+import { Pointer } from "@supermousejs/pointer";
+import { Stick } from "@supermousejs/stick";
 // Use Labs for complex plugins
-import { SmartIcon, SmartRing, TextRing, Sparkles } from '@supermousejs/labs';
-import { ICONS } from '@/config/icons';
+import { SmartIcon, SmartRing, TextRing, Sparkles } from "@supermousejs/labs";
+import { ICONS } from "@/config/icons";
 
-export type ControlType = 'range' | 'color' | 'toggle' | 'text' | 'select';
+export type ControlType = "range" | "color" | "toggle" | "text" | "select";
 
 export interface ControlSchema {
   key: string;
@@ -44,7 +43,7 @@ const POINTER_SVG = `
 `;
 
 const ICON_SVGS: Record<string, string> = {
-  default: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-45deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>`,
+  default: "<svg viewBox=\"0 0 24 24\" fill=\"white\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"transform: rotate(-45deg)\"><path d=\"m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z\"/></svg>",
 
   hand: `<svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
   <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" fill="white" />
@@ -71,205 +70,372 @@ const ICON_SVGS: Record<string, string> = {
 
 export const RECIPES: PresetRecipe[] = [
   {
-    id: 'basic-dot',
-    name: 'Precision Dot',
-    description: 'The standard verified cursor. Minimalist and fast.',
+    id: "basic-dot",
+    name: "Precision Dot",
+    description: "The standard verified cursor. Minimalist and fast.",
     icon: ICONS.dot,
     schema: [
-      { key: 'size', label: 'Size', type: 'range', min: 4, max: 40, step: 1, defaultValue: 10, unit: 'px', description: 'Diameter in pixels' },
-      { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
-      { key: 'mixBlendMode', label: 'Blend Mode', type: 'select', options: ['normal', 'difference', 'exclusion'], defaultValue: 'normal' }
+      {
+        key: "size",
+        label: "Size",
+        type: "range",
+        min: 4,
+        max: 40,
+        step: 1,
+        defaultValue: 10,
+        unit: "px",
+        description: "Diameter in pixels"
+      },
+      { key: "color", label: "Color", type: "color", defaultValue: "#000000" },
+      {
+        key: "mixBlendMode",
+        label: "Blend Mode",
+        type: "select",
+        options: ["normal", "difference", "exclusion"],
+        defaultValue: "normal"
+      }
     ],
     setup: (app, config) => {
-      app.use(Dot({
-        size: () => config.size,
-        color: () => config.color,
-        mixBlendMode: config.mixBlendMode
-      }));
+      app.use(
+        Dot({
+          size: () => config.size,
+          color: () => config.color,
+          mixBlendMode: config.mixBlendMode
+        })
+      );
     }
   },
   {
-    id: 'context-icon',
-    name: 'Context Icons',
-    description: 'Swaps SVG icons based on semantic tags (links, inputs) or custom attributes.',
+    id: "context-icon",
+    name: "Context Icons",
+    description: "Swaps SVG icons based on semantic tags (links, inputs) or custom attributes.",
     icon: ICONS.labs,
     schema: [
-        { key: 'size', label: 'Size', type: 'range', min: 16, max: 48, defaultValue: 24, unit: 'px' },
-        { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
-        { key: 'transitionDuration', label: 'Transition', type: 'range', min: 0, max: 500, defaultValue: 200, unit: 'ms', description: 'Morph duration' },
-        { key: 'anchor', label: 'Anchor Point', type: 'select', options: ['center', 'top-left'], defaultValue: 'top-left', description: 'Align "Top Left" for arrows.' }
+      { key: "size", label: "Size", type: "range", min: 16, max: 48, defaultValue: 24, unit: "px" },
+      { key: "color", label: "Color", type: "color", defaultValue: "#000000" },
+      {
+        key: "transitionDuration",
+        label: "Transition",
+        type: "range",
+        min: 0,
+        max: 500,
+        defaultValue: 200,
+        unit: "ms",
+        description: "Morph duration"
+      },
+      {
+        key: "anchor",
+        label: "Anchor Point",
+        type: "select",
+        options: ["center", "top-left"],
+        defaultValue: "top-left",
+        description: "Align \"Top Left\" for arrows."
+      }
     ],
     setup: (app, config) => {
-        app.options.ignoreOnNative = false;
+      app.options.ignoreOnNative = false;
 
-        // Define rules via standard options
-        app.options.rules = {
-          'a, button': { icon: 'hand' },
-          'input': { icon: 'text' }
-        };
+      // Define rules via standard options
+      app.options.rules = {
+        "a, button": { icon: "hand" },
+        input: { icon: "text" }
+      };
 
-        app.use(SmartIcon({
-            icons: ICON_SVGS,
-            size: () => config.size,
-            color: () => config.color,
-            transitionDuration: config.transitionDuration,
-            anchor: () => config.anchor
-        }));
+      app.use(
+        SmartIcon({
+          icons: ICON_SVGS,
+          size: () => config.size,
+          color: () => config.color,
+          transitionDuration: config.transitionDuration,
+          anchor: () => config.anchor
+        })
+      );
     }
   },
   {
-    id: 'vehicle-pointer',
-    name: 'Vehicle Pointer',
-    description: 'A brutalist arrow that rotates based on velocity.',
+    id: "vehicle-pointer",
+    name: "Vehicle Pointer",
+    description: "A brutalist arrow that rotates based on velocity.",
     icon: ICONS.pointer,
     schema: [
-        { key: 'size', label: 'Size', type: 'range', min: 16, max: 64, defaultValue: 32, unit: 'px' },
-        { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' },
-        { key: 'restingAngle', label: 'Rest Angle', type: 'range', min: -180, max: 180, defaultValue: -45, unit: 'deg', description: 'Angle when stopped' },
-        { key: 'returnToRest', label: 'Return to Rest', type: 'toggle', defaultValue: true, description: 'Snap back to rest angle when stopped' },
-        { key: 'restDelay', label: 'Rest Delay', type: 'range', min: 0, max: 2000, step: 50, defaultValue: 200, unit: 'ms', description: 'Wait time before resetting' }
+      { key: "size", label: "Size", type: "range", min: 16, max: 64, defaultValue: 32, unit: "px" },
+      { key: "color", label: "Color", type: "color", defaultValue: "#000000" },
+      {
+        key: "restingAngle",
+        label: "Rest Angle",
+        type: "range",
+        min: -180,
+        max: 180,
+        defaultValue: -45,
+        unit: "deg",
+        description: "Angle when stopped"
+      },
+      {
+        key: "returnToRest",
+        label: "Return to Rest",
+        type: "toggle",
+        defaultValue: true,
+        description: "Snap back to rest angle when stopped"
+      },
+      {
+        key: "restDelay",
+        label: "Rest Delay",
+        type: "range",
+        min: 0,
+        max: 2000,
+        step: 50,
+        defaultValue: 200,
+        unit: "ms",
+        description: "Wait time before resetting"
+      }
     ],
     setup: (app, config) => {
-        app.use(Pointer({
-            size: () => config.size,
-            color: () => config.color,
-            restingAngle: () => config.restingAngle,
-            returnToRest: () => config.returnToRest,
-            restDelay: () => config.restDelay,
-            svg: POINTER_SVG
-        }));
+      app.use(
+        Pointer({
+          size: () => config.size,
+          color: () => config.color,
+          restingAngle: () => config.restingAngle,
+          returnToRest: () => config.returnToRest,
+          restDelay: () => config.restDelay,
+          svg: POINTER_SVG
+        })
+      );
     }
   },
   {
-    id: 'text-ring',
-    name: 'Text Ring',
-    description: 'Rotates a text message around your cursor.',
+    id: "text-ring",
+    name: "Text Ring",
+    description: "Rotates a text message around your cursor.",
     icon: ICONS.text,
     schema: [
-      { key: 'text', label: 'Message', type: 'text', defaultValue: 'SUPERMOUSE • V2 • ' },
-      { key: 'radius', label: 'Radius', type: 'range', min: 20, max: 100, defaultValue: 60, unit: 'px' },
-      { key: 'spread', label: 'Auto-Fit (Spread)', type: 'toggle', defaultValue: true, description: 'Evenly distributes text along the circle.' },
-      { key: 'speed', label: 'Speed', type: 'range', min: -5, max: 5, step: 0.1, defaultValue: 0.5, unit: 'deg/f' },
-      { key: 'fontSize', label: 'Font Size', type: 'range', min: 8, max: 32, defaultValue: 12, unit: 'px' },
-      { key: 'color', label: 'Color', type: 'color', defaultValue: '#000000' }
+      { key: "text", label: "Message", type: "text", defaultValue: "SUPERMOUSE • V2 • " },
+      {
+        key: "radius",
+        label: "Radius",
+        type: "range",
+        min: 20,
+        max: 100,
+        defaultValue: 60,
+        unit: "px"
+      },
+      {
+        key: "spread",
+        label: "Auto-Fit (Spread)",
+        type: "toggle",
+        defaultValue: true,
+        description: "Evenly distributes text along the circle."
+      },
+      {
+        key: "speed",
+        label: "Speed",
+        type: "range",
+        min: -5,
+        max: 5,
+        step: 0.1,
+        defaultValue: 0.5,
+        unit: "deg/f"
+      },
+      {
+        key: "fontSize",
+        label: "Font Size",
+        type: "range",
+        min: 8,
+        max: 32,
+        defaultValue: 12,
+        unit: "px"
+      },
+      { key: "color", label: "Color", type: "color", defaultValue: "#000000" }
     ],
     setup: (app, config) => {
       app.use(Dot({ size: 6, color: () => config.color }));
-      app.use(TextRing({
-        text: () => config.text,
-        radius: () => config.radius,
-        fontSize: () => config.fontSize,
-        speed: () => config.speed,
-        color: () => config.color,
-        spread: config.spread // Static option
-      }));
+      app.use(
+        TextRing({
+          text: () => config.text,
+          radius: () => config.radius,
+          fontSize: () => config.fontSize,
+          speed: () => config.speed,
+          color: () => config.color,
+          spread: config.spread // Static option
+        })
+      );
     }
   },
   {
-    id: 'magnetic-button',
-    name: 'Magnetic Force',
-    description: 'Attracts the cursor to interactive elements using the Magnetic plugin.',
+    id: "magnetic-button",
+    name: "Magnetic Force",
+    description: "Attracts the cursor to interactive elements using the Magnetic plugin.",
     icon: ICONS.magnetic,
     schema: [
-      { key: 'attraction', label: 'Attraction', type: 'range', min: 0.1, max: 1, step: 0.1, defaultValue: 0.4, description: 'How strongly it sticks (0-1)' },
-      { key: 'distance', label: 'Range', type: 'range', min: 50, max: 200, step: 10, defaultValue: 120, unit: 'px', description: 'Capture radius' }
+      {
+        key: "attraction",
+        label: "Attraction",
+        type: "range",
+        min: 0.1,
+        max: 1,
+        step: 0.1,
+        defaultValue: 0.4,
+        description: "How strongly it sticks (0-1)"
+      },
+      {
+        key: "distance",
+        label: "Range",
+        type: "range",
+        min: 50,
+        max: 200,
+        step: 10,
+        defaultValue: 120,
+        unit: "px",
+        description: "Capture radius"
+      }
     ],
     setup: (app, config) => {
-      app.use(Magnetic({
-        attraction: () => config.attraction,
-        distance: () => config.distance
-      }));
-      app.use(Dot({ size: 8, color: '#000' }));
-      app.use(Ring({ size: 30, color: '#000' }));
+      app.use(
+        Magnetic({
+          attraction: () => config.attraction,
+          distance: () => config.distance
+        })
+      );
+      app.use(Dot({ size: 8, color: "#000" }));
+      app.use(Ring({ size: 30, color: "#000" }));
 
       // Inject behavior into playground DOM
       setTimeout(() => {
-        const btns = document.querySelectorAll('button, [data-hover]');
-        btns.forEach(b => b.setAttribute('data-supermouse-magnetic', 'true'));
+        const btns = document.querySelectorAll("button, [data-hover]");
+        btns.forEach((b) => b.setAttribute("data-supermouse-magnetic", "true"));
       }, 50);
     }
   },
   {
-    id: 'sticky-element',
-    name: 'Sticky Element',
-    description: 'The Ring cursor morphs to match the shape of the hovered element.',
+    id: "sticky-element",
+    name: "Sticky Element",
+    description: "The Ring cursor morphs to match the shape of the hovered element.",
     icon: ICONS.stick,
     schema: [
-      { key: 'padding', label: 'Padding', type: 'range', min: 0, max: 30, step: 1, defaultValue: 10, unit: 'px' },
-      { key: 'color', label: 'Ring Color', type: 'color', defaultValue: '#000000' },
-      { key: 'hideDot', label: 'Hide Dot', type: 'toggle', defaultValue: true, description: 'Fade out the center dot when sticking.' }
+      {
+        key: "padding",
+        label: "Padding",
+        type: "range",
+        min: 0,
+        max: 30,
+        step: 1,
+        defaultValue: 10,
+        unit: "px"
+      },
+      { key: "color", label: "Ring Color", type: "color", defaultValue: "#000000" },
+      {
+        key: "hideDot",
+        label: "Hide Dot",
+        type: "toggle",
+        defaultValue: true,
+        description: "Fade out the center dot when sticking."
+      }
     ],
     setup: (app, config) => {
       app.use(Stick({ padding: () => config.padding }));
-      app.use(Dot({
-        size: 8,
-        color: config.color,
-        hideOnShape: config.hideDot
-      }));
-      app.use(SmartRing({
-        size: 30,
-        color: config.color,
-        enableSkew: true
-      }));
+      app.use(
+        Dot({
+          size: 8,
+          color: config.color,
+          hideOnShape: config.hideDot
+        })
+      );
+      app.use(
+        SmartRing({
+          size: 30,
+          color: config.color,
+          enableSkew: true
+        })
+      );
 
       // Inject behavior into playground DOM
       setTimeout(() => {
-        const btns = document.querySelectorAll('button, [data-hover]');
-        btns.forEach(b => b.setAttribute('data-supermouse-stick', 'true'));
+        const btns = document.querySelectorAll("button, [data-hover]");
+        btns.forEach((b) => b.setAttribute("data-supermouse-stick", "true"));
       }, 50);
     }
   },
   {
-    id: 'ghost-trail',
-    name: 'Ghost Trail',
-    description: 'A high-latency trail effect using transparency.',
+    id: "ghost-trail",
+    name: "Ghost Trail",
+    description: "A high-latency trail effect using transparency.",
     icon: ICONS.ghost,
     schema: [
-        { key: 'size', label: 'Size', type: 'range', min: 10, max: 50, defaultValue: 20, unit: 'px' },
-        { key: 'color', label: 'Color', type: 'color', defaultValue: '#6366f1' },
-        { key: 'opacity', label: 'Opacity', type: 'range', min: 0.1, max: 1, step: 0.1, defaultValue: 0.5 },
+      { key: "size", label: "Size", type: "range", min: 10, max: 50, defaultValue: 20, unit: "px" },
+      { key: "color", label: "Color", type: "color", defaultValue: "#6366f1" },
+      {
+        key: "opacity",
+        label: "Opacity",
+        type: "range",
+        min: 0.1,
+        max: 1,
+        step: 0.1,
+        defaultValue: 0.5
+      }
     ],
     setup: (app, config) => {
-       app.use(Dot({ size: 4, color: () => config.color }));
-       app.use(SmartRing({
-         size: () => config.size,
-         color: () => config.color,
-         mixBlendMode: 'normal',
-         enableSkew: true,
-       }));
+      app.use(Dot({ size: 4, color: () => config.color }));
+      app.use(
+        SmartRing({
+          size: () => config.size,
+          color: () => config.color,
+          mixBlendMode: "normal",
+          enableSkew: true
+        })
+      );
     }
   },
   {
-    id: 'sparkles',
-    name: 'Fairy Dust',
-    description: 'Emits particles while moving. Magical.',
+    id: "sparkles",
+    name: "Fairy Dust",
+    description: "Emits particles while moving. Magical.",
     icon: ICONS.trail,
     schema: [
-      { key: 'color', label: 'Sparkle Color', type: 'color', defaultValue: '#fbbf24' },
-      { key: 'velocity', label: 'Min Speed', type: 'range', min: 0, max: 50, defaultValue: 10, unit: 'px/f', description: 'Speed required to spawn' }
+      { key: "color", label: "Sparkle Color", type: "color", defaultValue: "#fbbf24" },
+      {
+        key: "velocity",
+        label: "Min Speed",
+        type: "range",
+        min: 0,
+        max: 50,
+        defaultValue: 10,
+        unit: "px/f",
+        description: "Speed required to spawn"
+      }
     ],
     setup: (app, config) => {
       app.use(Dot({ size: 8, color: () => config.color }));
-      app.use(Sparkles({
-        color: () => config.color,
-        frequency: config.velocity
-      }));
+      app.use(
+        Sparkles({
+          color: () => config.color,
+          frequency: config.velocity
+        })
+      );
     }
   },
   {
-    id: 'text-cursor',
-    name: 'Context Label',
-    description: 'Displays a label next to the cursor when hovering elements.',
+    id: "text-cursor",
+    name: "Context Label",
+    description: "Displays a label next to the cursor when hovering elements.",
     icon: ICONS.context,
     schema: [
-        { key: 'offsetY', label: 'Vertical Offset', type: 'range', min: 10, max: 50, defaultValue: 24, unit: 'px' }
+      {
+        key: "offsetY",
+        label: "Vertical Offset",
+        type: "range",
+        min: 10,
+        max: 50,
+        defaultValue: 24,
+        unit: "px"
+      }
     ],
     setup: (app, config) => {
-        app.use(Dot({ size: 8, color: '#000000' }));
-        app.use(Text({
-            offset: [0, config.offsetY], // Static option
-            duration: 200
-        }));
+      app.use(Dot({ size: 8, color: "#000000" }));
+      app.use(
+        Text({
+          offset: [0, config.offsetY], // Static option
+          duration: 200
+        })
+      );
     }
   }
 ];

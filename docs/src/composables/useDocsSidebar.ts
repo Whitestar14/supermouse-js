@@ -16,6 +16,6 @@ export function useDocsSidebar() {
     },
     clearRightSidebar() {
       rightSidebarConfig.value = null;
-    },
+    }
   };
 }

@@ -7,7 +7,7 @@ import SectionHeader from "@/components/ui/SectionHeader.vue";
 import Text from "@/components/ui/Text.vue";
 import StepCard from "@/components/ui/StepCard.vue";
 
-const installCode = `pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot`;
+const installCode = "pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot";
 
 const appCode = `// src/App.vue
 <script setup>
@@ -45,23 +45,32 @@ const snap = () => {
 const metadataItems = [
   { label: "PACKAGE", content: "@supermousejs/vue" },
   { label: "DEPENDENCY", content: "vue >= 3.2.0" },
-  { label: "LICENSE", content: "MIT" },
+  { label: "LICENSE", content: "MIT" }
 ];
 </script>
 
 <template>
-  <DocsSection label="Integrations" title="Vue.js">
+  <DocsSection
+    label="Integrations"
+    title="Vue.js"
+  >
     <MetadataStrip :items="metadataItems" />
 
-    <Text size="lg" class="mb-12">
-      While Supermouse is framework-agnostic, the Vue adapter provides a
-      seamless Injection/Composition API experience. It handles the lifecycle
-      (mount/unmount) automatically so you don't have to manually destroy
-      instances.
+    <Text
+      size="lg"
+      class="mb-12"
+    >
+      While Supermouse is framework-agnostic, the Vue adapter provides a seamless
+      Injection/Composition API experience. It handles the lifecycle (mount/unmount) automatically
+      so you don't have to manually destroy instances.
     </Text>
 
     <!-- Installation -->
-    <StepCard number="1" title="Installation" divider>
+    <StepCard
+      number="1"
+      title="Installation"
+      divider
+    >
       <CodeBlock
         :code="installCode"
         title="Terminal"
@@ -71,11 +80,14 @@ const metadataItems = [
     </StepCard>
 
     <!-- Provider -->
-    <StepCard number="2" title="Root Provider" divider>
+    <StepCard
+      number="2"
+      title="Root Provider"
+      divider
+    >
       <Text size="sm">
-        Use <code>provideSupermouse</code> in your root component (`App.vue` or
-        a layout). This initializes the engine and makes it available to all
-        child components via `provide/inject`.
+        Use <code>provideSupermouse</code> in your root component (`App.vue` or a layout). This
+        initializes the engine and makes it available to all child components via `provide/inject`.
       </Text>
       <CodeBlock
         :code="appCode"
@@ -86,11 +98,14 @@ const metadataItems = [
     </StepCard>
 
     <!-- Composable -->
-    <StepCard number="3" title="Usage in Components">
+    <StepCard
+      number="3"
+      title="Usage in Components"
+    >
       <Text size="sm">
         Any child component can grab the running instance using
-        <code>useSupermouse()</code>. It returns a reactive `Ref` that resolves
-        to the instance once mounted.
+        <code>useSupermouse()</code>. It returns a reactive `Ref` that resolves to the instance once
+        mounted.
       </Text>
       <CodeBlock
         :code="componentCode"
@@ -101,10 +116,13 @@ const metadataItems = [
     </StepCard>
 
     <!-- Nuxt Warning -->
-    <Callout title="Using with Nuxt?" class="mt-16">
-      Ensure you wrap the provider in <code>&lt;ClientOnly&gt;</code> or
-      checking for <code>process.client</code>. Supermouse accesses the
-      <code>window</code> object immediately upon initialization.
+    <Callout
+      title="Using with Nuxt?"
+      class="mt-16"
+    >
+      Ensure you wrap the provider in <code>&lt;ClientOnly&gt;</code> or checking for
+      <code>process.client</code>. Supermouse accesses the <code>window</code> object immediately
+      upon initialization.
     </Callout>
   </DocsSection>
 </template>

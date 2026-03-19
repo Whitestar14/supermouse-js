@@ -46,20 +46,16 @@ const triggerSpin = () => {
     <div class="flex items-stretch h-16 md:h-20 bg-white relative z-50">
       <!-- 1. Logo Column (Fixed Width, Border Right) -->
       <button
-        @click="triggerSpin"
         class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0 bg-white hover:bg-zinc-50 transition-colors outline-none relative"
         aria-label="Toggle Cursor Mode"
         :data-supermouse-text="logoCursorText"
+        @click="triggerSpin"
       >
         <div class="group block p-4 pointer-events-none">
           <!-- App Logo / Cursor SVG -->
           <div
             class="w-8 h-8 transition-all duration-500 ease-out"
-            :class="[
-              isSpinning
-                ? 'rotate-[315deg] scale-125'
-                : '-rotate-45 group-hover:scale-110',
-            ]"
+            :class="[isSpinning ? 'rotate-[315deg] scale-125' : '-rotate-45 group-hover:scale-110']"
           >
             <svg
               viewBox="0 0 32 32"
@@ -95,7 +91,7 @@ const triggerSpin = () => {
               <span>supermouse</span>
               <div
                 class="w-[0.2em] h-[0.2em] bg-current rounded-full mx-[0.05em] relative top-[1px]"
-              ></div>
+              />
               <span>js</span>
             </div>
           </router-link>
@@ -103,8 +99,8 @@ const triggerSpin = () => {
           <!-- Brutalist Version Dropdown -->
           <div class="relative group hidden sm:block">
             <button
-              @click="showVersionMenu = !showVersionMenu"
               class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black transition-colors relative top-[1px]"
+              @click="showVersionMenu = !showVersionMenu"
             >
               v2.1
               <svg
@@ -123,15 +119,15 @@ const triggerSpin = () => {
 
             <div
               v-if="showVersionMenu"
-              @mouseleave="showVersionMenu = false"
               class="absolute top-full left-0 mt-px w-48 bg-white border border-zinc-200 z-50 flex flex-col"
+              @mouseleave="showVersionMenu = false"
             >
               <a
                 href="#"
                 class="flex items-center justify-between px-4 py-3 text-xs font-bold text-black bg-white uppercase tracking-widest border-b border-zinc-200"
               >
                 <span>v2.1 (Stable)</span>
-                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none"></div>
+                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none" />
               </a>
               <a
                 :href="GITHUB_URL"
@@ -156,8 +152,8 @@ const triggerSpin = () => {
 
         <!-- SEARCH BUTTON (Desktop) -->
         <button
-          @click="$emit('openSearch')"
           class="hidden lg:flex items-center gap-3 px-4 py-2 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 transition-colors group outline-none"
+          @click="$emit('openSearch')"
         >
           <svg
             width="14"
@@ -168,24 +164,29 @@ const triggerSpin = () => {
             stroke-width="2.5"
             class="text-zinc-400 group-hover:text-black"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+            />
+            <line
+              x1="21"
+              y1="21"
+              x2="16.65"
+              y2="16.65"
+            />
           </svg>
-          <span
-            class="text-xs text-zinc-400 group-hover:text-zinc-600 font-medium"
-            >Search...</span
-          >
+          <span class="text-xs text-zinc-400 group-hover:text-zinc-600 font-medium">Search...</span>
           <span
             class="mono text-[10px] text-zinc-300 group-hover:text-zinc-500 font-bold bg-white px-1.5 border border-zinc-200 rounded-sm"
-            >⌘K</span
-          >
+          >⌘K</span>
         </button>
 
         <!-- Mobile Trigger -->
         <div class="md:hidden ml-auto">
           <button
-            @click="toggleMenu"
             class="group relative flex items-center justify-center w-12 h-10 outline-none"
+            @click="toggleMenu"
           >
             <span
               v-if="!mobileMenuOpen"
@@ -193,7 +194,10 @@ const triggerSpin = () => {
             >
               MENU
             </span>
-            <div v-else class="w-8 h-px bg-black"></div>
+            <div
+              v-else
+              class="w-8 h-px bg-black"
+            />
           </button>
         </div>
       </div>
@@ -252,47 +256,41 @@ const triggerSpin = () => {
     <!-- Mobile Menu Overlay -->
     <div
       class="md:hidden fixed inset-0 top-[64px] bg-white z-40 transition-all duration-300 ease-in-out flex flex-col"
-      :class="
-        mobileMenuOpen
-          ? 'opacity-100 visible'
-          : 'opacity-0 invisible pointer-events-none'
-      "
+      :class="mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'"
     >
-      <div
-        class="absolute inset-0 grid-bg opacity-50 pointer-events-none"
-      ></div>
+      <div class="absolute inset-0 grid-bg opacity-50 pointer-events-none" />
 
       <div class="relative z-10 flex flex-col gap-8 p-12 mt-4">
         <!-- Mobile Search Trigger -->
         <button
+          class="text-left text-4xl font-bold tracking-tighter text-zinc-400 inline-flex items-center gap-4 group"
           @click="
             $emit('openSearch');
             toggleMenu();
           "
-          class="text-left text-4xl font-bold tracking-tighter text-zinc-400 inline-flex items-center gap-4 group"
         >
           Search...
         </button>
 
         <router-link
           to="/"
-          @click="toggleMenu"
           class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group"
+          @click="toggleMenu"
         >
           Home
         </router-link>
         <router-link
           to="/docs"
-          @click="toggleMenu"
           class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group"
+          @click="toggleMenu"
         >
           Docs
         </router-link>
         <router-link
           v-if="isDev"
           to="/labs"
-          @click="toggleMenu"
           class="text-4xl font-bold tracking-tighter text-zinc-900 inline-flex items-center gap-4 group"
+          @click="toggleMenu"
         >
           Labs
         </router-link>

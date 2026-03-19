@@ -17,7 +17,7 @@ onMounted(() => {
       xPercent: -50,
       yPercent: -50,
       opacity: 0,
-      scale: 0.5,
+      scale: 0.5
     });
 
     // Entrance
@@ -25,14 +25,14 @@ onMounted(() => {
       opacity: 1,
       scale: 1,
       duration: 0.4,
-      ease: "back.out(1.7)",
+      ease: "back.out(1.7)"
     });
 
     // Loop through nodes hardcoded
     const targets = [
       { top: "30%", left: "20%", sel: ".node-1" },
       { top: "20%", left: "80%", sel: ".node-2" },
-      { top: "70%", left: "50%", sel: ".node-3" },
+      { top: "70%", left: "50%", sel: ".node-3" }
     ];
 
     targets.forEach((target) => {
@@ -41,21 +41,21 @@ onMounted(() => {
         top: target.top,
         left: target.left,
         duration: 0.8,
-        ease: "power3.inOut",
+        ease: "power3.inOut"
       });
 
       // 2. Click Animation
       tl.to(cursorRef.value, {
         scale: 0.8,
         duration: 0.1,
-        ease: "power1.out",
+        ease: "power1.out"
       }).to(
         target.sel,
         {
           scale: 1.05,
           backgroundColor: "#000",
           borderColor: "#000",
-          duration: 0.1,
+          duration: 0.1
         },
         "<"
       );
@@ -68,23 +68,19 @@ onMounted(() => {
           boxShadow: "0 0 0 20px rgba(0,0,0,0)",
           duration: 0.5,
           ease: "power1.out",
-          clearProps: "boxShadow",
+          clearProps: "boxShadow"
         },
         "<"
       );
 
       // 4. Release
-      tl.to(
-        cursorRef.value,
-        { scale: 1, duration: 0.2, ease: "back.out(2)" },
-        "+=0.1"
-      ).to(
+      tl.to(cursorRef.value, { scale: 1, duration: 0.2, ease: "back.out(2)" }, "+=0.1").to(
         target.sel,
         {
           scale: 1,
           backgroundColor: "#FFF",
           borderColor: "#e4e4e7",
-          duration: 0.4,
+          duration: 0.4
         },
         "<"
       );
@@ -97,7 +93,7 @@ onMounted(() => {
       top: "50%",
       left: "50%",
       duration: 0.6,
-      ease: "power2.inOut",
+      ease: "power2.inOut"
     }).to(cursorRef.value, { opacity: 0, scale: 0.5, duration: 0.4 }, "+=0.2");
   }, container.value!);
 });
@@ -122,18 +118,13 @@ onUnmounted(() => {
         </h2>
         <span
           class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold hidden sm:inline-block"
-          >manifesto.md</span
-        >
+        >manifesto.md</span>
       </div>
     </div>
 
-    <div
-      class="flex flex-col lg:flex-row border-b border-zinc-200 relative overflow-hidden"
-    >
+    <div class="flex flex-col lg:flex-row border-b border-zinc-200 relative overflow-hidden">
       <!-- Sidebar Gutter -->
-      <div
-        class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0"
-      ></div>
+      <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0" />
 
       <!-- Text Content -->
       <div
@@ -144,23 +135,17 @@ onUnmounted(() => {
         >
           The Mission
         </h2>
-        <div
-          class="prose prose-lg text-zinc-600 font-medium leading-relaxed max-w-2xl text-pretty"
-        >
+        <div class="prose prose-lg text-zinc-600 font-medium leading-relaxed max-w-2xl text-pretty">
           <p class="mb-6">
-            We are building a unified high-performance toolchain for user
-            interaction, including
+            We are building a unified high-performance toolchain for user interaction, including
             <span class="text-zinc-900 font-bold"> input normalization</span>,
-            <span class="text-zinc-900 font-bold"> physics-based smoothing</span
-            >, and a
-            <span class="text-zinc-900 font-bold"> modular rendering stage</span
-            >.
+            <span class="text-zinc-900 font-bold"> physics-based smoothing</span>, and a
+            <span class="text-zinc-900 font-bold"> modular rendering stage</span>.
           </p>
           <p>
-            Our mission is to make the next generation of web interfaces more
-            organic and expressive than ever before, so while we shoulder
-            handling performance cost, you can focus on designing beautiful
-            cursors.
+            Our mission is to make the next generation of web interfaces more organic and expressive
+            than ever before, so while we shoulder handling performance cost, you can focus on
+            designing beautiful cursors.
           </p>
         </div>
       </div>
@@ -170,23 +155,21 @@ onUnmounted(() => {
         ref="container"
         class="w-full lg:w-[480px] shrink-0 bg-zinc-50/50 relative min-h-[320px] md:min-h-[400px] flex overflow-hidden border-t border-zinc-200 lg:border-t-0"
       >
-        <div
-          class="absolute inset-0 grid-bg opacity-30 pointer-events-none"
-        ></div>
+        <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
 
         <!-- Simulation Nodes -->
         <div
           class="node-1 absolute top-[30%] left-[20%] w-20 h-20 border border-zinc-200 bg-white shadow-sm transform -translate-x-1/2 -translate-y-1/2 rounded-sm"
-        ></div>
+        />
 
         <div
           class="node-2 absolute top-[20%] left-[80%] w-24 h-24 border border-zinc-200 bg-white shadow-sm transform -translate-x-1/2 -translate-y-1/2 rounded-sm"
-        ></div>
+        />
 
         <div
           class="node-3 absolute top-[70%] left-[50%] w-48 h-16 border border-zinc-200 bg-white shadow-sm transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-sm"
         >
-          <div class="w-24 h-1 bg-zinc-100"></div>
+          <div class="w-24 h-1 bg-zinc-100" />
         </div>
 
         <!-- The Cursor -->
@@ -207,17 +190,13 @@ onUnmounted(() => {
           </svg>
         </div>
 
-        <div
-          class="absolute bottom-6 left-6 right-6 flex justify-between items-end"
-        >
-          <div
-            class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold"
-          >
+        <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+          <div class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold">
             Simulation Running
           </div>
           <div class="flex gap-1">
-            <div class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
-            <div class="w-1 h-1 bg-zinc-300 rounded-full"></div>
+            <div class="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+            <div class="w-1 h-1 bg-zinc-300 rounded-full" />
           </div>
         </div>
       </div>

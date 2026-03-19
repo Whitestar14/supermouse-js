@@ -8,15 +8,21 @@ const { open } = usePlayground();
 </script>
 
 <template>
-  <DocsSection label="Guide" title="Cookbook">
-    <Callout title="Best on Desktop" class="md:hidden mb-10">
-      Supermouse Studio works best on a wider viewport. Please switch to a
-      desktop device to run recipes and edit their parameters.
+  <DocsSection
+    label="Guide"
+    title="Cookbook"
+  >
+    <Callout
+      title="Best on Desktop"
+      class="md:hidden mb-10"
+    >
+      Supermouse Studio works best on a wider viewport. Please switch to a desktop device to run
+      recipes and edit their parameters.
     </Callout>
 
     <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
-      A collection of pre-configured cursor effects. Click <b>Run</b> to open
-      the Studio, tweak parameters, and copy the code.
+      A collection of pre-configured cursor effects. Click <b>Run</b> to open the Studio, tweak
+      parameters, and copy the code.
     </p>
 
     <div class="flex flex-wrap border-t border-l border-zinc-200">
@@ -29,12 +35,15 @@ const { open } = usePlayground();
           <div
             class="w-12 h-12 border border-zinc-100 bg-zinc-50 flex items-center justify-center rounded-sm text-zinc-900"
           >
-            <span v-html="recipe.icon" class="w-6 h-6"></span>
+            <span
+              class="w-6 h-6"
+              v-html="recipe.icon"
+            />
           </div>
           <!-- Hidden on mobile -->
           <button
-            @click="open(recipe.id)"
             class="hidden md:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black border border-zinc-200 px-3 py-1.5 hover:border-black transition-colors"
+            @click="open(recipe.id)"
           >
             Run in Studio
           </button>
@@ -48,9 +57,7 @@ const { open } = usePlayground();
         </p>
 
         <div class="pt-6 border-t border-zinc-100 flex gap-2">
-          <span
-            class="mono text-[10px] bg-zinc-100 text-zinc-500 px-2 py-1 rounded"
-          >
+          <span class="mono text-[10px] bg-zinc-100 text-zinc-500 px-2 py-1 rounded">
             {{ recipe.schema.length }} Config Options
           </span>
         </div>

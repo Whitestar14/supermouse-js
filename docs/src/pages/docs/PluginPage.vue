@@ -20,14 +20,14 @@ const installCode = computed(() => {
 const metaItems = computed(() => [
   { label: "VERSION", content: plugin.value?.version || "Latest" },
   { label: "LICENSE", content: "MIT" },
-  { label: "CONFIG", content: `${plugin.value?.options?.length || 0} Options` },
+  { label: "CONFIG", content: `${plugin.value?.options?.length || 0} Options` }
 ]);
 
 const optionColumns = [
   { key: "name", label: "Option", class: "w-1/4" },
   { key: "type", label: "Type", class: "w-1/6" },
   { key: "default", label: "Default", class: "w-1/6" },
-  { key: "description", label: "Description" },
+  { key: "description", label: "Description" }
 ];
 </script>
 
@@ -43,15 +43,11 @@ const optionColumns = [
           Ecosystem
         </router-link>
         <span class="text-zinc-300">/</span>
-        <span
-          class="mono text-xs font-bold uppercase tracking-widest text-zinc-900"
-        >
+        <span class="mono text-xs font-bold uppercase tracking-widest text-zinc-900">
           {{ plugin.package }}
         </span>
       </div>
-      <h1
-        class="text-5xl font-bold tracking-tighter text-zinc-900 leading-[0.9]"
-      >
+      <h1 class="text-5xl font-bold tracking-tighter text-zinc-900 leading-[0.9]">
         {{ plugin.name }}
       </h1>
     </div>
@@ -74,7 +70,7 @@ const optionColumns = [
         <h3
           class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2"
         >
-          <span class="w-1.5 h-1.5 bg-black"></span>
+          <span class="w-1.5 h-1.5 bg-black" />
           Installation
         </h3>
         <CodeBlock
@@ -88,13 +84,13 @@ const optionColumns = [
         <h3
           class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2"
         >
-          <span class="w-1.5 h-1.5 bg-black"></span>
+          <span class="w-1.5 h-1.5 bg-black" />
           Usage
         </h3>
         <CodeBlock
           :code="plugin.code"
           lang="typescript"
-          :recipeId="plugin.recipeId"
+          :recipe-id="plugin.recipeId"
           :clean="true"
           class="border border-zinc-200 shadow-sm flex-1"
         />
@@ -104,9 +100,7 @@ const optionColumns = [
     <!-- API / Config -->
     <div class="border-t border-zinc-200 pt-12">
       <div class="flex items-center justify-between mb-8">
-        <h3
-          class="font-mono text-sm font-bold uppercase tracking-widest text-zinc-900"
-        >
+        <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-zinc-900">
           Configuration
         </h3>
         <span
@@ -122,7 +116,7 @@ const optionColumns = [
         <Table
           :columns="optionColumns"
           :rows="plugin.options"
-          wrapperClass="border border-zinc-200 bg-white overflow-hidden shadow-sm"
+          wrapper-class="border border-zinc-200 bg-white overflow-hidden shadow-sm"
         >
           <template #cell-name="{ row }">
             <span class="font-mono text-zinc-900 font-bold relative">
@@ -130,8 +124,7 @@ const optionColumns = [
               <span
                 v-if="row.reactive"
                 class="absolute top-4 left-2 text-amber-500 text-xs select-none"
-                >*</span
-              >
+              >*</span>
             </span>
           </template>
 
@@ -140,15 +133,11 @@ const optionColumns = [
           </template>
 
           <template #cell-default="{ row }">
-            <span class="font-mono text-zinc-400 text-xs">{{
-              row.default || "-"
-            }}</span>
+            <span class="font-mono text-zinc-400 text-xs">{{ row.default || "-" }}</span>
           </template>
 
           <template #cell-description="{ row }">
-            <span class="text-zinc-600 leading-relaxed">{{
-              row.description
-            }}</span>
+            <span class="text-zinc-600 leading-relaxed">{{ row.description }}</span>
           </template>
         </Table>
       </div>
@@ -157,9 +146,7 @@ const optionColumns = [
         v-if="!plugin.options || plugin.options.length === 0"
         class="p-12 border border-zinc-200 bg-zinc-50 text-center"
       >
-        <p
-          class="font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold"
-        >
+        <p class="font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">
           No configuration options available
         </p>
       </div>
@@ -185,8 +172,18 @@ const optionColumns = [
         <path
           d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
         />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
+        <line
+          x1="12"
+          y1="9"
+          x2="12"
+          y2="13"
+        />
+        <line
+          x1="12"
+          y1="17"
+          x2="12.01"
+          y2="17"
+        />
       </svg>
     </div>
     <h1 class="text-xl font-bold text-zinc-900 tracking-tighter">

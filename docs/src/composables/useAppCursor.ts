@@ -1,8 +1,8 @@
-import { provideSupermouse } from '@supermousejs/vue';
-import { SmartIcon, SmartRing } from '@supermousejs/labs';
-import { Icon } from '@supermousejs/icon';
-import { Text } from '@supermousejs/text';
-import { States } from '@supermousejs/states';
+import { provideSupermouse } from "@supermousejs/vue";
+import { SmartIcon, SmartRing } from "@supermousejs/labs";
+import { Icon } from "@supermousejs/icon";
+import { Text } from "@supermousejs/text";
+import { States } from "@supermousejs/states";
 
 const LOGO_CURSOR = `
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -28,48 +28,55 @@ const TEXT_CURSOR = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.o
 <path d="M8 20H16" stroke="black" stroke-width="2" stroke-linecap="square"/>
 </svg>`;
 
-const ARROW_CURSOR = `<svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F8" stroke-width="2"><path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+const ARROW_CURSOR = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#F2F5F8\" stroke-width=\"2\"><path stroke-linecap=\"square\" stroke-linejoin=\"miter\" d=\"M5 12h14M12 5l7 7-7 7\"/></svg>";
 
 export function useAppCursor() {
-  return provideSupermouse({
-    smoothness: 0.05,
-    enableTouch: false,
-    hideCursor: true,
-    ignoreOnNative: false,
-  }, [
-    SmartIcon({
-      name: 'default-icon',
-      icons: {
-        default: LOGO_CURSOR,
-        pointer: HAND_CURSOR,
-        text: TEXT_CURSOR
-      },
-      size: 32,
-      color: 'black',
-      anchor: 'center',
-      rotateWithVelocity: false,
-    }),
-    SmartRing({
-      name: 'card-bg',
-      size: 64, hoverSize: 64,
-      fill: 'black', color: 'black', borderWidth: 0,
-      mixBlendMode: 'normal'
-    }),
-    Icon({
-      name: 'card-arrow',
-      svg: ARROW_CURSOR,
-      size: 24, color: 'white'
-    }),
-    Text({
-      offset: [30, 30],
-      duration: 150,
-      className: 'tooltip-cursor'
-    }),
-    States({
-      default: ['default-icon', 'text'],
-      states: {
-        'card-hover': ['card-bg', 'card-arrow']
-      }
-    })
-  ]);
+  return provideSupermouse(
+    {
+      smoothness: 0.05,
+      enableTouch: false,
+      hideCursor: true,
+      ignoreOnNative: false
+    },
+    [
+      SmartIcon({
+        name: "default-icon",
+        icons: {
+          default: LOGO_CURSOR,
+          pointer: HAND_CURSOR,
+          text: TEXT_CURSOR
+        },
+        size: 32,
+        color: "black",
+        anchor: "center",
+        rotateWithVelocity: false
+      }),
+      SmartRing({
+        name: "card-bg",
+        size: 64,
+        hoverSize: 64,
+        fill: "black",
+        color: "black",
+        borderWidth: 0,
+        mixBlendMode: "normal"
+      }),
+      Icon({
+        name: "card-arrow",
+        svg: ARROW_CURSOR,
+        size: 24,
+        color: "white"
+      }),
+      Text({
+        offset: [30, 30],
+        duration: 150,
+        className: "tooltip-cursor"
+      }),
+      States({
+        default: ["default-icon", "text"],
+        states: {
+          "card-hover": ["card-bg", "card-arrow"]
+        }
+      })
+    ]
+  );
 }

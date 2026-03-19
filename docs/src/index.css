@@ -1,36 +1,39 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    --grid-size: 40px;
-    --grid-color: #f0f0f0;
-    --text-main: #09090b;
-    @apply text-base;
+  --grid-size: 40px;
+  --grid-color: #f0f0f0;
+  --text-main: #09090b;
+  @apply text-base;
 }
 
 @font-face {
-    font-family: 'Satoshi';
-    src: url('/fonts/Satoshi-Variable.woff2') format('woff2'),
-        url('/fonts/Satoshi-Variable.woff') format('woff');
-    font-feature-settings: "salt" 1, "tnum" 1;
-    font-variant-ligatures: none;
+  font-family: "Satoshi";
+  src:
+    url("/fonts/Satoshi-Variable.woff2") format("woff2"),
+    url("/fonts/Satoshi-Variable.woff") format("woff");
+  font-feature-settings:
+    "salt" 1,
+    "tnum" 1;
+  font-variant-ligatures: none;
 }
 
 code {
-    @apply text-[0.9rem];
+  @apply text-[0.9rem];
 }
 
 b {
-    @apply text-zinc-600
+  @apply text-zinc-600;
 }
 
 p {
-    font-feature-settings: "salt" 0;
+  font-feature-settings: "salt" 0;
 }
 
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -51,56 +54,56 @@ html.lenis, html.lenis body {
 }
 
 body {
-    @apply font-sans;
-    margin: 0;
-    background-color: #fff;
-    color: var(--text-main);
-    -webkit-font-smoothing: antialiased;
+  @apply font-sans;
+  margin: 0;
+  background-color: #fff;
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
 }
 
 .mono,
 code,
 pre,
 kbd {
-    font-family: 'JetBrains Mono', monospace !important;
+  font-family: "JetBrains Mono", monospace !important;
 }
 
 /* Supermouse Text Plugin Styling */
 .tooltip-cursor {
-    background-color: #09090b;
-    color: white;
-    padding: 4px 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-radius: 2px;
-    pointer-events: none;
+  background-color: #09090b;
+  color: white;
+  padding: 4px 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 .grid-bg {
-    background-image:
-        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-    background-size: var(--grid-size) var(--grid-size);
-    background-position: center top;
+  background-image:
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  background-position: center top;
 }
 
 ::selection {
-    background: #0000000c;
-    color: #000;
+  background: #0000000c;
+  color: #000;
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #fff;
+  background: #fff;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #e4e4e7;
-    border-radius: 3px;
+  background: #e4e4e7;
+  border-radius: 3px;
 }

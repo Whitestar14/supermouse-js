@@ -16,7 +16,7 @@ import {
   domUtilities,
   effectsUtilities,
   constantUtilities,
-  otherUtilities,
+  otherUtilities
 } from "@/composables/useApiReference";
 
 const activeSection = ref<string>("core-class");
@@ -59,11 +59,11 @@ onMounted(() => {
     component: TableOfContents,
     props: {
       sections: API_SECTIONS,
-      activeSection,
+      activeSection
     },
     on: {
-      navigate: scrollTo,
-    },
+      navigate: scrollTo
+    }
   });
 });
 
@@ -75,9 +75,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DocsSection label="Reference" title="API">
+  <DocsSection
+    label="Reference"
+    title="API"
+  >
     <!-- Core Class -->
-    <div class="mb-16" id="core-class">
+    <div
+      id="core-class"
+      class="mb-16"
+    >
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-4 pb-2 border-b border-zinc-200"
       >
@@ -92,7 +98,10 @@ onUnmounted(() => {
     </div>
 
     <!-- Options -->
-    <div class="mb-16" id="options">
+    <div
+      id="options"
+      class="mb-16"
+    >
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -105,10 +114,10 @@ onUnmounted(() => {
           { key: 'name', label: 'Option', class: 'w-1/4' },
           { key: 'type', label: 'Type', class: 'w-1/6' },
           { key: 'default', label: 'Default', class: 'w-1/6' },
-          { key: 'desc', label: 'Description' },
+          { key: 'desc', label: 'Description' }
         ]"
         :rows="optionsData"
-        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+        wrapper-class="border border-zinc-200 bg-white overflow-x-auto"
       >
         <template #cell-name="{ row }">
           <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
@@ -126,7 +135,10 @@ onUnmounted(() => {
     </div>
 
     <!-- State -->
-    <div class="mb-16" id="state">
+    <div
+      id="state"
+      class="mb-16"
+    >
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -138,10 +150,10 @@ onUnmounted(() => {
         :columns="[
           { key: 'name', label: 'Property', class: 'w-1/4' },
           { key: 'type', label: 'Type', class: 'w-1/4' },
-          { key: 'desc', label: 'Description' },
+          { key: 'desc', label: 'Description' }
         ]"
         :rows="stateData"
-        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+        wrapper-class="border border-zinc-200 bg-white overflow-x-auto"
       >
         <template #cell-name="{ row }">
           <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
@@ -158,7 +170,10 @@ onUnmounted(() => {
     </div>
 
     <!-- Methods Table -->
-    <div class="mb-16" id="methods">
+    <div
+      id="methods"
+      class="mb-16"
+    >
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -171,10 +186,10 @@ onUnmounted(() => {
           { key: 'name', label: 'Method', class: 'w-1/6' },
           { key: 'params', label: 'Parameters', class: 'w-1/4' },
           { key: 'return', label: 'Return', class: 'w-1/6' },
-          { key: 'desc', label: 'Description' },
+          { key: 'desc', label: 'Description' }
         ]"
         :rows="methodsData"
-        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+        wrapper-class="border border-zinc-200 bg-white overflow-x-auto"
       >
         <template #cell-name="{ row }">
           <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
@@ -195,7 +210,10 @@ onUnmounted(() => {
     </div>
 
     <!-- Plugin Interface -->
-    <div class="mb-16" id="plugin-interface">
+    <div
+      id="plugin-interface"
+      class="mb-16"
+    >
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -206,10 +224,10 @@ onUnmounted(() => {
       <Table
         :columns="[
           { key: 'name', label: 'Hook', class: 'w-1/4' },
-          { key: 'desc', label: 'Description' },
+          { key: 'desc', label: 'Description' }
         ]"
         :rows="pluginHooks"
-        wrapperClass="border border-zinc-200 bg-white overflow-x-auto"
+        wrapper-class="border border-zinc-200 bg-white overflow-x-auto"
       >
         <template #cell-name="{ row }">
           <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
@@ -222,7 +240,10 @@ onUnmounted(() => {
     </div>
 
     <!-- Utilities -->
-    <div class="mb-16" id="utilities">
+    <div
+      id="utilities"
+      class="mb-16"
+    >
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -231,10 +252,9 @@ onUnmounted(() => {
       </h3>
 
       <p class="text-zinc-600 mb-8 leading-relaxed">
-        The <code>@supermousejs/utils</code> package provides
-        performance-optimized helpers for plugin development. All functions are
-        designed to minimize allocations and layout thrashing during the render
-        loop.
+        The <code>@supermousejs/utils</code> package provides performance-optimized helpers for
+        plugin development. All functions are designed to minimize allocations and layout thrashing
+        during the render loop.
       </p>
 
       <!-- Math Utilities -->
@@ -251,27 +271,25 @@ onUnmounted(() => {
           :columns="[
             { key: 'name', label: 'Function', class: 'w-1/6' },
             { key: 'signature', label: 'Signature', class: 'w-1/4' },
-            { key: 'params', label: 'Parameters' },
+            { key: 'params', label: 'Parameters' }
           ]"
           :rows="mathUtilities"
-          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+          wrapper-class="border border-zinc-200 bg-white overflow-x-auto mb-4"
         >
           <template #cell-name="{ row }">
-            <span class="font-mono text-zinc-900 font-bold">{{
-              row.name
-            }}</span>
+            <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
           </template>
           <template #cell-signature="{ row }">
-            <span class="font-mono text-xs text-zinc-500">{{
-              row.signature
-            }}</span>
+            <span class="font-mono text-xs text-zinc-500">{{ row.signature }}</span>
           </template>
           <template #cell-params="{ row }">
             <div class="text-xs">
               <div class="font-mono text-zinc-700 mb-1">
                 {{ row.params }}
               </div>
-              <div class="text-zinc-600">{{ row.desc }}</div>
+              <div class="text-zinc-600">
+                {{ row.desc }}
+              </div>
             </div>
           </template>
         </Table>
@@ -304,34 +322,31 @@ const direction = math.angle(vx, vy);
           DOM Utilities
         </h4>
         <p class="text-sm text-zinc-600 mb-4">
-          Create and update DOM efficiently. Built-in caching prevents layout
-          thrashing.
+          Create and update DOM efficiently. Built-in caching prevents layout thrashing.
         </p>
         <Table
           :columns="[
             { key: 'name', label: 'Function', class: 'w-1/6' },
             { key: 'signature', label: 'Signature', class: 'w-1/4' },
-            { key: 'params', label: 'Parameters' },
+            { key: 'params', label: 'Parameters' }
           ]"
           :rows="domUtilities"
-          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+          wrapper-class="border border-zinc-200 bg-white overflow-x-auto mb-4"
         >
           <template #cell-name="{ row }">
-            <span class="font-mono text-zinc-900 font-bold">{{
-              row.name
-            }}</span>
+            <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
           </template>
           <template #cell-signature="{ row }">
-            <span class="font-mono text-xs text-zinc-500">{{
-              row.signature
-            }}</span>
+            <span class="font-mono text-xs text-zinc-500">{{ row.signature }}</span>
           </template>
           <template #cell-params="{ row }">
             <div class="text-xs">
               <div class="font-mono text-zinc-700 mb-1">
                 {{ row.params }}
               </div>
-              <div class="text-zinc-600">{{ row.desc }}</div>
+              <div class="text-zinc-600">
+                {{ row.desc }}
+              </div>
             </div>
           </template>
         </Table>
@@ -375,27 +390,25 @@ dom.setStyle(dot, 'opacity', '0.8');
           :columns="[
             { key: 'name', label: 'Function', class: 'w-1/4' },
             { key: 'signature', label: 'Signature', class: 'w-1/3' },
-            { key: 'params', label: 'Parameters' },
+            { key: 'params', label: 'Parameters' }
           ]"
           :rows="effectsUtilities"
-          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+          wrapper-class="border border-zinc-200 bg-white overflow-x-auto mb-4"
         >
           <template #cell-name="{ row }">
-            <span class="font-mono text-zinc-900 font-bold">{{
-              row.name
-            }}</span>
+            <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
           </template>
           <template #cell-signature="{ row }">
-            <span class="font-mono text-xs text-zinc-500">{{
-              row.signature
-            }}</span>
+            <span class="font-mono text-xs text-zinc-500">{{ row.signature }}</span>
           </template>
           <template #cell-params="{ row }">
             <div class="text-xs">
               <div class="font-mono text-zinc-700 mb-1">
                 {{ row.params }}
               </div>
-              <div class="text-zinc-600 mb-2">{{ row.desc }}</div>
+              <div class="text-zinc-600 mb-2">
+                {{ row.desc }}
+              </div>
               <div class="font-mono text-amber-700 bg-amber-50 p-2 rounded">
                 Returns: {{ row.return }}
               </div>
@@ -436,21 +449,18 @@ update(app, el) {
           :columns="[
             { key: 'name', label: 'Constant', class: 'w-1/4' },
             { key: 'value', label: 'Value', class: 'w-1/4' },
-            { key: 'desc', label: 'Description' },
+            { key: 'desc', label: 'Description' }
           ]"
           :rows="constantUtilities"
-          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+          wrapper-class="border border-zinc-200 bg-white overflow-x-auto mb-4"
         >
           <template #cell-name="{ row }">
-            <span class="font-mono text-zinc-900 font-bold">{{
-              row.name
-            }}</span>
+            <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
           </template>
           <template #cell-value="{ row }">
-            <span
-              class="font-mono text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded"
-              >{{ row.value }}</span
-            >
+            <span class="font-mono text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded">{{
+              row.value
+            }}</span>
           </template>
           <template #cell-desc="{ row }">
             <span class="text-zinc-600">{{ row.desc }}</span>
@@ -488,34 +498,31 @@ particles.style.transition = \`transform 0.6s \${Easings.ELASTIC_OUT}\`;
           Plugin & Option Helpers
         </h4>
         <p class="text-sm text-zinc-600 mb-4">
-          Tools for plugin definition, configuration normalization, and
-          debugging.
+          Tools for plugin definition, configuration normalization, and debugging.
         </p>
         <Table
           :columns="[
             { key: 'name', label: 'Function', class: 'w-1/6' },
             { key: 'signature', label: 'Signature', class: 'w-1/3' },
-            { key: 'params', label: 'Details' },
+            { key: 'params', label: 'Details' }
           ]"
           :rows="otherUtilities"
-          wrapperClass="border border-zinc-200 bg-white overflow-x-auto mb-4"
+          wrapper-class="border border-zinc-200 bg-white overflow-x-auto mb-4"
         >
           <template #cell-name="{ row }">
-            <span class="font-mono text-zinc-900 font-bold">{{
-              row.name
-            }}</span>
+            <span class="font-mono text-zinc-900 font-bold">{{ row.name }}</span>
           </template>
           <template #cell-signature="{ row }">
-            <span class="font-mono text-xs text-zinc-500">{{
-              row.signature
-            }}</span>
+            <span class="font-mono text-xs text-zinc-500">{{ row.signature }}</span>
           </template>
           <template #cell-params="{ row }">
             <div class="text-xs">
               <div class="font-mono text-zinc-700 mb-1">
                 {{ row.params }}
               </div>
-              <div class="text-zinc-600">{{ row.desc }}</div>
+              <div class="text-zinc-600">
+                {{ row.desc }}
+              </div>
             </div>
           </template>
         </Table>
@@ -547,8 +554,7 @@ doctor(); // Reports cursor conflicts & issues
 
       <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded mt-8">
         <p class="text-sm text-blue-900 leading-relaxed">
-          For more advanced patterns and real-world examples using these
-          utilities, see the
+          For more advanced patterns and real-world examples using these utilities, see the
           <router-link
             to="/docs/advanced/tips-and-tricks"
             class="font-bold hover:underline"

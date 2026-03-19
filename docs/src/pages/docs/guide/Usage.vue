@@ -91,18 +91,29 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DocsSection label="Guide" title="Usage">
-    <Text weight="medium" size="lg" class="mb-12">
-      Supermouse is a <b>singleton runtime</b>. It manages the animation loop,
-      input listeners, and the plugin pipeline. You initialize it once when your
-      application mounts.
+  <DocsSection
+    label="Guide"
+    title="Usage"
+  >
+    <Text
+      weight="medium"
+      size="lg"
+      class="mb-12"
+    >
+      Supermouse is a <b>singleton runtime</b>. It manages the animation loop, input listeners, and
+      the plugin pipeline. You initialize it once when your application mounts.
     </Text>
 
     <!-- Configuration -->
-    <SectionHeader level="2" class="mb-6">1. Configuration</SectionHeader>
+    <SectionHeader
+      level="2"
+      class="mb-6"
+    >
+      1. Configuration
+    </SectionHeader>
     <Text class="mb-6">
-      The constructor accepts a <code>SupermouseOptions</code> object. You can
-      pass plugins directly in the configuration array.
+      The constructor accepts a <code>SupermouseOptions</code> object. You can pass plugins directly
+      in the configuration array.
     </Text>
     <div class="mb-8">
       <CodeBlock
@@ -114,20 +125,27 @@ onUnmounted(() => {
     </div>
 
     <Callout title="Global Usage">
-      If you are using the <strong>CDN bundle</strong>, the core and standard
-      plugins are available on the global <code>window.Supermouse</code> object.
+      If you are using the <strong>CDN bundle</strong>, the core and standard plugins are available
+      on the global <code>window.Supermouse</code> object.
       <div class="mt-4">
-        <CodeBlock :code="globalUsageCode" lang="javascript" :clean="true" />
+        <CodeBlock
+          :code="globalUsageCode"
+          lang="javascript"
+          :clean="true"
+        />
       </div>
     </Callout>
 
     <!-- Plugins -->
-    <SectionHeader level="2" class="mb-6 mt-16"
-      >2. Runtime Registration</SectionHeader
+    <SectionHeader
+      level="2"
+      class="mb-6 mt-16"
     >
+      2. Runtime Registration
+    </SectionHeader>
     <Text class="mb-6">
-      If you need to add plugins later (e.g. lazy loading), you can use the
-      chainable <code>use()</code> method.
+      If you need to add plugins later (e.g. lazy loading), you can use the chainable
+      <code>use()</code> method.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -139,28 +157,33 @@ onUnmounted(() => {
     </div>
 
     <!-- Interaction -->
-    <SectionHeader level="2" class="mb-6"
-      >3. Defining Interactions</SectionHeader
+    <SectionHeader
+      level="2"
+      class="mb-6"
     >
+      3. Defining Interactions
+    </SectionHeader>
 
     <Text class="mb-6">
-      Interaction in Supermouse is completely data-driven. The Core does not
-      know what "magnetic" means. It simply parses metadata (State) from the DOM
-      and exposes it to plugins.
+      Interaction in Supermouse is completely data-driven. The Core does not know what "magnetic"
+      means. It simply parses metadata (State) from the DOM and exposes it to plugins.
     </Text>
 
     <Callout title="The Concept">
-      The Input system scrapes <code>rules</code> or
-      <code>data-attributes</code> to populate
-      <code>app.state.interaction</code>. Plugins like
-      <strong>Magnetic</strong> or <strong>Dot</strong> read this state to
-      decide what to do.
+      The Input system scrapes <code>rules</code> or <code>data-attributes</code> to populate
+      <code>app.state.interaction</code>. Plugins like <strong>Magnetic</strong> or
+      <strong>Dot</strong> read this state to decide what to do.
     </Callout>
 
     <div class="grid grid-cols-1 gap-8 mb-12">
       <div>
-        <SectionHeader level="4">Global Rules (Recommended)</SectionHeader>
-        <Text size="sm" class="mb-4">
+        <SectionHeader level="4">
+          Global Rules (Recommended)
+        </SectionHeader>
+        <Text
+          size="sm"
+          class="mb-4"
+        >
           Map CSS selectors to state objects. This keeps your HTML clean.
         </Text>
         <CodeBlock
@@ -172,10 +195,15 @@ onUnmounted(() => {
       </div>
 
       <div>
-        <SectionHeader level="4">HTML Overrides</SectionHeader>
-        <Text size="sm" class="mb-4">
-          Use <code>data-supermouse-*</code> attributes for one-off overrides.
-          These take precedence over rules.
+        <SectionHeader level="4">
+          HTML Overrides
+        </SectionHeader>
+        <Text
+          size="sm"
+          class="mb-4"
+        >
+          Use <code>data-supermouse-*</code> attributes for one-off overrides. These take precedence
+          over rules.
         </Text>
         <CodeBlock
           :code="htmlCode"
@@ -187,12 +215,16 @@ onUnmounted(() => {
     </div>
 
     <!-- Scoped Containers -->
-    <SectionHeader level="2" class="mb-6">4. Scoped Containers</SectionHeader>
+    <SectionHeader
+      level="2"
+      class="mb-6"
+    >
+      4. Scoped Containers
+    </SectionHeader>
     <Text class="mb-6 max-w-2xl">
-      By default, Supermouse appends to <code>document.body</code> and tracks
-      the window. You can restrict the cursor to a specific div (e.g., a modal,
-      a canvas wrapper, or a specific section of your site) using the
-      <code>container</code> option.
+      By default, Supermouse appends to <code>document.body</code> and tracks the window. You can
+      restrict the cursor to a specific div (e.g., a modal, a canvas wrapper, or a specific section
+      of your site) using the <code>container</code> option.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -204,10 +236,15 @@ onUnmounted(() => {
     </div>
 
     <!-- Manual Visibility -->
-    <SectionHeader level="2" class="mb-6">5. Manual Visibility</SectionHeader>
+    <SectionHeader
+      level="2"
+      class="mb-6"
+    >
+      5. Manual Visibility
+    </SectionHeader>
     <Text class="mb-6">
-      Sometimes you need strict control over the cursor visibility (e.g., drag
-      and drop operations, custom modals, or games). Use
+      Sometimes you need strict control over the cursor visibility (e.g., drag and drop operations,
+      custom modals, or games). Use
       <code>setCursor</code> to override the internal auto-detection.
     </Text>
     <div class="mb-12">
@@ -219,11 +256,15 @@ onUnmounted(() => {
     </div>
 
     <!-- Cleanup -->
-    <SectionHeader level="2" class="mb-6">6. Cleanup</SectionHeader>
+    <SectionHeader
+      level="2"
+      class="mb-6"
+    >
+      6. Cleanup
+    </SectionHeader>
     <Callout title="Important for SPA Navigation">
-      If your app navigates between pages that mount/unmount the cursor (or if
-      you use Hot Module Replacement), you must call destroy to prevent memory
-      leaks and duplicate cursors.
+      If your app navigates between pages that mount/unmount the cursor (or if you use Hot Module
+      Replacement), you must call destroy to prevent memory leaks and duplicate cursors.
     </Callout>
     <div class="mb-12">
       <CodeBlock
