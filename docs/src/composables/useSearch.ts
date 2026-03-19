@@ -1,6 +1,6 @@
 import { computed, ref } from "vue";
-import { DOCS_NAVIGATION } from "@/config/navigation";
-import { PLUGINS } from "@/data/plugin-data";
+import { DOCS_NAVIGATION } from "@config/navigation";
+import { PLUGINS } from "@data/plugin-data";
 
 export interface SearchResult {
   id: string;

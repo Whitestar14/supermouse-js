@@ -7,7 +7,7 @@ import { Pointer } from "@supermousejs/pointer";
 import { Stick } from "@supermousejs/stick";
 // Use Labs for complex plugins
 import { SmartIcon, SmartRing, TextRing, Sparkles } from "@supermousejs/labs";
-import { ICONS } from "@/config/icons";
+import { ICONS } from "@config/icons";
 
 export type ControlType = "range" | "color" | "toggle" | "text" | "select";
 

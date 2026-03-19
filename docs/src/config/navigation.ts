@@ -1,4 +1,4 @@
-import { PLUGINS } from "@/data/plugin-data";
+import { PLUGINS } from "@data/plugin-data";
 
 const LABS_IDS = ["smart-icon", "smart-ring", "sparkles", "text-ring"];
 
@@ -18,7 +18,7 @@ export const DOCS_NAVIGATION = [
     items: [
       { label: "Introduction", path: "/docs/guide/introduction" },
       { label: "Installation", path: "/docs/guide/installation" },
-      { label: "Basic Usage", path: "/docs/guide/usage" },
+      { label: "Usage", path: "/docs/guide/usage" },
       { label: "Cookbook", path: "/docs/guide/cookbook" },
       { label: "Troubleshooting", path: "/docs/guide/troubleshooting" }
     ]

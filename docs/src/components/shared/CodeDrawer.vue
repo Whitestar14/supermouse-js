@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CodeBlock from "../CodeBlock.vue";
+import CodeBlock from "./CodeBlock.vue";
 
 defineProps<{
   isOpen: boolean;

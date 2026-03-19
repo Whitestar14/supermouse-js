@@ -1,21 +1,15 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import Callout from "@/components/ui/Callout.vue";
+import Callout from "@/components/shared/Callout.vue";
 import { RECIPES } from "@/components/playground/recipes";
-import { usePlayground } from "@/composables/usePlayground";
+import { usePlayground } from "@composables/usePlayground";
 
 const { open } = usePlayground();
 </script>
 
 <template>
-  <DocsSection
-    label="Guide"
-    title="Cookbook"
-  >
-    <Callout
-      title="Best on Desktop"
-      class="md:hidden mb-10"
-    >
+  <DocsSection label="Guide" title="Cookbook">
+    <Callout title="Best on Desktop" class="md:hidden mb-10">
       Supermouse Studio works best on a wider viewport. Please switch to a desktop device to run
       recipes and edit their parameters.
     </Callout>
@@ -35,10 +29,7 @@ const { open } = usePlayground();
           <div
             class="w-12 h-12 border border-zinc-100 bg-zinc-50 flex items-center justify-center rounded-sm text-zinc-900"
           >
-            <span
-              class="w-6 h-6"
-              v-html="recipe.icon"
-            />
+            <span class="w-6 h-6" v-html="recipe.icon" />
           </div>
           <!-- Hidden on mobile -->
           <button

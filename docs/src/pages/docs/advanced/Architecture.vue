@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import TimelineStep from "@/components/ui/TimelineStep.vue";
-import Text from "@/components/ui/Text.vue";
-import ResponsibilityBox from "@/components/ui/ResponsibilityBox.vue";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import TimelineStep from "@/components/shared/TimelineStep.vue";
+import Text from "@/components/shared/Text.vue";
+import ResponsibilityBox from "@/components/shared/ResponsibilityBox.vue";
 
 const dampCode = `const damp = (current, target, lambda, dt) => {
   return lerp(current, target, 1 - Math.exp(-lambda * dt));

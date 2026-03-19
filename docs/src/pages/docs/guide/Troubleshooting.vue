@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import { GITHUB_URL } from "@/config/constants";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import { GITHUB_URL } from "@config/constants";
 
 const diagnostics = [
   {
@@ -17,7 +17,7 @@ const diagnostics = [
     type: "VISUAL",
     title: "Double Cursor",
     signal: "The native cursor flickers on top of the custom cursor.",
-    fix: "Usually caused by CSS specificity. Inline styles (<code>style=\"cursor: pointer\"</code>) or user-agent stylesheets (especially on inputs/links) override the global rule injected by Supermouse.",
+    fix: 'Usually caused by CSS specificity. Inline styles (<code>style="cursor: pointer"</code>) or user-agent stylesheets (especially on inputs/links) override the global rule injected by Supermouse.',
     code: null
   },
   {
@@ -64,10 +64,7 @@ const diagnostics = [
 </script>
 
 <template>
-  <DocsSection
-    label="Guide"
-    title="Troubleshooting"
-  >
+  <DocsSection label="Guide" title="Troubleshooting">
     <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
       Custom cursors inevitably fight against the browser's default behavior. Use this diagnostic
       matrix to identify conflicts.
@@ -103,15 +100,9 @@ const diagnostics = [
         <div
           class="lg:col-span-8 p-6 md:p-8 flex flex-col justify-center border-b border-r border-zinc-200"
         >
-          <div
-            class="text-sm text-zinc-800 leading-relaxed mb-4 max-w-2xl"
-            v-html="item.fix"
-          />
+          <div class="text-sm text-zinc-800 leading-relaxed mb-4 max-w-2xl" v-html="item.fix" />
 
-          <div
-            v-if="item.code"
-            class="mt-2"
-          >
+          <div v-if="item.code" class="mt-2">
             <CodeBlock
               :code="item.code"
               lang="typescript"

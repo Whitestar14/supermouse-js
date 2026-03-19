@@ -2,9 +2,9 @@
 import { ref, computed, watch } from "vue";
 import EditorControls from "./EditorControls.vue";
 import EditorPreview from "./EditorPreview.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import { RECIPES } from "@/components/playground/recipes";
-import { generateCode } from "@/utils/code-generator";
+import CodeBlock from "@shared/CodeBlock.vue";
+import { RECIPES } from "@playground/recipes";
+import { generateCode } from "@utils/code-generator";
 
 const props = defineProps<{
   activeRecipeId: string | null;
@@ -150,11 +150,7 @@ const copyCode = () => {
                 data-lenis-prevent
               >
                 <div class="flex-1 min-h-0 flex flex-col">
-                  <CodeBlock
-                    :code="generatedCode"
-                    :clean="true"
-                    class="h-full"
-                  />
+                  <CodeBlock :code="generatedCode" :clean="true" class="h-full" />
                 </div>
                 <button
                   class="h-14 border-t border-zinc-800 text-xs font-bold uppercase tracking-widest shrink-0 sticky bottom-0 transition-colors duration-200 flex items-center justify-center gap-2"
@@ -190,10 +186,7 @@ const copyCode = () => {
                 <div
                   class="w-12 h-12 flex items-center justify-center border border-zinc-200 bg-white rounded-sm shadow-sm"
                 >
-                  <span
-                    class="text-2xl filter grayscale"
-                    v-html="currentRecipe.icon"
-                  />
+                  <span class="text-2xl filter grayscale" v-html="currentRecipe.icon" />
                 </div>
                 <div>
                   <h2 class="text-2xl font-bold tracking-tighter text-zinc-900 leading-none">
@@ -206,11 +199,7 @@ const copyCode = () => {
               </div>
             </div>
 
-            <EditorPreview
-              :recipe="currentRecipe"
-              :config="config"
-              :global-config="globalConfig"
-            />
+            <EditorPreview :recipe="currentRecipe" :config="config" :global-config="globalConfig" />
           </div>
         </div>
       </div>

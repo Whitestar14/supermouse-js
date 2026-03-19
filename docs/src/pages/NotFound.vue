@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { DOCS_NAVIGATION } from "../config/navigation";
+import { DOCS_NAVIGATION } from "@config/navigation";
 
 const route = useRoute();
 
@@ -66,31 +66,24 @@ const suggestion = computed(() => {
   <div
     class="h-[calc(100vh-80px)] flex flex-col items-center justify-center text-center p-8 bg-white"
   >
-    <img
-      src="/not-found.svg"
-      alt="Not found"
-      class="size-32 max-w-full mb-3"
-    >
+    <img src="/not-found.svg" alt="Not found" class="size-32 max-w-full mb-3" />
 
     <!-- Minimal 404 -->
     <div class="mb-4 text-9xl leading-none font-bold text-zinc-800 select-none tracking-tighter">
       404
     </div>
 
-    <h1 class="text-xl font-bold text-zinc-900 mb-2">
-      Page Not Found
-    </h1>
+    <h1 class="text-xl font-bold text-zinc-900 mb-2">Page Not Found</h1>
 
     <p class="text-zinc-500 mb-8 text-sm max-w-sm">
       The requested path
       <span class="text-zinc-900 font-medium">{{ route.path }}</span> could not be found.
     </p>
 
-    <div
-      v-if="suggestion"
-      class="mb-10"
-    >
-      <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">Did you mean?</span>
+    <div v-if="suggestion" class="mb-10">
+      <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2"
+        >Did you mean?</span
+      >
       <router-link
         :to="suggestion.path"
         class="text-lg font-bold text-black border-b-2 border-black/10 hover:border-black transition-colors"

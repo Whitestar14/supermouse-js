@@ -10,7 +10,7 @@ defineProps<{
 <template>
   <p
     :class="[
-      'leading-relaxed',
+      'leading-relaxed text-pretty mb-4',
       mono ? 'font-mono' : '',
       size === 'xs'
         ? 'text-xs'

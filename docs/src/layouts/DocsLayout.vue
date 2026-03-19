@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import Footer from "../components/Footer.vue";
-import { useDocsSidebar } from "@/composables/useDocsSidebar";
-import { DOCS_NAVIGATION } from "../config/navigation";
+import Footer from "@/components/landing/Footer.vue";
+import { useDocsSidebar } from "@composables/useDocsSidebar";
+import { DOCS_NAVIGATION } from "@config/navigation";
 
 // Note: Cursor and Navbar are now handled by App.vue
 
@@ -157,10 +157,7 @@ const { rightSidebarConfig } = useDocsSidebar();
 
           <!-- Nav Content -->
           <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-white">
-            <div
-              v-for="group in DOCS_NAVIGATION"
-              :key="group.title"
-            >
+            <div v-for="group in DOCS_NAVIGATION" :key="group.title">
               <button
                 class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest mb-3 text-left transition-colors"
                 :class="
@@ -231,10 +228,7 @@ const { rightSidebarConfig } = useDocsSidebar();
           data-lenis-prevent
         >
           <nav class="flex flex-col gap-8 pb-32">
-            <div
-              v-for="group in DOCS_NAVIGATION"
-              :key="group.title"
-            >
+            <div v-for="group in DOCS_NAVIGATION" :key="group.title">
               <!-- Group Header -->
               <button
                 class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 group hover:text-black transition-colors"
@@ -271,10 +265,7 @@ const { rightSidebarConfig } = useDocsSidebar();
               </button>
 
               <!-- Group Items -->
-              <div
-                v-show="activeGroup === group.title"
-                class="flex flex-col pl-5 gap-1.5"
-              >
+              <div v-show="activeGroup === group.title" class="flex flex-col pl-5 gap-1.5">
                 <router-link
                   v-for="item in group.items"
                   :key="item.path"

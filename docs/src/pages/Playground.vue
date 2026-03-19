@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { usePlayground } from "../composables/usePlayground";
-import { RECIPES } from "../components/playground/recipes";
+import { usePlayground } from "@composables/usePlayground";
+import { RECIPES } from "@/components/playground/recipes";
 
 // Global state controller
 const { open } = usePlayground();
@@ -32,9 +32,7 @@ const filteredRecipes = computed(() => {
         <div
           class="hidden lg:flex w-[400px] xl:w-[480px] items-center px-12 border-r border-zinc-200 bg-white"
         >
-          <h1 class="font-bold tracking-tight text-zinc-900 text-lg">
-            Supermouse Labs
-          </h1>
+          <h1 class="font-bold tracking-tight text-zinc-900 text-lg">Supermouse Labs</h1>
         </div>
         <div class="flex-1 flex items-center bg-zinc-50/50">
           <div class="w-16 h-full flex items-center justify-center text-zinc-400 shrink-0">
@@ -46,17 +44,8 @@ const filteredRecipes = computed(() => {
               stroke="currentColor"
               stroke-width="2"
             >
-              <circle
-                cx="11"
-                cy="11"
-                r="8"
-              />
-              <line
-                x1="21"
-                y1="21"
-                x2="16.65"
-                y2="16.65"
-              />
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </div>
           <input
@@ -64,11 +53,8 @@ const filteredRecipes = computed(() => {
             type="text"
             placeholder="Search experiments..."
             class="w-full h-full bg-transparent outline-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 font-mono tracking-tight"
-          >
-          <div
-            v-if="searchQuery"
-            class="pr-6"
-          >
+          />
+          <div v-if="searchQuery" class="pr-6">
             <span class="mono text-[10px] font-bold bg-zinc-200 text-zinc-600 px-2 py-1 rounded-sm">
               {{ filteredRecipes.length }}
             </span>
@@ -84,15 +70,13 @@ const filteredRecipes = computed(() => {
           class="w-full lg:w-[400px] xl:w-[480px] border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white p-8 md:p-12 flex flex-col relative z-10"
         >
           <div class="lg:hidden mb-8">
-            <h1 class="font-bold tracking-tight text-zinc-900 text-2xl">
-              Supermouse Labs
-            </h1>
+            <h1 class="font-bold tracking-tight text-zinc-900 text-2xl">Supermouse Labs</h1>
           </div>
           <div class="lg:sticky lg:top-32">
             <h2
               class="text-5xl mt-8 md:text-6xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[0.95]"
             >
-              Plugin<br>Gallery
+              Plugin<br />Gallery
             </h2>
             <p class="text-lg text-zinc-600 font-medium leading-relaxed mb-8 text-pretty">
               Explore experimental "Smart" plugins and standard tools. Enter the Studio Editor to
@@ -139,14 +123,11 @@ const filteredRecipes = computed(() => {
             </button>
           </div>
 
-          <div
-            v-else
-            class="flex flex-col items-center justify-center h-[50vh] text-zinc-300"
-          >
-            <div class="mb-4 font-mono text-4xl opacity-20">
-              ∅
-            </div>
-            <span class="mono text-xs uppercase tracking-widest font-bold text-zinc-400">No matching presets</span>
+          <div v-else class="flex flex-col items-center justify-center h-[50vh] text-zinc-300">
+            <div class="mb-4 font-mono text-4xl opacity-20">∅</div>
+            <span class="mono text-xs uppercase tracking-widest font-bold text-zinc-400"
+              >No matching presets</span
+            >
           </div>
         </div>
       </div>

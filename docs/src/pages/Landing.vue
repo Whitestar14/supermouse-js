@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import Hero from "../components/Hero.vue";
-import PluginList from "../components/PluginList.vue";
-import Mission from "../components/Mission.vue";
-import Stats from "../components/Stats.vue";
-import CTA from "../components/CTA.vue";
-import Footer from "../components/Footer.vue";
+import Hero from "@/components/landing/Hero.vue";
+import PluginList from "@/components/landing/PluginList.vue";
+import Mission from "@/components/landing/Mission.vue";
+import Stats from "@/components/landing/Stats.vue";
+import CTA from "@/components/landing/CTA.vue";
+import Footer from "@/components/landing/Footer.vue";
 </script>
 
 <template>

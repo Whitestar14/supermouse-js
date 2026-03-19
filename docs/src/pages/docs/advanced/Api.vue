@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import Table from "@/components/Table.vue";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import Table from "@/components/shared/Table.vue";
 import TableOfContents from "@/components/docs/TableOfContents.vue";
-import { useDocsSidebar } from "@/composables/useDocsSidebar";
+import { useDocsSidebar } from "@composables/useDocsSidebar";
 import {
   API_SECTIONS,
   coreClassDef,
@@ -17,7 +17,7 @@ import {
   effectsUtilities,
   constantUtilities,
   otherUtilities
-} from "@/composables/useApiReference";
+} from "@composables/useApiReference";
 
 const activeSection = ref<string>("core-class");
 const { setRightSidebar, clearRightSidebar } = useDocsSidebar();
@@ -75,33 +75,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DocsSection
-    label="Reference"
-    title="API"
-  >
+  <DocsSection label="Reference" title="API">
     <!-- Core Class -->
-    <div
-      id="core-class"
-      class="mb-16"
-    >
+    <div id="core-class" class="mb-16">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-4 pb-2 border-b border-zinc-200"
       >
         Core Class
       </h3>
-      <CodeBlock
-        :code="coreClassDef"
-        lang="typescript"
-        :clean="false"
-        title="Signature"
-      />
+      <CodeBlock :code="coreClassDef" lang="typescript" :clean="false" title="Signature" />
     </div>
 
     <!-- Options -->
-    <div
-      id="options"
-      class="mb-16"
-    >
+    <div id="options" class="mb-16">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -135,10 +121,7 @@ onUnmounted(() => {
     </div>
 
     <!-- State -->
-    <div
-      id="state"
-      class="mb-16"
-    >
+    <div id="state" class="mb-16">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -170,10 +153,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Methods Table -->
-    <div
-      id="methods"
-      class="mb-16"
-    >
+    <div id="methods" class="mb-16">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -210,10 +190,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Plugin Interface -->
-    <div
-      id="plugin-interface"
-      class="mb-16"
-    >
+    <div id="plugin-interface" class="mb-16">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -240,10 +217,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Utilities -->
-    <div
-      id="utilities"
-      class="mb-16"
-    >
+    <div id="utilities" class="mb-16">
       <h3
         class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 pb-2 border-b border-zinc-200 flex items-center justify-between"
       >
@@ -555,10 +529,7 @@ doctor(); // Reports cursor conflicts & issues
       <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded mt-8">
         <p class="text-sm text-blue-900 leading-relaxed">
           For more advanced patterns and real-world examples using these utilities, see the
-          <router-link
-            to="/docs/advanced/tips-and-tricks"
-            class="font-bold hover:underline"
-          >
+          <router-link to="/docs/advanced/tips-and-tricks" class="font-bold hover:underline">
             Tips &amp; Tricks
           </router-link>
           page.

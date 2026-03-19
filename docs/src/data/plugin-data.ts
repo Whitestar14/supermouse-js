@@ -1,6 +1,6 @@
-import { PluginMeta } from "@/config/types";
-import { ICONS } from "@/config/icons";
-import generatedData from "@/data/generated-plugins.json";
+import { PluginMeta } from "@config/types";
+import { ICONS } from "@config/icons";
+import generatedData from "@data/generated-plugins.json";
 
 export interface ExtendedPluginMeta extends PluginMeta {
   version: string;

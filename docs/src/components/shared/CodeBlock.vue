@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { highlight } from "@/utils/highlight";
-import { usePlayground } from "@/composables/usePlayground";
+import { highlight } from "@utils/highlight";
+import { usePlayground } from "@composables/usePlayground";
 
 const props = defineProps<{
   code: string;
@@ -42,10 +42,7 @@ const copy = async () => {
         >
           {{ title }}
         </span>
-        <span
-          v-else
-          class="text-[10px] uppercase tracking-widest font-bold text-zinc-400"
-        >
+        <span v-else class="text-[10px] uppercase tracking-widest font-bold text-zinc-400">
           Snippet
         </span>
       </div>
@@ -86,14 +83,7 @@ const copy = async () => {
             stroke="currentColor"
             stroke-width="2.5"
           >
-            <rect
-              x="9"
-              y="9"
-              width="13"
-              height="13"
-              rx="2"
-              ry="2"
-            />
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
           <svg
@@ -135,14 +125,7 @@ const copy = async () => {
         stroke="currentColor"
         stroke-width="2"
       >
-        <rect
-          x="9"
-          y="9"
-          width="13"
-          height="13"
-          rx="2"
-          ry="2"
-        />
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
       </svg>
       <svg

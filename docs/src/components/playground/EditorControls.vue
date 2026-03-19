@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ControlSchema } from "./recipes";
-import ControlRange from "../ui/ControlRange.vue";
-import ControlColor from "../ui/ControlColor.vue";
-import ControlToggle from "../ui/ControlToggle.vue";
-import ControlSelect from "../ui/ControlSelect.vue";
+import ControlRange from "./controls/ControlRange.vue";
+import ControlColor from "./controls/ControlColor.vue";
+import ControlToggle from "./controls/ControlToggle.vue";
+import ControlSelect from "./controls/ControlSelect.vue";
 
 const props = defineProps<{
   schema: ControlSchema[];

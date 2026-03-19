@@ -1,25 +1,25 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from "vue-router";
-import Landing from "../pages/Landing.vue";
-import Playground from "../pages/Playground.vue";
-import DocsLayout from "../layouts/DocsLayout.vue";
-import NotFound from "../pages/NotFound.vue";
+import Landing from "@/pages/Landing.vue";
+import Playground from "@/pages/Playground.vue";
+import DocsLayout from "@layouts/DocsLayout.vue";
+import NotFound from "@/pages/NotFound.vue";
 
 // Dynamic imports for docs pages
-const Introduction = () => import("../pages/docs/guide/Introduction.vue");
-const Installation = () => import("../pages/docs/guide/Installation.vue");
-const Usage = () => import("../pages/docs/guide/Usage.vue");
-const Troubleshooting = () => import("../pages/docs/guide/Troubleshooting.vue");
-const Cookbook = () => import("../pages/docs/guide/Cookbook.vue");
+const Introduction = () => import("@/pages/docs/guide/Introduction.vue");
+const Installation = () => import("@/pages/docs/guide/Installation.vue");
+const Usage = () => import("@/pages/docs/guide/Usage.vue");
+const Troubleshooting = () => import("@/pages/docs/guide/Troubleshooting.vue");
+const Cookbook = () => import("@/pages/docs/guide/Cookbook.vue");
 
-const VueIntegration = () => import("../pages/docs/integrations/VueIntegration.vue");
-const ReactIntegration = () => import("../pages/docs/integrations/ReactIntegration.vue");
+const VueIntegration = () => import("@/pages/docs/integrations/VueIntegration.vue");
+const ReactIntegration = () => import("@/pages/docs/integrations/ReactIntegration.vue");
 
-const Architecture = () => import("../pages/docs/advanced/Architecture.vue");
-const Authoring = () => import("../pages/docs/advanced/Authoring.vue");
-const Contributing = () => import("../pages/docs/advanced/Contributing.vue");
-const TipsAndTricks = () => import("../pages/docs/advanced/TipsAndTricks.vue");
-const PluginPage = () => import("../pages/docs/PluginPage.vue");
-const ApiReference = () => import("../pages/docs/reference/Api.vue");
+const Architecture = () => import("@/pages/docs/advanced/Architecture.vue");
+const Authoring = () => import("@/pages/docs/advanced/Authoring.vue");
+const Contributing = () => import("@/pages/docs/advanced/Contributing.vue");
+const TipsAndTricks = () => import("@/pages/docs/advanced/TipsAndTricks.vue");
+const ApiReference = () => import("@/pages/docs/advanced/Api.vue");
+const PluginPage = () => import("@/pages/docs/PluginPage.vue");
 
 const isDev = import.meta.env.DEV;
 

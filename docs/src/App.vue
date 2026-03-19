@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { watch, ref, onMounted, onUnmounted } from "vue";
 import Lenis from "lenis";
-import Navbar from "./components/Navbar.vue";
+import Navbar from "./components/landing/Navbar.vue";
 import CursorEditor from "./components/playground/CursorEditor.vue";
-import SearchPalette from "./components/SearchPalette.vue";
+import SearchPalette from "./components/landing/SearchPalette.vue";
 import { useAppCursor } from "./composables/useAppCursor";
 import { usePlayground } from "./composables/usePlayground";
 

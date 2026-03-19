@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import Callout from "@/components/ui/Callout.vue";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import Callout from "@/components/shared/Callout.vue";
+import SectionHeader from "@/components/shared/SectionHeader.vue";
+import Text from "@/components/shared/Text.vue";
 
 const rawVisualCode = `// A "Raw" Visual Plugin
 // No helpers. Just the lifecycle methods.
@@ -108,61 +110,58 @@ if (color) {
 </script>
 
 <template>
-  <DocsSection
-    label="Advanced"
-    title="Plugin Authoring"
-  >
-    <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
+  <DocsSection label="Advanced" title="Plugin Authoring">
+    <Text size="lg" class="mb-12">
       Plugins are the primary extension mechanism. The core exists solely to coordinate them. You
       can write plugins in two ways: using the
       <span class="text-black font-bold border-b-2 border-black/10">Raw Interface</span> (full
       control) or the
       <span class="text-black font-bold border-b-2 border-black/10">definePlugin Helper</span>
       (recommended for visuals).
-    </p>
+    </Text>
 
     <!-- METHOD 1 -->
-    <h3 class="text-2xl font-bold text-zinc-900 mb-6 flex items-center gap-3">
-      <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">A</span>
+    <SectionHeader :level="2" class="flex items-center gap-3">
+      <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono"
+        >A</span
+      >
       The Raw Interface (The Source of Truth)
-    </h3>
-    <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
+    </SectionHeader>
+    <Text size="base" class="mb-6 max-w-2xl">
       At its simplest, a plugin is just an object with a name and lifecycle methods. You don't
       <em>need</em> any helpers to write a plugin. Understanding this structure is key for advanced
       use cases (like plugins that manage multiple elements or canvas contexts).
-    </p>
+    </Text>
 
     <div class="mb-16">
-      <CodeBlock
-        :code="rawVisualCode"
-        title="RawPlugin.ts"
-      />
+      <CodeBlock :code="rawVisualCode" title="RawPlugin.ts" />
     </div>
 
     <!-- METHOD 2 -->
-    <h3 class="text-2xl font-bold text-zinc-900 mb-6 flex items-center gap-3">
-      <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">B</span>
+    <SectionHeader :level="2" class="flex items-center gap-3">
+      <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono"
+        >B</span
+      >
       The Helper Strategy (definePlugin)
-    </h3>
-    <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
+    </SectionHeader>
+    <Text size="base" class="mb-6 max-w-2xl">
       For 90% of visual plugins, you just want to create a single DOM element, style it based on
       options, and move it.
       <code>definePlugin</code> creates a standard wrapper that handles the boilerplate.
-    </p>
+    </Text>
 
     <div class="mb-8">
-      <CodeBlock
-        :code="helperCode"
-        title="SmartSquare.ts"
-      />
+      <CodeBlock :code="helperCode" title="SmartSquare.ts" />
     </div>
 
     <Callout title="What is the 'styles' object?">
       <p class="mb-2">
         The <code>styles</code> property in <code>definePlugin</code> is a declarative map. It tells
         the runtime:
-        <em>"Take the value of <code>options.key</code> and assign it to
-          <code>element.style.property</code> every frame."</em>
+        <em
+          >"Take the value of <code>options.key</code> and assign it to
+          <code>element.style.property</code> every frame."</em
+        >
       </p>
       <div class="font-mono text-xs bg-white p-4 border border-zinc-200 rounded-sm mt-4 mb-4">
         styles: { opacity: 'opacity' }
@@ -174,77 +173,79 @@ if (color) {
     </Callout>
 
     <!-- LOGIC PLUGINS -->
-    <h3 class="text-2xl font-bold text-zinc-900 mb-6 flex items-center gap-3 mt-16">
-      <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono">C</span>
+    <SectionHeader :level="2" class="flex items-center gap-3 mt-16">
+      <span class="w-6 h-6 bg-black text-white text-xs flex items-center justify-center font-mono"
+        >C</span
+      >
       Logic Plugins
-    </h3>
-    <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
+    </SectionHeader>
+    <Text size="base" class="mb-6 max-w-2xl">
       Logic plugins manipulate the cursor's <strong>intent</strong> rather than its appearance. They
       typically run before visual plugins (negative priority) to modify <code>state.target</code>.
       They should use the Raw Interface as they rarely need DOM elements.
-    </p>
+    </Text>
 
     <div class="mb-16">
-      <CodeBlock
-        :code="logicCode"
-        title="Gravity.ts"
-      />
+      <CodeBlock :code="logicCode" title="Gravity.ts" />
     </div>
 
     <!-- INTERACTION SYSTEM -->
     <div class="border-t border-zinc-200 pt-12 mb-16">
-      <h3 class="text-2xl font-bold text-zinc-900 mb-6 tracking-tight">
-        Handling Interaction
-      </h3>
-      <p class="text-zinc-600 mb-6 leading-relaxed">
+      <SectionHeader :level="2"> Handling Interaction </SectionHeader>
+      <Text size="base" class="mb-6">
         Supermouse optimizes DOM access. Do <strong>not</strong> query the DOM or read attributes
         inside the <code>update</code> loop. It causes forced reflows and kills 120fps performance.
-      </p>
-      <p class="text-zinc-600 mb-6 leading-relaxed">
+      </Text>
+      <Text size="base" class="mb-6">
         Instead, read from <code>app.state.interaction</code>. The Input system automatically
         populates this object with any <code>data-supermouse-*</code> attributes found on the
         hovered element.
-      </p>
-      <CodeBlock
-        :code="interactionCode"
-        lang="javascript"
-      />
+      </Text>
+      <CodeBlock :code="interactionCode" lang="javascript" />
     </div>
 
     <!-- LIFECYCLE -->
-    <h3 class="text-2xl font-bold text-zinc-900 mb-8 tracking-tight">
-      Lifecycle Hooks
-    </h3>
+    <SectionHeader :level="2" class="mb-8"> Lifecycle Hooks </SectionHeader>
     <div
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200 mb-16"
     >
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2">install(app)</strong>
+        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
+          >install(app)</strong
+        >
         <p class="text-sm text-zinc-600">
           Runs once when <code>app.use()</code> is called. Setup your DOM and listeners here.
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2">update(app, dt)</strong>
+        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
+          >update(app, dt)</strong
+        >
         <p class="text-sm text-zinc-600">
           Runs every frame via requestAnimationFrame. Keep this function extremely hot-path
           optimized.
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2">destroy(app)</strong>
+        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2"
+          >destroy(app)</strong
+        >
         <p class="text-sm text-zinc-600">
           Runs when the app is destroyed. Remove elements and unbind listeners.
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2">onEnable(app)</strong>
+        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2"
+          >onEnable(app)</strong
+        >
         <p class="text-sm text-zinc-600">
           Runs when <code>enablePlugin</code> is called. Restore visibility (opacity: 1).
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2">onDisable(app)</strong>
+        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2"
+          >onDisable(app)</strong
+        >
         <p class="text-sm text-zinc-600">
           Runs when <code>disablePlugin</code> is called. Hide visuals (opacity: 0). Do not destroy
           DOM.
@@ -254,14 +255,14 @@ if (color) {
 
     <!-- PERFORMANCE CONTRACT -->
     <div class="bg-zinc-900 text-zinc-400 p-8 border border-zinc-900">
-      <h3 class="text-white font-bold text-lg mb-6">
-        The Performance Contract
-      </h3>
+      <h3 class="text-white font-bold text-lg mb-6">The Performance Contract</h3>
       <ul class="space-y-4 font-mono text-xs">
         <li class="flex gap-4">
           <span class="text-zinc-500 font-bold">01.</span>
-          <span>Do not create/destroy DOM elements in `update`. Use object pooling or CSS
-            opacity.</span>
+          <span
+            >Do not create/destroy DOM elements in `update`. Use object pooling or CSS
+            opacity.</span
+          >
         </li>
         <li class="flex gap-4">
           <span class="text-zinc-500 font-bold">02.</span>
@@ -273,7 +274,9 @@ if (color) {
         </li>
         <li class="flex gap-4">
           <span class="text-white font-bold">04.</span>
-          <span>Respect `app.state.reducedMotion`. If true, disable animations or huge movements.</span>
+          <span
+            >Respect `app.state.reducedMotion`. If true, disable animations or huge movements.</span
+          >
         </li>
       </ul>
     </div>

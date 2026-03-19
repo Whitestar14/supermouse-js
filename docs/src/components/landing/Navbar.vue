@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { GITHUB_URL } from "@/config/constants";
+import { GITHUB_URL } from "@config/constants";
 import { useSupermouse } from "@supermousejs/vue";
 
 const emit = defineEmits(["openSearch"]);
@@ -95,11 +95,10 @@ const triggerSpin = () => {
               <span>js</span>
             </div>
           </router-link>
-
-          <!-- Brutalist Version Dropdown -->
+          <!-- Version Dropdown -->
           <div class="relative group hidden sm:block">
             <button
-              class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black transition-colors relative top-[1px]"
+              class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black relative top-[1px]"
               @click="showVersionMenu = !showVersionMenu"
             >
               v2.1
@@ -124,7 +123,7 @@ const triggerSpin = () => {
             >
               <a
                 href="#"
-                class="flex items-center justify-between px-4 py-3 text-xs font-bold text-black bg-white uppercase tracking-widest border-b border-zinc-200"
+                class="flex items-center justify-between px-4 py-3 text-xs font-bold text-black bg-white hover:bg-black hover:text-white uppercase tracking-widest border-b border-zinc-200"
               >
                 <span>v2.1 (Stable)</span>
                 <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none" />
@@ -132,7 +131,7 @@ const triggerSpin = () => {
               <a
                 :href="GITHUB_URL"
                 target="_blank"
-                class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white transition-colors uppercase tracking-widest"
+                class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white uppercase tracking-widest"
               >
                 <span>v1.0 (Legacy)</span>
                 <svg
@@ -164,22 +163,14 @@ const triggerSpin = () => {
             stroke-width="2.5"
             class="text-zinc-400 group-hover:text-black"
           >
-            <circle
-              cx="11"
-              cy="11"
-              r="8"
-            />
-            <line
-              x1="21"
-              y1="21"
-              x2="16.65"
-              y2="16.65"
-            />
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <span class="text-xs text-zinc-400 group-hover:text-zinc-600 font-medium">Search...</span>
           <span
             class="mono text-[10px] text-zinc-300 group-hover:text-zinc-500 font-bold bg-white px-1.5 border border-zinc-200 rounded-sm"
-          >⌘K</span>
+            >⌘K</span
+          >
         </button>
 
         <!-- Mobile Trigger -->
@@ -194,10 +185,7 @@ const triggerSpin = () => {
             >
               MENU
             </span>
-            <div
-              v-else
-              class="w-8 h-px bg-black"
-            />
+            <div v-else class="w-8 h-px bg-black" />
           </button>
         </div>
       </div>

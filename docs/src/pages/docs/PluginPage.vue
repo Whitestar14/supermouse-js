@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import CodeBlock from "@/components/CodeBlock.vue";
-import MetadataStrip from "@/components/ui/MetadataStrip.vue";
-import Table from "@/components/Table.vue";
-import { PLUGINS } from "@/data/plugin-data";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import MetadataStrip from "@/components/shared/MetadataStrip.vue";
+import Table from "@/components/shared/Table.vue";
+import { PLUGINS } from "@data/plugin-data";
 
 const route = useRoute();
 
@@ -103,10 +103,7 @@ const optionColumns = [
         <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-zinc-900">
           Configuration
         </h3>
-        <span
-          v-if="plugin.options?.some((o) => o.reactive)"
-          class="text-xs text-zinc-500"
-        >
+        <span v-if="plugin.options?.some((o) => o.reactive)" class="text-xs text-zinc-500">
           <span class="font-bold text-zinc-900">*</span> Reactive Property
         </span>
       </div>
@@ -124,7 +121,8 @@ const optionColumns = [
               <span
                 v-if="row.reactive"
                 class="absolute top-4 left-2 text-amber-500 text-xs select-none"
-              >*</span>
+                >*</span
+              >
             </span>
           </template>
 
@@ -154,10 +152,7 @@ const optionColumns = [
   </div>
 
   <!-- 404 State -->
-  <div
-    v-else
-    class="min-h-[50vh] flex flex-col items-center justify-center text-center p-8"
-  >
+  <div v-else class="min-h-[50vh] flex flex-col items-center justify-center text-center p-8">
     <div
       class="w-16 h-16 border border-zinc-200 flex items-center justify-center mb-6 text-zinc-300"
     >
@@ -172,26 +167,12 @@ const optionColumns = [
         <path
           d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
         />
-        <line
-          x1="12"
-          y1="9"
-          x2="12"
-          y2="13"
-        />
-        <line
-          x1="12"
-          y1="17"
-          x2="12.01"
-          y2="17"
-        />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     </div>
-    <h1 class="text-xl font-bold text-zinc-900 tracking-tighter">
-      Plugin Missing
-    </h1>
-    <p class="text-zinc-500 mt-2 font-mono text-xs">
-      ID: {{ route.params.id }}
-    </p>
+    <h1 class="text-xl font-bold text-zinc-900 tracking-tighter">Plugin Missing</h1>
+    <p class="text-zinc-500 mt-2 font-mono text-xs">ID: {{ route.params.id }}</p>
     <router-link
       to="/docs"
       class="mt-8 px-6 py-3 bg-black text-white font-mono text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"

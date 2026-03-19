@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useSearch } from "@/composables/useSearch";
+import { useSearch } from "@composables/useSearch";
 
 const emit = defineEmits(["close"]);
 const router = useRouter();
@@ -48,10 +48,7 @@ watch(query, () => {
 <template>
   <div class="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] px-4">
     <!-- Backdrop -->
-    <div
-      class="absolute inset-0 bg-white/80 backdrop-blur-sm"
-      @click="emit('close')"
-    />
+    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm" @click="emit('close')" />
 
     <!-- Modal -->
     <div
@@ -68,17 +65,8 @@ watch(query, () => {
           stroke-width="2"
           class="text-zinc-400 mr-4"
         >
-          <circle
-            cx="11"
-            cy="11"
-            r="8"
-          />
-          <line
-            x1="21"
-            y1="21"
-            x2="16.65"
-            y2="16.65"
-          />
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <input
           ref="searchInput"
@@ -86,7 +74,7 @@ watch(query, () => {
           type="text"
           placeholder="Search docs, plugins, and guides..."
           class="flex-1 h-full outline-none text-lg font-medium placeholder:text-zinc-300 bg-transparent"
-        >
+        />
         <div class="mono text-[10px] bg-zinc-100 px-2 py-1 rounded text-zinc-400 font-bold">
           ESC
         </div>
@@ -114,10 +102,7 @@ watch(query, () => {
         >
           <div class="flex-1 min-w-0">
             <span class="text-sm font-bold text-zinc-900 block">{{ res.label }}</span>
-            <span
-              v-if="res.description"
-              class="text-[10px] text-zinc-500 block line-clamp-1"
-            >
+            <span v-if="res.description" class="text-[10px] text-zinc-500 block line-clamp-1">
               {{ res.description }}
             </span>
             <span class="text-[10px] text-zinc-400 block truncate">{{ res.path }}</span>
@@ -138,22 +123,12 @@ watch(query, () => {
       </div>
 
       <!-- Empty State -->
-      <div
-        v-else-if="query"
-        class="p-8 text-center"
-      >
-        <p class="text-zinc-400 font-mono text-xs">
-          No results found for "{{ query }}"
-        </p>
+      <div v-else-if="query" class="p-8 text-center">
+        <p class="text-zinc-400 font-mono text-xs">No results found for "{{ query }}"</p>
       </div>
 
-      <div
-        v-else
-        class="p-8 text-center"
-      >
-        <p class="text-zinc-300 font-mono text-xs uppercase tracking-widest">
-          Type to search...
-        </p>
+      <div v-else class="p-8 text-center">
+        <p class="text-zinc-300 font-mono text-xs uppercase tracking-widest">Type to search...</p>
       </div>
     </div>
   </div>

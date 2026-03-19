@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import Callout from "@/components/ui/Callout.vue";
-import SectionHeader from "@/components/ui/SectionHeader.vue";
-import Text from "@/components/ui/Text.vue";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import Callout from "@/components/shared/Callout.vue";
+import SectionHeader from "@/components/shared/SectionHeader.vue";
+import Text from "@/components/shared/Text.vue";
 
 const initCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
@@ -91,26 +91,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DocsSection
-    label="Guide"
-    title="Usage"
-  >
-    <Text
-      weight="medium"
-      size="lg"
-      class="mb-12"
-    >
+  <DocsSection label="Guide" title="Usage">
+    <Text weight="medium" size="lg" class="mb-12">
       Supermouse is a <b>singleton runtime</b>. It manages the animation loop, input listeners, and
       the plugin pipeline. You initialize it once when your application mounts.
     </Text>
 
     <!-- Configuration -->
-    <SectionHeader
-      level="2"
-      class="mb-6"
-    >
-      1. Configuration
-    </SectionHeader>
+    <SectionHeader :level="2" class="mb-6"> 1. Configuration </SectionHeader>
     <Text class="mb-6">
       The constructor accepts a <code>SupermouseOptions</code> object. You can pass plugins directly
       in the configuration array.
@@ -128,21 +116,12 @@ onUnmounted(() => {
       If you are using the <strong>CDN bundle</strong>, the core and standard plugins are available
       on the global <code>window.Supermouse</code> object.
       <div class="mt-4">
-        <CodeBlock
-          :code="globalUsageCode"
-          lang="javascript"
-          :clean="true"
-        />
+        <CodeBlock :code="globalUsageCode" lang="javascript" :clean="true" />
       </div>
     </Callout>
 
     <!-- Plugins -->
-    <SectionHeader
-      level="2"
-      class="mb-6 mt-16"
-    >
-      2. Runtime Registration
-    </SectionHeader>
+    <SectionHeader :level="2" class="mb-6 mt-16"> 2. Runtime Registration </SectionHeader>
     <Text class="mb-6">
       If you need to add plugins later (e.g. lazy loading), you can use the chainable
       <code>use()</code> method.
@@ -157,12 +136,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Interaction -->
-    <SectionHeader
-      level="2"
-      class="mb-6"
-    >
-      3. Defining Interactions
-    </SectionHeader>
+    <SectionHeader :level="2" class="mb-6"> 3. Defining Interactions </SectionHeader>
 
     <Text class="mb-6">
       Interaction in Supermouse is completely data-driven. The Core does not know what "magnetic"
@@ -177,13 +151,8 @@ onUnmounted(() => {
 
     <div class="grid grid-cols-1 gap-8 mb-12">
       <div>
-        <SectionHeader level="4">
-          Global Rules (Recommended)
-        </SectionHeader>
-        <Text
-          size="sm"
-          class="mb-4"
-        >
+        <SectionHeader :level="4"> Global Rules (Recommended) </SectionHeader>
+        <Text size="sm" class="mb-4">
           Map CSS selectors to state objects. This keeps your HTML clean.
         </Text>
         <CodeBlock
@@ -195,32 +164,17 @@ onUnmounted(() => {
       </div>
 
       <div>
-        <SectionHeader level="4">
-          HTML Overrides
-        </SectionHeader>
-        <Text
-          size="sm"
-          class="mb-4"
-        >
+        <SectionHeader :level="4"> HTML Overrides </SectionHeader>
+        <Text size="sm" class="mb-4">
           Use <code>data-supermouse-*</code> attributes for one-off overrides. These take precedence
           over rules.
         </Text>
-        <CodeBlock
-          :code="htmlCode"
-          title="index.html"
-          lang="html"
-          class="border border-zinc-200"
-        />
+        <CodeBlock :code="htmlCode" title="index.html" lang="html" class="border border-zinc-200" />
       </div>
     </div>
 
     <!-- Scoped Containers -->
-    <SectionHeader
-      level="2"
-      class="mb-6"
-    >
-      4. Scoped Containers
-    </SectionHeader>
+    <SectionHeader :level="2" class="mb-6"> 4. Scoped Containers </SectionHeader>
     <Text class="mb-6 max-w-2xl">
       By default, Supermouse appends to <code>document.body</code> and tracks the window. You can
       restrict the cursor to a specific div (e.g., a modal, a canvas wrapper, or a specific section
@@ -236,42 +190,24 @@ onUnmounted(() => {
     </div>
 
     <!-- Manual Visibility -->
-    <SectionHeader
-      level="2"
-      class="mb-6"
-    >
-      5. Manual Visibility
-    </SectionHeader>
+    <SectionHeader :level="2" class="mb-6"> 5. Manual Visibility </SectionHeader>
     <Text class="mb-6">
       Sometimes you need strict control over the cursor visibility (e.g., drag and drop operations,
       custom modals, or games). Use
       <code>setCursor</code> to override the internal auto-detection.
     </Text>
     <div class="mb-12">
-      <CodeBlock
-        :code="visibilityCode"
-        lang="typescript"
-        class="border border-zinc-200"
-      />
+      <CodeBlock :code="visibilityCode" lang="typescript" class="border border-zinc-200" />
     </div>
 
     <!-- Cleanup -->
-    <SectionHeader
-      level="2"
-      class="mb-6"
-    >
-      6. Cleanup
-    </SectionHeader>
+    <SectionHeader :level="2" class="mb-6"> 6. Cleanup </SectionHeader>
     <Callout title="Important for SPA Navigation">
       If your app navigates between pages that mount/unmount the cursor (or if you use Hot Module
       Replacement), you must call destroy to prevent memory leaks and duplicate cursors.
     </Callout>
     <div class="mb-12">
-      <CodeBlock
-        :code="cleanupCode"
-        lang="typescript"
-        class="border border-zinc-200"
-      />
+      <CodeBlock :code="cleanupCode" lang="typescript" class="border border-zinc-200" />
     </div>
   </DocsSection>
 </template>

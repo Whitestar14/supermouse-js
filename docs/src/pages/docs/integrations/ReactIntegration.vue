@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/CodeBlock.vue";
-import Callout from "@/components/ui/Callout.vue";
-import MetadataStrip from "@/components/ui/MetadataStrip.vue";
-import SectionHeader from "@/components/ui/SectionHeader.vue";
-import Text from "@/components/ui/Text.vue";
-import StepCard from "@/components/ui/StepCard.vue";
+import CodeBlock from "@/components/shared/CodeBlock.vue";
+import Callout from "@/components/shared/Callout.vue";
+import MetadataStrip from "@/components/shared/MetadataStrip.vue";
+import SectionHeader from "@/components/shared/SectionHeader.vue";
+import Text from "@/components/shared/Text.vue";
+import StepCard from "@/components/shared/StepCard.vue";
 
 const installCode = "pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot";
 

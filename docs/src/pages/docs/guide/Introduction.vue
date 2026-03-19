@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
-import MetadataStrip from "@/components/ui/MetadataStrip.vue";
-import { APP_VERSION, BUNDLE_SIZE } from "@/config/constants";
+import MetadataStrip from "@/components/shared/MetadataStrip.vue";
+import Text from "@/components/shared/Text.vue";
+import SectionHeader from "@/components/shared/SectionHeader.vue";
+import { APP_VERSION, BUNDLE_SIZE } from "@config/constants";
 
 const metaItems = [
   { label: "VERSION", content: APP_VERSION },
@@ -11,28 +13,25 @@ const metaItems = [
 </script>
 
 <template>
-  <DocsSection
-    label="Guide"
-    title="Introduction"
-  >
+  <DocsSection label="Guide" title="Introduction">
     <MetadataStrip :items="metaItems" />
 
-    <div class="prose prose-zinc max-w-none mb-16">
-      <p
-        class="text-xl md:text-2xl text-zinc-900 font-bold leading-tight tracking-tight text-pretty mb-8"
-      >
-        Supermouse is a high-performance runtime that decouples cursor intent from cursor rendering.
-      </p>
-      <p class="text-lg text-zinc-600 leading-relaxed mb-4">
-        Most cursor libraries are UI components. They bind state to a specific framework's render
-        cycle (React, Vue) or rely on heavy animation libraries (GSAP) to move a div.
-      </p>
-      <p class="text-lg text-zinc-600 leading-relaxed">
+    <div class="mb-12 space-y-4">
+      <Text size="lg">
+        Supermouse is a <b>high-performance</b> runtime that decouples <b>cursor intent</b> from
+        <b>cursor rendering</b>.
+      </Text>
+      <Text size="lg">
+        It provides a plugin system to inject magnetic logic, physics interpolation, and visual Most
+        cursor libraries are UI components. They bind state to a specific framework's render cycle
+        (React, Vue) or rely on heavy animation libraries (GSAP) to move a div.
+      </Text>
+      <Text size="lg">
         <strong>Supermouse is different.</strong> It runs its own deterministic game loop (~60fps)
         using <code>requestAnimationFrame</code>. It manages input normalization, physics
         interpolation, and a priority-based plugin system to render effects without layout
         thrashing.
-      </p>
+      </Text>
     </div>
 
     <!-- The Problem / The Solution Grid -->
@@ -100,9 +99,7 @@ const metaItems = [
     </div>
 
     <!-- Core Philosophy -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      Core Philosophy
-    </h3>
+    <SectionHeader :level="2">Core Philosophy</SectionHeader>
     <div class="border-t border-zinc-200">
       <div
         class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-200 border-b border-zinc-200"
