@@ -18,6 +18,15 @@
     "vue": "^3.2.0",
     "@supermousejs/core": "workspace:*"
   },
+      "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Whitestar14/supermouse-js.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Whitestar14/supermouse-js/issues"
+  },
+  "homepage": "https://github.com/Whitestar14/supermouse-js/tree/main/packages/vue#readme",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

@@ -1,37 +1,36 @@
-
 let stageCount = 0;
 
 /**
  * The Environment / DOM Manager.
- * 
- * This class handles the DOM container where the cursor lives and manages the global CSS 
+ *
+ * This class handles the DOM container where the cursor lives and manages the global CSS
  * required to hide the default OS cursor without flickering.
- * 
+ *
  * ## Why CSS Injection?
- * Simply adding `cursor: none` to the body isn't enough. Interactive elements like `<input>` 
+ * Simply adding `cursor: none` to the body isn't enough. Interactive elements like `<input>`
  * or `<a>` often have their own user-agent styles that force `cursor: text` or `cursor: pointer`.
  * This results in the "double cursor" glitch.
- * 
+ *
  * The Stage system generates a scoped stylesheet that aggressively targets registered selectors
  * with `cursor: none !important` to ensure a seamless experience.
- * 
+ *
  * @internal This is an internal system class instantiated by `Supermouse`.
  */
 export class Stage {
   /** The container element appended to the document. Plugins must append here. */
   public readonly element: HTMLDivElement;
-  
+
   private styleTag: HTMLStyleElement;
   private id: string;
   private scopeClass: string;
-  
+
   // Cache to prevent redundant DOM updates
   private currentCursorState: 'none' | 'auto' | '' | null = null;
 
   // Defaults for CSS hiding. We must override user-agent styles on these elements
   // to prevent the native cursor from popping through.
   private selectors: Set<string> = new Set([
-    'a', 'button', 'input', 'textarea', 'select', 
+    'a', 'button', 'input', 'textarea', 'select',
     '[role="button"]', '[tabindex]'
   ]);
 
@@ -43,7 +42,7 @@ export class Stage {
     const instanceId = stageCount++;
     this.id = `supermouse-style-${instanceId}`;
     this.scopeClass = `supermouse-scope-${instanceId}`;
-    
+
     const isBody = container === document.body;
 
     // 1. Create Container
@@ -58,7 +57,7 @@ export class Stage {
       opacity: '1',
       transition: 'opacity 0.15s ease'
     });
-    
+
     // Ensure parent is relative if we are using absolute positioning
     if (!isBody) {
         const computed = window.getComputedStyle(container);
@@ -66,7 +65,7 @@ export class Stage {
             container.style.position = 'relative';
         }
     }
-    
+
     container.appendChild(this.element);
 
     // 2. Create Dynamic Style Tag
@@ -87,7 +86,7 @@ export class Stage {
 
   /**
    * Adds a new CSS selector to the "Hide Native Cursor" list.
-   * Called by `Supermouse` (and subsequently plugins) during install to ensure 
+   * Called by `Supermouse` (and subsequently plugins) during install to ensure
    * the native cursor is hidden on their specific interactive targets.
    */
   public addSelector(selector: string) {
@@ -133,7 +132,7 @@ export class Stage {
       this.styleTag.innerText = '';
       return;
     }
-    
+
     // Scoped Selector Logic:
     // We prepend the scope class to every selector to ensure we don't bleed into
     // other parts of the page if the user is using a specific container.

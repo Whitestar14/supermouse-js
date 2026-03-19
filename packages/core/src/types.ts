@@ -1,4 +1,3 @@
-
 import { Supermouse } from './Supermouse';
 
 export interface MousePosition {
@@ -15,7 +14,7 @@ export interface ShapeState {
 /**
  * The Interface for interaction state.
  * Plugins should use Module Augmentation to add their specific properties to this interface.
- * 
+ *
  * @example
  * declare module '@supermousejs/core' {
  *   interface InteractionState {
@@ -25,8 +24,8 @@ export interface ShapeState {
  * }
  */
 export interface InteractionState {
-  /** 
-   * Allow arbitrary keys for rapid prototyping. 
+  /**
+   * Allow arbitrary keys for rapid prototyping.
    * For type safety, use module augmentation to define expected keys.
    */
   [key: string]: any;
@@ -49,8 +48,8 @@ export interface MouseState {
   isHover: boolean;
   /** Whether the native cursor is currently forced visible by internal logic (e.g. input elements). */
   isNative: boolean;
-  /** 
-   * If set, this overrides all auto-detection logic. 
+  /**
+   * If set, this overrides all auto-detection logic.
    * 'auto' = Force Native Cursor (Show)
    * 'none' = Force Custom Cursor (Hide Native)
    * null = Let the Core decide based on isNative/isHover
@@ -74,8 +73,8 @@ export type NativeIgnoreStrategy = 'auto' | 'tag' | 'css';
  * Configuration options passed to the Supermouse constructor.
  */
 export interface SupermouseOptions {
-  /** 
-   * The interpolation factor (0 to 1). Lower is smoother/slower. 
+  /**
+   * The interpolation factor (0 to 1). Lower is smoother/slower.
    * @default 0.15
    */
   smoothness?: number;

@@ -22,6 +22,15 @@
       "require": "./dist/index.umd.js"
     }
   },
+      "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Whitestar14/supermouse-js.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Whitestar14/supermouse-js/issues"
+  },
+  "homepage": "https://github.com/Whitestar14/supermouse-js/tree/main/packages/legacy#readme",
   "peerDependencies": {
     "@supermousejs/core": "workspace:*"
   },

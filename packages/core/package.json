@@ -1,6 +1,7 @@
 {
   "name": "@supermousejs/core",
   "version": "2.0.4",
+  "description": "The core physics engine and state manager for Supermouse.",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -24,6 +25,15 @@
     "javascript",
     "web"
   ],
+    "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Whitestar14/supermouse-js.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Whitestar14/supermouse-js/issues"
+  },
+  "homepage": "https://github.com/Whitestar14/supermouse-js/tree/main/packages/core#readme",
   "dependencies": {},
   "devDependencies": {},
   "exports": {
