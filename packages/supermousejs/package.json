@@ -1,6 +1,6 @@
 {
   "name": "supermousejs",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "The official all-in-one bundle for Supermouse.js v2. High-performance, modular cursor engine.",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
@@ -23,7 +23,7 @@
     "@supermousejs/dot": "workspace:*",
     "@supermousejs/ring": "workspace:*"
   },
-      "repository": {
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitestar14/supermouse-js.git",
     "directory": "packages/core"

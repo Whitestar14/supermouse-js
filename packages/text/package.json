@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/text",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",
   "license": "MIT",
@@ -19,7 +19,7 @@
   "devDependencies": {
     "@supermousejs/core": "workspace:*"
   },
-      "repository": {
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitestar14/supermouse-js.git",
     "directory": "packages/core"

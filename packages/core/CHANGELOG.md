@@ -1,5 +1,11 @@
 # @supermousejs/core
 
+## 2.0.5
+
+### Patch Changes
+
+- 67f771b: Add relevant npm metadata to package.json file
+
 ## 2.0.4
 
 ### Patch Changes

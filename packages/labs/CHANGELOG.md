@@ -1,5 +1,15 @@
 # @supermousejs/labs
 
+## 2.1.1
+
+### Patch Changes
+
+- 67f771b: Add relevant npm metadata to package.json file
+- Updated dependencies [67f771b]
+  - @supermousejs/zoetrope@2.1.1
+  - @supermousejs/utils@2.1.1
+  - @supermousejs/core@2.0.5
+
 ## 2.1.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # supermousejs
 
+## 2.1.1
+
+### Patch Changes
+
+- 67f771b: Add relevant npm metadata to package.json file
+- Updated dependencies [67f771b]
+  - @supermousejs/core@2.0.5
+  - @supermousejs/ring@2.1.1
+  - @supermousejs/dot@2.1.1
+
 ## 2.1.0
 
 ### Minor Changes
