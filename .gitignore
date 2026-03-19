@@ -6,6 +6,7 @@ demo
 notes.MD
 supercopy.py
 *.zip
+*.py
 .DS_Store
 *.log
 npm-debug.log*

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const rootDir = path.resolve(path.dirname(__filename), '..');
 const packagesDir = path.join(rootDir, 'packages');
-const docsDataDir = path.join(rootDir, 'docs/src');
+const docsDataDir = path.join(rootDir, 'docs/src/data');
 const outputFile = path.join(docsDataDir, 'generated-plugins.json');
 
 function generate() {
@@ -28,7 +28,7 @@ function generate() {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
         const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
-        
+
         // Skip private packages or the main bundle if you want
         if (pkg.private) continue;
 
@@ -37,18 +37,18 @@ function generate() {
         items.forEach(item => {
           if (item.id && item.name) {
             const pkgName = pkg.name;
-            
+
             // --- AUTOMATION WINS ---
             // 1. Auto-generate the install command
             item.installCommand = `pnpm install ${pkgName}`;
-            
+
             // 2. Auto-generate the import snippet
             // (Assuming your export name matches the meta name or a standard)
             item.importSnippet = `import { ${item.name} } from '${pkgName}'`;
-            
+
             // 3. Check if README exists to create a link
             item.hasDetailedDocs = fs.existsSync(readmePath);
-            
+
             item.version = pkg.version;
             item.package = pkgName;
 

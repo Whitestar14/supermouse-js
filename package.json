@@ -1,15 +1,29 @@
 {
   "name": "supermouse-monorepo",
+  "private": true,
   "version": "1.0.0",
-  "description": "Supermouse is a lightweight, customizable JavaScript library that enhances cursor interactions on web pages. It replaces the default cursor with a stylish, animated pointer consisting of a dot and ring. Supermouse offers smooth animations, customizable colors and sizes, and responsive hover effects. Perfect for creating engaging, interactive user experiences in modern web applications.",
+  "description": "A modular, high-performance cursor engine for the modern web.",
   "type": "module",
+    "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Whitestar14/supermouse-js.git"
+  },
+    "bugs": {
+    "url": "https://github.com/Whitestar14/supermouse-js/issues"
+  },
+  "homepage": "https://github.com/Whitestar14/supermouse-js#readme",
+  "workspaces": [
+    "packages/*",
+    "playground",
+    "docs"
+  ],
   "scripts": {
     "dev:play": "pnpm --filter supermouse-playground dev",
     "dev:docs": "pnpm generate-docs && pnpm --filter supermouse-docs dev",
     "build": "pnpm generate-docs && pnpm -r run build",
     "build:docs": "pnpm generate-docs && pnpm --filter supermouse-docs build",
     "test": "pnpm -r run test",
-    
+
     "generate-docs": "node scripts/generate-docs-data.js",
     "check:size": "node scripts/check-size.js",
     "manage": "node scripts/manage.js",
