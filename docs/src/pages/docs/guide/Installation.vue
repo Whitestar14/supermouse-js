@@ -1,8 +1,8 @@
 
 <script setup lang="ts">
-import DocsSection from '../../../components/docs/DocsSection.vue';
-import CodeBlock from '../../../components/CodeBlock.vue';
-import Callout from '../../../components/ui/Callout.vue';
+import DocsSection from '@/components/docs/DocsSection.vue';
+import CodeBlock from '@/components/CodeBlock.vue';
+import Callout from '@/components/ui/Callout.vue';
 
 const shellCode = `pnpm add @supermousejs/core @supermousejs/dot @supermousejs/ring`;
 
@@ -23,7 +23,7 @@ const mainCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
 
-const app = new Supermouse({ 
+const app = new Supermouse({
   smoothness: 0.12,
   hideCursor: true
 });
@@ -38,7 +38,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
 <template>
   <DocsSection label="Guide" title="Installation">
     <div class="flex flex-col gap-12">
-        
+
         <!-- Step 1: Package Manager -->
         <div class="flex flex-col gap-4">
             <h3 class="text-xl font-bold text-zinc-900 flex items-center gap-3">
@@ -47,7 +47,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
             </h3>
             <p class="text-zinc-600 text-sm">For modular setups, use the scoped packages. This allows for better tree-shaking.</p>
             <CodeBlock :code="shellCode" title="Terminal" lang="text" />
-            
+
             <p class="text-zinc-600 text-sm mt-4">Alternatively, use the unscoped convenience bundle if you prefer clean import paths and standard defaults:</p>
             <CodeBlock :code="unscopedCode" title="Terminal" lang="text" />
         </div>
@@ -80,7 +80,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
             </h3>
             <p class="text-zinc-600 text-sm">Plugins automatically listen for data attributes on your HTML elements.</p>
             <CodeBlock :code="htmlCode" title="index.html" lang="html" />
-            
+
             <Callout title="Warning: CSS Conflicts" variant="warning">
                 <p class="mb-2"><strong>Do not use <code>cursor: pointer</code> or <code>cursor: none</code> in your own CSS.</strong></p>
                 <p>

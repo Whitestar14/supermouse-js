@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
-import DocsSection from '../../../components/docs/DocsSection.vue';
-import CodeBlock from '../../../components/CodeBlock.vue';
+import DocsSection from '@/components/docs/DocsSection.vue';
+import CodeBlock from '@/components/CodeBlock.vue';
 
 const dampCode = `const damp = (current, target, lambda, dt) => {
   return lerp(current, target, 1 - Math.exp(-lambda * dt));
@@ -10,16 +10,16 @@ const dampCode = `const damp = (current, target, lambda, dt) => {
 const loopCode = `// Pseudocode of the actual tick function
 function tick(time) {
   const dt = time - lastTime;
-  
+
   // 1. Logic (Priority < 0)
   // Plugins modify where we WANT to go
   state.target = { ...state.pointer };
-  runLogicPlugins(state); 
+  runLogicPlugins(state);
 
   // 2. Physics
   // Core smooths the movement
   state.smooth.x = damp(state.smooth.x, state.target.x, lambda, dt);
-  
+
   // 3. Visuals (Priority >= 0)
   // Plugins render the result
   runVisualPlugins(state);
@@ -28,7 +28,7 @@ function tick(time) {
 
 <template>
   <DocsSection label="Advanced" title="Core Architecture">
-    
+
     <div class="mb-16">
       <p class="text-lg text-zinc-600 leading-relaxed mb-6">
         Supermouse treats the cursor as a game character. It runs a continuous loop that separates <span class="text-black font-bold border-b-2 border-black/10">User Input</span> from <span class="text-black font-bold border-b-2 border-black/10">Cursor Intent</span> and <span class="text-black font-bold border-b-2 border-black/10">Visual Rendering</span>.
@@ -42,11 +42,11 @@ function tick(time) {
     <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-8">The Frame Loop (16ms)</h3>
 
     <div class="relative border-l-2 border-zinc-200 ml-4 md:ml-8 space-y-16">
-        
+
         <!-- STEP 1: SENSE -->
         <div class="relative pl-8 md:pl-12 group">
             <div class="absolute -left-[9px] top-0 w-4 h-4 bg-white border-2 border-zinc-300 rounded-full group-hover:border-black transition-all"></div>
-            
+
             <div class="flex flex-col xl:flex-row gap-8">
                 <div class="flex-1">
                     <span class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 block">Phase 01: Sense</span>
@@ -65,7 +65,7 @@ function tick(time) {
         <!-- STEP 2: LOGIC -->
         <div class="relative pl-8 md:pl-12 group">
             <div class="absolute -left-[9px] top-0 w-4 h-4 bg-white border-2 border-zinc-300 rounded-full group-hover:border-black transition-all"></div>
-            
+
             <div class="flex flex-col xl:flex-row gap-8">
                 <div class="flex-1">
                     <span class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 block">Phase 02: Intent</span>
@@ -84,7 +84,7 @@ function tick(time) {
         <!-- STEP 3: PHYSICS -->
         <div class="relative pl-8 md:pl-12 group">
             <div class="absolute -left-[9px] top-0 w-4 h-4 bg-black border-2 border-zinc-900 rounded-full group-hover:scale-125 transition-all"></div>
-            
+
             <div class="flex flex-col xl:flex-row gap-8">
                 <div class="flex-1">
                     <span class="mono text-[10px] font-bold text-zinc-900 uppercase tracking-widest mb-2 block">Phase 03: Physics</span>
@@ -100,7 +100,7 @@ function tick(time) {
         <!-- STEP 4: RENDER -->
         <div class="relative pl-8 md:pl-12 group">
             <div class="absolute -left-[9px] top-0 w-4 h-4 bg-white border-2 border-zinc-300 rounded-full group-hover:border-black transition-all"></div>
-            
+
             <div class="flex flex-col xl:flex-row gap-8">
                 <div class="flex-1">
                     <span class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2 block">Phase 04: Render</span>
@@ -125,7 +125,7 @@ function tick(time) {
         <div class="bg-white p-8">
             <h4 class="text-lg font-bold text-zinc-900 mb-4">Interaction Scraping</h4>
             <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-                Reading DOM attributes (<code>getAttribute</code>) or styles (<code>getComputedStyle</code>) during the render loop causes layout thrashing. 
+                Reading DOM attributes (<code>getAttribute</code>) or styles (<code>getComputedStyle</code>) during the render loop causes layout thrashing.
             </p>
             <p class="text-sm text-zinc-600 leading-relaxed">
                 Supermouse solves this by parsing interaction data <strong>only once</strong> when the <code>mouseover</code> event fires. It stores the result in a <code>WeakMap</code> cache. The loop reads from this cache, making interaction checks O(1).

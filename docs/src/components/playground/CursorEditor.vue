@@ -3,9 +3,9 @@
 import { ref, computed, watch } from 'vue';
 import EditorControls from './EditorControls.vue';
 import EditorPreview from './EditorPreview.vue';
-import CodeBlock from '../CodeBlock.vue';
-import { RECIPES } from './recipes';
-import { generateCode } from '../../utils/code-generator';
+import CodeBlock from '@/components/CodeBlock.vue';
+import { RECIPES } from '@/components/playground/recipes';
+import { generateCode } from '@/utils/code-generator';
 
 const props = defineProps<{
   activeRecipeId: string | null;
@@ -43,7 +43,7 @@ watch(() => props.activeRecipeId, (newId) => {
         defaults[field.key] = field.defaultValue;
       });
       config.value = defaults;
-      
+
       // Reset globals
       globalConfig.value = { smoothness: 0.15, showNative: false };
       mode.value = 'config'; // Reset to config view
@@ -63,11 +63,11 @@ const copyCode = () => {
   <Teleport to="body">
     <!-- Modal Overlay -->
     <div v-if="activeRecipeId" class="fixed inset-0 z-[100] bg-white/95 flex items-center justify-center p-0 md:p-8">
-        
+
         <div class="bg-white w-full h-full max-w-[1600px] border border-zinc-900 flex flex-col overflow-hidden relative shadow-2xl">
-            
+
             <!-- Mobile Close -->
-            <button 
+            <button
                 @click="emit('close')"
                 class="absolute top-0 right-0 z-50 w-12 h-12 flex items-center justify-center bg-black text-white hover:bg-zinc-800 transition-colors lg:hidden"
             >
@@ -75,8 +75,8 @@ const copyCode = () => {
             </button>
 
             <!-- Desktop Close -->
-            <button 
-                @click="emit('close')" 
+            <button
+                @click="emit('close')"
                 class="absolute top-0 right-0 z-50 h-12 px-8 bg-black text-white text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors hidden lg:flex items-center justify-center border-l border-b border-zinc-900"
             >
                 Close Editor
@@ -85,18 +85,18 @@ const copyCode = () => {
             <div class="flex flex-1 overflow-hidden flex-col lg:flex-row">
                 <!-- Sidebar -->
                 <div class="w-full lg:w-[400px] border-b lg:border-b-0 lg:border-r border-zinc-200 shrink-0 h-2/5 lg:h-full flex flex-col bg-white z-10">
-                    
+
                     <!-- Tabs - Consistent Styling (Solid Fill) -->
                     <div class="h-12 flex border-b border-zinc-200 shrink-0 bg-zinc-50">
-                       <button 
-                          @click="mode = 'config'" 
+                       <button
+                          @click="mode = 'config'"
                           class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100 border-r border-zinc-200"
                           :class="mode === 'config' ? 'bg-black text-white' : 'text-zinc-400 bg-white hover:text-black hover:bg-zinc-50'"
                        >
                           Configuration
                        </button>
-                       <button 
-                          @click="mode = 'code'" 
+                       <button
+                          @click="mode = 'code'"
                           class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-100"
                           :class="mode === 'code' ? 'bg-black text-white' : 'text-zinc-400 bg-white hover:text-black hover:bg-zinc-50'"
                        >
@@ -107,29 +107,29 @@ const copyCode = () => {
                     <!-- Content -->
                     <div class="flex-1 overflow-hidden relative">
                         <!-- Config View -->
-                        <div 
-                            v-if="mode === 'config'" 
+                        <div
+                            v-if="mode === 'config'"
                             class="absolute inset-0 overflow-y-auto"
                             data-lenis-prevent
                         >
-                            <EditorControls 
-                                :schema="currentRecipe.schema" 
+                            <EditorControls
+                                :schema="currentRecipe.schema"
                                 v-model:config="config"
                                 v-model:globalConfig="globalConfig"
                             />
                         </div>
 
                         <!-- Code View -->
-                        <div 
-                            v-else 
+                        <div
+                            v-else
                             class="absolute inset-0 overflow-y-auto bg-[#09090b] flex flex-col"
                             data-lenis-prevent
                         >
                             <div class="flex-1 min-h-0 flex flex-col">
                                <CodeBlock :code="generatedCode" :clean="true" class="h-full" />
                             </div>
-                            <button 
-                                @click="copyCode" 
+                            <button
+                                @click="copyCode"
                                 class="h-14 border-t border-zinc-800 text-xs font-bold uppercase tracking-widest shrink-0 sticky bottom-0 transition-colors duration-200 flex items-center justify-center gap-2"
                                 :class="isCopied ? 'bg-white text-black border-white' : 'bg-[#09090b] text-zinc-300 hover:bg-zinc-900 hover:text-white'"
                             >
@@ -155,8 +155,8 @@ const copyCode = () => {
                         </div>
                     </div>
 
-                    <EditorPreview 
-                        :recipe="currentRecipe" 
+                    <EditorPreview
+                        :recipe="currentRecipe"
                         :config="config"
                         :globalConfig="globalConfig"
                     />

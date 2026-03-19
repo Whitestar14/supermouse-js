@@ -8,7 +8,7 @@ import { Pointer } from '@supermousejs/pointer';
 import { Stick } from '@supermousejs/stick';
 // Use Labs for complex plugins
 import { SmartIcon, SmartRing, TextRing, Sparkles } from '@supermousejs/labs';
-import { ICONS } from '../../icons';
+import { ICONS } from '@/icons';
 
 export type ControlType = 'range' | 'color' | 'toggle' | 'text' | 'select';
 
@@ -45,7 +45,7 @@ const POINTER_SVG = `
 
 const ICON_SVGS: Record<string, string> = {
   default: `<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-45deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>`,
-  
+
   hand: `<svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
   <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" fill="white" />
   <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" fill="white" />
@@ -101,7 +101,7 @@ export const RECIPES: PresetRecipe[] = [
     ],
     setup: (app, config) => {
         app.options.ignoreOnNative = false;
-        
+
         // Define rules via standard options
         app.options.rules = {
           'a, button': { icon: 'hand' },
@@ -112,7 +112,7 @@ export const RECIPES: PresetRecipe[] = [
             icons: ICON_SVGS,
             size: () => config.size,
             color: () => config.color,
-            transitionDuration: config.transitionDuration, 
+            transitionDuration: config.transitionDuration,
             anchor: () => config.anchor
         }));
     }
@@ -181,7 +181,7 @@ export const RECIPES: PresetRecipe[] = [
       }));
       app.use(Dot({ size: 8, color: '#000' }));
       app.use(Ring({ size: 30, color: '#000' }));
-      
+
       // Inject behavior into playground DOM
       setTimeout(() => {
         const btns = document.querySelectorAll('button, [data-hover]');
@@ -201,15 +201,15 @@ export const RECIPES: PresetRecipe[] = [
     ],
     setup: (app, config) => {
       app.use(Stick({ padding: () => config.padding }));
-      app.use(Dot({ 
-        size: 8, 
-        color: config.color, 
-        hideOnShape: config.hideDot 
+      app.use(Dot({
+        size: 8,
+        color: config.color,
+        hideOnShape: config.hideDot
       }));
-      app.use(SmartRing({ 
-        size: 30, 
-        color: config.color, 
-        enableSkew: true 
+      app.use(SmartRing({
+        size: 30,
+        color: config.color,
+        enableSkew: true
       }));
 
       // Inject behavior into playground DOM

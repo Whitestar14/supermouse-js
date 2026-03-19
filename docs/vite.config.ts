@@ -15,10 +15,11 @@ export default defineConfig({
   plugins: [vue()],
   define: {
     __SUPERMOUSE_VERSION__: JSON.stringify(corePkg.version),
-    __VERSION__: JSON.stringify(corePkg.version) 
+    __VERSION__: JSON.stringify(corePkg.version)
   },
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, './src'),
       '@supermousejs/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
       '@supermousejs/utils': path.resolve(__dirname, '../packages/utils/src/index.ts'),
       '@supermousejs/trail': path.resolve(__dirname, '../packages/trail/src/index.ts'),

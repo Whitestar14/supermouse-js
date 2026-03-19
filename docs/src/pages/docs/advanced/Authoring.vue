@@ -1,8 +1,8 @@
 
 <script setup lang="ts">
-import DocsSection from '../../../components/docs/DocsSection.vue';
-import CodeBlock from '../../../components/CodeBlock.vue';
-import Callout from '../../../components/ui/Callout.vue';
+import DocsSection from '@/components/docs/DocsSection.vue';
+import CodeBlock from '@/components/CodeBlock.vue';
+import Callout from '@/components/ui/Callout.vue';
 
 const rawVisualCode = `// A "Raw" Visual Plugin
 // No helpers. Just the lifecycle methods.
@@ -12,7 +12,7 @@ export const RawSquare = () => {
 
   return {
     name: 'raw-square',
-    
+
     install(app) {
       // 1. Create DOM
       el = document.createElement('div');
@@ -23,7 +23,7 @@ export const RawSquare = () => {
         position: 'absolute',
         pointerEvents: 'none' // Critical so it doesn't block clicks
       });
-      
+
       // 2. Mount
       app.container.appendChild(el);
     },
@@ -45,25 +45,25 @@ export const RawSquare = () => {
 const helperCode = `import { definePlugin, normalize, dom } from '@supermousejs/utils';
 
 export const SmartSquare = (options = {}) => {
-  // Normalize allows users to pass static values ('blue') 
+  // Normalize allows users to pass static values ('blue')
   // OR reactive getters (state => state.isHover ? 'red' : 'blue')
   const getSize = normalize(options.size, 20);
 
   return definePlugin({
     name: 'smart-square',
-    
+
     // 1. Setup: Create and return the primary element.
     // The helper handles appending to app.container and cleanup.
     create: (app) => {
       // dom.createActor creates a div with absolute position & pointer-events: none
-      return dom.createActor('div'); 
+      return dom.createActor('div');
     },
 
     // 2. Auto-Binding: Map options keys to CSS properties.
     // The helper watches 'options.color' and updates 'el.style.backgroundColor'.
     // If 'options.color' is a function, it re-evaluates it every frame.
     styles: {
-      color: 'backgroundColor', 
+      color: 'backgroundColor',
       opacity: 'opacity'
     },
 
@@ -73,7 +73,7 @@ export const SmartSquare = (options = {}) => {
       const size = getSize(app.state);
       dom.setStyle(el, 'width', \`\${size}px\`);
       dom.setStyle(el, 'height', \`\${size}px\`);
-      
+
       const { x, y } = app.state.smooth;
       // dom.setTransform handles centering (-50%, -50%) automatically
       dom.setTransform(el, x, y);
@@ -83,11 +83,11 @@ export const SmartSquare = (options = {}) => {
 
 const logicCode = `export const Gravity = (intensity = 5) => ({
   name: 'gravity',
-  
+
   // Critical: Run BEFORE visual plugins (which are usually priority 0)
   // Logic modifies the 'target'. Visuals read the 'target' (indirectly via smooth).
-  priority: -10, 
-  
+  priority: -10,
+
   update(app, dt) {
     // Pull the target down every frame
     app.state.target.y += intensity;
@@ -101,7 +101,7 @@ const interactionCode = `// ❌ BAD: Layout Thrashing
 // ✅ GOOD: State Cache
 // The Input system pre-scrapes attributes on mouseover.
 // Access is O(1).
-const color = app.state.interaction.color; 
+const color = app.state.interaction.color;
 
 if (color) {
   dom.setStyle(el, 'backgroundColor', color);
@@ -110,7 +110,7 @@ if (color) {
 
 <template>
   <DocsSection label="Advanced" title="Plugin Authoring">
-     
+
      <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
         Plugins are the primary extension mechanism. The core exists solely to coordinate them.
         You can write plugins in two ways: using the <span class="text-black font-bold border-b-2 border-black/10">Raw Interface</span> (full control) or the <span class="text-black font-bold border-b-2 border-black/10">definePlugin Helper</span> (recommended for visuals).
@@ -124,7 +124,7 @@ if (color) {
      <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
         At its simplest, a plugin is just an object with a name and lifecycle methods. You don't <em>need</em> any helpers to write a plugin. Understanding this structure is key for advanced use cases (like plugins that manage multiple elements or canvas contexts).
      </p>
-     
+
      <div class="mb-16">
         <CodeBlock :code="rawVisualCode" title="RawPlugin.ts" />
      </div>
@@ -135,7 +135,7 @@ if (color) {
         The Helper Strategy (definePlugin)
      </h3>
      <p class="text-zinc-600 mb-6 max-w-2xl leading-relaxed">
-        For 90% of visual plugins, you just want to create a single DOM element, style it based on options, and move it. 
+        For 90% of visual plugins, you just want to create a single DOM element, style it based on options, and move it.
         <code>definePlugin</code> creates a standard wrapper that handles the boilerplate.
      </p>
 

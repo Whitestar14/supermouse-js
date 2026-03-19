@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import DocsSection from "../../../components/docs/DocsSection.vue";
-import MetadataStrip from "../../../components/MetadataStrip.vue";
-import { APP_VERSION, BUNDLE_SIZE } from "../../../constants";
+import DocsSection from "@/components/docs/DocsSection.vue";
+import MetadataStrip from "@/components/MetadataStrip.vue";
+import { APP_VERSION, BUNDLE_SIZE } from "@/constants";
 
 const metaItems = [
   { label: "VERSION", content: APP_VERSION },

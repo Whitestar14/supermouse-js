@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import DocsSection from '../../../components/docs/DocsSection.vue';
-import CodeBlock from '../../../components/CodeBlock.vue';
+import DocsSection from '@/components/docs/DocsSection.vue';
+import CodeBlock from '@/components/CodeBlock.vue';
 
 const createPluginCode = `pnpm run create:plugin <name>`;
 const removePluginCode = `pnpm run remove:plugin <name>`;

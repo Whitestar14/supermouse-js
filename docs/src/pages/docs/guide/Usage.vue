@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import DocsSection from "../../../components/docs/DocsSection.vue";
-import CodeBlock from "../../../components/CodeBlock.vue";
-import Callout from "../../../components/ui/Callout.vue";
+import DocsSection from "@/components/docs/DocsSection.vue";
+import CodeBlock from "@/components/CodeBlock.vue";
+import Callout from "@/components/ui/Callout.vue";
 
 const initCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';

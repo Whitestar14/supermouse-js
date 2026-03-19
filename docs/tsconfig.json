@@ -6,6 +6,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
+      "@/*": ["src/*"],
       "@supermousejs/*": ["../packages/*/src/index.ts"]
     },
     "resolveJsonModule": true

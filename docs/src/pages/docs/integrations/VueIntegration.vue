@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import DocsSection from "../../../components/docs/DocsSection.vue";
-import CodeBlock from "../../../components/CodeBlock.vue";
-import Callout from "../../../components/ui/Callout.vue";
-import MetadataStrip from "../../../components/MetadataStrip.vue";
+import DocsSection from "@/components/docs/DocsSection.vue";
+import CodeBlock from "@/components/CodeBlock.vue";
+import Callout from "@/components/ui/Callout.vue";
+import MetadataStrip from "@/components/MetadataStrip.vue";
 
 const installCode = `pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot`;
 

@@ -2,9 +2,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import CodeBlock from '../../components/CodeBlock.vue';
-import MetadataStrip from '../../components/MetadataStrip.vue';
-import { PLUGINS } from '../../plugin-data';
+import CodeBlock from '@/components/CodeBlock.vue';
+import MetadataStrip from '@/components/MetadataStrip.vue';
+import Table from '@/components/Table.vue';
+import { PLUGINS } from '@/plugin-data';
 
 const route = useRoute();
 
@@ -22,6 +23,13 @@ const metaItems = computed(() => [
   { label: 'LICENSE', content: 'MIT' },
   { label: 'CONFIG', content: `${plugin.value?.options?.length || 0} Options` },
 ]);
+
+const optionColumns = [
+  { key: 'name', label: 'Option', class: 'w-1/4' },
+  { key: 'type', label: 'Type', class: 'w-1/6' },
+  { key: 'default', label: 'Default', class: 'w-1/6' },
+  { key: 'description', label: 'Description' },
+];
 </script>
 
 <template>
@@ -90,35 +98,32 @@ const metaItems = computed(() => [
             </span>
         </div>
 
-        <!-- Brutalist Options Table -->
-        <div v-if="plugin.options && plugin.options.length > 0" class="border border-zinc-200 bg-white overflow-hidden shadow-sm">
-            <table class="w-full text-left text-sm border-collapse">
-                <thead class="bg-zinc-50/50">
-                    <tr>
-                        <th class="border-b border-zinc-200 px-6 py-4 font-mono text-xs font-bold uppercase text-zinc-500 w-1/4">Option</th>
-                        <th class="border-b border-zinc-200 px-6 py-4 font-mono text-xs font-bold uppercase text-zinc-500 w-1/6">Type</th>
-                        <th class="border-b border-zinc-200 px-6 py-4 font-mono text-xs font-bold uppercase text-zinc-500 w-1/6">Default</th>
-                        <th class="border-b border-zinc-200 px-6 py-4 font-mono text-xs font-bold uppercase text-zinc-500">Description</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-200">
-                    <tr v-for="opt in plugin.options" :key="opt.name" class="group hover:bg-zinc-50 transition-colors">
-                        <td class="px-6 py-5 align-top font-mono text-zinc-900 font-bold relative">
-                            {{ opt.name }}
-                            <span v-if="opt.reactive" class="absolute top-4 left-2 text-amber-500 text-xs select-none">*</span>
-                        </td>
-                        <td class="px-6 py-5 align-top font-mono text-amber-600 text-xs">
-                            {{ opt.type }}
-                        </td>
-                        <td class="px-6 py-5 align-top font-mono text-zinc-400 text-xs">
-                            {{ opt.default || '-' }}
-                        </td>
-                        <td class="px-6 py-5 align-top text-zinc-600 leading-relaxed">
-                            {{ opt.description }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Options Table -->
+        <div v-if="plugin.options && plugin.options.length > 0">
+          <Table
+            :columns="optionColumns"
+            :rows="plugin.options"
+            wrapperClass="border border-zinc-200 bg-white overflow-hidden shadow-sm"
+          >
+            <template #cell-name="{ row }">
+              <span class="font-mono text-zinc-900 font-bold relative">
+                {{ row.name }}
+                <span v-if="row.reactive" class="absolute top-4 left-2 text-amber-500 text-xs select-none">*</span>
+              </span>
+            </template>
+
+            <template #cell-type="{ row }">
+              <span class="font-mono text-amber-600 text-xs">{{ row.type }}</span>
+            </template>
+
+            <template #cell-default="{ row }">
+              <span class="font-mono text-zinc-400 text-xs">{{ row.default || '-' }}</span>
+            </template>
+
+            <template #cell-description="{ row }">
+              <span class="text-zinc-600 leading-relaxed">{{ row.description }}</span>
+            </template>
+          </Table>
         </div>
 
         <div v-if="!plugin.options || plugin.options.length === 0" class="p-12 border border-zinc-200 bg-zinc-50 text-center">
