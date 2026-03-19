@@ -2,7 +2,10 @@
 import DocsSection from "@/components/docs/DocsSection.vue";
 import CodeBlock from "@/components/CodeBlock.vue";
 import Callout from "@/components/ui/Callout.vue";
-import MetadataStrip from "@/components/MetadataStrip.vue";
+import MetadataStrip from "@/components/ui/MetadataStrip.vue";
+import SectionHeader from "@/components/ui/SectionHeader.vue";
+import Text from "@/components/ui/Text.vue";
+import StepCard from "@/components/ui/StepCard.vue";
 
 const installCode = `pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot`;
 
@@ -70,81 +73,70 @@ const metaItems = [
     <!-- Meta Data Strip -->
     <MetadataStrip :items="metaItems" />
 
-    <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
+    <Text size="lg" class="mb-12">
       The React adapter provides a <code>SupermouseProvider</code> context and
       hooks to easily integrate the cursor engine into your React application
       lifecycle. It automatically handles cleanup to prevent memory leaks in
       strict mode.
-    </p>
+    </Text>
 
     <!-- Installation -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      1. Installation
-    </h3>
-    <div class="mb-12">
+    <StepCard number="1" title="Installation" divider>
       <CodeBlock
         :code="installCode"
         title="Terminal"
         lang="text"
         class="border border-zinc-200"
       />
-    </div>
+    </StepCard>
 
     <!-- Provider -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      2. Root Provider
-    </h3>
-    <p class="text-zinc-600 mb-6">
-      Wrap your application in the <code>SupermouseProvider</code>. This creates
-      the instance and makes it available throughout your component tree.
-    </p>
-    <div class="mb-12">
+    <StepCard number="2" title="Root Provider" divider>
+      <Text size="sm">
+        Wrap your application in the <code>SupermouseProvider</code>. This
+        creates the instance and makes it available throughout your component
+        tree.
+      </Text>
       <CodeBlock
         :code="providerCode"
         title="src/App.tsx"
         lang="tsx"
-        class="border border-zinc-200"
+        class="border border-zinc-200 mt-4"
       />
-    </div>
+    </StepCard>
 
     <!-- Hooks -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      3. Usage in Components
-    </h3>
-    <p class="text-zinc-600 mb-6">
-      Use the <code>useSupermouse</code> hook to access the core instance from
-      any child component.
-    </p>
-    <div class="mb-12">
+    <StepCard number="3" title="Usage in Components" divider>
+      <Text size="sm">
+        Use the <code>useSupermouse</code> hook to access the core instance from
+        any child component.
+      </Text>
       <CodeBlock
         :code="hookCode"
         title="src/components/CustomButton.tsx"
         lang="tsx"
-        class="border border-zinc-200"
+        class="border border-zinc-200 mt-4"
       />
-    </div>
+    </StepCard>
 
     <!-- Next.js -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-6">
-      4. Next.js (App Router)
-    </h3>
-    <p class="text-zinc-600 mb-6">
-      Because Supermouse relies on the `window` object, you must ensure the
-      provider runs on the client. However, the package is already marked with
-      <code>"use client"</code> compatible exports, so you can often import it
-      directly in layouts if using simple setups, or wrap it in a dedicated
-      client component.
-    </p>
-    <div class="mb-12">
+    <StepCard number="4" title="Next.js (App Router)">
+      <Text size="sm">
+        Because Supermouse relies on the `window` object, you must ensure the
+        provider runs on the client. However, the package is already marked with
+        <code>"use client"</code> compatible exports, so you can often import it
+        directly in layouts if using simple setups, or wrap it in a dedicated
+        client component.
+      </Text>
       <CodeBlock
         :code="nextCode"
         title="src/app/layout.tsx"
         lang="tsx"
-        class="border border-zinc-200"
+        class="border border-zinc-200 mt-4"
       />
-    </div>
+    </StepCard>
 
-    <Callout title="Strict Mode">
+    <Callout title="Strict Mode" class="mt-16">
       React 18 Strict Mode mounts components twice in development.
       <code>SupermouseProvider</code> handles this internally, ensuring only one
       cursor instance is active at a time.

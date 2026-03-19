@@ -3,12 +3,13 @@ import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import Footer from "../components/Footer.vue";
 import { useDocsSidebar } from "@/composables/useDocsSidebar";
-import { DOCS_NAVIGATION } from "../navigation";
+import { DOCS_NAVIGATION } from "../config/navigation";
 
 // Note: Cursor and Navbar are now handled by App.vue
 
 // --- ROUTE & NAV ---
 const route = useRoute();
+const { clearRightSidebar } = useDocsSidebar();
 
 // --- Collapsible Logic (Accordion) ---
 const activeGroup = ref<string | null>(null);
@@ -48,6 +49,7 @@ watch(
   () => route.path,
   () => {
     syncSidebar();
+    clearRightSidebar(); // Clear TOC and other page-specific sidebars
     mobileMenuOpen.value = false; // Auto-close mobile menu on navigation
   },
   { immediate: true }

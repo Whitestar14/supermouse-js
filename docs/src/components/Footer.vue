@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AUTHOR, GITHUB_URL, TWITTER_URL, YEAR } from "../constants";
+import { AUTHOR, GITHUB_URL, TWITTER_URL, YEAR } from "@/config/constants";
 </script>
 
 <template>

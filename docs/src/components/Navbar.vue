@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { GITHUB_URL } from "../constants";
+import { GITHUB_URL } from "@/config/constants";
 import { useSupermouse } from "@supermousejs/vue";
 
 const emit = defineEmits(["openSearch"]);

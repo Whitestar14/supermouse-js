@@ -1,4 +1,3 @@
-
 <template>
   <section class="relative">
      <!-- Header -->
@@ -16,7 +15,7 @@
        <div class="flex-1 flex">
           <!-- Gutter -->
           <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 z-10 bg-white/50"></div>
-          
+
           <div class="flex-1 relative flex flex-col px-6 py-12 md:p-16 lg:p-24">
              <div class="relative z-10 max-w-3xl">
                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 tracking-tighter leading-[1.1] mb-6">
@@ -35,7 +34,7 @@
                    </div>
                 </div>
              </div>
-             
+
              <!-- Big Graph Background -->
              <div class="absolute inset-x-0 bottom-0 h-[200px] md:h-[300px] pointer-events-none">
                 <div class="absolute inset-0 grid-bg opacity-30"></div>
@@ -46,9 +45,9 @@
                         <stop offset="100%" stop-color="rgb(245, 158, 11)" stop-opacity="0" />
                       </linearGradient>
                    </defs>
-                   <path d="M0,300 L0,250 L50,260 L100,240 L150,280 L200,220 L250,230 L300,180 L350,200 L400,150 L450,160 L500,120 L550,140 L600,100 L650,110 L700,50 L750,70 L800,20 L850,40 L900,10 L950,5 L1000,0 L1000,300 Z" 
+                   <path d="M0,300 L0,250 L50,260 L100,240 L150,280 L200,220 L250,230 L300,180 L350,200 L400,150 L450,160 L500,120 L550,140 L600,100 L650,110 L700,50 L750,70 L800,20 L850,40 L900,10 L950,5 L1000,0 L1000,300 Z"
                          fill="url(#grad1)" />
-                   <path d="M0,250 L50,260 L100,240 L150,280 L200,220 L250,230 L300,180 L350,200 L400,150 L450,160 L500,120 L550,140 L600,100 L650,110 L700,50 L750,70 L800,20 L850,40 L900,10 L950,5 L1000,0" 
+                   <path d="M0,250 L50,260 L100,240 L150,280 L200,220 L250,230 L300,180 L350,200 L400,150 L450,160 L500,120 L550,140 L600,100 L650,110 L700,50 L750,70 L800,20 L850,40 L900,10 L950,5 L1000,0"
                          fill="none" stroke="#f59e0b" stroke-width="3" vector-effect="non-scaling-stroke" />
                 </svg>
              </div>

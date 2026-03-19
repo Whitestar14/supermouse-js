@@ -1,4 +1,3 @@
-
 /**
  * Global application constants and metadata.
  * Source of truth for versioning and stats.

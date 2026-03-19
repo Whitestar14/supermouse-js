@@ -20,7 +20,7 @@ import {
 } from "@/composables/useApiReference";
 
 const activeSection = ref<string>("core-class");
-const { setRightSidebar } = useDocsSidebar();
+const { setRightSidebar, clearRightSidebar } = useDocsSidebar();
 
 const scrollTo = (id: string) => {
   const el = document.getElementById(id);
@@ -70,6 +70,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("scroll", updateActiveSection);
   window.removeEventListener("resize", updateActiveSection);
+  clearRightSidebar();
 });
 </script>
 

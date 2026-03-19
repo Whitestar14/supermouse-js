@@ -1,4 +1,3 @@
-
 export const ICONS = {
   dot: `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full"><circle cx="12" cy="12" r="6"/></svg>`,
   ring: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><circle cx="12" cy="12" r="9"/></svg>`,

@@ -1,5 +1,4 @@
-
-import { PLUGINS } from './plugin-data';
+import { PLUGINS } from '@/data/plugin-data';
 
 const LABS_IDS = ['smart-icon', 'smart-ring', 'sparkles', 'text-ring'];
 

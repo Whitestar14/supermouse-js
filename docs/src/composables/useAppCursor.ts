@@ -1,4 +1,3 @@
-
 import { provideSupermouse } from '@supermousejs/vue';
 import { SmartIcon, SmartRing } from '@supermousejs/labs';
 import { Icon } from '@supermousejs/icon';
@@ -33,27 +32,27 @@ const ARROW_CURSOR = `<svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F8" stro
 
 export function useAppCursor() {
   return provideSupermouse({
-    smoothness: 0.15,
+    smoothness: 0.05,
     enableTouch: false,
     hideCursor: true,
     ignoreOnNative: false,
   }, [
-    SmartIcon({ 
+    SmartIcon({
       name: 'default-icon',
-      icons: { 
-        default: LOGO_CURSOR, 
-        pointer: HAND_CURSOR, 
-        text: TEXT_CURSOR 
+      icons: {
+        default: LOGO_CURSOR,
+        pointer: HAND_CURSOR,
+        text: TEXT_CURSOR
       },
-      size: 32, 
+      size: 32,
       color: 'black',
-      anchor: 'center', 
+      anchor: 'center',
       rotateWithVelocity: false,
     }),
     SmartRing({
       name: 'card-bg',
-      size: 64, hoverSize: 64, 
-      fill: 'black', color: 'black', borderWidth: 0, 
+      size: 64, hoverSize: 64,
+      fill: 'black', color: 'black', borderWidth: 0,
       mixBlendMode: 'normal'
     }),
     Icon({

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { DOCS_NAVIGATION } from "../navigation";
+import { DOCS_NAVIGATION } from "../config/navigation";
 
 const route = useRoute();
 
@@ -66,11 +66,7 @@ const suggestion = computed(() => {
   <div
     class="h-[calc(100vh-80px)] flex flex-col items-center justify-center text-center p-8 bg-white"
   >
-    <img
-      src="/not-found.svg"
-      alt="Not found"
-      class="size-32 max-w-full mb-3"
-    />
+    <img src="/not-found.svg" alt="Not found" class="size-32 max-w-full mb-3" />
 
     <!-- Minimal 404 -->
     <div

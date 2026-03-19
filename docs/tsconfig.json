@@ -7,6 +7,13 @@
     "noUnusedParameters": true,
     "paths": {
       "@/*": ["src/*"],
+      "@/data": ["src/data"],
+      "@/components/*": ["src/components/*"],
+      "@/composables/*": ["src/composables/*"],
+      "@/layouts/*": ["src/layouts/*"],
+      "@/pages/*": ["src/pages/*"],
+      "@/config/*": ["src/config/*"],
+      "@/utils": ["src/utils/*"],
       "@supermousejs/*": ["../packages/*/src/index.ts"]
     },
     "resolveJsonModule": true

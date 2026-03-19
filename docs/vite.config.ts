@@ -20,6 +20,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/composables': path.resolve(__dirname, './src/composables'),
+      '@/config': path.resolve(__dirname, './src/config'),
+      '@/data': path.resolve(__dirname, './src/data'),
+      '@/layouts': path.resolve(__dirname, './src/layouts'),
+      '@/pages': path.resolve(__dirname, './src/pages'),
       '@supermousejs/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
       '@supermousejs/utils': path.resolve(__dirname, '../packages/utils/src/index.ts'),
       '@supermousejs/trail': path.resolve(__dirname, '../packages/trail/src/index.ts'),
