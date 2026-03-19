@@ -13,10 +13,8 @@ export const API_SECTIONS: TOCSection[] = [
 ];
 
 export const coreClassDef = `class Supermouse {
-  // Static
   static readonly version: string;
 
-  // Instance Properties
   readonly version: string;
   state: MouseState;
   options: SupermouseOptions;
@@ -25,20 +23,17 @@ export const coreClassDef = `class Supermouse {
 
   constructor(options?: SupermouseOptions);
 
-  // Plugin Management
   use(plugin: SupermousePlugin): this;
   getPlugin(name: string): SupermousePlugin | undefined;
   enablePlugin(name: string): void;
   disablePlugin(name: string): void;
   togglePlugin(name: string): void;
 
-  // Runtime Control
   enable(): void;
   disable(): void;
   destroy(): void;
   step(time: number): void;
 
-  // Interaction & Visibility
   setCursor(type: 'auto' | 'none' | null): void;
   registerHoverTarget(selector: string): void;
 }`;

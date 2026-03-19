@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-import DocsSection from "@/components/docs/DocsSection.vue";
-import CodeBlock from "@/components/shared/CodeBlock.vue";
-import Table from "@/components/shared/Table.vue";
-import TableOfContents from "@/components/docs/TableOfContents.vue";
+import DocsSection from "@components/docs/DocsSection.vue";
+import CodeBlock from "@shared/CodeBlock.vue";
+import Callout from "@shared/Callout.vue";
+import Table from "@shared/Table.vue";
+import TableOfContents from "@components/docs/TableOfContents.vue";
 import { useDocsSidebar } from "@composables/useDocsSidebar";
 import {
   API_SECTIONS,
@@ -526,15 +527,13 @@ doctor(); // Reports cursor conflicts & issues
         />
       </div>
 
-      <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded mt-8">
-        <p class="text-sm text-blue-900 leading-relaxed">
-          For more advanced patterns and real-world examples using these utilities, see the
-          <router-link to="/docs/advanced/tips-and-tricks" class="font-bold hover:underline">
-            Tips &amp; Tricks
-          </router-link>
-          page.
-        </p>
-      </div>
+      <Callout>
+        For more advanced patterns and real-world examples using these utilities, see the
+        <router-link to="/docs/advanced/tips-and-tricks" class="font-bold hover:underline">
+          Tips &amp; Tricks
+        </router-link>
+        page.
+      </Callout>
     </div>
   </DocsSection>
 </template>
