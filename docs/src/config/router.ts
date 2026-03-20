@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory, createMemoryHistory, type RouteRecordRaw } from "vue-router";
 import Landing from "@/pages/Landing.vue";
 import Playground from "@/pages/Playground.vue";
 import DocsLayout from "@layouts/DocsLayout.vue";
@@ -23,7 +23,7 @@ const PluginPage = () => import("@/pages/docs/PluginPage.vue");
 
 const isDev = import.meta.env.DEV;
 
-const routes: RouteRecordRaw[] = [
+export const routes: RouteRecordRaw[] = [
   { path: "/", component: Landing, name: "LANDING" },
   {
     path: "/docs",
@@ -47,7 +47,7 @@ const routes: RouteRecordRaw[] = [
       { path: "plugins/:id", component: PluginPage, props: true, name: "DOCS_PLUGIN" }
     ]
   },
-  // Catch-all for 404
+  { path: '/404', component: NotFound },
   { path: "/:pathMatch(.*)*", component: NotFound, name: "NOT_FOUND" }
 ];
 
@@ -61,14 +61,13 @@ if (isDev) {
 }
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: import.meta.env.SSR
+    ? createMemoryHistory()
+    : createWebHistory(),
   routes,
   scrollBehavior(to) {
     if (to.hash) {
-      return {
-        el: to.hash,
-        top: 80
-      };
+      return { el: to.hash, top: 80 };
     }
     return { top: 0 };
   }

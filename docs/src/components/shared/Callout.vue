@@ -10,7 +10,7 @@ defineProps<{
     class="p-4 border text-sm my-8"
     :class="
       variant === 'warning'
-        ? 'bg-amber-50 border-amber-200 border-l-4 border-l-amber-500'
+        ? 'bg-amber-100 border-amber-300 border-l-4 border-l-amber-600'
         : 'bg-zinc-50 border-zinc-200 border-l-4 border-l-black'
     "
   >

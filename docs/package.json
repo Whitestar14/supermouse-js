@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite-ssg build",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path ../.gitignore",
     "format": "prettier --write . --ignore-path ../.gitignore"
@@ -28,18 +28,21 @@
     "lenis": "1.1.19",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
-    "vue": "^3.5.26",
-    "vue-router": "4.2.5"
+    "vue": "^3.5.26"
   },
   "devDependencies": {
     "@types/animejs": "^3.1.13",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "@vitejs/plugin-vue": "^6.0.3",
+    "@vueuse/head": "^2.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.21.1",
     "prettier": "^3.2.5",
     "typescript": "^5.3.3",
+    "vite-plugin-sitemap": "^0.8.2",
+    "vite-ssg": "^28.3.0",
+    "vue-router": "4.2.5",
     "vue-tsc": "^3.0.0"
   }
 }

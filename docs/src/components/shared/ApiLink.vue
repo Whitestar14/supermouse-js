@@ -2,7 +2,7 @@
 import { useRouter } from "vue-router";
 
 defineProps<{
-  to: string; // anchor id, e.g., "smoothness", "use", "state"
+  to: string;
 }>();
 
 const router = useRouter();
@@ -15,7 +15,7 @@ const navigate = (anchor: string) => {
 <template>
   <button
     :data-supermouse-text="`Jump to API: ${to}`"
-    class="text-black font-semibold underline underline-offset-2 hover:text-zinc-600 transition-colors cursor-pointer border-none bg-none p-0 font-inherit text-inherit"
+    class="text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all"
     @click="navigate(to)"
   >
     <slot>{{ to }}</slot>

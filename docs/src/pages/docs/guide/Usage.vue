@@ -11,30 +11,25 @@ import { Dot } from '@supermousejs/dot';
 import { Ring } from '@supermousejs/ring';
 
 const app = new Supermouse({
-  // Register plugins declaratively
   plugins: [
     Dot({ size: 8 }),
     Ring({ size: 24 })
   ],
-
-  // Physics (0.01 - 1.0)
   smoothness: 0.15,
-
-  // Native Cursor Hiding
-  hideCursor: true,
-
-  // Native Fallback Strategy ('auto' | 'tag' | 'css')
-  // 'tag' checks HTML tags (fastest). 'auto' checks CSS too (safer).
   ignoreOnNative: 'tag'
-});`;
+});
 
-const globalUsageCode = `// When using a CDN, all standard exports are on the global Supermouse object
-const app = new Supermouse({ smoothness: 0.1 });
+// Also valid
+app.use(Dot({ ... })).use(Ring({ ... }))
+`;
+
+const globalUsageCode = `const app = new Supermouse({ smoothness: 0.1 });
 app.use(Supermouse.Dot());
 app.use(Supermouse.Ring());`;
 
-const chainingCode = `// You can also add plugins imperatively at runtime
-// This is useful for conditional loading or lazy-loaded effects.
+const chainingCode = `const app = new Supermouse({ ... })
+
+...
 
 if (prefersComplexEffects) {
   app.use(Sparkles({ color: 'gold' }));
@@ -102,9 +97,9 @@ onUnmounted(() => {
     <!-- Configuration -->
     <SectionHeader :level="2" class="mb-6"> 1. Configuration </SectionHeader>
     <Text class="mb-6">
-      The constructor accepts a <code>SupermouseOptions</code> object. You can pass
-      <ApiLink to="plugins">plugins</ApiLink> directly in the configuration array or use
-      <ApiLink to="use">use()</ApiLink> at runtime.
+      The constructor accepts a <code>SupermouseOptions</code> object. There are two acceptable ways
+      of invoking your plugins. You can either pass <ApiLink to="plugins">plugins</ApiLink> directly
+      in the configuration array or use <ApiLink to="use">use()</ApiLink> at runtime.
     </Text>
     <div class="mb-8">
       <CodeBlock
@@ -126,8 +121,9 @@ onUnmounted(() => {
     <!-- Plugins -->
     <SectionHeader :level="2" class="mb-6 mt-16"> 2. Runtime Registration </SectionHeader>
     <Text class="mb-6">
-      If you need to add plugins later (e.g. lazy loading), you can use the chainable
-      <ApiLink to="use">use()</ApiLink> method for runtime registration.
+      If you need to add plugins later e.g. lazy loading or conditional events, you can use the
+      chainable
+      <ApiLink to="use">use()</ApiLink> method to add them imperatively.
     </Text>
     <div class="mb-12">
       <CodeBlock

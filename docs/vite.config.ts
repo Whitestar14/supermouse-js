@@ -1,17 +1,61 @@
-import { defineConfig } from "vite";
+import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import Sitemap from "vite-plugin-sitemap";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
+import type { ViteSSGOptions } from "vite-ssg";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+interface ViteConfig extends UserConfig {
+  ssgOptions?: ViteSSGOptions;
+}
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pluginsData = JSON.parse(
+  readFileSync(path.resolve(__dirname, "./src/data/generated-plugins.json"), "utf-8")
+);
+const pluginRoutes = pluginsData.map((p: any) => `/docs/plugins/${p.id}`);
 
 const corePkgPath = path.resolve(__dirname, "../packages/core/package.json");
 const corePkg = JSON.parse(readFileSync(corePkgPath, "utf-8"));
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    Sitemap({
+      hostname: "https://supermouse.vercel.app",
+      dynamicRoutes: [
+        "/docs/guide/introduction",
+        "/docs/guide/installation",
+        "/docs/guide/usage",
+        "/docs/guide/troubleshooting",
+        "/docs/guide/cookbook",
+        "/docs/integrations/vue",
+        "/docs/integrations/react",
+        "/docs/advanced/architecture",
+        "/docs/advanced/authoring",
+        "/docs/advanced/contributing",
+        "/docs/advanced/tips-and-tricks",
+        "/reference/api",
+        ...pluginRoutes
+      ],
+    }),
+  ],
+  ssgOptions: {
+      script: "async",
+      formatting: "minify",
+      includedRoutes(paths: string[]) {
+        return paths.flatMap((path) => {
+          if (path.includes("pathMatch")) return [];
+
+          if (path === "/docs/plugins/:id") {
+            return pluginRoutes;
+          }
+          return path;
+        });
+      },
+      onFinished() {}
+    },
   define: {
     __SUPERMOUSE_VERSION__: JSON.stringify(corePkg.version),
     __VERSION__: JSON.stringify(corePkg.version)
@@ -50,4 +94,4 @@ export default defineConfig({
       "@supermousejs/vue": path.resolve(__dirname, "../packages/vue/src/index.ts")
     }
   }
-});
+} as ViteConfig);

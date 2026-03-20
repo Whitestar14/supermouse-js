@@ -10,11 +10,9 @@ const shellCode = "pnpm add @supermousejs/core @supermousejs/dot @supermousejs/r
 
 const unscopedCode = "pnpm install supermousejs";
 
-const cdnCode = `<!-- All-in-one bundle (Core + Dot + Ring) -->
-<script src="https://unpkg.com/supermousejs"><\/script>
+const cdnCode = `<script src="https://unpkg.com/supermousejs"><\/script>
 
 <script>
-  // Standard plugins are available on the global Supermouse object
   const { Dot, Ring } = Supermouse;
 
   const app = new Supermouse();
@@ -30,8 +28,7 @@ const app = new Supermouse({
   hideCursor: true
 });
 
-app.use(Dot({ size: 8, color: '#f0f' }));
-app.use(Ring({ size: 20 }));`;
+app.use(Dot({ size: 8, color: '#f0f' }).use(Ring({ size: 20 }));`;
 
 const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
 <a data-supermouse-img="/path/to/img.jpg">Show image on hover</a>`;
@@ -58,7 +55,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
       <StepCard number="2" title="CDN / Direct Script" divider>
         <Text>
           If you aren't using a build tool, you can load the all-in-one bundle directly via a CDN
-          like Unpkg or JSDelivr.
+          like Unpkg or JSDelivr which includes the standard core, dot and ring plugins
         </Text>
         <CodeBlock :code="cdnCode" title="index.html" lang="html" />
       </StepCard>
@@ -86,7 +83,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
           </p>
           <p>
             Supermouse manages cursor visibility dynamically. Manually setting cursor styles often
-            results in the "double cursor" glitch where the OS cursor reappears on top of the custom
+            results in the double cursor glitch where the OS cursor reappears on top of the custom
             one. If you need a pointer state, use the <code>rules</code> config in Supermouse to
             handle it programmatically.
           </p>

@@ -17,20 +17,21 @@ const metaItems = [
     <MetadataStrip :items="metaItems" />
 
     <div class="mb-12 space-y-4">
-      <Text size="lg">
+      <Text weight="medium" size="lg">
         Supermouse is a <b>high-performance</b> runtime that decouples <b>cursor intent</b> from
         <b>cursor rendering</b>.
       </Text>
       <Text size="lg">
-        It provides a plugin system to inject magnetic logic, physics interpolation, and visual Most
-        cursor libraries are UI components. They bind state to a specific framework's render cycle
-        (React, Vue) or rely on heavy animation libraries (GSAP) to move a div.
+        It provides a plugin system that allows for flexible plugin integration and complex visual
+        effects. Unlike most cursor libraries that behave more or less like UI components, binding
+        state to a specific framework's render cycle (React, Vue) or relying on heavy animation
+        libraries (GSAP) to move a div, Supermouse runs its own deterministic game loop (60fps)
+        using <code>requestAnimationFrame</code>
       </Text>
       <Text size="lg">
-        <strong>Supermouse is different.</strong> It runs its own deterministic game loop (~60fps)
-        using <code>requestAnimationFrame</code>. It manages input normalization, physics
-        interpolation, and a priority-based plugin system to render effects without layout
-        thrashing.
+        It manages the hard parts (input normalization and physics interpolation) so it remains
+        performant, and a priority-based plugin system with auto-recovery to render effects without
+        layout thrashing.
       </Text>
     </div>
 
@@ -38,13 +39,13 @@ const metaItems = [
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 mb-16">
       <div class="bg-white p-8">
         <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">
-          The Problem
+          The Traditional Problems
         </h3>
         <ul class="space-y-4 text-sm text-zinc-700">
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">01.</span>
             <p>
-              <strong>The "Double Cursor" Glitch.</strong> Hiding the native cursor via CSS is
+              <strong>The Double Cursor Glitch.</strong> Hiding the native cursor via CSS is very
               fragile. <code>input</code>, <code>a</code>, and user-agent stylesheets often force it
               back, creating a flickering ghost cursor.
             </p>
@@ -54,14 +55,15 @@ const metaItems = [
             <p>
               <strong>Input Lag.</strong> React/Vue state updates are asynchronous. Binding mouse
               coordinates to reactive state causes the cursor to trail 1-2 frames behind input,
-              feeling "mushy".
+              feeling mushy, laggy or unresponsive.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">03.</span>
             <p>
-              <strong>Logic/Visual Coupling.</strong> Most libraries bake the visual style (a dot, a
-              ring) into the logic, which makes swapping or layering effects non-trivial
+              <strong>Logic/Visual Coupling.</strong> Most libraries bake the visual style (e.g a
+              dot, a ring) into the logic, which makes attempts to swapping or layering effects
+              non-trivial
             </p>
           </li>
         </ul>
@@ -76,7 +78,8 @@ const metaItems = [
             <p>
               <strong>The Stage System.</strong> Supermouse injects a scoped, high-specificity
               stylesheet to aggressively suppress the native cursor on registered targets,
-              guaranteeing it vanishes.
+              guaranteeing it vanishes, with additional guardrails to ensure that and granularity to
+              restore it if necessary.
             </p>
           </li>
           <li class="flex gap-3">
@@ -89,9 +92,9 @@ const metaItems = [
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">03.</span>
             <p>
-              <strong>Plugin Pipeline.</strong> Logic (Magnetic) runs first to modify the target.
-              Physics runs second to smooth movement. Visuals (Dot, Ring) run last to render.
-              Totally decoupled.
+              <strong>Plugin Pipeline.</strong> Logic plugins (e.g Magnetc) runs first to modify the
+              target. Physics runs second to smooth movement. Visuals (e.g Dot, Ring) run last to
+              render. Completely decoupled.
             </p>
           </li>
         </ul>
@@ -107,9 +110,9 @@ const metaItems = [
         <div class="p-6">
           <strong class="block text-zinc-900 text-sm mb-2">1. Intent vs. Render</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            We separate where the cursor <em>wants</em> to go (Logic) from where it actually
-            <em>is</em> (Physics) and what it <em>looks like</em> (Visuals). This allows plugins
-            like <code>Magnetic</code> to hijack the target position without the visual dot knowing.
+            We separate where the cursor <em>wants</em> to go from where it actually <em>is</em> and
+            what it <em>looks like</em>. This allows plugins to hijack the target position without
+            visually rendered cursors knowing.
           </p>
         </div>
         <div class="p-6">
