@@ -9,8 +9,10 @@
 it separates **cursor intent** (input, physics, logic) from **cursor rendering** (visuals),
 and exposes a deterministic plugin pipeline for extending both.
 
-supermouse is not a UI component. neither is it a "library" in the conventional sense.
+supermouse is not a UI component. neither is it a library in the conventional sense.
 it is a runtime.
+
+Read the full documentation [here](https://supermouse.vercel.app)
 
 ## what it does
 
@@ -52,19 +54,8 @@ supermouse is tunable for performance and accuracy.
 
 ```ts
 const app = new Supermouse({
-  // Motion Physics (0.01 - 1.0)
-  // Lower = more lag/floaty. Higher = snappy.
   smoothness: 0.15,
-
-  // Native Cursor Hiding
-  // Injects scoped CSS to hide the OS cursor on body + interactive elements
   hideCursor: true,
-
-  // Native Fallback Strategy
-  // Determines when to show the native cursor (e.g. over inputs).
-  // - 'auto': Checks tags AND css (default, safest).
-  // - 'tag': Checks <input>, <textarea>, <select> only. O(1) performance.
-  // - 'css': Checks `cursor: auto/text` in computed styles. Causes reflows.
   ignoreOnNative: "tag",
 });
 ```
@@ -111,18 +102,6 @@ most effects should live **outside** the core.
 - the `@supermousejs/*` scope contains core + reference plugins only
 
 community plugins are encouraged.
-
-## repository layout
-
-```text
-packages/
-  core/      runtime + loop
-  utils/     shared helpers
-  dot/       reference plugin
-  ring/      reference plugin
-playground/ interactive dev env
-docs/       documentation
-```
 
 ## contributing
 
