@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, type RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHashHistory, createWebHistory, type RouteRecordRaw } from "vue-router";
 import Landing from "@/pages/Landing.vue";
 import Playground from "@/pages/Playground.vue";
 import DocsLayout from "@layouts/DocsLayout.vue";
@@ -61,7 +61,7 @@ if (isDev) {
 }
 
 export const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
   scrollBehavior(to) {
     if (to.hash) {
