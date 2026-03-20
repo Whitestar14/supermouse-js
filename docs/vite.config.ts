@@ -23,7 +23,7 @@ export default defineConfig({
   plugins: [
     vue(),
     Sitemap({
-      hostname: "https://supermouse.vercel.app",
+      hostname: "https://supermouse.js.org",
       dynamicRoutes: [
         "/docs/guide/introduction",
         "/docs/guide/installation",
