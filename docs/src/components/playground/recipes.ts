@@ -43,7 +43,8 @@ const POINTER_SVG = `
 `;
 
 const ICON_SVGS: Record<string, string> = {
-  default: "<svg viewBox=\"0 0 24 24\" fill=\"white\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"transform: rotate(-45deg)\"><path d=\"m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z\"/></svg>",
+  default:
+    '<svg viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(-45deg)"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>',
 
   hand: `<svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
   <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" fill="white" />
@@ -129,7 +130,7 @@ export const RECIPES: PresetRecipe[] = [
         type: "select",
         options: ["center", "top-left"],
         defaultValue: "top-left",
-        description: "Align \"Top Left\" for arrows."
+        description: 'Align "Top Left" for arrows.'
       }
     ],
     setup: (app, config) => {

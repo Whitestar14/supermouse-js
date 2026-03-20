@@ -1,9 +1,6 @@
 <template>
   <div :class="['overflow-x-auto', wrapperClass]">
-    <table
-      class="w-full text-left text-sm border-collapse"
-      :class="tableClass"
-    >
+    <table class="w-full text-left text-sm border-collapse" :class="tableClass">
       <thead class="bg-zinc-50 border-b border-zinc-200">
         <tr>
           <th
@@ -21,15 +18,8 @@
           :key="rowKey ? (row[rowKey] ?? rowIndex) : rowIndex"
           class="group hover:bg-zinc-50 transition-colors"
         >
-          <td
-            v-for="col in columns"
-            :key="col.key"
-            class="px-6 py-5 align-top"
-          >
-            <slot
-              :name="`cell-${col.key}`"
-              :row="row"
-            >
+          <td v-for="col in columns" :key="col.key" class="px-6 py-5 align-top">
+            <slot :name="`cell-${col.key}`" :row="row">
               {{ row[col.key] }}
             </slot>
           </td>

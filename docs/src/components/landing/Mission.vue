@@ -113,12 +113,11 @@ onUnmounted(() => {
         <span class="mono text-lg font-bold text-zinc-900">02</span>
       </div>
       <div class="flex-1 px-6 md:px-8 flex items-center justify-between">
-        <h2 class="text-lg md:text-xl font-bold tracking-tighter text-zinc-900">
-          Our Mission
-        </h2>
+        <h2 class="text-lg md:text-xl font-bold tracking-tighter text-zinc-900">Our Mission</h2>
         <span
           class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold hidden sm:inline-block"
-        >manifesto.md</span>
+          >manifesto.md</span
+        >
       </div>
     </div>
 
@@ -173,20 +172,9 @@ onUnmounted(() => {
         </div>
 
         <!-- The Cursor -->
-        <div
-          ref="cursorRef"
-          class="absolute w-6 h-6 z-20 pointer-events-none drop-shadow-xl"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="none"
-            class="w-full h-full text-black"
-          >
-            <path
-              d="M5.5 3.5L11.5 19.5L14 12.5L21 10L5.5 3.5Z"
-              fill="currentColor"
-            />
+        <div ref="cursorRef" class="absolute w-6 h-6 z-20 pointer-events-none drop-shadow-xl">
+          <svg viewBox="0 0 24 24" fill="none" stroke="none" class="w-full h-full text-black">
+            <path d="M5.5 3.5L11.5 19.5L14 12.5L21 10L5.5 3.5Z" fill="currentColor" />
           </svg>
         </div>
 

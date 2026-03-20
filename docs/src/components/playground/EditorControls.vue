@@ -33,22 +33,15 @@ const localGlobal = computed({
   <div class="h-full flex flex-col bg-white">
     <!-- Header -->
     <div class="p-8 border-b border-zinc-200 shrink-0">
-      <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">
-        Configuration
-      </h3>
-      <p class="text-sm text-zinc-900 font-bold">
-        Tune parameters in real-time.
-      </p>
+      <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Configuration</h3>
+      <p class="text-sm text-zinc-900 font-bold">Tune parameters in real-time.</p>
     </div>
 
     <!-- Controls Scroll Area -->
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
       <!-- Dynamic Schema Controls -->
       <div class="space-y-4">
-        <template
-          v-for="control in schema"
-          :key="control.key"
-        >
+        <template v-for="control in schema" :key="control.key">
           <ControlRange
             v-if="control.type === 'range'"
             v-model="localConfig[control.key]"
@@ -82,16 +75,13 @@ const localGlobal = computed({
           />
 
           <!-- Text Fallback -->
-          <div
-            v-else-if="control.type === 'text'"
-            class="p-3"
-          >
+          <div v-else-if="control.type === 'text'" class="p-3">
             <label class="text-sm font-bold text-zinc-900 block mb-2">{{ control.label }}</label>
             <input
               v-model="localConfig[control.key]"
               type="text"
               class="w-full h-10 border border-zinc-200 px-3 font-mono text-sm outline-none focus:border-black transition-colors bg-zinc-50 focus:bg-white"
-            >
+            />
           </div>
         </template>
       </div>
@@ -110,10 +100,7 @@ const localGlobal = computed({
             :step="0.01"
             unit=""
           />
-          <ControlToggle
-            v-model="localGlobal.showNative"
-            label="Show Native Cursor"
-          />
+          <ControlToggle v-model="localGlobal.showNative" label="Show Native Cursor" />
         </div>
       </div>
     </div>

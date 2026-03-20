@@ -1,4 +1,9 @@
-import { createRouter, createWebHistory, createMemoryHistory, type RouteRecordRaw } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  createMemoryHistory,
+  type RouteRecordRaw
+} from "vue-router";
 import Landing from "@/pages/Landing.vue";
 import Playground from "@/pages/Playground.vue";
 import DocsLayout from "@layouts/DocsLayout.vue";
@@ -47,7 +52,7 @@ export const routes: RouteRecordRaw[] = [
       { path: "plugins/:id", component: PluginPage, props: true, name: "DOCS_PLUGIN" }
     ]
   },
-  { path: '/404', component: NotFound },
+  { path: "/404", component: NotFound },
   { path: "/:pathMatch(.*)*", component: NotFound, name: "NOT_FOUND" }
 ];
 
@@ -61,9 +66,7 @@ if (isDev) {
 }
 
 export const router = createRouter({
-  history: import.meta.env.SSR
-    ? createMemoryHistory()
-    : createWebHistory(),
+  history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),
   routes,
   scrollBehavior(to) {
     if (to.hash) {

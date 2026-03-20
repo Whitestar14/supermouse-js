@@ -14,10 +14,7 @@ const emit = defineEmits(["update:modelValue"]);
   >
     <div class="flex flex-col">
       <span class="text-sm font-bold text-zinc-900">{{ label }}</span>
-      <span
-        v-if="description"
-        class="text-[10px] text-zinc-500 font-mono mt-0.5"
-      >{{
+      <span v-if="description" class="text-[10px] text-zinc-500 font-mono mt-0.5">{{
         description
       }}</span>
     </div>

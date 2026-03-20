@@ -13,10 +13,7 @@ defineProps<{
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div
-      v-if="message"
-      class="fixed bottom-8 right-8 z-[9999]"
-    >
+    <div v-if="message" class="fixed bottom-8 right-8 z-[9999]">
       <div class="bg-black text-white px-6 py-3 rounded shadow-xl flex items-center gap-3">
         <svg
           width="16"

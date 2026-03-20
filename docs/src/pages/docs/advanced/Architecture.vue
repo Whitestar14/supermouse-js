@@ -29,10 +29,7 @@ function tick(time) {
 </script>
 
 <template>
-  <DocsSection
-    label="Advanced"
-    title="Core Architecture"
-  >
+  <DocsSection label="Advanced" title="Core Architecture">
     <div class="mb-16">
       <p class="text-lg text-zinc-600 leading-relaxed mb-6">
         Supermouse treats the cursor as a game character. It runs a continuous loop that separates
@@ -50,16 +47,11 @@ function tick(time) {
     </div>
 
     <!-- The Pipeline -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-8">
-      The Frame Loop (16ms)
-    </h3>
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-8">The Frame Loop (16ms)</h3>
 
     <div class="relative border-l-2 border-zinc-200 ml-4 md:ml-8 space-y-16">
       <!-- STEP 1: SENSE -->
-      <TimelineStep
-        phase="Phase 01: Sense"
-        title="Input Normalization"
-      >
+      <TimelineStep phase="Phase 01: Sense" title="Input Normalization">
         <Text>
           The <code>Input</code> system captures native DOM events (mousemove, touchmove). It
           normalizes coordinates relative to the container and checks for accessibility preferences
@@ -72,10 +64,7 @@ function tick(time) {
       </TimelineStep>
 
       <!-- STEP 2: LOGIC -->
-      <TimelineStep
-        phase="Phase 02: Intent"
-        title="Logic Plugins"
-      >
+      <TimelineStep phase="Phase 02: Intent" title="Logic Plugins">
         <Text>
           Plugins with <code>priority &lt; 0</code> execute. This is where "magic" happens. A
           magnetic plugin might look at the hovered element and say "Hey, I know the mouse is at
@@ -88,15 +77,14 @@ function tick(time) {
       </TimelineStep>
 
       <!-- STEP 3: PHYSICS -->
-      <TimelineStep
-        phase="Phase 03: Physics"
-        title="Core Damping"
-        :active="true"
-      >
+      <TimelineStep phase="Phase 03: Physics" title="Core Damping" :active="true">
         <Text>
           The Core calculates the difference between where we are (<span
             class="mono text-xs text-black bg-zinc-100 px-1"
-          >smooth</span>) and where we want to go (<span class="mono text-xs text-black bg-zinc-100 px-1">target</span>). It applies frame-rate independent damping to calculate the new position for this
+            >smooth</span
+          >) and where we want to go (<span class="mono text-xs text-black bg-zinc-100 px-1"
+            >target</span
+          >). It applies frame-rate independent damping to calculate the new position for this
           specific frame.
         </Text>
         <CodeBlock
@@ -108,11 +96,7 @@ function tick(time) {
       </TimelineStep>
 
       <!-- STEP 4: RENDER -->
-      <TimelineStep
-        phase="Phase 04: Render"
-        title="Visual Plugins"
-        :last="true"
-      >
+      <TimelineStep phase="Phase 04: Render" title="Visual Plugins" :last="true">
         <Text>
           Visual plugins (Dot, Ring) read the final
           <code>state.smooth</code> coordinates and apply CSS transforms to their DOM elements.
@@ -124,15 +108,11 @@ function tick(time) {
     </div>
 
     <!-- Performance Systems -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">
-      Performance Strategy
-    </h3>
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Performance Strategy</h3>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
       <div class="bg-white p-8">
-        <h4 class="text-lg font-bold text-zinc-900 mb-4">
-          Interaction Scraping
-        </h4>
+        <h4 class="text-lg font-bold text-zinc-900 mb-4">Interaction Scraping</h4>
         <p class="text-sm text-zinc-600 leading-relaxed mb-4">
           Reading DOM attributes (<code>getAttribute</code>) or styles
           (<code>getComputedStyle</code>) during the render loop causes layout thrashing.
@@ -145,9 +125,7 @@ function tick(time) {
         </p>
       </div>
       <div class="bg-white p-8">
-        <h4 class="text-lg font-bold text-zinc-900 mb-4">
-          The Stage System
-        </h4>
+        <h4 class="text-lg font-bold text-zinc-900 mb-4">The Stage System</h4>
         <p class="text-sm text-zinc-600 leading-relaxed mb-4">
           The "Double Cursor" glitch happens when an element's CSS (`cursor: pointer`) overrides the
           body's `cursor: none`.
@@ -165,11 +143,7 @@ function tick(time) {
       <h3 class="text-sm font-bold text-zinc-900 mb-4 uppercase tracking-widest">
         Reference Implementation
       </h3>
-      <CodeBlock
-        :code="loopCode"
-        lang="typescript"
-        title="core/Supermouse.ts (Simplified)"
-      />
+      <CodeBlock :code="loopCode" lang="typescript" title="core/Supermouse.ts (Simplified)" />
     </div>
   </DocsSection>
 </template>

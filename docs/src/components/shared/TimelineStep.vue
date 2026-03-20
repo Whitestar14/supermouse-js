@@ -8,10 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="relative pl-8 md:pl-12 group"
-    :class="!last && 'pb-16'"
-  >
+  <div class="relative pl-8 md:pl-12 group" :class="!last && 'pb-16'">
     <!-- Timeline dot -->
     <div
       :class="[

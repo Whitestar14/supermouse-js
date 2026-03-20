@@ -93,15 +93,8 @@ watch([isEditorOpen, isSearchOpen], ([editor, search]) => {
     </div>
 
     <!-- Global Modals -->
-    <CursorEditor
-      v-if="isEditorOpen"
-      :active-recipe-id="activeRecipeId"
-      @close="closeEditor"
-    />
+    <CursorEditor v-if="isEditorOpen" :active-recipe-id="activeRecipeId" @close="closeEditor" />
 
-    <SearchPalette
-      v-if="isSearchOpen"
-      @close="isSearchOpen = false"
-    />
+    <SearchPalette v-if="isSearchOpen" @close="isSearchOpen = false" />
   </div>
 </template>

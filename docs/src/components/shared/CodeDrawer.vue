@@ -63,28 +63,15 @@ const emit = defineEmits(["close", "copy"]);
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <line
-                  x1="18"
-                  y1="6"
-                  x2="6"
-                  y2="18"
-                />
-                <line
-                  x1="6"
-                  y1="6"
-                  x2="18"
-                  y2="18"
-                />
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
         </div>
 
         <div class="flex-1 overflow-y-auto bg-[#282c34]">
-          <CodeBlock
-            :code="code"
-            :clean="true"
-          />
+          <CodeBlock :code="code" :clean="true" />
         </div>
       </div>
     </Transition>

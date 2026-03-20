@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useHead } from "@vueuse/head";
-import { DOMAIN } from "@config/constants";
+import { APP_NAME, DOMAIN } from "@config/constants";
 import Footer from "@/components/landing/Footer.vue";
 import { useDocsSidebar } from "@composables/useDocsSidebar";
 import { DOCS_NAVIGATION } from "@config/navigation";
@@ -71,10 +71,17 @@ const breadcrumbSchema = computed(() => {
 });
 
 useHead({
+  title: computed(() => `${breadcrumbs.value.page} | ${APP_NAME}`),
   script: [
     {
       type: "application/ld+json",
       children: computed(() => JSON.stringify(breadcrumbSchema.value))
+    }
+  ],
+  meta: [
+    {
+      name: "description",
+      content: computed(() => `Documentation for ${breadcrumbs.value.page} in ${APP_NAME}.`)
     }
   ]
 });

@@ -202,7 +202,7 @@ onUnmounted(() => {
         type="text"
         placeholder="Type here..."
         class="px-6 w-32 md:w-64 bg-white text-sm font-mono focus:outline-none focus:bg-zinc-50 transition-colors placeholder:text-zinc-400"
-      >
+      />
 
       <!-- Loading Trigger -->
       <div

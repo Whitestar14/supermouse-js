@@ -28,7 +28,8 @@ const TEXT_CURSOR = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.o
 <path d="M8 20H16" stroke="black" stroke-width="2" stroke-linecap="square"/>
 </svg>`;
 
-const ARROW_CURSOR = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#F2F5F8\" stroke-width=\"2\"><path stroke-linecap=\"square\" stroke-linejoin=\"miter\" d=\"M5 12h14M12 5l7 7-7 7\"/></svg>";
+const ARROW_CURSOR =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F8" stroke-width="2"><path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/></svg>';
 
 export function useAppCursor() {
   return provideSupermouse(

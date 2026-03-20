@@ -27,9 +27,9 @@ export default defineConfig({
       generateRobotsTxt: true,
       robots: [
         {
-          userAgent: '*',
-          allow: '/',
-          disallow: ['/404', '/labs'],
+          userAgent: "*",
+          allow: "/",
+          disallow: ["/404", "/labs"]
         }
       ],
       dynamicRoutes: [
@@ -46,24 +46,24 @@ export default defineConfig({
         "/docs/advanced/tips-and-tricks",
         "/reference/api",
         ...pluginRoutes
-      ],
-    }),
+      ]
+    })
   ],
   ssgOptions: {
-      script: "async",
-      formatting: "minify",
-      includedRoutes(paths: string[]) {
-        return paths.flatMap((path) => {
-          if (path.includes("pathMatch")) return [];
+    script: "async",
+    formatting: "minify",
+    includedRoutes(paths: string[]) {
+      return paths.flatMap((path) => {
+        if (path.includes("pathMatch")) return [];
 
-          if (path === "/docs/plugins/:id") {
-            return pluginRoutes;
-          }
-          return path;
-        });
-      },
-      onFinished() {}
+        if (path === "/docs/plugins/:id") {
+          return pluginRoutes;
+        }
+        return path;
+      });
     },
+    onFinished() {}
+  },
   define: {
     __SUPERMOUSE_VERSION__: JSON.stringify(corePkg.version),
     __VERSION__: JSON.stringify(corePkg.version)

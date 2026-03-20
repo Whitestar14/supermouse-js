@@ -13,10 +13,7 @@ const emit = defineEmits(["update:modelValue"]);
   <div class="space-y-3 p-3">
     <div>
       <label class="text-sm font-bold text-zinc-900 block">{{ label }}</label>
-      <p
-        v-if="description"
-        class="text-[10px] text-zinc-500 font-mono mt-0.5"
-      >
+      <p v-if="description" class="text-[10px] text-zinc-500 font-mono mt-0.5">
         {{ description }}
       </p>
     </div>

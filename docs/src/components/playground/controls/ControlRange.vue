@@ -19,10 +19,7 @@ const emit = defineEmits(["update:modelValue"]);
     <div class="flex justify-between items-baseline">
       <div>
         <label class="text-sm font-bold text-zinc-900 block">{{ label }}</label>
-        <p
-          v-if="description"
-          class="text-[10px] text-zinc-500 font-mono mt-0.5"
-        >
+        <p v-if="description" class="text-[10px] text-zinc-500 font-mono mt-0.5">
           {{ description }}
         </p>
       </div>
@@ -41,6 +38,6 @@ const emit = defineEmits(["update:modelValue"]);
       :step="step"
       class="w-full h-1.5 bg-zinc-200 appearance-none cursor-pointer accent-black hover:bg-zinc-300 transition-colors"
       @input="emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
-    >
+    />
   </div>
 </template>

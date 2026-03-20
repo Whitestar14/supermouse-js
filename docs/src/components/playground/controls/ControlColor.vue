@@ -27,13 +27,13 @@ const updateHex = (e: Event) => {
         class="w-full h-full border-none outline-none font-mono text-sm uppercase text-zinc-900 bg-transparent"
         maxlength="6"
         @input="updateHex"
-      >
+      />
       <input
         type="color"
         :value="modelValue"
         class="absolute inset-y-0 right-0 w-12 h-full p-0 border-l border-zinc-200 opacity-0 cursor-pointer"
         @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-      >
+      />
       <div
         class="absolute inset-y-0 right-0 w-10 border-l border-zinc-200 pointer-events-none"
         :style="{ backgroundColor: modelValue }"

@@ -1,31 +1,31 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
-const distPath = path.resolve(process.cwd(), 'dist');
-const cnamePath = path.resolve(distPath, 'CNAME');
-const sitemapPath = path.resolve(distPath, 'sitemap.xml');
+const distPath = path.resolve(process.cwd(), "dist");
+const cnamePath = path.resolve(distPath, "CNAME");
+const sitemapPath = path.resolve(distPath, "sitemap.xml");
 
-console.log('[!] Verifying SSG Build Output...');
+console.log("[!] Verifying SSG Build Output...");
 
 const checks = [
   {
-    name: 'CNAME file',
+    name: "CNAME file",
     path: cnamePath,
-    expected: 'supermouse.js.org'
+    expected: "supermouse.js.org"
   },
   {
-    name: 'Sitemap',
+    name: "Sitemap",
     path: sitemapPath
   }
 ];
 
 let failed = false;
 
-checks.forEach(check => {
+checks.forEach((check) => {
   if (fs.existsSync(check.path)) {
     console.log(`[^] ${check.name} exists.`);
     if (check.expected) {
-      const content = fs.readFileSync(check.path, 'utf8').trim();
+      const content = fs.readFileSync(check.path, "utf8").trim();
       if (content === check.expected) {
         console.log(`   [^] Content matches: ${content}`);
       } else {
@@ -40,8 +40,8 @@ checks.forEach(check => {
 });
 
 if (failed) {
-  console.error('\n[!!] Build verification failed. Check your public folder and vite.config.ts.');
+  console.error("\n[!!] Build verification failed. Check your public folder and vite.config.ts.");
   process.exit(1);
 } else {
-  console.log('\n[^] Build is SEO-ready and JS.ORG compliant!');
+  console.log("\n[^] Build is SEO-ready and JS.ORG compliant!");
 }
