@@ -11,6 +11,7 @@ export const LICENSE = "MIT";
 export const AUTHOR = "Stud.io Inc.";
 export const YEAR = "2024-2026";
 
+export const DOMAIN = "supermouse.js.org";
 export const GITHUB_URL = "https://github.com/Whitestar14/supermouse-js";
 export const GITHUB_LEGACY_URL = "https://github.com/Whitestar14/supermouse-js/tree/legacy";
 export const TWITTER_URL = "https://twitter.com/xijibomi";

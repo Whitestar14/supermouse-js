@@ -1,5 +1,8 @@
-
 # supermouse.js
+
+[![npm version](https://img.shields.io/npm/v/@supermousejs/core.svg?style=flat-square)](https://www.npmjs.com/package/@supermousejs/core)
+[![npm downloads](https://img.shields.io/npm/dm/@supermousejs/core.svg?style=flat-square)](https://www.npmjs.com/package/@supermousejs/core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 **supermouse** is a modular, high-performance cursor engine for the web.
 
@@ -8,7 +11,6 @@ and exposes a deterministic plugin pipeline for extending both.
 
 supermouse is not a UI component. neither is it a "library" in the conventional sense.
 it is a runtime.
-
 
 ## what it does
 
@@ -22,7 +24,7 @@ it is a runtime.
 
 ```bash
 pnpm add @supermousejs/core
-````
+```
 
 install only the plugins you want:
 
@@ -30,21 +32,17 @@ install only the plugins you want:
 pnpm add @supermousejs/dot @supermousejs/ring
 ```
 
-
 ## basic usage
 
 You can pass plugins directly to the constructor (declarative) or chain them (imperative).
 
 ```ts
-import { Supermouse } from '@supermousejs/core';
-import { Dot } from '@supermousejs/dot';
-import { Ring } from '@supermousejs/ring';
+import { Supermouse } from "@supermousejs/core";
+import { Dot } from "@supermousejs/dot";
+import { Ring } from "@supermousejs/ring";
 
 const app = new Supermouse({
-  plugins: [
-    Dot({ size: 8 }),
-    Ring({ size: 24 })
-  ]
+  plugins: [Dot({ size: 8 }), Ring({ size: 24 })],
 });
 ```
 
@@ -67,7 +65,7 @@ const app = new Supermouse({
   // - 'auto': Checks tags AND css (default, safest).
   // - 'tag': Checks <input>, <textarea>, <select> only. O(1) performance.
   // - 'css': Checks `cursor: auto/text` in computed styles. Causes reflows.
-  ignoreOnNative: 'tag'
+  ignoreOnNative: "tag",
 });
 ```
 
@@ -76,7 +74,7 @@ const app = new Supermouse({
 supermouse treats the cursor like a game character. every frame (~16ms), it runs a pipeline:
 
 1.  **Sense:** Captures input and scrapes data attributes (e.g. `data-supermouse-stick`) from the hovered element into a cache.
-2.  **Logic:** Plugins like `Magnetic` read the input and modify the cursor's *target* position.
+2.  **Logic:** Plugins like `Magnetic` read the input and modify the cursor's _target_ position.
 3.  **Physics:** The core interpolates the cursor's current position towards the target using frame-rate independent damping.
 4.  **Render:** Plugins like `Dot` or `Ring` read the smoothed position and update the DOM.
 
@@ -94,14 +92,13 @@ supermouse uses data attributes to define interactive targets.
 
 plugins may read and write shared interaction state to cooperate.
 
-
 ## plugins are the point
 
 supermouse is designed to be extended via plugins.
 
-* logic plugins can redirect cursor intent
-* visual plugins can render anything at the cursor
-* plugins are isolated, ordered, and fault-tolerant
+- logic plugins can redirect cursor intent
+- visual plugins can render anything at the cursor
+- plugins are isolated, ordered, and fault-tolerant
 
 most effects should live **outside** the core.
 
@@ -109,12 +106,11 @@ most effects should live **outside** the core.
 
 ## ecosystem & ownership
 
-* plugins are expected to be published independently
-* you do not need to contribute to this repo to extend supermouse
-* the `@supermousejs/*` scope contains core + reference plugins only
+- plugins are expected to be published independently
+- you do not need to contribute to this repo to extend supermouse
+- the `@supermousejs/*` scope contains core + reference plugins only
 
 community plugins are encouraged.
-
 
 ## repository layout
 

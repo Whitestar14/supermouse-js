@@ -24,6 +24,14 @@ export default defineConfig({
     vue(),
     Sitemap({
       hostname: "https://supermouse.js.org",
+      generateRobotsTxt: true,
+      robots: [
+        {
+          userAgent: '*',
+          allow: '/',
+          disallow: ['/404', '/labs'],
+        }
+      ],
       dynamicRoutes: [
         "/docs/guide/introduction",
         "/docs/guide/installation",

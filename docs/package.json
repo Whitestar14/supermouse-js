@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite-ssg build",
+    "dev": "pnpm format && vite",
+    "build": "vue-tsc --noEmit && pnpm format && vite-ssg build",
     "postbuild": "node scripts/verify-build.js",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path ../.gitignore",

@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useHead } from "@vueuse/head";
+import { DOMAIN } from "@config/constants";
 import Footer from "@/components/landing/Footer.vue";
 import { useDocsSidebar } from "@composables/useDocsSidebar";
 import { DOCS_NAVIGATION } from "@config/navigation";
 
-// Note: Cursor and Navbar are now handled by App.vue
-
-// --- ROUTE & NAV ---
 const route = useRoute();
-const { clearRightSidebar } = useDocsSidebar();
+const { clearRightSidebar, rightSidebarConfig } = useDocsSidebar();
 
-// --- Collapsible Logic (Accordion) ---
 const activeGroup = ref<string | null>(null);
 const mobileMenuOpen = ref(false);
+
+const isActive = (path: string) => route.path === path;
 
 const toggleGroup = (title: string) => {
   if (activeGroup.value === title) {
@@ -33,7 +33,6 @@ const syncSidebar = () => {
   }
 };
 
-// Breadcrumbs for Mobile Header
 const breadcrumbs = computed(() => {
   const currentPath = route.path;
   for (const group of DOCS_NAVIGATION) {
@@ -45,17 +44,51 @@ const breadcrumbs = computed(() => {
   return { group: "Docs", page: "Guide" };
 });
 
+const breadcrumbSchema = computed(() => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Docs",
+        item: `${DOMAIN}/docs/guide/introduction`
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: breadcrumbs.value.group
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: breadcrumbs.value.page,
+        item: `${DOMAIN}${route.path}`
+      }
+    ]
+  };
+});
+
+useHead({
+  script: [
+    {
+      type: "application/ld+json",
+      children: computed(() => JSON.stringify(breadcrumbSchema.value))
+    }
+  ]
+});
+
 watch(
   () => route.path,
   () => {
     syncSidebar();
-    clearRightSidebar(); // Clear TOC and other page-specific sidebars
-    mobileMenuOpen.value = false; // Auto-close mobile menu on navigation
+    clearRightSidebar();
+    mobileMenuOpen.value = false;
   },
   { immediate: true }
 );
 
-// --- Pagination Logic ---
 const flatNav = computed(() => {
   return DOCS_NAVIGATION.flatMap((group) =>
     group.items.map((item) => ({ ...item, group: group.title }))
@@ -77,11 +110,6 @@ const nextPage = computed(() => {
   }
   return null;
 });
-
-const isActive = (path: string) => route.path === path;
-
-// Get right sidebar config from composable
-const { rightSidebarConfig } = useDocsSidebar();
 </script>
 
 <template>
