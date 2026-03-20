@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /labs
+Disallow: /404
+
+Sitemap: https://supermouse.vercel.app/sitemap.xml
