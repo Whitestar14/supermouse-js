@@ -4,20 +4,32 @@ import { fileURLToPath } from 'url';
 import readline from 'readline';
 import { spawn } from 'child_process';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..');
+const __filename  = fileURLToPath(import.meta.url);
+const __dirname   = path.dirname(__filename);
+const rootDir     = path.resolve(__dirname, '..');
 const packagesDir = path.join(rootDir, 'packages');
 
+// The rl instance lives for the lifetime of manage.js.
+// It must be PAUSED before spawning sub-scripts that do their own readline,
+// and RESUMED after — otherwise two consumers fight over stdin.
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-const clearScreen = () => console.log('\x1Bc');
+// --- Helpers ---
+
+const clearScreen = () => process.stdout.write('\x1Bc');
 
 function listPlugins() {
   if (!fs.existsSync(packagesDir)) return [];
   return fs.readdirSync(packagesDir).filter(f => {
-    return fs.statSync(path.join(packagesDir, f)).isDirectory() && f !== '.DS_Store';
+    return (
+      fs.statSync(path.join(packagesDir, f)).isDirectory() &&
+      f !== '.DS_Store'
+    );
   });
+}
+
+function question(prompt) {
+  return new Promise(resolve => rl.question(prompt, resolve));
 }
 
 function printHeader() {
@@ -26,76 +38,99 @@ function printHeader() {
   console.log('============================');
 }
 
-function mainMenu() {
-  printHeader();
-  const plugins = listPlugins();
-  console.log(`Found ${plugins.length} plugins:`);
-  plugins.forEach(p => console.log(` - ${p}`));
-  console.log('');
-  console.log('1. \x1b[32mCreate New Plugin\x1b[0m');
-  console.log('2. \x1b[31mRemove Plugin\x1b[0m');
-  console.log('3. \x1b[36mSync Configuration\x1b[0m (v2.0.0)');
-  console.log('4. Exit');
-  console.log('');
-  
-  rl.question('Select option: ', (answer) => {
-    switch(answer.trim()) {
-      case '1':
-        createPluginFlow();
-        break;
-      case '2':
-        removePluginFlow(plugins);
-        break;
-      case '3':
-        runScript('sync-configs.js');
-        break;
-      case '4':
-        rl.close();
-        process.exit(0);
-        break;
-      default:
-        mainMenu();
-    }
-  });
-}
-
-function createPluginFlow() {
-  console.log('\n--- Create Plugin ---');
-  rl.question('Enter plugin name (kebab-case, e.g., "cool-effect"): ', (name) => {
-    if (!name) return mainMenu();
-    runScript('create-plugin.js', [name]);
-  });
-}
-
-function removePluginFlow(plugins) {
-  console.log('\n--- Remove Plugin ---');
-  if (plugins.length === 0) {
-    console.log('No plugins to remove.');
-    setTimeout(mainMenu, 1500);
-    return;
-  }
-  
-  rl.question('Enter plugin name to delete: ', (name) => {
-    if (!plugins.includes(name)) {
-      console.log('Plugin not found.');
-      setTimeout(mainMenu, 1500);
-      return;
-    }
-    runScript('remove-plugin.js', [name]);
-  });
-}
-
+// Pause our readline, spawn the script, resume when done.
 function runScript(scriptName, args = []) {
-  const scriptPath = path.join(__dirname, scriptName);
-  const child = spawn('node', [scriptPath, ...args], { stdio: 'inherit' });
-  
-  child.on('close', () => {
-    console.log('\nPress ENTER to return to menu...');
-    rl.question('', () => {
-      mainMenu();
+  return new Promise((resolve) => {
+    const scriptPath = path.join(__dirname, scriptName);
+
+    // Hand stdin over to the child entirely
+    rl.pause();
+    process.stdin.setRawMode?.(false);
+
+    const child = spawn('node', [scriptPath, ...args], { stdio: 'inherit' });
+
+    child.on('close', () => {
+      // Restore readline for manage.js prompts
+      process.stdin.resume();
+      rl.resume();
+      resolve();
     });
   });
 }
 
-// Start
-mainMenu();
+// --- Flows ---
+
+async function mainMenu() {
+  printHeader();
+  const plugins = listPlugins();
+  console.log(`found ${plugins.length} plugin${plugins.length !== 1 ? 's' : ''}:`);
+  plugins.forEach(p => console.log(`  - ${p}`));
+  console.log('');
+  console.log('1. \x1b[32mcreate new plugin\x1b[0m');
+  console.log('2. \x1b[31mremove plugin\x1b[0m');
+  console.log('3. \x1b[36msync configuration\x1b[0m');
+  console.log('4. exit');
+  console.log('');
+
+  const answer = await question('select option: ');
+
+  switch (answer.trim()) {
+    case '1': return createPluginFlow();
+    case '2': return removePluginFlow(plugins);
+    case '3': {
+      await runScript('sync-configs.js');
+      await question('\npress ENTER to return to menu...');
+      return mainMenu();
+    }
+    case '4':
+      rl.close();
+      process.exit(0);
+      break;
+    default:
+      return mainMenu();
+  }
+}
+
+async function createPluginFlow() {
+  console.log('\n--- create plugin ---');
+  const name = await question('plugin name (kebab-case, e.g. "cool-effect"): ');
+  if (!name.trim()) return mainMenu();
+
+  await runScript('create-plugin.js', [name.trim()]);
+  await question('\npress ENTER to return to menu...');
+  return mainMenu();
+}
+
+async function removePluginFlow(plugins) {
+  console.log('\n--- remove plugin ---');
+
+  if (plugins.length === 0) {
+    console.log('no plugins to remove.');
+    await new Promise(r => setTimeout(r, 1500));
+    return mainMenu();
+  }
+
+  console.log('available plugins:');
+  plugins.forEach((p, i) => console.log(`  (${i + 1}) ${p}`));
+
+  const answer = await question('\nenter plugin name to delete: ');
+  const name   = answer.trim();
+
+  if (!plugins.includes(name)) {
+    console.log(`plugin "${name}" not found.`);
+    await new Promise(r => setTimeout(r, 1500));
+    return mainMenu();
+  }
+
+  await runScript('remove-plugin.js', [name]);
+  await question('\npress ENTER to return to menu...');
+  return mainMenu();
+}
+
+// --- Entry ---
+
+mainMenu().catch((err) => {
+  console.error('[x]', err.message);
+  rl.close();
+  process.exit(1);
+});

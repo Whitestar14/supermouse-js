@@ -29,7 +29,6 @@ function generate() {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
         const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
 
-        // Skip private packages or the main bundle if you want
         if (pkg.private) continue;
 
         const items = Array.isArray(meta) ? meta : [meta];
@@ -38,15 +37,10 @@ function generate() {
           if (item.id && item.name) {
             const pkgName = pkg.name;
 
-            // --- AUTOMATION WINS ---
-            // 1. Auto-generate the install command
             item.installCommand = `pnpm install ${pkgName}`;
 
-            // 2. Auto-generate the import snippet
-            // (Assuming your export name matches the meta name or a standard)
             item.importSnippet = `import { ${item.name} } from '${pkgName}'`;
 
-            // 3. Check if README exists to create a link
             item.hasDetailedDocs = fs.existsSync(readmePath);
 
             item.version = pkg.version;

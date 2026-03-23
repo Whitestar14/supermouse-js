@@ -1,228 +1,181 @@
-
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import readline from "readline";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import readline from 'readline';
+import { spawn } from 'child_process';
+import { getUmdName, toPascalCase } from './config.js';
 
 // --- Setup ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, "..");
 
-// 1. Get Arguments
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+const rootDir    = path.resolve(__dirname, '..');
+
 const pluginName = process.argv[2];
 if (!pluginName) {
-  console.error("[!] Please provide a plugin name.");
-  console.log("    Usage: node scripts/create-plugin.js <name>");
+  console.error('[!] please provide a plugin name.');
+  console.error('    usage: node scripts/create-plugin.js <name>');
   process.exit(1);
 }
 
-// Helpers
-const toPascalCase = (str) =>
-  str.replace(/(^\w|-\w)/g, (text) => text.replace(/-/, "").toUpperCase());
+if (!/^[a-z][a-z0-9-]*$/.test(pluginName)) {
+  console.error('[!] plugin name must be kebab-case (e.g. "cool-effect")');
+  process.exit(1);
+}
 
 const pascalName = toPascalCase(pluginName);
-const umdName = `Supermouse${pascalName}`;
-const pluginDir = path.join(rootDir, "packages", pluginName);
+const pluginDir  = path.join(rootDir, 'packages', pluginName);
 
 // --- Templates ---
-const getTemplates = () => {
+
+function makeTemplates() {
   return {
+    /** Minimal package.json; sync-configs will fill in the rest right after */
     packageJson: {
-      name: `@supermousejs/${pluginName}`,
-      version: "2.0.0",
-      main: "dist/index.umd.js",
-      module: "dist/index.mjs",
-      types: "dist/index.d.ts",
-      exports: {
-        ".": {
-          "types": "./dist/index.d.ts",
-          "import": "./dist/index.mjs",
-          "require": "./dist/index.umd.js"
-        }
-      },
-      scripts: {
-        build: "vite build",
-      },
-      dependencies: {
-        "@supermousejs/core": "workspace:*"
-      },
-      devDependencies: {},
+      name:        `@supermousejs/${pluginName}`,
+      version:     '2.0.0',
+      private:     false,
+      description: `Supermouse ${pascalName} plugin`,
     },
 
     tsConfig: {
-      extends: "../../tsconfig.base.json",
-      include: ["src"],
+      extends: '../../tsconfig.base.json',
+      include: ['src'],
       compilerOptions: {
-        outDir: "dist",
-        baseUrl: ".",
-        paths: {
-          "@supermousejs/core": ["../core/src/index.ts"]
-        }
+        outDir:  'dist',
+        baseUrl: '.',
+        paths:   { '@supermousejs/core': ['../core/src/index.ts'] },
       },
     },
 
-    viteConfig: `
-import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export default defineConfig({
-  build: {
-    lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
-      name: '${umdName}',
-      fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
-    },
-    rollupOptions: {
-      external: ['@supermousejs/core'],
-      output: {
-        globals: {
-          '@supermousejs/core': 'SupermouseCore'
-        }
-      }
-    }
-  },
-  plugins: [dts({ rollupTypes: true })]
-});
-`.trim(),
-
-    indexTs: `
+    indexTs: `\
 import type { SupermousePlugin } from '@supermousejs/core';
 
 export interface ${pascalName}Options {
-  name?: string;
+  name?:      string;
   isEnabled?: boolean;
 }
 
 export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlugin => {
   return {
-    name: '${pluginName}',
-    isEnabled: true,
+    name:      '${pluginName}',
+    isEnabled: options.isEnabled ?? true,
 
     install(app) {
-      // Setup logic here
+      // setup logic
     },
 
     update(app, dt) {
-      // Frame loop logic here
+      // per-frame logic
     },
-    
+
     destroy(app) {
-      // Cleanup logic here
-    }
+      // cleanup
+    },
   };
 };
-`.trim(),
+`,
   };
-};
-
-// --- Logic ---
-
-async function run() {
-  const templates = getTemplates();
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  // 2. Safety Check
-  if (fs.existsSync(pluginDir)) {
-    const answer = await new Promise((resolve) => {
-      rl.question(
-        `\n[!] Plugin "@supermousejs/${pluginName}" already exists.\n` +
-          `    Overwrite configs (package.json, vite, tsconfig) but KEEP src/index.ts? (y/N) `,
-        resolve
-      );
-    });
-    
-    if (answer.toLowerCase() !== "y") {
-      console.log("[-] Aborted. If you want to update configs non-destructively, use 'pnpm sync' instead.");
-      process.exit(0);
-    }
-  } 
-  rl.close();
-
-  console.log(`\n>> Scaffolding @supermousejs/${pluginName}...`);
-
-  // 3. Create Directory
-  if (!fs.existsSync(pluginDir)) {
-    fs.mkdirSync(path.join(pluginDir, "src"), { recursive: true });
-  }
-
-  // 4. Write Configs
-  console.log(">> Writing configuration files...");
-
-  // Preserve version if updating
-  let finalPackageJson = templates.packageJson;
-  if (fs.existsSync(path.join(pluginDir, "package.json"))) {
-    try {
-      const currentPkg = JSON.parse(fs.readFileSync(path.join(pluginDir, "package.json"), "utf-8"));
-      finalPackageJson.version = currentPkg.version;
-    } catch (e) {}
-  }
-
-  fs.writeFileSync(path.join(pluginDir, "package.json"), JSON.stringify(finalPackageJson, null, 2));
-  fs.writeFileSync(path.join(pluginDir, "tsconfig.json"), JSON.stringify(templates.tsConfig, null, 2));
-  fs.writeFileSync(path.join(pluginDir, "vite.config.ts"), templates.viteConfig);
-
-  // 5. Write Source (Only if missing)
-  const indexTsPath = path.join(pluginDir, "src/index.ts");
-  if (!fs.existsSync(indexTsPath)) {
-    fs.writeFileSync(indexTsPath, templates.indexTs);
-    console.log("   [+] Created src/index.ts");
-  } else {
-    console.log("   [~] Preserved src/index.ts");
-  }
-
-  // 6. Update Consumers
-  if (pluginName !== "core") {
-    updateConsumer("playground", pluginName);
-    updateConsumer("docs", pluginName);
-  }
-
-  console.log(`\n[ok] @supermousejs/${pluginName} is ready.`);
-  console.log('\n    Run "pnpm install" to link dependencies.');
 }
 
-function updateConsumer(folderName, pluginName) {
-  const consumerPath = path.join(rootDir, folderName);
-  if (!fs.existsSync(consumerPath)) return;
+// --- Helpers ---
 
-  const pkgPath = path.join(consumerPath, "package.json");
-  const vitePath = path.join(consumerPath, "vite.config.ts");
+function question(rl, prompt) {
+  return new Promise(resolve => rl.question(prompt, resolve));
+}
 
-  // 1. Add dependency
-  if (fs.existsSync(pkgPath)) {
-    try {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-      pkg.dependencies = pkg.dependencies || {};
-      pkg.dependencies[`@supermousejs/${pluginName}`] = "workspace:*";
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-    } catch (e) {}
+function preserveVersion(dir, defaults) {
+  const pkgPath = path.join(dir, 'package.json');
+  if (!fs.existsSync(pkgPath)) return defaults;
+  try {
+    const existing = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    return { ...defaults, version: existing.version ?? defaults.version };
+  } catch {
+    return defaults;
+  }
+}
+
+function updateConsumerPackageJson(folderName) {
+  const pkgPath = path.join(rootDir, folderName, 'package.json');
+  if (!fs.existsSync(pkgPath)) return;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    pkg.dependencies ??= {};
+    pkg.dependencies[`@supermousejs/${pluginName}`] = 'workspace:*';
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+    console.log(`   [+] added to ${folderName}/package.json`);
+  } catch {
+    console.error(`   [!] error updating ${folderName}/package.json`);
+  }
+}
+
+function runSyncConfigs() {
+  return new Promise((resolve, reject) => {
+    const syncPath = path.join(__dirname, 'sync-configs.js');
+    const child    = spawn('node', [syncPath, `--packages=${pluginName}`, '--non-interactive'], {
+      stdio: 'inherit',
+    });
+    child.on('close', (code) => code === 0 ? resolve() : reject(new Error(`sync exited ${code}`)));
+    child.on('error', reject);
+  });
+}
+
+// --- Main ---
+
+async function run() {
+  const rl        = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const templates = makeTemplates();
+
+  // Safety check on existing plugin
+  if (fs.existsSync(pluginDir)) {
+    const answer = await question(
+      rl,
+      `\n[!] @supermousejs/${pluginName} already exists.\n` +
+      `    overwrite configs but KEEP src/index.ts? (y/N) `,
+    );
+    if (answer.toLowerCase() !== 'y') {
+      console.log('[-] aborted. use "pnpm sync" for non-destructive config updates.');
+      rl.close();
+      process.exit(0);
+    }
+  }
+  rl.close();
+
+  console.log(`\n>> scaffolding @supermousejs/${pluginName}...`);
+
+  // Create directory
+  fs.mkdirSync(path.join(pluginDir, 'src'), { recursive: true });
+
+  // Write configs
+  console.log('>> writing configuration files...');
+  const finalPkg = preserveVersion(pluginDir, templates.packageJson);
+  fs.writeFileSync(path.join(pluginDir, 'package.json'), JSON.stringify(finalPkg, null, 2));
+  fs.writeFileSync(path.join(pluginDir, 'tsconfig.json'), JSON.stringify(templates.tsConfig, null, 2));
+
+  // Write source only if absent
+  const indexPath = path.join(pluginDir, 'src/index.ts');
+  if (!fs.existsSync(indexPath)) {
+    fs.writeFileSync(indexPath, templates.indexTs);
+    console.log('   [+] created src/index.ts');
+  } else {
+    console.log('   [~] preserved existing src/index.ts');
   }
 
-  // 2. Add Vite Alias (Regex Append)
-  if (fs.existsSync(vitePath)) {
-    try {
-      let viteContent = fs.readFileSync(vitePath, "utf-8");
-      const aliasEntry = `'@supermousejs/${pluginName}': path.resolve(__dirname, '../packages/${pluginName}/src/index.ts')`;
-
-      if (!viteContent.includes(`@supermousejs/${pluginName}`)) {
-        if (viteContent.includes("alias: {")) {
-          viteContent = viteContent.replace(/(alias:\s*{)/, `$1\n      ${aliasEntry},`);
-          fs.writeFileSync(vitePath, viteContent);
-        }
-      }
-    } catch (e) {}
+  // Link into consumers
+  if (pluginName !== 'core') {
+    updateConsumerPackageJson('playground');
+    updateConsumerPackageJson('docs');
   }
+
+  // Finalize via sync
+  console.log('\n>> running config sync...');
+  await runSyncConfigs();
+
+  console.log(`\n[ok] @supermousejs/${pluginName} is ready.`);
+  console.log('     run "pnpm install" to link dependencies.\n');
 }
 
 run().catch((err) => {
-  console.error(err);
+  console.error('[x]', err.message);
   process.exit(1);
 });

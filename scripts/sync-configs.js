@@ -1,295 +1,328 @@
-
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
+import {
+  getUmdName,
+  SHARED_LIBS,
+  SPECIAL_CASES,
+  EXCLUDED_PACKAGES,
+} from './config.js';
+import {
+  patchJsonFile as utilPatchJsonFile,
+  scanForImports as utilScanForImports,
+} from './utils/config-patcher.js';
 
-// --- Configuration ---
+// --- Setup ---
+
 const __filename = fileURLToPath(import.meta.url);
-const rootDir = path.resolve(path.dirname(__filename), '..');
+const rootDir    = path.resolve(path.dirname(__filename), '..');
 const packagesDir = path.join(rootDir, 'packages');
 
-const EXCLUDED = ['.DS_Store']; 
+// --- CLI args ---
 
-// Shared libraries that need auto-linking
-const SHARED_LIBS = [
-  { pkg: '@supermousejs/utils', path: '../utils/src/index.ts', global: 'SupermouseUtils' },
-  { pkg: '@supermousejs/zoetrope', path: '../zoetrope/src/index.ts', global: 'SupermouseZoetrope' }
-];
+const args           = process.argv.slice(2);
+const dryRun         = args.includes('--dry-run');
+const nonInteractive = args.includes('--non-interactive') || args.includes('-y');
+const syncAll        = args.includes('--all');  // renamed: was `allPackages`, shadowed inner var
+const filterArg      = args.find(a => a.startsWith('--packages='));
+const selectedPackages = filterArg ? filterArg.split('=')[1].split(',') : null;
 
-// Special configurations for nuanced packages
-const SPECIAL_CASES = {
-  'legacy': {
-    umdName: 'Supermouse', // Must remain 'Supermouse' for v1 compat
-    extraExternals: [],
-    extraGlobals: {}
-  },
-  'vue': {
-    umdName: 'SupermouseVue',
-    extraExternals: ['vue'],
-    extraGlobals: { 'vue': 'Vue' }
-  }
-};
+// --- Patch: package.json ---
 
-// --- Helpers ---
+function patchPackageJson(pkgPath, pkgName, usedLibs) {
+  const result = utilPatchJsonFile(pkgPath, (content) => {
+    const changes = [];
+    const isCore  = pkgName === 'core';
 
-const toPascalCase = (str) => 
-  str.replace(/(^\w|-\w)/g, (text) => text.replace(/-/, "").toUpperCase());
-
-const getUmdName = (pkgName) => {
-  if (SPECIAL_CASES[pkgName]) return SPECIAL_CASES[pkgName].umdName;
-  return pkgName === 'core' ? 'SupermouseCore' : `Supermouse${toPascalCase(pkgName)}`;
-};
-
-const scanForImports = (srcDir) => {
-  const detected = new Set();
-  if (!fs.existsSync(srcDir)) return detected;
-
-  const files = fs.readdirSync(srcDir);
-  for (const file of files) {
-    if ((file.endsWith('.ts') || file.endsWith('.tsx')) && !file.endsWith('.d.ts')) {
-      const content = fs.readFileSync(path.join(srcDir, file), 'utf-8');
-      SHARED_LIBS.forEach(lib => {
-        if (content.includes(`from '${lib.pkg}'`) || content.includes(`from "${lib.pkg}"`)) {
-          detected.add(lib);
-        }
-      });
+    // Scripts
+    if (!content.scripts) content.scripts = {};
+    if (content.scripts.build !== 'vite build') {
+      content.scripts.build = 'vite build';
+      changes.push('set build script → "vite build"');
     }
-  }
-  return detected;
-};
 
-// --- Patching Logic (The "Heal" Strategy) ---
-
-const patchPackageJson = (pkgPath, pkgName, usedLibs) => {
-  if (!fs.existsSync(pkgPath)) return;
-  
-  const content = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-  const isCore = pkgName === 'core';
-
-  // 1. Enforce Standard Fields (Merge)
-  // Note: We DO NOT enforce version here anymore. Changesets handles that.
-  content.scripts = { ...content.scripts, "build": "vite build" };
-  content.main = "dist/index.umd.js";
-  content.module = "dist/index.mjs";
-  content.types = "dist/index.d.ts";
-  
-  // 1a. Enforce Public Access for Scoped Packages
-  if (content.name.startsWith('@supermousejs/')) {
-    content.publishConfig = { access: "public" };
-  }
-  
-  // Ensure exports exist but preserve extra exports if any
-  content.exports = {
-    ...content.exports,
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.umd.js"
+    // Entry points
+    const entrypoints = {
+      main:   'dist/index.umd.js',
+      module: 'dist/index.mjs',
+      types:  'dist/index.d.ts',
+    };
+    for (const [field, expected] of Object.entries(entrypoints)) {
+      if (content[field] !== expected) {
+        content[field] = expected;
+        changes.push(`set ${field} → "${expected}"`);
+      }
     }
-  };
 
-  // 2. Enforce Dependencies (Merge)
-  content.dependencies = content.dependencies || {};
-  
-  if (!isCore) {
-    content.dependencies['@supermousejs/core'] = "workspace:*";
-  }
-  
-  usedLibs.forEach(lib => {
-    content.dependencies[lib.pkg] = "workspace:*";
-  });
-
-  // 3. Clean DevDeps (Move shared to deps if present)
-  if (content.devDependencies) {
-    usedLibs.forEach(lib => {
-      if (content.devDependencies[lib.pkg]) delete content.devDependencies[lib.pkg];
-    });
-  }
-
-  fs.writeFileSync(pkgPath, JSON.stringify(content, null, 2));
-  console.log(`   [✓] Patched package.json`);
-};
-
-const patchTsConfig = (configPath, pkgName, usedLibs) => {
-  let content = {
-    "extends": "../../tsconfig.base.json",
-    "include": ["src"],
-    "compilerOptions": {
-      "outDir": "dist",
-      "baseUrl": ".",
-      "paths": {}
+    // publishConfig for scoped packages
+    if (content.name?.startsWith('@supermousejs/')) {
+      if (content.publishConfig?.access !== 'public') {
+        content.publishConfig = { access: 'public' };
+        changes.push('set publishConfig.access → "public"');
+      }
     }
-  };
 
-  // If exists, read and merge
-  if (fs.existsSync(configPath)) {
-    try {
-      const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      content = { ...content, ...existing };
-      // Ensure compilerOptions structure
-      content.compilerOptions = { ...content.compilerOptions, ...existing.compilerOptions };
-      content.compilerOptions.paths = { ...content.compilerOptions.paths };
-    } catch (e) { /* ignore corrupt json */ }
-  }
+    // exports
+    if (!content.exports) { content.exports = {}; changes.push('created exports field'); }
+    content.exports['.'] = {
+      types:   './dist/index.d.ts',
+      import:  './dist/index.mjs',
+      require: './dist/index.umd.js',
+    };
 
-  // Ensure Base Paths
-  if (pkgName !== 'core') {
-    content.compilerOptions.paths['@supermousejs/core'] = ["../core/src/index.ts"];
-  }
+    // deps
+    if (!content.peerDependencies) content.peerDependencies = {};
+    if (!content.dependencies)     content.dependencies     = {};
+    if (!content.devDependencies)  content.devDependencies  = {};
 
-  // Ensure Lib Paths
-  usedLibs.forEach(lib => {
-    content.compilerOptions.paths[lib.pkg] = [lib.path];
-  });
+    if (!isCore) {
+      const corePkg = '@supermousejs/core';
+      if (content.peerDependencies[corePkg] !== 'workspace:*') {
+        content.peerDependencies[corePkg] = 'workspace:*';
+        changes.push(`added ${corePkg} → peerDependencies`);
+      }
+      if (content.devDependencies[corePkg] !== 'workspace:*') {
+        content.devDependencies[corePkg] = 'workspace:*';
+        changes.push(`added ${corePkg} → devDependencies`);
+      }
+      if (content.dependencies[corePkg]) {
+        delete content.dependencies[corePkg];
+        changes.push(`removed ${corePkg} from dependencies`);
+      }
+    }
 
-  fs.writeFileSync(configPath, JSON.stringify(content, null, 2));
-  console.log(`   [✓] Patched tsconfig.json`);
-};
+    for (const lib of usedLibs) {
+      if (content.dependencies[lib.pkg] !== 'workspace:*') {
+        content.dependencies[lib.pkg] = 'workspace:*';
+        changes.push(`added ${lib.pkg} → dependencies`);
+      }
+      if (content.peerDependencies[lib.pkg]) {
+        delete content.peerDependencies[lib.pkg];
+        changes.push(`moved ${lib.pkg} out of peerDependencies`);
+      }
+      if (content.devDependencies[lib.pkg]) {
+        delete content.devDependencies[lib.pkg];
+      }
+    }
 
-const patchViteConfig = (configPath, pkgName, usedLibs) => {
+    // prune empty dep blocks
+    for (const key of ['dependencies', 'peerDependencies', 'devDependencies']) {
+      if (content[key] && Object.keys(content[key]).length === 0) delete content[key];
+    }
+
+    return { content, changes };
+  }, dryRun);
+
+  reportPatchResult('package.json', result);
+}
+
+// --- Patch: tsconfig.json ---
+
+function patchTsConfig(configPath, pkgName, usedLibs) {
+  const result = utilPatchJsonFile(configPath, (content) => {
+    const changes = [];
+
+    content.extends              ??= '../../tsconfig.base.json',  changes.push('set extends');
+    content.include              ??= ['src'],                      changes.push('set include');
+    content.compilerOptions      ??= {};
+    content.compilerOptions.outDir  ??= 'dist', changes.push('set outDir');
+    content.compilerOptions.baseUrl ??= '.',    changes.push('set baseUrl');
+    content.compilerOptions.paths   ??= {};
+
+    if (pkgName !== 'core' && !content.compilerOptions.paths['@supermousejs/core']) {
+      content.compilerOptions.paths['@supermousejs/core'] = ['../core/src/index.ts'];
+      changes.push('added @supermousejs/core path alias');
+    }
+
+    for (const lib of usedLibs) {
+      if (!content.compilerOptions.paths[lib.pkg]) {
+        content.compilerOptions.paths[lib.pkg] = [lib.path];
+        changes.push(`added ${lib.pkg} path alias`);
+      }
+    }
+
+    return { content, changes };
+  }, dryRun);
+
+  reportPatchResult('tsconfig.json', result);
+}
+
+// --- Patch: vite.config.ts ---
+
+function patchViteConfig(configPath, pkgName, usedLibs) {
   const umdName = getUmdName(pkgName);
   const special = SPECIAL_CASES[pkgName];
 
-  // 1. Calculate Required Externals/Globals
   const requiredExternals = new Set();
-  const requiredGlobals = {};
+  const requiredGlobals   = {};
 
   if (pkgName !== 'core') {
     requiredExternals.add('@supermousejs/core');
     requiredGlobals['@supermousejs/core'] = 'SupermouseCore';
   }
-
-  usedLibs.forEach(lib => {
+  for (const lib of usedLibs) {
     requiredExternals.add(lib.pkg);
     requiredGlobals[lib.pkg] = lib.global;
-  });
-
+  }
   if (special) {
     special.extraExternals.forEach(e => requiredExternals.add(e));
     Object.assign(requiredGlobals, special.extraGlobals);
   }
 
-  // 2. Generate Brand New Config (If missing)
+  // Create if missing
   if (!fs.existsSync(configPath)) {
-    const extArray = Array.from(requiredExternals).map(e => `'${e}'`).join(', ');
-    const globObj = Object.entries(requiredGlobals)
-      .map(([k, v]) => `'${k}': '${v}'`)
-      .join(',\n          ');
+    const extArray = [...requiredExternals].map(e => `'${e}'`).join(', ');
+    const globObj  = Object.entries(requiredGlobals)
+      .map(([k, v]) => `        '${k}': '${v}'`)
+      .join(',\n');
 
-    const template = `
+    const template = `\
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname  = path.dirname(__filename);
 
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
-      name: '${umdName}',
+      entry:    path.resolve(__dirname, 'src/index.ts'),
+      name:     '${umdName}',
       fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
     },
     rollupOptions: {
       external: [${extArray}],
       output: {
         globals: {
-          ${globObj}
-        }
-      }
-    }
+${globObj}
+        },
+      },
+    },
   },
-  plugins: [dts({ rollupTypes: true })]
-});`.trim();
-    
-    fs.writeFileSync(configPath, template);
-    console.log(`   [+] Created vite.config.ts`);
+  plugins: [dts({ rollupTypes: true })],
+});
+`;
+    if (!dryRun) fs.writeFileSync(configPath, template);
+    console.log('   [+] created vite.config.ts');
     return;
   }
 
-  // 3. Patch Existing Config (If present)
-  let content = fs.readFileSync(configPath, 'utf-8');
+  // Patch existing
+  let content  = fs.readFileSync(configPath, 'utf-8');
   let modified = false;
+  const changes = [];
 
-  // A. Fix UMD Name
-  const nameRegex = /(build:\s*\{[\s\S]*?lib:\s*\{[\s\S]*?name:\s*)(['"`])(?:[^'"`]+)(['"`])/;
-  if (content.match(nameRegex)) {
-    const replacement = `$1$2${umdName}$3`;
-    if (content !== content.replace(nameRegex, replacement)) {
-      content = content.replace(nameRegex, replacement);
-      modified = true;
-      console.log(`   [~] Updated UMD Name -> ${umdName}`);
-    }
+  // Fix UMD name
+  const nameMatch = content.match(/name:\s*(['"`])([^'"`]+)\1/);
+  if (nameMatch && nameMatch[2] !== umdName) {
+    content  = content.replace(/name:\s*(['"`])[^'"`]+\1/, `name: '${umdName}'`);
+    modified = true;
+    changes.push(`updated UMD name → "${umdName}"`);
   }
 
-  // B. Enforce FileName strategy (.mjs for ESM)
-  const fileNamePattern = /(fileName:\s*)(\([^)]*\)\s*=>\s*[^,]+)/;
+  // Fix fileName strategy
   const desiredFileName = `(format) => format === 'es' ? 'index.mjs' : 'index.umd.js'`;
-  
-  const fileNameMatch = content.match(fileNamePattern);
-  if (fileNameMatch) {
-    const currentFn = fileNameMatch[2];
-    if (!currentFn.includes("=== 'es'")) {
-      content = content.replace(fileNamePattern, `$1${desiredFileName}`);
-      modified = true;
-      console.log(`   [~] Updated fileName strategy (es -> .mjs)`);
-    }
+  const fileNameMatch   = content.match(/(fileName:\s*)(\([^)]*\)\s*=>[^\n,]+)/);
+  if (fileNameMatch && !fileNameMatch[2].includes("=== 'es'")) {
+    content  = content.replace(/(fileName:\s*)(\([^)]*\)\s*=>[^\n,]+)/, `$1${desiredFileName}`);
+    modified = true;
+    changes.push('updated fileName strategy');
   }
 
-  // C. Update Globals
-  Object.entries(requiredGlobals).forEach(([k, v]) => {
-    const keyRegex = new RegExp(`(['"\`])${k}\\1\\s*:\\s*(['"\`])([^'"]+)\\2`);
-    const match = content.match(keyRegex);
+  // Fix / add globals
+  for (const [k, v] of Object.entries(requiredGlobals)) {
+    const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const keyRegex = new RegExp(`(['"\`])${escaped}\\1\\s*:\\s*(['"\`])([^'"]+)\\2`);
+    const match    = content.match(keyRegex);
     if (match) {
       if (match[3] !== v) {
-        content = content.replace(keyRegex, `$1${k}$1: '${v}'`);
+        content  = content.replace(keyRegex, `'${k}': '${v}'`);
         modified = true;
-        console.log(`   [~] Fixed global for ${k}`);
+        changes.push(`fixed global for ${k}`);
       }
+    } else if (content.includes('globals:')) {
+      content = content.replace(
+        /(globals:\s*\{)([\s\S]*?)(\})/,
+        `$1\n        '${k}': '${v}',$2$3`,
+      );
+      modified = true;
+      changes.push(`added global for ${k}`);
     }
-  });
+  }
 
   if (modified) {
-    fs.writeFileSync(configPath, content);
-    console.log(`   [✓] Patched vite.config.ts`);
+    if (!dryRun) fs.writeFileSync(configPath, content);
+    console.log('   [✓] patched vite.config.ts');
+    changes.forEach(c => console.log(`       ${c}`));
   } else {
-    console.log(`   [-] vite.config.ts is up to date`);
+    console.log('   [-] vite.config.ts unchanged');
   }
-};
+}
 
-// --- Interactive Selection ---
+// --- Helpers ---
+
+function reportPatchResult(label, result) {
+  if (result.error) {
+    console.log(`   [!] error patching ${label}: ${result.error}`);
+  } else if (result.modified && result.changes?.length > 0) {
+    console.log(`   [✓] patched ${label}`);
+    result.changes.forEach(c => console.log(`       ${c}`));
+  } else {
+    console.log(`   [-] ${label} already correct`);
+  }
+}
+
+function scanForImports(srcDir) {
+  return utilScanForImports(srcDir, SHARED_LIBS);
+}
+
+// --- Package selection ---
 
 async function getPackagesToSync() {
-  const allPackages = fs.readdirSync(packagesDir).filter(p => {
-    return fs.statSync(path.join(packagesDir, p)).isDirectory() && !EXCLUDED.includes(p);
-  });
+  const available = fs.readdirSync(packagesDir)
+    .filter(p => {
+      const full = path.join(packagesDir, p);
+      return fs.statSync(full).isDirectory() && !EXCLUDED_PACKAGES.includes(p);
+    })
+    .sort();
 
-  console.log('Select packages to sync:');
-  console.log('  (a) All Packages');
-  allPackages.forEach((p, i) => {
-    console.log(`  (${i + 1}) ${p}`);
-  });
+  if (selectedPackages) {
+    const valid = selectedPackages.filter(p => available.includes(p));
+    if (valid.length === 0) {
+      console.error('[x] no valid packages matched --packages filter');
+      process.exit(1);
+    }
+    return valid;
+  }
+
+  // --all or -y: skip prompt
+  if (syncAll || nonInteractive) return available;
+
+  // Interactive
+  console.log('\nselect packages to sync:');
+  console.log('  (a) all packages');
+  available.forEach((p, i) => console.log(`  (${i + 1}) ${p}`));
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
   return new Promise((resolve) => {
-    rl.question('\nEnter choice (e.g. "a" or "1 3"): ', (answer) => {
+    rl.question('\nenter choice (e.g. "a" or "1 3"): ', (answer) => {
       rl.close();
       const choice = answer.trim().toLowerCase();
-      
+
       if (choice === 'a' || choice === '') {
-        resolve(allPackages);
+        resolve(available);
         return;
       }
 
-      const indices = choice.split(/[,\s]+/).map(n => parseInt(n, 10)).filter(n => !isNaN(n));
-      const selected = indices.map(i => allPackages[i - 1]).filter(p => p);
-      
+      const indices  = choice.split(/[,\s]+/).map(Number).filter(n => !Number.isNaN(n));
+      const selected = indices.map(i => available[i - 1]).filter(Boolean);
+
       if (selected.length === 0) {
-        console.log('No valid selection. Aborting.');
+        console.log('[x] no valid selection. aborting.');
         process.exit(0);
       }
       resolve(selected);
@@ -297,40 +330,69 @@ async function getPackagesToSync() {
   });
 }
 
-// --- Main Loop ---
+// --- Run ---
 
 async function run() {
-  console.log(`\n🩺 Supermouse Config Healer (Version Agnostic)\n`);
+  console.log(`\n${dryRun ? '[dry-run] ' : ''}🩺 supermouse config sync\n`);
 
   if (!fs.existsSync(packagesDir)) {
-    console.error('❌ packages directory not found.');
+    console.error('[x] packages directory not found');
     process.exit(1);
   }
 
   const packages = await getPackagesToSync();
-
-  console.log(`\nSyncing ${packages.length} packages...\n`);
+  console.log(`\nsyncing ${packages.length} package${packages.length === 1 ? '' : 's'}...\n`);
 
   for (const pkgName of packages) {
-    const pkgPath = path.join(packagesDir, pkgName);
-    console.log(`📦 @supermousejs/${pkgName}`);
-
-    // 1. Analyze Source
+    const pkgPath  = path.join(packagesDir, pkgName);
     const usedLibs = scanForImports(path.join(pkgPath, 'src'));
 
-    // 2. Patch JSON
+    console.log(`📦 @supermousejs/${pkgName}`);
     patchPackageJson(path.join(pkgPath, 'package.json'), pkgName, usedLibs);
-
-    // 3. Patch TSConfig
-    patchTsConfig(path.join(pkgPath, 'tsconfig.json'), pkgName, usedLibs);
-
-    // 4. Patch/Check Vite Config
-    patchViteConfig(path.join(pkgPath, 'vite.config.ts'), pkgName, usedLibs);
-    
-    console.log(''); // spacer
+    patchTsConfig(   path.join(pkgPath, 'tsconfig.json'), pkgName, usedLibs);
+    patchViteConfig( path.join(pkgPath, 'vite.config.ts'), pkgName, usedLibs);
+    console.log('');
   }
 
-  console.log(`✅ Sync complete. Run 'pnpm install' to refresh workspace links.`);
+  if (dryRun) {
+    console.log('✅ dry-run complete. no files modified.\n');
+    console.log('   run without --dry-run to apply:');
+    console.log('   pnpm sync\n');
+  } else {
+    console.log("✅ sync complete. run 'pnpm install' to refresh workspace links.\n");
+  }
 }
 
-run();
+// --- Help ---
+
+function showHelp() {
+  console.log(`
+🩺 supermouse config sync
+
+usage: pnpm sync [options]
+
+options:
+  --dry-run                preview changes without modifying files
+  --all                    sync all packages (non-interactive)
+  --non-interactive, -y    skip confirmation prompts
+  --packages=<names>       sync specific packages (comma-separated)
+  --help, -h               show this message
+
+examples:
+  pnpm sync
+  pnpm sync --dry-run
+  pnpm sync --all --dry-run
+  pnpm sync --packages=dot,ring
+  pnpm sync --packages=dot,ring --dry-run
+`);
+}
+
+if (args.includes('--help') || args.includes('-h')) {
+  showHelp();
+  process.exit(0);
+}
+
+run().catch((err) => {
+  console.error('[x] error:', err.message);
+  process.exit(1);
+});
