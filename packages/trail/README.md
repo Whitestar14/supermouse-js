@@ -11,18 +11,20 @@ pnpm add @supermousejs/trail
 ## Usage
 
 ```ts
-import { Supermouse } from '@supermousejs/core';
-import { Trail } from '@supermousejs/trail';
+import { Supermouse } from "@supermousejs/core";
+import { Trail } from "@supermousejs/trail";
 
 const app = new Supermouse();
 
-app.use(Trail({
-  length: 10,      // Number of segments
-  size: 6,         // Particle size
-  color: '#ff00ff'
-}));
+app.use(
+  Trail({
+    length: 10, // Number of segments
+    size: 6, // Particle size
+    color: "#ff00ff",
+  })
+);
 ```
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

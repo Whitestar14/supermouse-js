@@ -10,16 +10,16 @@ export const DEFAULT_HOVER_SELECTORS = [
 
 /**
  * The Central Conductor & Runtime Loop of Supermouse.
- * 
+ *
  * This class orchestrates the application state, manages the animation loop (`requestAnimationFrame`),
  * and coordinates data flow between the Input system, the Stage system, and the Plugins.
- * 
+ *
  * ## Architecture
  * 1. **Input System**: Captures raw events and writes to `state.pointer`.
  * 2. **Logic Plugins**: (Priority < 0) Read `pointer`, modify `state.target` (e.g. Magnetic, Stick).
  * 3. **Physics**: Core interpolates `state.smooth` towards `state.target`.
  * 4. **Visual Plugins**: (Priority >= 0) Read `state.smooth`, update DOM transforms.
- * 
+ *
  * @example
  * ```ts
  * const app = new Supermouse({ smoothness: 0.15 });
@@ -33,7 +33,7 @@ export class Supermouse {
 
   /**
    * The Single Source of Truth.
-   * 
+   *
    * This object is shared by reference. `Input` writes to it; `Supermouse` physics reads/writes to it;
    * Plugins read/write to it.
    */
@@ -49,7 +49,7 @@ export class Supermouse {
    * @internal Use `use()`, `enablePlugin()`, or `disablePlugin()` to interact with this.
    */
   private plugins: SupermousePlugin[] = [];
-  
+
   /**
    * The Stage System responsible for the DOM container and CSS injection.
    * @internal
@@ -61,16 +61,16 @@ export class Supermouse {
    * @internal
    */
   private input: Input;
-  
+
   private rafId: number = 0;
   private lastTime: number = 0;
   private isRunning: boolean = false;
-  
+
   private hoverSelectors: Set<string>;
 
   /**
    * Creates a new Supermouse instance.
-   * 
+   *
    * @param options - Global configuration options.
    * @throws Will throw if running in a non-browser environment (window/document undefined).
    */
@@ -80,7 +80,7 @@ export class Supermouse {
       enableTouch: false,
       autoDisableOnMobile: true,
       ignoreOnNative: 'auto',
-      hideCursor: true, 
+      hideCursor: true,
       hideOnLeave: true,
       autoStart: true,
       container: document.body,
@@ -121,9 +121,9 @@ export class Supermouse {
 
     // Pass state by reference to Input. Input will mutate this state directly.
     this.input = new Input(
-      this.state, 
+      this.state,
       this.options,
-      () => Array.from(this.hoverSelectors).join(', '), 
+      () => Array.from(this.hoverSelectors).join(', '),
       (enabled) => { if (!enabled) this.resetPosition(); }
     );
 
@@ -185,12 +185,12 @@ export class Supermouse {
 
   /**
    * Registers a CSS selector as an "Interactive Target".
-   * 
+   *
    * When the mouse hovers over an element matching this selector:
    * 1. `state.isHover` becomes `true`.
    * 2. `state.hoverTarget` is set to the element.
    * 3. The `Stage` system injects CSS to hide the native cursor for this element (if `hideCursor: true`).
-   * 
+   *
    * @param selector - A valid CSS selector string (e.g., `.my-button`, `[data-trigger]`).
    */
   public registerHoverTarget(selector: string) {
@@ -200,47 +200,47 @@ export class Supermouse {
     }
   }
 
-  /** 
+  /**
    * The fixed container element where plugins should append their DOM nodes.
    */
   public get container(): HTMLDivElement { return this.stage.element; }
-  
+
   /**
    * Manually override the native cursor visibility.
    * Useful for drag-and-drop operations, modals, or special UI states.
-   * 
+   *
    * @param type 'auto' (Show Native), 'none' (Hide Native), or null (Resume Auto-detection)
    */
   public setCursor(type: 'auto' | 'none' | null) {
     this.state.forcedCursor = type;
   }
 
-  private init() { 
+  private init() {
     if (this.options.autoStart) {
-        this.startLoop(); 
+        this.startLoop();
     }
   }
 
-  /** 
+  /**
    * Starts the update loop and enables input listeners.
    * Hides the native cursor if configured.
    */
   public enable() { this.input.isEnabled = true; this.stage.setNativeCursor('none'); }
-  
-  /** 
-   * Stops the update loop, disables listeners, and restores the native cursor. 
+
+  /**
+   * Stops the update loop, disables listeners, and restores the native cursor.
    * Resets internal state positions to off-screen.
    */
   public disable() { this.input.isEnabled = false; this.stage.setNativeCursor('auto'); this.resetPosition(); }
 
   /**
    * Registers a new plugin.
-   * 
+   *
    * @remarks
    * Plugins are sorted by `priority` immediately after registration.
    * - **Negative Priority (< 0)**: Logic plugins (run before physics).
    * - **Positive Priority (>= 0)**: Visual plugins (run after physics).
-   * 
+   *
    * @param plugin - The plugin object to install.
    */
   public use(plugin: SupermousePlugin) {
@@ -248,14 +248,14 @@ export class Supermouse {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
       return this;
     }
-    
+
     if (plugin.isEnabled === undefined) {
       plugin.isEnabled = true;
     }
 
     this.plugins.push(plugin);
     this.plugins.sort((a, b) => (a.priority || 0) - (b.priority || 0));
-    
+
     plugin.install?.(this);
     return this;
   }
@@ -283,7 +283,7 @@ export class Supermouse {
    * Manually steps the animation loop.
    * Useful when integrating with external game loops (e.g., Three.js, PixiJS) where
    * you want to disable the internal RAF and drive `Supermouse` from your own ticker.
-   * 
+   *
    * @param time Current timestamp in milliseconds.
    */
   public step(time: number) {
@@ -297,7 +297,7 @@ export class Supermouse {
     } catch (e) {
       console.error(`[Supermouse] Plugin '${plugin.name}' crashed and has been disabled.`, e);
       plugin.isEnabled = false;
-      plugin.onDisable?.(this);
+      try { plugin.onDisable?.(this) } catch {};
     }
   }
 
@@ -309,7 +309,7 @@ export class Supermouse {
     // 1. Calculate Delta Time (in seconds)
     // We cap dt at 0.1s (100ms) to prevent massive jumps if the tab is inactive for a while.
     const dtMs = time - this.lastTime;
-    const dt = Math.min(dtMs / 1000, 0.1); 
+    const dt = Math.min(dtMs / 1000, 0.1);
     this.lastTime = time;
 
     // 2. Visibility Logic
@@ -325,7 +325,7 @@ export class Supermouse {
        // PRIORITY 1: Manual Override (User/Plugin says so)
        if (this.state.forcedCursor !== null) {
          targetState = this.state.forcedCursor;
-       } 
+       }
        // PRIORITY 2: Auto-Detection (Default behavior)
        else {
          // Show native if we are in a "Native Zone" (Input) OR if we haven't moved mouse yet
@@ -354,14 +354,14 @@ export class Supermouse {
       // Convert abstract smoothness (0-1) to damping factor (1-50 approx)
       const userSmooth = this.options.smoothness!;
       // Map 0.15 (floaty) -> ~10, 0.5 (snappy) -> ~25
-      const dampFactor = this.state.reducedMotion ? 1000 : (1 / userSmooth) * 2; 
+      const dampFactor = this.state.reducedMotion ? 1000 : (1 / userSmooth) * 2;
 
       this.state.smooth.x = damp(this.state.smooth.x, this.state.target.x, dampFactor, dt);
       this.state.smooth.y = damp(this.state.smooth.y, this.state.target.y, dampFactor, dt);
-      
+
       const vx = this.state.target.x - this.state.smooth.x;
       const vy = this.state.target.y - this.state.smooth.y;
-      
+
       this.state.velocity.x = vx;
       this.state.velocity.y = vy;
 
@@ -378,7 +378,7 @@ export class Supermouse {
       this.state.pointer.y = -100;
       this.state.velocity.x = 0;
       this.state.velocity.y = 0;
-      
+
       // Still run plugins (e.g. for exit animations)
       for (let i = 0; i < this.plugins.length; i++) {
         this.runPluginSafe(this.plugins[i], dtMs);
@@ -389,8 +389,8 @@ export class Supermouse {
       this.rafId = requestAnimationFrame(this.tick);
     }
   };
-  
-  /** 
+
+  /**
    * Destroys the instance.
    * Stops the loop, removes all DOM elements, removes all event listeners, and calls destroy on all plugins.
    */

@@ -9,7 +9,9 @@ This package provides a convenient, unscoped entry point for the Supermouse ecos
 ```bash
 pnpm add supermousejs
 ```
+
 or
+
 ```bash
 npm install supermousejs
 ```
@@ -17,10 +19,10 @@ npm install supermousejs
 ## Usage
 
 ```ts
-import Supermouse, { Dot, Ring } from 'supermousejs';
+import Supermouse, { Dot, Ring } from "supermousejs";
 
 const mouse = new Supermouse({
-  smoothness: 0.15
+  smoothness: 0.15,
 });
 
 mouse.use(Dot({ size: 8 }));
@@ -36,4 +38,4 @@ For advanced users or those looking to minimize bundle size, we recommend using 
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

@@ -1,4 +1,3 @@
-
 # @supermousejs/vue
 
 Vue 3 integration for Supermouse.
@@ -15,12 +14,10 @@ pnpm add @supermousejs/vue @supermousejs/core
 
 ```vue
 <script setup>
-import { provideSupermouse } from '@supermousejs/vue';
-import { Dot } from '@supermousejs/dot';
+import { provideSupermouse } from "@supermousejs/vue";
+import { Dot } from "@supermousejs/dot";
 
-provideSupermouse({ smoothness: 0.15 }, [
-  Dot({ size: 8 })
-]);
+provideSupermouse({ smoothness: 0.15 }, [Dot({ size: 8 })]);
 </script>
 ```
 
@@ -28,7 +25,7 @@ provideSupermouse({ smoothness: 0.15 }, [
 
 ```vue
 <script setup>
-import { useSupermouse } from '@supermousejs/vue';
+import { useSupermouse } from "@supermousejs/vue";
 
 const mouse = useSupermouse(); // Returns Ref<Supermouse | null>
 </script>
@@ -36,4 +33,4 @@ const mouse = useSupermouse(); // Returns Ref<Supermouse | null>
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

@@ -1,4 +1,3 @@
-
 # @supermousejs/magnetic
 
 A **Logic Plugin** that attracts the cursor to interactive elements.
@@ -12,23 +11,26 @@ pnpm add @supermousejs/magnetic
 ## Usage
 
 ```ts
-import { Supermouse } from '@supermousejs/core';
-import { Magnetic } from '@supermousejs/magnetic';
+import { Supermouse } from "@supermousejs/core";
+import { Magnetic } from "@supermousejs/magnetic";
 
 const app = new Supermouse();
 
 // Priority is handled automatically (-10)
-app.use(Magnetic({
-  attraction: 0.3, // Strength (0-1)
-  distance: 100    // Capture radius in px
-}));
+app.use(
+  Magnetic({
+    attraction: 0.3, // Strength (0-1)
+    distance: 100, // Capture radius in px
+  })
+);
 ```
 
 **HTML:**
+
 ```html
 <button data-supermouse-magnetic="true">Magnetic Button</button>
 ```
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

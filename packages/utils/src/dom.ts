@@ -31,7 +31,7 @@ export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, v
 /**
  * Universal Transform Setter.
  * Handles centering (-50%) automatically.
- * 
+ *
  * @param el The element
  * @param x X Position (px)
  * @param y Y Position (px)
@@ -42,19 +42,19 @@ export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, v
  * @param skewY Skew Y (deg) - Default 0
  */
 export function setTransform(
-  el: HTMLElement, 
-  x: number, 
-  y: number, 
-  rotation: number = 0, 
-  scaleX: number = 1, 
+  el: HTMLElement,
+  x: number,
+  y: number,
+  rotation: number = 0,
+  scaleX: number = 1,
   scaleY: number = 1,
   skewX: number = 0,
   skewY: number = 0
 ) {
   el.style.transform = `
-    translate3d(${x}px, ${y}px, 0) 
-    translate(-50%, -50%) 
-    rotate(${rotation}deg) 
+    translate3d(${x}px, ${y}px, 0)
+    translate(-50%, -50%)
+    rotate(${rotation}deg)
     skew(${skewX}deg, ${skewY}deg)
     scale(${scaleX}, ${scaleY})
   `;
@@ -72,17 +72,7 @@ export function projectRect(element: HTMLElement, container: HTMLElement = docum
     const x = rect.left - containerRect.left;
     const y = rect.top - containerRect.top;
 
-    return {
-      x,
-      y,
-      width: rect.width,
-      height: rect.height,
-      top: y,
-      left: x,
-      right: x + rect.width,
-      bottom: y + rect.height,
-      toJSON: () => ({})
-    } as DOMRect;
+    return new DOMRect(x, y, rect.width, rect.height);
   }
 
   return rect;
@@ -91,7 +81,7 @@ export function projectRect(element: HTMLElement, container: HTMLElement = docum
 /**
  * Creates a standard Supermouse actor element with optimal performance settings.
  * Includes absolute positioning, pointer-events: none, and will-change: transform.
- * 
+ *
  * @param tagName The HTML tag to create (default: 'div')
  */
 export function createActor(tagName: string = 'div'): HTMLElement {

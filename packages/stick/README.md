@@ -1,4 +1,3 @@
-
 # @supermousejs/stick
 
 A **Logic Plugin** that calculates the bounding box of hovered elements.
@@ -13,9 +12,9 @@ pnpm add @supermousejs/stick
 ## Usage
 
 ```ts
-import { Supermouse } from '@supermousejs/core';
-import { Stick } from '@supermousejs/stick';
-import { Ring } from '@supermousejs/ring';
+import { Supermouse } from "@supermousejs/core";
+import { Stick } from "@supermousejs/stick";
+import { Ring } from "@supermousejs/ring";
 
 const app = new Supermouse();
 
@@ -24,10 +23,11 @@ app.use(Ring()); // Ring automatically detects 'stick' state and morphs
 ```
 
 **HTML:**
+
 ```html
 <button data-supermouse-stick="true">Sticky Element</button>
 ```
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).

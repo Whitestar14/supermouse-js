@@ -1,4 +1,3 @@
-
 # @supermousejs/react
 
 React integration for Supermouse. Handles strict mode and cleanup automatically.
@@ -14,14 +13,14 @@ pnpm add @supermousejs/react @supermousejs/core
 **In `App.tsx`:**
 
 ```tsx
-import { SupermouseProvider } from '@supermousejs/react';
-import { Dot } from '@supermousejs/dot';
+import { SupermouseProvider } from "@supermousejs/react";
+import { Dot } from "@supermousejs/dot";
 
 export default function App() {
   return (
     <SupermouseProvider
       options={{ smoothness: 0.15 }}
-      plugins={[ Dot({ size: 8 }) ]}
+      plugins={[Dot({ size: 8 })]}
     >
       <YourApp />
     </SupermouseProvider>
@@ -32,7 +31,7 @@ export default function App() {
 **In Components:**
 
 ```tsx
-import { useSupermouse } from '@supermousejs/react';
+import { useSupermouse } from "@supermousejs/react";
 
 const MyComponent = () => {
   const mouse = useSupermouse(); // Returns Supermouse instance or null
@@ -42,4 +41,4 @@ const MyComponent = () => {
 
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.vercel.app) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
