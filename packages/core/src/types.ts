@@ -139,7 +139,7 @@ export interface SupermouseOptions {
 }
 
 /**
- * Helper type: Allows a property to be a static value OR a function that returns the value based on state.
+ * Allows a property to be a static value or a function that returns the value based on state.
  */
 export type ValueOrGetter<T> = T | ((state: MouseState) => T);
 

@@ -1,35 +1,27 @@
-
-import { MouseState, SupermouseOptions, InteractionState } from '../types';
+import { MouseState, SupermouseOptions } from '../types';
 
 /**
  * The Sensor / State Writer.
- * 
+ *
  * This class listens to browser events (pointermove, pointerdown, hover) and mutates the shared `MouseState` object.
- * It acts as the "Producer" of data for the Supermouse system.
- * 
+ *
  * @internal This is an internal system class instantiated by `Supermouse`.
  */
 export class Input {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;
   private motionQuery?: MediaQueryList;
-  
+
   /**
-   * Master switch for input processing. 
+   * Master switch for input processing.
    * Toggled by `Supermouse.enable()`/`disable()` or automatically by device capability checks.
    */
   public isEnabled: boolean = true;
 
-  /**
-   * Performance Optimization:
-   * We cache the resolved InteractionState for every element we encounter in a WeakMap.
-   */
-  private interactionCache = new WeakMap<HTMLElement, InteractionState>();
-
   constructor(
     private state: MouseState,
     private options: SupermouseOptions,
-    private getHoverSelector: () => string, 
+    private getHoverSelector: () => string,
     private onEnableChange: (enabled: boolean) => void
   ) {
     this.checkDeviceCapability();
@@ -58,46 +50,27 @@ export class Input {
    * If true, the core physics engine will switch to instant snapping (high damping) to avoid motion sickness.
    */
   private checkMotionPreference() {
-   this.motionQuery = window.matchMedia('(prefer-reduced-motion: reduce)');
+   this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
    this.state.reducedMotion = this.motionQuery.matches;
-   
+
    this.motionQuery.addEventListener('change',  e => {
      this.state.reducedMotion = e.matches;
    });
   }
-  
+
   private updateEnabledState(enabled: boolean) {
     this.isEnabled = enabled;
     this.onEnableChange(enabled);
   }
 
-  // --- Interaction Parsing ---
-
-  /**
-   * Scrapes the DOM element for metadata to populate `state.interaction`.
-   * 
-   * **Strategy:**
-   * 1. Check WeakMap cache.
-   * 2. Apply config-based `rules`.
-   * 3. Scrape `dataset` (supermouse*).
-   * 4. Cache result.
-   */
   private parseDOMInteraction(element: HTMLElement) {
-    // 0. Custom Strategy override
     if (this.options.resolveInteraction) {
       this.state.interaction = this.options.resolveInteraction(element);
       return;
     }
 
-    // 1. Check Cache
-    if (this.interactionCache.has(element)) {
-      this.state.interaction = this.interactionCache.get(element)!;
-      return;
-    }
-
     const data: Record<string, any> = {};
 
-    // 2. Semantic Rules (Config-based)
     if (this.options.rules) {
       for (const [selector, rules] of Object.entries(this.options.rules)) {
         if (element.matches(selector)) {
@@ -106,42 +79,29 @@ export class Input {
       }
     }
 
-    // 3. Dataset Scraping (Fast Native)
-    // Converts data-supermouse-my-val -> myVal
     const dataset = element.dataset;
     for (const key in dataset) {
       if (key.startsWith('supermouse')) {
-        // 'supermouseColor' -> 'color'
-        // 'supermouseStick' -> 'stick'
         const prop = key.slice(10);
         if (prop) {
           const cleanKey = prop.charAt(0).toLowerCase() + prop.slice(1);
           const val = dataset[key];
-          // Treat empty string (bool attribute) as true
           data[cleanKey] = val === '' ? true : val;
         }
       }
     }
 
-    // 4. Cache and Set
-    this.interactionCache.set(element, data);
     this.state.interaction = data;
   }
 
-  // --- Handlers ---
-  
-  // Unified Pointer Event Handler
   private handleMove = (e: PointerEvent) => {
     if (!this.isEnabled) return;
-    
-    // Ignore non-mouse inputs if not on touch device (e.g. pen hovering but not touching)
-    // unless we strictly want to track everything. PointerType check is robust.
+
     if (this.options.autoDisableOnMobile && e.pointerType === 'touch') return;
 
     let x = e.clientX;
     let y = e.clientY;
 
-    // Handle Custom Container Coordinates
     if (this.options.container && this.options.container !== document.body) {
       const rect = this.options.container.getBoundingClientRect();
       x -= rect.left;
@@ -165,13 +125,11 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
-    // 0. THE VETO: Explicit Ignore
     if (target.closest('[data-supermouse-ignore]')) {
       this.state.isNative = true;
       return;
     }
 
-    // 1. Dynamic Hover Check
     const selector = this.getHoverSelector();
     const hoverable = target.closest(selector);
 
@@ -181,25 +139,20 @@ export class Input {
       this.parseDOMInteraction(this.state.hoverTarget);
     }
 
-    // 2. Semantic Native Cursor Check (Configurable Strategy)
     const strategy = this.options.ignoreOnNative;
-    
+
     if (strategy) {
       const checkTags = strategy === true || strategy === 'auto' || strategy === 'tag';
       const checkCSS = strategy === true || strategy === 'auto' || strategy === 'css';
       let isNative = false;
 
-      // A. Tag Check (Fast, O(1))
       if (checkTags) {
-        // Check localName for speed (always lowercase)
         const tag = target.localName;
         if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) {
           isNative = true;
         }
       }
 
-      // B. CSS Check (Slow, causes Layout Reflow)
-      // Only run if not already detected and strategy allows it.
       if (!isNative && checkCSS) {
         const style = window.getComputedStyle(target).cursor;
         const supermouseAllowed = ['default', 'auto', 'pointer', 'none', 'inherit'];
@@ -222,7 +175,7 @@ export class Input {
        if (!e.relatedTarget || !(this.state.hoverTarget?.contains(e.relatedTarget as Node))) {
           this.state.isHover = false;
           this.state.hoverTarget = null;
-          this.state.interaction = {}; 
+          this.state.interaction = {};
        }
     }
 
@@ -237,11 +190,17 @@ export class Input {
     }
   };
 
+  public clearHover() {
+    this.state.isHover = false;
+    this.state.hoverTarget = null;
+    this.state.isNative = false;
+  }
+
   private bindEvents() {
     window.addEventListener('pointermove', this.handleMove, { passive: true });
     window.addEventListener('pointerdown', this.handleDown, { passive: true });
     window.addEventListener('pointerup', this.handleUp);
-    
+
     document.addEventListener('mouseover', this.handleMouseOver);
     document.addEventListener('mouseout', this.handleMouseOut);
     document.addEventListener('mouseleave', this.handleWindowLeave);
@@ -251,10 +210,15 @@ export class Input {
     if (this.mediaQueryList && this.mediaQueryHandler) {
       this.mediaQueryList.removeEventListener('change', this.mediaQueryHandler);
     }
+    if (this.motionQuery) {
+      // Modern browsers support removeEventListener on MediaQueryList
+      this.motionQuery.onchange = null;
+    }
+
     window.removeEventListener('pointermove', this.handleMove);
     window.removeEventListener('pointerdown', this.handleDown);
     window.removeEventListener('pointerup', this.handleUp);
-    
+
     document.removeEventListener('mouseover', this.handleMouseOver);
     document.removeEventListener('mouseout', this.handleMouseOut);
     document.removeEventListener('mouseleave', this.handleWindowLeave);
