@@ -12,7 +12,7 @@ and exposes a deterministic plugin pipeline for extending both.
 supermouse is not a UI component. neither is it a library in the conventional sense.
 it is a runtime.
 
-Read the full documentation [here](https://supermouse.vercel.app)
+Read the full documentation [here](https://supermouse.js.org)
 
 ## what it does
 

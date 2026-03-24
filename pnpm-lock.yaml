@@ -172,19 +172,6 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/legacy:
-    dependencies:
-      '@supermousejs/dot':
-        specifier: workspace:*
-        version: link:../dot
-      '@supermousejs/ring':
-        specifier: workspace:*
-        version: link:../ring
-    devDependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
-
   packages/magnetic:
     dependencies:
       '@supermousejs/utils':

@@ -30,9 +30,6 @@
     "create:plugin": "node scripts/create-plugin.js",
     "remove:plugin": "node scripts/remove-plugin.js",
     "sync": "node scripts/sync-configs.js",
-    "sync:utils": "node scripts/sync-utils.js",
-    "fix:names": "node scripts/fix-umd-names.js",
-    "fix:deps": "node scripts/migrate-peerdeps.js",
 
     "changeset": "changeset",
     "version-packages": "changeset version",
