@@ -1,0 +1,132 @@
+Supermouse.js
+
+Documentation: https://supermouse.js.org
+Version: Dynamic (Defined by __VERSION__)
+
+Supermouse is a highly performant, plugin-driven custom cursor framework for the web. It separates cursor logic from visual rendering through a deterministic pipeline, ensuring buttery-smooth animations and fault-tolerant extensibility.
+
+Architecture Overview
+
+The system consists of three primary internal systems managed by a central conductor:
+
+Supermouse (Core Conductor): Manages the requestAnimationFrame loop (tick), maintains the global state, orchestrates plugins, and applies frame-independent physics (damping) to the cursor coordinates.
+
+Input (Sensor): Listens to browser events (pointermove, mouseover, etc.) and device capabilities (matchMedia). It mutates the shared MouseState and scrapes interactive DOM attributes without layout thrashing.
+
+Stage (DOM Manager): Injects scoped CSS to hide the native cursor cleanly, handles the fixed/absolute container element where visual plugins render, and toggles overall visibility.
+
+Plugins: The actual features (e.g., Dot, Ring, Magnetic, Text). Plugins only read/write to the state or render to the DOM; they do not manage the loop.
+
+Core State (MouseState)
+
+All cursor data is centralized in the MouseState object, passed to all plugins.
+
+Coordinates:
+
+pointer: Raw {x, y} from the browser event.
+
+target: Where the cursor wants to go. Logic plugins modify this.
+
+smooth: The actual interpolated {x, y} used for rendering. Visual plugins read this.
+
+velocity: The speed vector {x, y} of the smooth position.
+
+angle: Movement angle in degrees, derived from velocity.
+
+Flags:
+
+isDown: Is the pointer pressed?
+
+isHover: Is the pointer over a registered interactive element?
+
+isNative: Is the OS native cursor currently taking priority (e.g., over an <input>)?
+
+forcedCursor: Manual override ('auto', 'none', null).
+
+hasReceivedInput: Has the user moved their mouse yet?
+
+reducedMotion: Is prefers-reduced-motion enabled? (If true, damping is set aggressively high to snap instantly).
+
+Metadata & Communication:
+
+hoverTarget: The current hovered HTMLElement (if any).
+
+shape: { width, height, borderRadius } for shape-morphing cursors.
+
+interaction: A dictionary of custom states scraped from the DOM (e.g., { color: 'red', magnetic: true }).
+
+Configuration (SupermouseOptions)
+
+Supermouse is instantiated via new Supermouse(options).
+
+Key configurations:
+
+smoothness (default 0.15): Lower = smoother/slower. Factor used in damp().
+
+hoverSelectors: CSS selectors that trigger isHover (default: a, button, input, textarea, [data-hover], [data-cursor]).
+
+enableTouch (default false): Run custom cursor on touch screens?
+
+autoDisableOnMobile (default true): Auto-disables if (pointer: fine) is false.
+
+ignoreOnNative (default 'auto'): Strategy to show native cursor over interactive inputs. Options: 'auto' | 'tag' | 'css' | false.
+
+hideCursor (default true): Automatically injects CSS to hide the OS cursor.
+
+rules: Semantic mapping for interactions without data attributes (e.g. { 'a': { icon: 'arrow' } }).
+
+resolveInteraction: Custom function to override DOM scraping.
+
+Plugin System (SupermousePlugin)
+
+Plugins participate in the animation loop. They are structured as objects:
+
+Lifecycle Hooks
+
+install(instance): Run once when .use() is called. Setup DOM elements here. Append to instance.container.
+
+update(instance, deltaTime): Run every frame. deltaTime is in seconds (capped at 0.1s) for frame-independent physics.
+
+destroy(instance): Cleanup DOM and event listeners.
+
+onEnable(instance) / onDisable(instance): Run when .enablePlugin() / .disablePlugin() are called. Visual plugins should typically toggle display or opacity here rather than destroying elements to prevent GC thrashing.
+
+The Pipeline & Priority (!important)
+
+Plugins are sorted by priority before running in the loop.
+
+Logic Plugins (priority < 0): Mutate state.target. Example: A "Magnetic" plugin modifies target so the cursor pulls towards a button. Must run BEFORE physics interpolation.
+
+Core Physics: Runs automatically, interpolating state.smooth towards state.target.
+
+Visual Plugins (priority >= 0): Read state.smooth and render visuals (DOM, Canvas, WebGL). Example: A "Dot" cursor translates a div to state.smooth.x/y.
+
+Failure to use negative priority for logic plugins causes visual tearing/lagging behind the physics frame.
+
+The DOM Firewall (state.interaction)
+
+Supermouse is highly optimized to prevent Layout Thrashing (forced synchronous layout recalculation).
+Plugins should never read DOM attributes (getAttribute) or layout measurements (getBoundingClientRect) inside the update loop.
+
+Instead, the Input system scrapes interactive metadata once on mouseover and stores it in state.interaction.
+
+How it works:
+If an element has data-supermouse-color="#ff0000" and data-supermouse-magnetic:
+
+User hovers the element.
+
+Input system parses the dataset.
+
+state.interaction.color becomes "#ff0000".
+
+state.interaction.magnetic becomes true.
+
+Plugins read app.state.interaction.color safely inside the 60/144fps update loop.
+
+Alternatively, the rules configuration allows declarative mapping (e.g., { 'button.danger': { color: 'red' } }).
+
+Accessibility & Fallbacks
+
+Reduced Motion: If (prefers-reduced-motion: reduce) is detected, the factor used in the physics interpolation skyrockets, effectively bypassing the smooth trailing and instantly snapping the cursor to the target pointer.
+
+Native Fallback (isNative): When hovering native controls (inputs, textareas, contenteditable, or elements with data-supermouse-ignore), ignoreOnNative triggers. The Stage automatically removes the CSS hiding the OS cursor, and isNative is set to true, allowing plugins to shrink or hide themselves gracefully so the user can see their text-selection cursor.
