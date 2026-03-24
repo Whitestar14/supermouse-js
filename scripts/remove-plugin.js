@@ -26,7 +26,6 @@ function unlinkConsumer(folderName) {
 
   console.log(`>> unlinking from ${folderName}...`);
 
-  // package.json
   const pkgPath = path.join(consumerPath, 'package.json');
   if (fs.existsSync(pkgPath)) {
     try {
@@ -44,7 +43,6 @@ function unlinkConsumer(folderName) {
     }
   }
 
-  // vite.config.ts — warn only; regex patching TS source is too fragile to automate safely
   const vitePath = path.join(consumerPath, 'vite.config.ts');
   if (fs.existsSync(vitePath)) {
     try {

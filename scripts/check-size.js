@@ -9,8 +9,8 @@ const rootDir = path.resolve(path.dirname(__filename), '..');
 
 // Configuration
 const TARGET_PACKAGE = 'packages/core';
-const BUILD_FILE = 'dist/index.mjs'; // We measure the ESM build
-const WARNING_LIMIT = 5000; // 5kb warning limit
+const BUILD_FILE = 'dist/index.mjs';
+const WARNING_LIMIT = 5000;
 
 function formatBytes(bytes) {
   if (bytes === 0) return '0 Bytes';
@@ -31,13 +31,13 @@ async function run() {
     console.log('   Running build...');
     execSync('pnpm --filter @supermousejs/core build', { stdio: 'ignore' });
   } catch (e) {
-    console.error('❌ Build failed.');
+    console.error('[x] Build failed.');
     process.exit(1);
   }
 
   // 2. Read file
   if (!fs.existsSync(filePath)) {
-    console.error(`❌ Could not find build artifact at ${BUILD_FILE}`);
+    console.error(`[x] Could not find build artifact at ${BUILD_FILE}`);
     process.exit(1);
   }
 
@@ -47,7 +47,7 @@ async function run() {
   // 3. Gzip
   zlib.gzip(fileBuffer, (err, buffer) => {
     if (err) {
-      console.error('❌ Gzip failed:', err);
+      console.error('[x] Gzip failed:', err);
       process.exit(1);
     }
 
@@ -62,9 +62,9 @@ async function run() {
     console.log(`   ----------------------------------------`);
 
     if (isOverLimit) {
-      console.warn(`   ⚠️  Warning: Core exceeds ${formatBytes(WARNING_LIMIT)} budget!`);
+      console.warn(`   [!]  Warning: Core exceeds ${formatBytes(WARNING_LIMIT)} budget!`);
     } else {
-      console.log(`   ✅  Within budget.`);
+      console.log(`   [ok]  Within budget.`);
     }
     console.log('');
   });

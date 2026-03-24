@@ -1,20 +1,20 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import readline from 'readline';
-import { spawn } from 'child_process';
-import { getUmdName, toPascalCase } from './config.js';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import readline from "readline";
+import { spawn } from "child_process";
+import { toPascalCase } from "./config.js";
 
 // --- Setup ---
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-const rootDir    = path.resolve(__dirname, '..');
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, "..");
 
 const pluginName = process.argv[2];
 if (!pluginName) {
-  console.error('[!] please provide a plugin name.');
-  console.error('    usage: node scripts/create-plugin.js <name>');
+  console.error("[!] please provide a plugin name.");
+  console.error("    usage: node scripts/create-plugin.js <name>");
   process.exit(1);
 }
 
@@ -24,27 +24,27 @@ if (!/^[a-z][a-z0-9-]*$/.test(pluginName)) {
 }
 
 const pascalName = toPascalCase(pluginName);
-const pluginDir  = path.join(rootDir, 'packages', pluginName);
+const pluginDir = path.join(rootDir, "packages", pluginName);
 
 // --- Templates ---
 
 function makeTemplates() {
   return {
-    /** Minimal package.json; sync-configs will fill in the rest right after */
+    /** minimal package.json; sync-configs will fill in the rest right after */
     packageJson: {
-      name:        `@supermousejs/${pluginName}`,
-      version:     '2.0.0',
-      private:     false,
+      name: `@supermousejs/${pluginName}`,
+      version: "2.0.0",
+      private: false,
       description: `Supermouse ${pascalName} plugin`,
     },
 
     tsConfig: {
-      extends: '../../tsconfig.base.json',
-      include: ['src'],
+      extends: "../../tsconfig.base.json",
+      include: ["src"],
       compilerOptions: {
-        outDir:  'dist',
-        baseUrl: '.',
-        paths:   { '@supermousejs/core': ['../core/src/index.ts'] },
+        outDir: "dist",
+        baseUrl: ".",
+        paths: { "@supermousejs/core": ["../core/src/index.ts"] },
       },
     },
 
@@ -81,14 +81,14 @@ export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlu
 // --- Helpers ---
 
 function question(rl, prompt) {
-  return new Promise(resolve => rl.question(prompt, resolve));
+  return new Promise((resolve) => rl.question(prompt, resolve));
 }
 
 function preserveVersion(dir, defaults) {
-  const pkgPath = path.join(dir, 'package.json');
+  const pkgPath = path.join(dir, "package.json");
   if (!fs.existsSync(pkgPath)) return defaults;
   try {
-    const existing = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    const existing = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
     return { ...defaults, version: existing.version ?? defaults.version };
   } catch {
     return defaults;
@@ -96,12 +96,12 @@ function preserveVersion(dir, defaults) {
 }
 
 function updateConsumerPackageJson(folderName) {
-  const pkgPath = path.join(rootDir, folderName, 'package.json');
+  const pkgPath = path.join(rootDir, folderName, "package.json");
   if (!fs.existsSync(pkgPath)) return;
   try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
     pkg.dependencies ??= {};
-    pkg.dependencies[`@supermousejs/${pluginName}`] = 'workspace:*';
+    pkg.dependencies[`@supermousejs/${pluginName}`] = "workspace:*";
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
     console.log(`   [+] added to ${folderName}/package.json`);
   } catch {
@@ -111,30 +111,40 @@ function updateConsumerPackageJson(folderName) {
 
 function runSyncConfigs() {
   return new Promise((resolve, reject) => {
-    const syncPath = path.join(__dirname, 'sync-configs.js');
-    const child    = spawn('node', [syncPath, `--packages=${pluginName}`, '--non-interactive'], {
-      stdio: 'inherit',
-    });
-    child.on('close', (code) => code === 0 ? resolve() : reject(new Error(`sync exited ${code}`)));
-    child.on('error', reject);
+    const syncPath = path.join(__dirname, "sync-configs.js");
+    const child = spawn(
+      "node",
+      [syncPath, `--packages=${pluginName}`, "--non-interactive"],
+      {
+        stdio: "inherit",
+      }
+    );
+    child.on("close", (code) =>
+      code === 0 ? resolve() : reject(new Error(`sync exited ${code}`))
+    );
+    child.on("error", reject);
   });
 }
 
 // --- Main ---
 
 async function run() {
-  const rl        = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
   const templates = makeTemplates();
 
-  // Safety check on existing plugin
   if (fs.existsSync(pluginDir)) {
     const answer = await question(
       rl,
       `\n[!] @supermousejs/${pluginName} already exists.\n` +
-      `    overwrite configs but KEEP src/index.ts? (y/N) `,
+        `    overwrite configs but KEEP src/index.ts? (y/N) `
     );
-    if (answer.toLowerCase() !== 'y') {
-      console.log('[-] aborted. use "pnpm sync" for non-destructive config updates.');
+    if (answer.toLowerCase() !== "y") {
+      console.log(
+        '[-] aborted. use "pnpm sync" for non-destructive config updates.'
+      );
       rl.close();
       process.exit(0);
     }
@@ -143,32 +153,33 @@ async function run() {
 
   console.log(`\n>> scaffolding @supermousejs/${pluginName}...`);
 
-  // Create directory
-  fs.mkdirSync(path.join(pluginDir, 'src'), { recursive: true });
+  fs.mkdirSync(path.join(pluginDir, "src"), { recursive: true });
 
-  // Write configs
-  console.log('>> writing configuration files...');
+  console.log(">> writing configuration files...");
   const finalPkg = preserveVersion(pluginDir, templates.packageJson);
-  fs.writeFileSync(path.join(pluginDir, 'package.json'), JSON.stringify(finalPkg, null, 2));
-  fs.writeFileSync(path.join(pluginDir, 'tsconfig.json'), JSON.stringify(templates.tsConfig, null, 2));
+  fs.writeFileSync(
+    path.join(pluginDir, "package.json"),
+    JSON.stringify(finalPkg, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(pluginDir, "tsconfig.json"),
+    JSON.stringify(templates.tsConfig, null, 2)
+  );
 
-  // Write source only if absent
-  const indexPath = path.join(pluginDir, 'src/index.ts');
+  const indexPath = path.join(pluginDir, "src/index.ts");
   if (!fs.existsSync(indexPath)) {
     fs.writeFileSync(indexPath, templates.indexTs);
-    console.log('   [+] created src/index.ts');
+    console.log("   [+] created src/index.ts");
   } else {
-    console.log('   [~] preserved existing src/index.ts');
+    console.log("   [~] preserved existing src/index.ts");
   }
 
-  // Link into consumers
-  if (pluginName !== 'core') {
-    updateConsumerPackageJson('playground');
-    updateConsumerPackageJson('docs');
+  if (pluginName !== "core") {
+    updateConsumerPackageJson("playground");
+    updateConsumerPackageJson("docs");
   }
 
-  // Finalize via sync
-  console.log('\n>> running config sync...');
+  console.log("\n>> running config sync...");
   await runSyncConfigs();
 
   console.log(`\n[ok] @supermousejs/${pluginName} is ready.`);
@@ -176,6 +187,6 @@ async function run() {
 }
 
 run().catch((err) => {
-  console.error('[x]', err.message);
+  console.error("[x]", err.message);
   process.exit(1);
 });

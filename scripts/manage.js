@@ -9,9 +9,6 @@ const __dirname   = path.dirname(__filename);
 const rootDir     = path.resolve(__dirname, '..');
 const packagesDir = path.join(rootDir, 'packages');
 
-// The rl instance lives for the lifetime of manage.js.
-// It must be PAUSED before spawning sub-scripts that do their own readline,
-// and RESUMED after — otherwise two consumers fight over stdin.
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 // --- Helpers ---
@@ -85,7 +82,6 @@ async function mainMenu() {
     case '4':
       rl.close();
       process.exit(0);
-      break;
     default:
       return mainMenu();
   }
