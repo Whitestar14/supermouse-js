@@ -5,54 +5,77 @@ import { RECIPES } from "@/components/playground/recipes";
 import { usePlayground } from "@composables/usePlayground";
 
 const { open } = usePlayground();
+
+const PLAY_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M8 5v14l11-7z"/></svg>`;
 </script>
 
 <template>
   <DocsSection label="Guide" title="Cookbook">
-    <Callout title="Best on Desktop" class="md:hidden mb-10">
-      Supermouse Studio works best on a wider viewport. Please switch to a desktop device to run
-      recipes and edit their parameters.
+    <Callout title="Desktop Recommended" class="notice hidden mb-10">
+      The Studio provides real-time physics editing which is best experienced with a precise
+      pointer.
     </Callout>
 
-    <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
-      A collection of pre-configured cursor effects. Click <b>Run</b> to open the Studio, tweak
-      parameters, and copy the code.
+    <p class="text-lg text-zinc-600 mb-12 leading-relaxed max-w-2xl">
+      A collection of pre-configured cursor effects. Launch a recipe to tweak parameters and grab
+      the implementation code.
     </p>
 
-    <div class="flex flex-wrap border-t border-l border-zinc-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 border-t border-l border-zinc-200">
       <div
         v-for="recipe in RECIPES"
         :key="recipe.id"
-        class="w-full md:w-1/2 bg-white p-8 group hover:bg-zinc-50 transition-colors flex flex-col border-b border-r border-zinc-200"
+        class="group relative bg-white p-8 hover:bg-zinc-50 transition-colors flex flex-col border-b border-r border-zinc-200 min-h-[240px]"
       >
-        <div class="flex items-start justify-between mb-6">
+        <button
+          class="play-action absolute top-0 right-0 w-12 h-12 bg-white border-l border-b border-zinc-200 flex items-center justify-center text-zinc-400 hover:bg-black hover:text-white hover:border-black transition-all z-20"
+          title="Run in Studio"
+          @click="open(recipe.id)"
+        >
+          <span v-html="PLAY_ICON" />
+        </button>
+
+        <div class="mb-8">
           <div
-            class="w-12 h-12 border border-zinc-100 bg-zinc-50 flex items-center justify-center rounded-sm text-zinc-900"
+            class="w-12 h-12 border border-zinc-200 bg-white flex items-center justify-center text-zinc-900 shadow-sm"
           >
             <span class="w-6 h-6" v-html="recipe.icon" />
           </div>
-          <!-- Hidden on mobile -->
-          <button
-            class="hidden md:block text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-black border border-zinc-200 px-3 py-1.5 hover:border-black transition-colors"
-            @click="open(recipe.id)"
-          >
-            Run in Studio
-          </button>
         </div>
 
-        <h3 class="text-xl font-bold text-zinc-900 tracking-tight mb-2">
-          {{ recipe.name }}
-        </h3>
-        <p class="text-sm text-zinc-600 leading-relaxed mb-6 flex-1">
-          {{ recipe.description }}
-        </p>
+        <div class="flex-1 pr-8">
+          <h3 class="text-xl font-bold text-zinc-900 tracking-tighter mb-2">
+            {{ recipe.name }}
+          </h3>
+          <p class="text-sm text-zinc-500 leading-relaxed">
+            {{ recipe.description }}
+          </p>
+        </div>
 
-        <div class="pt-6 border-t border-zinc-100 flex gap-2">
-          <span class="mono text-[10px] bg-zinc-100 text-zinc-500 px-2 py-1 rounded">
-            {{ recipe.schema.length }} Config Options
+        <div class="mt-8">
+          <span class="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+            ID: {{ recipe.id }}
           </span>
         </div>
       </div>
     </div>
   </DocsSection>
 </template>
+
+<style scoped>
+.play-action {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .notice {
+    display: block;
+  }
+}
+
+@media (pointer: fine) {
+  .play-action {
+    display: flex;
+  }
+}
+</style>
