@@ -56,7 +56,6 @@ export const routes: RouteRecordRaw[] = [
   { path: "/:pathMatch(.*)*", component: NotFound, name: "NOT_FOUND" }
 ];
 
-// Conditionally add Labs route in Dev mode only
 if (isDev) {
   routes.push({
     path: "/labs",
@@ -68,9 +67,12 @@ if (isDev) {
 export const router = createRouter({
   history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(),
   routes,
-  scrollBehavior(to) {
+  scrollBehavior(to, _, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
     if (to.hash) {
-      return { el: to.hash, top: 80 };
+      return { el: to.hash, top: 80, behavior: "smooth" };
     }
     return { top: 0 };
   }

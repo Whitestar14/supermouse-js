@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { watch, ref, onMounted, onUnmounted } from "vue";
 import Lenis from "lenis";
-import Navbar from "./components/landing/Navbar.vue";
-import CursorEditor from "./components/playground/CursorEditor.vue";
-import SearchPalette from "./components/landing/SearchPalette.vue";
-import { useAppCursor } from "./composables/useAppCursor";
-import { usePlayground } from "./composables/usePlayground";
+import Navbar from "@components/landing/Navbar.vue";
+import CursorEditor from "@components/playground/CursorEditor.vue";
+import SearchPalette from "@components/landing/SearchPalette.vue";
+import { useAppCursor } from "@composables/useAppCursor";
+import { usePlayground } from "@composables/usePlayground";
 
 // 1. Initialize Global Cursor (Singleton across entire app)
 const mouse = useAppCursor();
@@ -42,6 +42,8 @@ onMounted(() => {
     gestureOrientation: "vertical",
     smoothWheel: true
   });
+
+  (window as any).lenis = lenis;
 
   function raf(time: number) {
     lenis?.raf(time);

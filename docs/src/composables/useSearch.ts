@@ -12,7 +12,6 @@ export interface SearchResult {
   keywords: string[];
 }
 
-// Keyword mapping for pages to enable semantic search
 const PAGE_KEYWORDS: Record<string, string[]> = {
   "/docs/advanced/authoring": [
     "plugin",
@@ -84,20 +83,18 @@ function normalizeQuery(q: string): string {
 
 function scoreMatch(query: string, text: string, boost: number = 1): number {
   const normalized = text.toLowerCase();
-  if (normalized === query) return 100 * boost; // Exact match
-  if (normalized.startsWith(query)) return 50 * boost; // Starts with
-  if (normalized.includes(query)) return 20 * boost; // Contains
+  if (normalized === query) return 100 * boost;
+  if (normalized.startsWith(query)) return 50 * boost;
+  if (normalized.includes(query)) return 20 * boost;
   return 0;
 }
 
 export function useSearch() {
   const query = ref("");
 
-  // Build searchable index
   const index = computed(() => {
     const items: SearchResult[] = [];
 
-    // Index Documentation Pages
     DOCS_NAVIGATION.forEach((group) => {
       group.items.forEach((item) => {
         items.push({
@@ -111,11 +108,10 @@ export function useSearch() {
       });
     });
 
-    // Index Plugins
     PLUGINS.forEach((p) => {
       const keywords = [p.id, p.package];
       if (p.description) {
-        keywords.push(...p.description.split(" ").slice(0, 10)); // Limit words
+        keywords.push(...p.description.split(" ").slice(0, 10));
       }
 
       items.push({
@@ -131,32 +127,23 @@ export function useSearch() {
     return items;
   });
 
-  // Search with scoring
   const results = computed(() => {
     const q = normalizeQuery(query.value);
     if (!q) return [];
 
     const scored = index.value
       .map((item) => {
-        // Score label (highest priority)
         const labelScore = scoreMatch(q, item.label, 3);
-
-        // Score keywords
         const keywordScore = Math.max(0, ...item.keywords.map((k) => scoreMatch(q, k, 2)));
-
-        // Score path
         const pathScore = scoreMatch(q, item.path, 1);
-
-        // Score description
         const descScore = item.description ? scoreMatch(q, item.description, 1) : 0;
-
         const totalScore = labelScore + keywordScore + pathScore + descScore;
 
         return { item, score: totalScore };
       })
       .filter((x) => x.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 8) // Limit results
+      .slice(0, 8)
       .map((x) => x.item);
 
     return scored;

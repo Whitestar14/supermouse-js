@@ -48,14 +48,16 @@ onUnmounted(() => {
 <template>
   <section class="relative bg-white overflow-hidden">
     <!-- Header -->
-    <div class="flex border-t border-b border-zinc-200 h-16 md:h-20 bg-white relative z-30">
+    <div class="flex border-b border-zinc-200 h-16 md:h-20 bg-white">
       <div
         class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0"
       >
         <span class="mono text-lg font-bold text-zinc-900">04</span>
       </div>
-      <div class="flex-1 px-6 md:px-8 flex items-center">
-        <span class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold"
+      <div class="flex-1 px-6 md:px-8 flex items-center justify-between">
+        <h2 class="text-lg md:text-xl font-bold tracking-tighter text-zinc-900">CTA</h2>
+        <span
+          class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold hidden sm:inline-block"
           >CallToAction.vue</span
         >
       </div>

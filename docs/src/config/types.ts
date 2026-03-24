@@ -1,3 +1,5 @@
+import { Supermouse } from "@supermousejs/core";
+
 export interface Point {
   x: number;
   y: number;
@@ -27,11 +29,11 @@ export interface SupermouseOptions {
 export interface SupermousePlugin {
   name: string;
   isEnabled?: boolean;
-  install?: (app: any) => void;
-  update?: (app: any, deltaTime: number) => void;
-  onEnable?: (app: any) => void;
-  onDisable?: (app: any) => void;
-  destroy?: (app: any) => void;
+  install?: (app: Supermouse) => void;
+  update?: (app: Supermouse, deltaTime: number) => void;
+  onEnable?: (app: Supermouse) => void;
+  onDisable?: (app: Supermouse) => void;
+  destroy?: (app: Supermouse) => void;
 }
 
 export interface OptionSchema {
@@ -39,7 +41,7 @@ export interface OptionSchema {
   type: string;
   default?: string;
   description: string;
-  reactive?: boolean; // True if it accepts ValueOrGetter<T>
+  reactive?: boolean;
 }
 
 export interface PluginMeta {
