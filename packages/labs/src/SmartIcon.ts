@@ -58,7 +58,6 @@ function resolveSemanticState(
 export const SmartIcon = (options: SmartIconOptions) => {
   let contentWrapper: HTMLDivElement;
 
-  // State
   let currentState = options.defaultState || "default";
   let targetState = options.defaultState || "default";
 
@@ -68,11 +67,9 @@ export const SmartIcon = (options: SmartIconOptions) => {
   let isTransitioning = false;
   let transitionTimer: ReturnType<typeof setTimeout>;
 
-  // Rotation State
   let currentRotation = 0;
   let lastTargetRotation = 0;
 
-  // Normalized Getters (Pre-calculated)
   const getSize = normalize(options.size, 24);
   const getStrategy = normalize(options.followStrategy, "smooth");
   const getAnchor = normalize(options.anchor, "center");
@@ -101,13 +98,25 @@ export const SmartIcon = (options: SmartIconOptions) => {
           justifyContent: "center",
           transformOrigin: "center center",
           transform: "scale(1)",
-          // Pre-baked ease. Note: If duration changes dynamically, this won't update.
           transition: `transform ${
             duration / 2
           }ms cubic-bezier(0.16, 1, 0.3, 1)`,
         });
 
         contentWrapper.innerHTML = options.icons[currentState] || "";
+
+      dom.injectStyles(
+        'supermouse-smart-icon-styles',
+        `
+        @keyframes sm {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .supermouse-spin {
+          animation: sm 1s linear infinite;
+        }
+        `
+      );
 
         el.appendChild(contentWrapper);
         return el;
@@ -121,11 +130,9 @@ export const SmartIcon = (options: SmartIconOptions) => {
         const icons = options.icons;
         const target = app.state.hoverTarget;
 
-        // 1. Determine Next State
         let nextState = options.defaultState || "default";
 
         if (target) {
-          // A. Update Cache if target changed (Performance Fix)
           if (target !== lastTarget) {
             lastTarget = target;
             cachedSemanticState = useSemanticTags
@@ -133,9 +140,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
               : null;
           }
 
-          // B. Resolve Logic
-          // Check Unified Interaction State (Attribute)
-          const attrSmartIcon = app.state.interaction?.icon; // Optional chaining safety
+          const attrSmartIcon = app.state.interaction?.icon;
 
           if (attrSmartIcon && icons[attrSmartIcon]) {
             nextState = attrSmartIcon;
@@ -147,7 +152,6 @@ export const SmartIcon = (options: SmartIconOptions) => {
           cachedSemanticState = null;
         }
 
-        // 2. Handle State Transition
         if (nextState !== currentState && !isTransitioning) {
           if (
             icons[nextState] ||
@@ -156,10 +160,8 @@ export const SmartIcon = (options: SmartIconOptions) => {
             targetState = nextState;
             isTransitioning = true;
 
-            // Clean up any pending timer to avoid race conditions
             clearTimeout(transitionTimer);
 
-            // Scale Down
             contentWrapper.style.transform = "scale(0)";
 
             transitionTimer = setTimeout(() => {
@@ -174,12 +176,10 @@ export const SmartIcon = (options: SmartIconOptions) => {
           }
         }
 
-        // 3. Layout & Styling
         const size = getSize(app.state);
         dom.setStyle(el, "width", `${size}px`);
         dom.setStyle(el, "height", `${size}px`);
 
-        // 4. Calculate Anchor
         let anchorX = 0;
         let anchorY = 0;
         const half = size / 2;
@@ -192,7 +192,6 @@ export const SmartIcon = (options: SmartIconOptions) => {
           if (anchor.includes("bottom")) anchorY = -half;
         }
 
-        // 5. Rotation
         const isSemanticState =
           currentState === "pointer" || currentState === "text";
 
@@ -207,7 +206,6 @@ export const SmartIcon = (options: SmartIconOptions) => {
           if (speed > 1) {
             lastTargetRotation = math.angle(vx, vy);
           }
-          // Assuming math.lerpAngle handles the 360 wrap logic correctly
           currentRotation = math.lerpAngle(
             currentRotation,
             lastTargetRotation,
@@ -217,7 +215,6 @@ export const SmartIcon = (options: SmartIconOptions) => {
           currentRotation = math.lerpAngle(currentRotation, 0, 0.15);
         }
 
-        // 6. Render
         const pos =
           getStrategy(app.state) === "raw"
             ? app.state.pointer

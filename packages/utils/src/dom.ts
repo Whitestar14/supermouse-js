@@ -1,10 +1,29 @@
-
 /**
  * Applies a dictionary of styles to an HTMLElement.
+ * @param el The element to style
+ * @param styles An object where keys are CSS properties and values are the corresponding values.
+ * Example: applyStyles(myDiv, { color: 'red', backgroundColor: 'blue' });
  */
 export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
   Object.assign(el.style, styles);
 }
+
+/**
+ * Injects global CSS styles into the document head safely.
+ * Checks for existing IDs to prevent duplication during SPA routing or HMR.
+ *
+ * @param id A unique identifier for this style block
+ * @param css A string of CSS rules to inject.
+ */
+export const injectStyles = (id: string, css: string) => {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(id)) return;
+
+  const style = document.createElement('style');
+  style.id = id;
+  style.innerHTML = css;
+  document.head.appendChild(style);
+};
 
 // WeakMap to store previous styles for elements to prevent DOM thrashing
 const styleCache = new WeakMap<HTMLElement, Record<string, string | number>>();
@@ -12,6 +31,9 @@ const styleCache = new WeakMap<HTMLElement, Record<string, string | number>>();
 /**
  * Smart Style Setter.
  * Only writes to the DOM if the value has actually changed.
+ * @param el The element to style
+ * @param property The CSS property to set (in camelCase, e.g., backgroundColor)
+ * @param value The value to set for the property
  */
 export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, value: string | number) {
   let cache = styleCache.get(el);
@@ -20,7 +42,6 @@ export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, v
     styleCache.set(el, cache);
   }
 
-  // Only write to DOM if value changed
   if (cache[property as string] !== value) {
     // @ts-ignore - Dynamic access
     el.style[property] = value;
@@ -62,7 +83,6 @@ export function setTransform(
 
 /**
  * Calculates the bounding rectangle of an element relative to a container.
- * Useful for logic plugins when the cursor is confined to a specific div.
  */
 export function projectRect(element: HTMLElement, container: HTMLElement = document.body): DOMRect {
   const rect = element.getBoundingClientRect();
