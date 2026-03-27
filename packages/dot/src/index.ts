@@ -9,7 +9,6 @@ export interface DotOptions {
   opacity?: ValueOrGetter<number>;
   zIndex?: string;
   mixBlendMode?: string;
-  /** Whether to hide the dot when the cursor is in a 'shape' state (e.g. Stuck). Default true. */
   hideOnShape?: boolean;
 }
 
@@ -18,7 +17,6 @@ export const Dot = (options: DotOptions = {}) => {
   const defColor = "#750c7e";
   const hideOnShape = options.hideOnShape ?? true;
 
-  // Normalize options once during setup
   const getSize = normalize(options.size, defSize);
   const getColor = normalize(options.color, defColor);
   const getOpacity = normalize(options.opacity, 1);
@@ -29,7 +27,6 @@ export const Dot = (options: DotOptions = {}) => {
       selector: "[data-supermouse-color]",
 
       create: (app) => {
-        // Initial values
         const size = getSize(app.state);
         const color = getColor(app.state);
 

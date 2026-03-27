@@ -6,6 +6,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": ".",
+    "noEmit": false,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "noUnusedLocals": true,

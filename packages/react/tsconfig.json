@@ -9,8 +9,11 @@
     "jsx": "react-jsx",
     "paths": {
       "@supermousejs/core": [
-        "../core/src/index.ts"
+        "../core/src"
       ]
     }
-  }
+  },
+  "references": [
+    { "path": "../core" }
+  ]
 }

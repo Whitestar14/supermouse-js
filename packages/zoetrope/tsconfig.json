@@ -6,6 +6,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "baseUrl": ".",
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
     "paths": {
       "@supermousejs/core": [
         "../core/src/index.ts"
