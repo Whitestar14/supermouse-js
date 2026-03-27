@@ -1,2 +1,2 @@
-export * from './Supermouse';
-export * from './types';
+export * from "./Supermouse";
+export * from "./types";

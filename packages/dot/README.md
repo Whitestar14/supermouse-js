@@ -20,7 +20,7 @@ app.use(
   Dot({
     size: 8,
     color: "#ff0000",
-    mixBlendMode: "difference",
+    mixBlendMode: "difference"
   })
 );
 ```

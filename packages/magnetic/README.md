@@ -20,7 +20,7 @@ const app = new Supermouse();
 app.use(
   Magnetic({
     attraction: 0.3, // Strength (0-1)
-    distance: 100, // Capture radius in px
+    distance: 100 // Capture radius in px
   })
 );
 ```

@@ -1,6 +1,6 @@
-import type { Supermouse, SupermousePlugin } from '@supermousejs/core';
-import { normalize } from './options';
-import { setStyle } from './dom';
+import type { Supermouse, SupermousePlugin } from "@supermousejs/core";
+import { normalize } from "./options";
+import { setStyle } from "./dom";
 
 export interface BasePluginOptions {
   name?: string;
@@ -40,7 +40,7 @@ interface VisualConfig<E extends HTMLElement, O extends object> {
 function isVisualConfig<E extends HTMLElement, O extends object>(
   config: LogicConfig | VisualConfig<E, O>
 ): config is VisualConfig<E, O> {
-  return 'create' in config && typeof (config as any).create === 'function';
+  return "create" in config && typeof (config as any).create === "function";
 }
 
 // --- THE OVERLOADS ---
@@ -60,7 +60,7 @@ export function definePlugin(
 // --- THE IMPLEMENTATION ---
 
 export function definePlugin(
-  config: LogicConfig | VisualConfig<HTMLElement, any>, 
+  config: LogicConfig | VisualConfig<HTMLElement, any>,
   userOptions: any = {}
 ): SupermousePlugin {
   const name = userOptions.name || config.name;
@@ -72,12 +72,12 @@ export function definePlugin(
 
     // PRE-COMPILE STYLE SETTERS
     const styleSetters: ((app: Supermouse, el: HTMLElement) => void)[] = [];
-    
+
     if (config.styles) {
       for (const [optKey, cssProp] of Object.entries(config.styles)) {
         const getter = normalize(userOptions[optKey], undefined);
         const prop = cssProp as any;
-        
+
         styleSetters.push((app, el) => {
           const val = getter(app.state);
           if (val !== undefined) {
@@ -95,10 +95,10 @@ export function definePlugin(
         // 1. Create & Append
         element = config.create(app);
         if (config.selector) app.registerHoverTarget(config.selector);
-        
+
         // 2. Handle Initial State
         if (this.isEnabled === false) {
-          element.style.opacity = '0';
+          element.style.opacity = "0";
         }
         app.container.appendChild(element);
       },
@@ -110,7 +110,7 @@ export function definePlugin(
         for (let i = 0; i < styleSetters.length; i++) {
           styleSetters[i](app, element);
         }
-        
+
         // 4. Run Custom Update
         config.update?.(app, element, dt);
       },
@@ -118,13 +118,13 @@ export function definePlugin(
       onDisable(app) {
         if (!element) return;
         // Use setStyle to ensure cache remains in sync (0)
-        setStyle(element, 'opacity', 0);
+        setStyle(element, "opacity", 0);
         config.onDisable?.(app, element);
       },
 
       onEnable(app) {
         if (!element) return;
-        setStyle(element, "opacity", 1)
+        setStyle(element, "opacity", 1);
         config.onEnable?.(app, element);
       },
 
@@ -134,14 +134,14 @@ export function definePlugin(
         element.remove();
       }
     };
-  } 
-  
+  }
+
   // MODE B: LOGIC (Standard Pass-through)
   else {
     return {
       ...config,
       name,
-      isEnabled: initialEnabled,
+      isEnabled: initialEnabled
     };
   }
 }

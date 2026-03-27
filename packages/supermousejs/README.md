@@ -22,7 +22,7 @@ npm install supermousejs
 import Supermouse, { Dot, Ring } from "supermousejs";
 
 const mouse = new Supermouse({
-  smoothness: 0.15,
+  smoothness: 0.15
 });
 
 mouse.use(Dot({ size: 8 }));

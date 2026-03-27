@@ -1,16 +1,9 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "include": [
-    "src"
-  ],
+  "extends": "../../tsconfig.composite-lib.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": ".",
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "noUnusedLocals": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "paths": {}
-  }
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "references": []
 }

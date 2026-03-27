@@ -1,10 +1,9 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../tsconfig.app.json",
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@supermousejs/*": ["../packages/*/src/index.ts"]
+      "@supermousejs/*": ["../packages/*/dist"]
     }
   },
   "references": [{ "path": "./tsconfig.node.json" }]

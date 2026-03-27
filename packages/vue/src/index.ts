@@ -5,16 +5,11 @@ import {
   inject,
   shallowRef,
   type Ref,
-  type InjectionKey,
+  type InjectionKey
 } from "vue";
-import {
-  Supermouse,
-  type SupermouseOptions,
-  type SupermousePlugin,
-} from "@supermousejs/core";
+import { Supermouse, type SupermouseOptions, type SupermousePlugin } from "@supermousejs/core";
 
-export const SupermouseKey: InjectionKey<Ref<Supermouse | null>> =
-  Symbol("Supermouse");
+export const SupermouseKey: InjectionKey<Ref<Supermouse | null>> = Symbol("Supermouse");
 
 /**
  * Initializes a Supermouse instance, handles its lifecycle, and provides it to the component tree.

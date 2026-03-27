@@ -1,4 +1,4 @@
-import type { ValueOrGetter } from "@supermousejs/core";
+import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
 import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
 
 export interface RingOptions {
@@ -22,19 +22,19 @@ export const Ring = (options: RingOptions = {}) => {
       name: options.name || "ring",
       selector: "[data-supermouse-color]",
 
-      create: (app) => {
+      create: (app: Supermouse) => {
         const el = dom.createCircle(getSize(app.state), "transparent");
         dom.applyStyles(el, {
           zIndex: Layers.FOLLOWER,
           mixBlendMode: options.mixBlendMode || "difference",
           borderStyle: "solid",
           transition: "opacity 0.2s ease",
-          boxSizing: "border-box",
+          boxSizing: "border-box"
         });
         return el;
       },
 
-      update: (app, el) => {
+      update: (app: Supermouse, el: HTMLDivElement) => {
         const size = getSize(app.state);
         const color = app.state.interaction.color || getColor(app.state);
 
@@ -44,12 +44,12 @@ export const Ring = (options: RingOptions = {}) => {
           borderColor: color,
           borderWidth: `${getBorder(app.state)}px`,
           opacity: String(getOpacity(app.state)),
-          borderRadius: "50%",
+          borderRadius: "50%"
         });
 
         const { x, y } = app.state.smooth;
         dom.setTransform(el, x, y);
-      },
+      }
     },
     options
   );

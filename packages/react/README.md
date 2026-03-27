@@ -18,10 +18,7 @@ import { Dot } from "@supermousejs/dot";
 
 export default function App() {
   return (
-    <SupermouseProvider
-      options={{ smoothness: 0.15 }}
-      plugins={[Dot({ size: 8 })]}
-    >
+    <SupermouseProvider options={{ smoothness: 0.15 }} plugins={[Dot({ size: 8 })]}>
       <YourApp />
     </SupermouseProvider>
   );

@@ -19,7 +19,7 @@ const app = new Supermouse();
 app.use(
   Image({
     offset: [30, 30],
-    smoothness: 0.1, // Lag factor for the image
+    smoothness: 0.1 // Lag factor for the image
   })
 );
 ```

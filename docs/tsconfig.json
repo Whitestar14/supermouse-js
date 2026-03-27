@@ -1,11 +1,7 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../tsconfig.app.json",
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.json"],
   "compilerOptions": {
-    "types": ["vite/client"],
-    "baseUrl": ".",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "paths": {
       "@/*": ["src/*"],
       "@shared/*": ["src/components/shared/*"],
@@ -18,9 +14,8 @@
       "@config/*": ["src/config/*"],
       "@data/*": ["src/data/*"],
       "@utils/*": ["src/utils/*"],
-      "@supermousejs/*": ["../packages/*/src/index.ts"]
-    },
-    "resolveJsonModule": true
+      "@supermousejs/*": ["../packages/*/dist"]
+    }
   },
   "references": [{ "path": "./tsconfig.node.json" }]
 }

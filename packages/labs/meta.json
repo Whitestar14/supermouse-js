@@ -1,4 +1,3 @@
-
 [
   {
     "id": "smart-icon",
@@ -9,12 +8,48 @@
     "recipeId": "context-icon",
     "icon": "labs",
     "options": [
-      { "name": "icons", "type": "Record<string, string>", "default": "{}", "description": "Map of state names to SVG strings.", "reactive": false },
-      { "name": "size", "type": "number", "default": "24", "description": "Size of the icon container.", "reactive": true },
-      { "name": "color", "type": "string", "default": "'black'", "description": "Icon fill color (currentColor).", "reactive": true },
-      { "name": "anchor", "type": "string", "default": "'center'", "description": "Alignment (center, top-left, etc).", "reactive": true },
-      { "name": "offset", "type": "[number, number]", "default": "[0, 0]", "description": "Fixed offset.", "reactive": false },
-      { "name": "transitionDuration", "type": "number", "default": "200", "description": "Morph transition time in ms.", "reactive": false }
+      {
+        "name": "icons",
+        "type": "Record<string, string>",
+        "default": "{}",
+        "description": "Map of state names to SVG strings.",
+        "reactive": false
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "24",
+        "description": "Size of the icon container.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'black'",
+        "description": "Icon fill color (currentColor).",
+        "reactive": true
+      },
+      {
+        "name": "anchor",
+        "type": "string",
+        "default": "'center'",
+        "description": "Alignment (center, top-left, etc).",
+        "reactive": true
+      },
+      {
+        "name": "offset",
+        "type": "[number, number]",
+        "default": "[0, 0]",
+        "description": "Fixed offset.",
+        "reactive": false
+      },
+      {
+        "name": "transitionDuration",
+        "type": "number",
+        "default": "200",
+        "description": "Morph transition time in ms.",
+        "reactive": false
+      }
     ]
   },
   {
@@ -25,9 +60,27 @@
     "code": "import { SmartRing } from '@supermousejs/labs';\n\napp.use(SmartRing({ size: 24, color: '#f59e0b', enableSkew: true }));",
     "icon": "ring",
     "options": [
-        { "name": "size", "type": "number", "default": "20", "description": "Base diameter.", "reactive": true },
-        { "name": "hoverSize", "type": "number", "default": "40", "description": "Diameter on hover.", "reactive": true },
-        { "name": "enableSkew", "type": "boolean", "default": "false", "description": "Distort shape based on velocity.", "reactive": false }
+      {
+        "name": "size",
+        "type": "number",
+        "default": "20",
+        "description": "Base diameter.",
+        "reactive": true
+      },
+      {
+        "name": "hoverSize",
+        "type": "number",
+        "default": "40",
+        "description": "Diameter on hover.",
+        "reactive": true
+      },
+      {
+        "name": "enableSkew",
+        "type": "boolean",
+        "default": "false",
+        "description": "Distort shape based on velocity.",
+        "reactive": false
+      }
     ]
   },
   {
@@ -38,9 +91,27 @@
     "code": "import { Sparkles } from '@supermousejs/labs';\n\napp.use(Sparkles({ color: '#f59e0b', frequency: 10 }));",
     "icon": "trail",
     "options": [
-        { "name": "color", "type": "string", "default": "'#ff00ff'", "description": "Particle color.", "reactive": true },
-        { "name": "frequency", "type": "number", "default": "10", "description": "Pixels per spawn.", "reactive": false },
-        { "name": "decay", "type": "number", "default": "0.05", "description": "Fade rate.", "reactive": false }
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#ff00ff'",
+        "description": "Particle color.",
+        "reactive": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "default": "10",
+        "description": "Pixels per spawn.",
+        "reactive": false
+      },
+      {
+        "name": "decay",
+        "type": "number",
+        "default": "0.05",
+        "description": "Fade rate.",
+        "reactive": false
+      }
     ]
   },
   {
@@ -51,9 +122,27 @@
     "code": "import { TextRing } from '@supermousejs/labs';\n\napp.use(TextRing({ text: 'LOADING • ', radius: 40 }));",
     "icon": "text",
     "options": [
-        { "name": "text", "type": "string", "default": "'SUPERMOUSE • '", "description": "Text content.", "reactive": true },
-        { "name": "radius", "type": "number", "default": "60", "description": "Ring radius.", "reactive": true },
-        { "name": "speed", "type": "number", "default": "0.5", "description": "Rotation speed deg/frame.", "reactive": true }
+      {
+        "name": "text",
+        "type": "string",
+        "default": "'SUPERMOUSE • '",
+        "description": "Text content.",
+        "reactive": true
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "60",
+        "description": "Ring radius.",
+        "reactive": true
+      },
+      {
+        "name": "speed",
+        "type": "number",
+        "default": "0.5",
+        "description": "Rotation speed deg/frame.",
+        "reactive": true
+      }
     ]
   }
 ]

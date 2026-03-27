@@ -1,4 +1,4 @@
-import type { ValueOrGetter } from "@supermousejs/core";
+import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
 import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
 
 export interface IconOptions {
@@ -32,7 +32,7 @@ export const Icon = (options: IconOptions) => {
           zIndex: String(Layers.CURSOR),
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "center"
         });
 
         el.innerHTML = options.svg;
@@ -40,10 +40,10 @@ export const Icon = (options: IconOptions) => {
       },
 
       styles: {
-        color: "color",
+        color: "color"
       },
 
-      update: (app, el) => {
+      update: (app: Supermouse, el: HTMLDivElement) => {
         const state = app.state;
         const size = getSize(state);
 
@@ -51,12 +51,12 @@ export const Icon = (options: IconOptions) => {
           width: `${size}px`,
           height: `${size}px`,
           opacity: String(getOpacity(state)),
-          color: getColor(state),
+          color: getColor(state)
         });
 
         const { x, y } = state.smooth;
         dom.setTransform(el, x + offX, y + offY, 0);
-      },
+      }
     },
     options
   );

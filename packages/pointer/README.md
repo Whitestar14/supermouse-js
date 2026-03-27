@@ -21,7 +21,7 @@ app.use(
     size: 32,
     color: "black",
     restingAngle: -45, // Angle when stopped
-    returnToRest: true, // Snap back when stopped
+    returnToRest: true // Snap back when stopped
   })
 );
 ```

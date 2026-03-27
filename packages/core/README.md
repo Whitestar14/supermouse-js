@@ -19,7 +19,7 @@ import { Dot } from "@supermousejs/dot";
 
 const app = new Supermouse({
   smoothness: 0.15, // 0-1 (Physics damping)
-  hideCursor: true, // Auto-hide native cursor
+  hideCursor: true // Auto-hide native cursor
 });
 
 app.use(Dot({ size: 8, color: "#f59e0b" }));

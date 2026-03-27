@@ -1,4 +1,4 @@
-import { dist, angle, clamp } from './math';
+import { dist, angle, clamp } from "./math";
 
 /**
  * Calculates Rotation and Scale based on velocity to create a "Squash and Stretch" effect.
@@ -24,7 +24,7 @@ export function getVelocityDistortion(vx: number, vy: number, intensity = 0.004,
 
   // 3. Scale X grows, Scale Y shrinks (to preserve volume-ish)
   const scaleX = 1 + stretch;
-  const scaleY = 1 - (stretch * 0.5); // Squash factor
+  const scaleY = 1 - stretch * 0.5; // Squash factor
 
   return {
     rotation,

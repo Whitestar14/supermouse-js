@@ -20,7 +20,7 @@ app.use(
   Ring({
     size: 20,
     color: "black",
-    borderWidth: 2,
+    borderWidth: 2
   })
 );
 ```

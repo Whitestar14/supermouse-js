@@ -28,8 +28,8 @@ app.use(
     default: ["dot"], // Plugins active by default
     states: {
       hover: ["dot", "ring"],
-      info: ["text"],
-    },
+      info: ["text"]
+    }
   })
 );
 ```

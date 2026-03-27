@@ -1,15 +1,20 @@
 declare const __VERSION__: string;
 
-import { MouseState, SupermouseOptions, SupermousePlugin } from './types';
-import { Stage, Input } from './systems';
-import { damp, angle } from './utils/math';
+import type { MouseState, SupermouseOptions, SupermousePlugin } from "./types";
+import { Stage, Input } from "./systems";
+import { damp, angle } from "./utils/math";
 
 export const DEFAULT_HOVER_SELECTORS = [
-  'a', 'button', 'input', 'textarea', '[data-hover]', '[data-cursor]'
+  "a",
+  "button",
+  "input",
+  "textarea",
+  "[data-hover]",
+  "[data-cursor]"
 ];
 
 /**
- * The Central Conductor & Runtime Loop of Supermouse.
+ * Runtime Loop of Supermouse.
  *
  * This class orchestrates the application state, manages the animation loop (`requestAnimationFrame`),
  * and coordinates data flow between the Input system, the Stage system, and the Plugins.
@@ -25,7 +30,7 @@ export class Supermouse {
    */
   options: SupermouseOptions;
 
-  private plugins: SupermousePlugin[] =[];
+  private plugins: SupermousePlugin[] = [];
   private stage: Stage;
   private input: Input;
 
@@ -46,7 +51,7 @@ export class Supermouse {
       smoothness: 0.15,
       enableTouch: false,
       autoDisableOnMobile: true,
-      ignoreOnNative: 'auto',
+      ignoreOnNative: "auto",
       hideCursor: true,
       hideOnLeave: true,
       autoStart: true,
@@ -82,17 +87,19 @@ export class Supermouse {
     }
 
     this.stage = new Stage(this.options.container, !!this.options.hideCursor);
-    this.hoverSelectors.forEach(s => this.stage.addSelector(s));
+    this.hoverSelectors.forEach((s) => this.stage.addSelector(s));
 
     this.input = new Input(
       this.state,
       this.options,
-      () => Array.from(this.hoverSelectors).join(', '),
-      (enabled) => { if (!enabled) this.resetPosition(); }
+      () => Array.from(this.hoverSelectors).join(", "),
+      (enabled) => {
+        if (!enabled) this.resetPosition();
+      }
     );
 
     if (this.options.plugins) {
-      this.options.plugins.forEach(p => this.use(p));
+      this.options.plugins.forEach((p) => this.use(p));
     }
 
     this.init();
@@ -102,7 +109,7 @@ export class Supermouse {
    * Retrieves a registered plugin instance by its unique name.
    */
   public getPlugin(name: string) {
-    return this.plugins.find(p => p.name === name);
+    return this.plugins.find((p) => p.name === name);
   }
 
   /**
@@ -157,25 +164,34 @@ export class Supermouse {
   /**
    * The fixed container element where plugins should append their DOM nodes.
    */
-  public get container(): HTMLDivElement { return this.stage.element; }
+  public get container(): HTMLDivElement {
+    return this.stage.element;
+  }
 
   /**
    * Manually override the native cursor visibility.
    *
    * @param type 'auto' (Show Native), 'none' (Hide Native), or null (Resume Auto-detection)
    */
-  public setCursor(type: 'auto' | 'none' | null) {
+  public setCursor(type: "auto" | "none" | null) {
     this.state.forcedCursor = type;
   }
 
   private init() {
     if (this.options.autoStart) {
-        this.startLoop();
+      this.startLoop();
     }
   }
 
-  public enable() { this.input.isEnabled = true; this.stage.setNativeCursor('none'); }
-  public disable() { this.input.isEnabled = false; this.stage.setNativeCursor('auto'); this.resetPosition(); }
+  public enable() {
+    this.input.isEnabled = true;
+    this.stage.setNativeCursor("none");
+  }
+  public disable() {
+    this.input.isEnabled = false;
+    this.stage.setNativeCursor("auto");
+    this.resetPosition();
+  }
 
   /**
    * Registers a new plugin.
@@ -183,7 +199,7 @@ export class Supermouse {
    * @param plugin - The plugin object to install.
    */
   public use(plugin: SupermousePlugin) {
-    if (this.plugins.find(p => p.name === plugin.name)) {
+    if (this.plugins.find((p) => p.name === plugin.name)) {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
       return this;
     }
@@ -234,7 +250,9 @@ export class Supermouse {
     } catch (e) {
       console.error(`[Supermouse] Plugin '${plugin.name}' crashed and has been disabled.`, e);
       plugin.isEnabled = false;
-      try { plugin.onDisable?.(this); } catch (err) {}
+      try {
+        plugin.onDisable?.(this);
+      } catch (err) {}
     }
   }
 
@@ -250,21 +268,21 @@ export class Supermouse {
       this.input.clearHover();
     }
 
-    const shouldShowStage = this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
+    const shouldShowStage =
+      this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
     this.stage.setVisibility(shouldShowStage);
 
     if (this.input.isEnabled && this.options.hideCursor) {
-       let targetState: 'none' | 'auto' = 'auto';
+      let targetState: "none" | "auto" = "auto";
 
-       if (this.state.forcedCursor !== null) {
-         targetState = this.state.forcedCursor;
-       }
-       else {
-         const showNative = this.state.isNative || !this.state.hasReceivedInput;
-         targetState = showNative ? 'auto' : 'none';
-       }
+      if (this.state.forcedCursor !== null) {
+        targetState = this.state.forcedCursor;
+      } else {
+        const showNative = this.state.isNative || !this.state.hasReceivedInput;
+        targetState = showNative ? "auto" : "none";
+      }
 
-       this.stage.setNativeCursor(targetState);
+      this.stage.setNativeCursor(targetState);
     }
 
     if (this.input.isEnabled) {
@@ -289,7 +307,6 @@ export class Supermouse {
       if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
         this.state.angle = angle(vx, vy);
       }
-
     } else {
       this.state.smooth.x = -100;
       this.state.smooth.y = -100;
@@ -316,7 +333,7 @@ export class Supermouse {
     cancelAnimationFrame(this.rafId);
     this.input.destroy();
     this.stage.destroy();
-    this.plugins.forEach(p => p.destroy?.(this));
+    this.plugins.forEach((p) => p.destroy?.(this));
     this.plugins = [];
   }
 }

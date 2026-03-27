@@ -1,4 +1,3 @@
-
 {
   "id": "trail",
   "name": "Trail",
@@ -8,8 +7,26 @@
   "recipeId": "ghost-trail",
   "icon": "trail",
   "options": [
-    { "name": "length", "type": "number", "default": "10", "description": "Number of trail segments.", "reactive": false },
-    { "name": "size", "type": "number", "default": "6", "description": "Size of trail particles.", "reactive": true },
-    { "name": "color", "type": "string", "default": "'#ff00ff'", "description": "Color of segments.", "reactive": true }
+    {
+      "name": "length",
+      "type": "number",
+      "default": "10",
+      "description": "Number of trail segments.",
+      "reactive": false
+    },
+    {
+      "name": "size",
+      "type": "number",
+      "default": "6",
+      "description": "Size of trail particles.",
+      "reactive": true
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "default": "'#ff00ff'",
+      "description": "Color of segments.",
+      "reactive": true
+    }
   ]
 }

@@ -8,7 +8,7 @@ export function lerp(start: number, end: number, factor: number): number {
 /**
  * Frame-rate independent damping (Time-based Lerp).
  * Ensures smooth animation consistent across 60hz, 120hz, etc.
- * 
+ *
  * @param a Current value
  * @param b Target value
  * @param lambda Smoothing factor (approx 1-20). Higher is faster.

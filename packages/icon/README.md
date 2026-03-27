@@ -20,7 +20,7 @@ app.use(
   Icon({
     svg: "<svg>...</svg>", // Your SVG string
     size: 24,
-    color: "black",
+    color: "black"
   })
 );
 ```

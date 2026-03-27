@@ -1,16 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "include": [
-    "src"
-  ],
+  "extends": "../../tsconfig.framework.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": ".",
-    "jsx": "react-jsx",
-    "paths": {
-      "@supermousejs/core": [
-        "../core/src/index.ts"
-      ]
-    }
-  }
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
 }

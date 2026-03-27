@@ -1,4 +1,4 @@
-import type { ValueOrGetter } from "@supermousejs/core";
+import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
 import { definePlugin, normalize, dom, math, Layers } from "@supermousejs/utils";
 
 export interface SparklesOptions {
@@ -77,14 +77,14 @@ export const Sparkles = (options: SparklesOptions = {}) => {
     {
       name: options.name || "sparkles",
 
-      install(app) {
+      install(app: Supermouse) {
         for (let i = 0; i < poolSize; i++) {
           const el = dom.createCircle(0, "transparent");
           dom.applyStyles(el, {
             zIndex: Layers.TRACE,
             opacity: "0",
             willChange: "transform, opacity",
-            transition: "none",
+            transition: "none"
           });
           app.container.appendChild(el);
           pool.push({
@@ -96,12 +96,12 @@ export const Sparkles = (options: SparklesOptions = {}) => {
             vy: 0,
             life: 0,
             scale: 1,
-            color: "",
+            color: ""
           });
         }
       },
 
-      update(app) {
+      update(app: Supermouse) {
         const { x: cx, y: cy } = app.state.pointer;
 
         // --- 1. SPAWN LOGIC (Interpolated) ---
@@ -161,7 +161,7 @@ export const Sparkles = (options: SparklesOptions = {}) => {
       destroy() {
         pool.forEach((p) => p.el.remove());
         pool.length = 0;
-      },
+      }
     },
     options
   );

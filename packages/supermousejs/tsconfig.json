@@ -1,8 +1,26 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "include": ["src"],
+  "extends": "../../tsconfig.composite-lib.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": ".",
-  }
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../core" },
+    { "path": "../utils" },
+    { "path": "../dot" },
+    { "path": "../icon" },
+    { "path": "../image" },
+    { "path": "../labs" },
+    { "path": "../magnetic" },
+    { "path": "../pointer" },
+    { "path": "../ring" },
+    { "path": "../states" },
+    { "path": "../stick" },
+    { "path": "../text" },
+    { "path": "../trail" },
+    { "path": "../zoetrope" },
+    { "path": "../react" },
+    { "path": "../vue" }
+  ]
 }

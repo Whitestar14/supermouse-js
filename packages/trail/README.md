@@ -20,7 +20,7 @@ app.use(
   Trail({
     length: 10, // Number of segments
     size: 6, // Particle size
-    color: "#ff00ff",
+    color: "#ff00ff"
   })
 );
 ```

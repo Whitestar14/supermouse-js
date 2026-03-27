@@ -1,16 +1,11 @@
-import type { ValueOrGetter } from "@supermousejs/core";
+import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
 import { definePlugin, normalize, dom, math, Layers } from "@supermousejs/utils";
 
 export interface SmartIconMap {
   [key: string]: string;
 }
 
-export type SmartIconAnchor =
-  | "center"
-  | "top-left"
-  | "top-right"
-  | "bottom-left"
-  | "bottom-right";
+export type SmartIconAnchor = "center" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 export interface SmartIconOptions {
   name?: string;
@@ -27,29 +22,17 @@ export interface SmartIconOptions {
   rotateWithVelocity?: ValueOrGetter<boolean>;
 }
 
-function resolveSemanticState(
-  target: HTMLElement,
-  icons: SmartIconMap
-): string | null {
+function resolveSemanticState(target: HTMLElement, icons: SmartIconMap): string | null {
   const tag = target.tagName.toLowerCase();
 
   if (tag === "input" || tag === "textarea" || target.isContentEditable) {
     const type = (target as HTMLInputElement).type;
-    if (
-      !["button", "submit", "checkbox", "radio", "range", "color"].includes(
-        type
-      )
-    ) {
+    if (!["button", "submit", "checkbox", "radio", "range", "color"].includes(type)) {
       if (icons["text"]) return "text";
     } else if (icons["pointer"]) {
       return "pointer";
     }
-  } else if (
-    tag === "a" ||
-    tag === "button" ||
-    target.closest("a") ||
-    target.closest("button")
-  ) {
+  } else if (tag === "a" || tag === "button" || target.closest("a") || target.closest("button")) {
     if (icons["pointer"]) return "pointer";
   }
   return null;
@@ -98,16 +81,14 @@ export const SmartIcon = (options: SmartIconOptions) => {
           justifyContent: "center",
           transformOrigin: "center center",
           transform: "scale(1)",
-          transition: `transform ${
-            duration / 2
-          }ms cubic-bezier(0.16, 1, 0.3, 1)`,
+          transition: `transform ${duration / 2}ms cubic-bezier(0.16, 1, 0.3, 1)`
         });
 
         contentWrapper.innerHTML = options.icons[currentState] || "";
 
-      dom.injectStyles(
-        'supermouse-smart-icon-styles',
-        `
+        dom.injectStyles(
+          "supermouse-smart-icon-styles",
+          `
         @keyframes sm {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
@@ -116,17 +97,17 @@ export const SmartIcon = (options: SmartIconOptions) => {
           animation: sm 1s linear infinite;
         }
         `
-      );
+        );
 
         el.appendChild(contentWrapper);
         return el;
       },
 
       styles: {
-        color: "color",
+        color: "color"
       },
 
-      update: (app, el) => {
+      update: (app: Supermouse, el: HTMLDivElement) => {
         const icons = options.icons;
         const target = app.state.hoverTarget;
 
@@ -135,9 +116,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
         if (target) {
           if (target !== lastTarget) {
             lastTarget = target;
-            cachedSemanticState = useSemanticTags
-              ? resolveSemanticState(target, icons)
-              : null;
+            cachedSemanticState = useSemanticTags ? resolveSemanticState(target, icons) : null;
           }
 
           const attrSmartIcon = app.state.interaction?.icon;
@@ -153,10 +132,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
         }
 
         if (nextState !== currentState && !isTransitioning) {
-          if (
-            icons[nextState] ||
-            nextState === (options.defaultState || "default")
-          ) {
+          if (icons[nextState] || nextState === (options.defaultState || "default")) {
             targetState = nextState;
             isTransitioning = true;
 
@@ -192,33 +168,21 @@ export const SmartIcon = (options: SmartIconOptions) => {
           if (anchor.includes("bottom")) anchorY = -half;
         }
 
-        const isSemanticState =
-          currentState === "pointer" || currentState === "text";
+        const isSemanticState = currentState === "pointer" || currentState === "text";
 
-        if (
-          getShouldRotate(app.state) &&
-          !isSemanticState &&
-          !app.state.reducedMotion
-        ) {
+        if (getShouldRotate(app.state) && !isSemanticState && !app.state.reducedMotion) {
           const { x: vx, y: vy } = app.state.velocity;
           const speed = math.dist(vx, vy);
 
           if (speed > 1) {
             lastTargetRotation = math.angle(vx, vy);
           }
-          currentRotation = math.lerpAngle(
-            currentRotation,
-            lastTargetRotation,
-            0.15
-          );
+          currentRotation = math.lerpAngle(currentRotation, lastTargetRotation, 0.15);
         } else {
           currentRotation = math.lerpAngle(currentRotation, 0, 0.15);
         }
 
-        const pos =
-          getStrategy(app.state) === "raw"
-            ? app.state.pointer
-            : app.state.smooth;
+        const pos = getStrategy(app.state) === "raw" ? app.state.pointer : app.state.smooth;
         dom.setTransform(
           el,
           pos.x + userOffX + anchorX,
@@ -229,7 +193,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
 
       cleanup() {
         clearTimeout(transitionTimer);
-      },
+      }
     },
     options
   );

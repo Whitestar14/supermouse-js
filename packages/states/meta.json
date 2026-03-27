@@ -1,4 +1,3 @@
-
 {
   "id": "states",
   "name": "States",
@@ -7,8 +6,26 @@
   "code": "app.use(States({ default: ['dot'], states: { 'hover': ['ring'] } }));",
   "icon": "context",
   "options": [
-    { "name": "default", "type": "string[]", "default": "[]", "description": "List of plugin names active by default.", "reactive": false },
-    { "name": "states", "type": "Record<string, string[]>", "default": "{}", "description": "Map of state names to lists of active plugins.", "reactive": false },
-    { "name": "attribute", "type": "string", "default": "'data-supermouse-state'", "description": "DOM attribute to trigger state changes.", "reactive": false }
+    {
+      "name": "default",
+      "type": "string[]",
+      "default": "[]",
+      "description": "List of plugin names active by default.",
+      "reactive": false
+    },
+    {
+      "name": "states",
+      "type": "Record<string, string[]>",
+      "default": "{}",
+      "description": "Map of state names to lists of active plugins.",
+      "reactive": false
+    },
+    {
+      "name": "attribute",
+      "type": "string",
+      "default": "'data-supermouse-state'",
+      "description": "DOM attribute to trigger state changes.",
+      "reactive": false
+    }
   ]
 }

@@ -1,9 +1,7 @@
-import { MouseState, SupermouseOptions } from '../types';
+import type { MouseState, SupermouseOptions } from "../types";
 
 /**
- * The Sensor / State Writer.
- *
- * This class listens to browser events (pointermove, pointerdown, hover) and mutates the shared `MouseState` object.
+ * This class listens to browser events and mutates the shared `MouseState` object.
  *
  * @internal This is an internal system class instantiated by `Supermouse`.
  */
@@ -30,19 +28,19 @@ export class Input {
   }
 
   /**
-   * Automatically disables the custom cursor on devices without fine pointer control (e.g. phones/tablets).
+   * Automatically disables the custom cursor on devices without fine pointer control.
    * Relies on `matchMedia('(pointer: fine)')`.
    */
   private checkDeviceCapability() {
     if (!this.options.autoDisableOnMobile) return;
 
-    this.mediaQueryList = window.matchMedia('(pointer: fine)');
+    this.mediaQueryList = window.matchMedia("(pointer: fine)");
     this.updateEnabledState(this.mediaQueryList.matches);
 
     this.mediaQueryHandler = (e: MediaQueryListEvent) => {
       this.updateEnabledState(e.matches);
     };
-    this.mediaQueryList.addEventListener('change', this.mediaQueryHandler);
+    this.mediaQueryList.addEventListener("change", this.mediaQueryHandler);
   }
 
   /**
@@ -50,12 +48,12 @@ export class Input {
    * If true, the core physics engine will switch to instant snapping (high damping) to avoid motion sickness.
    */
   private checkMotionPreference() {
-   this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-   this.state.reducedMotion = this.motionQuery.matches;
+    this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.state.reducedMotion = this.motionQuery.matches;
 
-   this.motionQuery.addEventListener('change',  e => {
-     this.state.reducedMotion = e.matches;
-   });
+    this.motionQuery.addEventListener("change", (e) => {
+      this.state.reducedMotion = e.matches;
+    });
   }
 
   private updateEnabledState(enabled: boolean) {
@@ -69,7 +67,7 @@ export class Input {
       return;
     }
 
-    const data: Record<string, any> = {};
+    const data: Record<string, string | boolean> = {};
 
     if (this.options.rules) {
       for (const [selector, rules] of Object.entries(this.options.rules)) {
@@ -81,12 +79,14 @@ export class Input {
 
     const dataset = element.dataset;
     for (const key in dataset) {
-      if (key.startsWith('supermouse')) {
+      if (key.startsWith("supermouse")) {
         const prop = key.slice(10);
         if (prop) {
           const cleanKey = prop.charAt(0).toLowerCase() + prop.slice(1);
           const val = dataset[key];
-          data[cleanKey] = val === '' ? true : val;
+          if (val !== undefined) {
+            data[cleanKey] = val === "" ? true : val;
+          }
         }
       }
     }
@@ -94,10 +94,10 @@ export class Input {
     this.state.interaction = data;
   }
 
-  private handleMove = (e: PointerEvent) => {
+  private handleMove(e: PointerEvent) {
     if (!this.isEnabled) return;
 
-    if (this.options.autoDisableOnMobile && e.pointerType === 'touch') return;
+    if (this.options.autoDisableOnMobile && e.pointerType === "touch") return;
 
     let x = e.clientX;
     let y = e.clientY;
@@ -116,16 +116,21 @@ export class Input {
       this.state.target.x = this.state.smooth.x = x;
       this.state.target.y = this.state.smooth.y = y;
     }
-  };
+  }
 
-  private handleDown = () => { if (this.isEnabled) this.state.isDown = true; };
-  private handleUp = () => { if (this.isEnabled) this.state.isDown = false; };
+  private handleDown(): void {
+    if (this.isEnabled) this.state.isDown = true;
+  }
 
-  private handleMouseOver = (e: MouseEvent) => {
+  private handleUp(): void {
+    if (this.isEnabled) this.state.isDown = false;
+  }
+
+  private handleMouseOver(e: MouseEvent) {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
-    if (target.closest('[data-supermouse-ignore]')) {
+    if (target.closest("[data-supermouse-ignore]")) {
       this.state.isNative = true;
       return;
     }
@@ -142,20 +147,20 @@ export class Input {
     const strategy = this.options.ignoreOnNative;
 
     if (strategy) {
-      const checkTags = strategy === true || strategy === 'auto' || strategy === 'tag';
-      const checkCSS = strategy === true || strategy === 'auto' || strategy === 'css';
+      const checkTags = strategy === true || strategy === "auto" || strategy === "tag";
+      const checkCSS = strategy === true || strategy === "auto" || strategy === "css";
       let isNative = false;
 
       if (checkTags) {
         const tag = target.localName;
-        if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) {
+        if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) {
           isNative = true;
         }
       }
 
       if (!isNative && checkCSS) {
         const style = window.getComputedStyle(target).cursor;
-        const supermouseAllowed = ['default', 'auto', 'pointer', 'none', 'inherit'];
+        const supermouseAllowed = ["default", "auto", "pointer", "none", "inherit"];
         if (!supermouseAllowed.includes(style)) {
           isNative = true;
         }
@@ -165,30 +170,30 @@ export class Input {
         this.state.isNative = true;
       }
     }
-  };
+  }
 
-  private handleMouseOut = (e: MouseEvent) => {
+  private handleMouseOut(e: MouseEvent) {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
     if (target === this.state.hoverTarget || target.contains(this.state.hoverTarget)) {
-       if (!e.relatedTarget || !(this.state.hoverTarget?.contains(e.relatedTarget as Node))) {
-          this.state.isHover = false;
-          this.state.hoverTarget = null;
-          this.state.interaction = {};
-       }
+      if (!e.relatedTarget || !this.state.hoverTarget?.contains(e.relatedTarget as Node)) {
+        this.state.isHover = false;
+        this.state.hoverTarget = null;
+        this.state.interaction = {};
+      }
     }
 
     if (this.state.isNative) {
       this.state.isNative = false;
     }
-  };
+  }
 
-  private handleWindowLeave = () => {
+  private handleWindowLeave(): void {
     if (this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
     }
-  };
+  }
 
   public clearHover() {
     this.state.isHover = false;
@@ -197,30 +202,30 @@ export class Input {
   }
 
   private bindEvents() {
-    window.addEventListener('pointermove', this.handleMove, { passive: true });
-    window.addEventListener('pointerdown', this.handleDown, { passive: true });
-    window.addEventListener('pointerup', this.handleUp);
+    window.addEventListener("pointermove", this.handleMove.bind(this), { passive: true });
+    window.addEventListener("pointerdown", this.handleDown.bind(this), { passive: true });
+    window.addEventListener("pointerup", this.handleUp.bind(this));
 
-    document.addEventListener('mouseover', this.handleMouseOver);
-    document.addEventListener('mouseout', this.handleMouseOut);
-    document.addEventListener('mouseleave', this.handleWindowLeave);
+    document.addEventListener("mouseover", this.handleMouseOver.bind(this));
+    document.addEventListener("mouseout", this.handleMouseOut.bind(this));
+    document.addEventListener("mouseleave", this.handleWindowLeave.bind(this));
   }
 
   public destroy() {
     if (this.mediaQueryList && this.mediaQueryHandler) {
-      this.mediaQueryList.removeEventListener('change', this.mediaQueryHandler);
+      this.mediaQueryList.removeEventListener("change", this.mediaQueryHandler);
     }
     if (this.motionQuery) {
       // Modern browsers support removeEventListener on MediaQueryList
       this.motionQuery.onchange = null;
     }
 
-    window.removeEventListener('pointermove', this.handleMove);
-    window.removeEventListener('pointerdown', this.handleDown);
-    window.removeEventListener('pointerup', this.handleUp);
+    window.removeEventListener("pointermove", this.handleMove);
+    window.removeEventListener("pointerdown", this.handleDown);
+    window.removeEventListener("pointerup", this.handleUp);
 
-    document.removeEventListener('mouseover', this.handleMouseOver);
-    document.removeEventListener('mouseout', this.handleMouseOut);
-    document.removeEventListener('mouseleave', this.handleWindowLeave);
+    document.removeEventListener("mouseover", this.handleMouseOver);
+    document.removeEventListener("mouseout", this.handleMouseOut);
+    document.removeEventListener("mouseleave", this.handleWindowLeave);
   }
 }

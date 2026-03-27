@@ -1,4 +1,3 @@
-
 {
   "id": "magnetic",
   "name": "Magnetic",
@@ -8,7 +7,19 @@
   "recipeId": "magnetic-button",
   "icon": "magnetic",
   "options": [
-    { "name": "attraction", "type": "number", "default": "0.3", "description": "Strength of the pull (0-1).", "reactive": true },
-    { "name": "distance", "type": "number", "default": "100", "description": "Radius in pixels where attraction begins.", "reactive": true }
+    {
+      "name": "attraction",
+      "type": "number",
+      "default": "0.3",
+      "description": "Strength of the pull (0-1).",
+      "reactive": true
+    },
+    {
+      "name": "distance",
+      "type": "number",
+      "default": "100",
+      "description": "Radius in pixels where attraction begins.",
+      "reactive": true
+    }
   ]
 }

@@ -9,7 +9,6 @@ export interface DotOptions {
   opacity?: ValueOrGetter<number>;
   zIndex?: string;
   mixBlendMode?: string;
-  /** Whether to hide the dot when the cursor is in a 'shape' state (e.g. Stuck). Default true. */
   hideOnShape?: boolean;
 }
 
@@ -18,7 +17,6 @@ export const Dot = (options: DotOptions = {}) => {
   const defColor = "#750c7e";
   const hideOnShape = options.hideOnShape ?? true;
 
-  // Normalize options once during setup
   const getSize = normalize(options.size, defSize);
   const getColor = normalize(options.color, defColor);
   const getOpacity = normalize(options.opacity, 1);
@@ -29,7 +27,6 @@ export const Dot = (options: DotOptions = {}) => {
       selector: "[data-supermouse-color]",
 
       create: (app) => {
-        // Initial values
         const size = getSize(app.state);
         const color = getColor(app.state);
 
@@ -37,7 +34,7 @@ export const Dot = (options: DotOptions = {}) => {
         dom.applyStyles(el, {
           zIndex: options.zIndex || Layers.CURSOR,
           mixBlendMode: options.mixBlendMode || "difference",
-          transition: "background-color 0.2s ease, opacity 0.2s ease",
+          transition: "background-color 0.2s ease, opacity 0.2s ease"
         });
         return el;
       },
@@ -48,11 +45,7 @@ export const Dot = (options: DotOptions = {}) => {
         const size = getSize(app.state);
         dom.setStyle(el, "width", `${size}px`);
         dom.setStyle(el, "height", `${size}px`);
-        dom.setStyle(
-          el,
-          "backgroundColor",
-          app.state.interaction.color || getColor(app.state)
-        );
+        dom.setStyle(el, "backgroundColor", app.state.interaction.color || getColor(app.state));
 
         let targetOpacity = getOpacity(app.state);
 
@@ -64,7 +57,7 @@ export const Dot = (options: DotOptions = {}) => {
 
         const { x, y } = app.state.target;
         dom.setTransform(el, x, y);
-      },
+      }
     },
     options
   );

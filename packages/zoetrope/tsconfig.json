@@ -1,15 +1,11 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "include": [
-    "src"
-  ],
+  "extends": "../../tsconfig.composite-lib.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-      "@supermousejs/core": [
-        "../core/src/index.ts"
-      ]
-    }
-  }
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../core" }
+  ]
 }

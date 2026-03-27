@@ -1,4 +1,4 @@
-import type { ValueOrGetter } from "@supermousejs/core";
+import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
 import { definePlugin, normalize, dom, math, effects, Layers } from "@supermousejs/utils";
 
 export interface SmartRingOptions {
@@ -31,18 +31,18 @@ export const SmartRing = (options: SmartRingOptions = {}) => {
       name: options.name || "smart-ring",
       selector: "[data-supermouse-color]",
 
-      create: (app) => {
+      create: (app: Supermouse) => {
         const el = dom.createCircle(getSize(app.state), getFill(app.state));
         dom.applyStyles(el, {
           zIndex: Layers.FOLLOWER,
           mixBlendMode: options.mixBlendMode || "difference",
           transition: "opacity 0.2s ease, border-radius 0.2s ease",
-          borderStyle: "solid",
+          borderStyle: "solid"
         });
         return el;
       },
 
-      update: (app, el) => {
+      update: (app: Supermouse, el: HTMLDivElement) => {
         const baseSize = getSize(app.state);
         const shape = app.state.shape;
 
@@ -98,7 +98,7 @@ export const SmartRing = (options: SmartRingOptions = {}) => {
 
         const { x, y } = app.state.smooth;
         dom.setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
-      },
+      }
     },
     options
   );

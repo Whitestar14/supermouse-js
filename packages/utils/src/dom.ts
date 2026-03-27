@@ -24,10 +24,7 @@ const styleCache = new WeakMap<HTMLElement, Record<string, string | number>>();
  * @param el The element to style
  * @param styles An object of CSS properties and values
  */
-export function applyStyles(
-  el: HTMLElement,
-  styles: Partial<CSSStyleDeclaration>
-) {
+export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
   if (typeof document === "undefined" || !el) return;
 
   let cache = styleCache.get(el);
@@ -91,10 +88,7 @@ export function setTransform(
 /**
  * Calculates the bounding rectangle of an element relative to a container.
  */
-export function projectRect(
-  element: HTMLElement,
-  container: HTMLElement = document.body
-): DOMRect {
+export function projectRect(element: HTMLElement, container: HTMLElement = document.body): DOMRect {
   const rect = element.getBoundingClientRect();
 
   if (container !== document.body) {
@@ -123,7 +117,7 @@ export function createActor(tagName: string = "div"): HTMLElement {
     pointerEvents: "none",
     boxSizing: "border-box",
     display: "block",
-    willChange: "transform",
+    willChange: "transform"
   });
   return el;
 }
@@ -137,7 +131,7 @@ export function createCircle(size: number, color: string): HTMLDivElement {
     width: `${size}px`,
     height: `${size}px`,
     borderRadius: "50%",
-    backgroundColor: color,
+    backgroundColor: color
   });
   return el;
 }

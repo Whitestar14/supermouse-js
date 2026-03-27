@@ -1,13 +1,13 @@
-import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
+import { defineConfig } from "vite";
+import dts from "vite-plugin-dts";
+import path from "path";
+import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
+const pkg = JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf-8"));
 
 export default defineConfig({
   define: {
@@ -15,15 +15,15 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'SupermouseCore',
-      fileName: (format) => format === 'es' ? 'index.mjs' : 'index.umd.js',
+      entry: path.resolve(__dirname, "src/index.ts"),
+      name: "SupermouseCore",
+      fileName: (format) => (format === "es" ? "index.mjs" : "index.umd.js")
     },
     rollupOptions: {
       external: [],
       output: {
         globals: {
-          '@supermousejs/core': 'SupermouseCore'
+          "@supermousejs/core": "SupermouseCore"
         }
       }
     }

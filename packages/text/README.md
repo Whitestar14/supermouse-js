@@ -19,7 +19,7 @@ const app = new Supermouse();
 app.use(
   Text({
     offset: [20, 20], // X, Y offset from cursor
-    duration: 200, // Fade duration
+    duration: 200 // Fade duration
   })
 );
 ```

@@ -1,4 +1,4 @@
-import { Supermouse } from './Supermouse';
+import type { Supermouse } from "./Supermouse";
 
 export interface MousePosition {
   x: number;
@@ -54,7 +54,7 @@ export interface MouseState {
    * 'none' = Force Custom Cursor (Hide Native)
    * null = Let the Core decide based on isNative/isHover
    */
-  forcedCursor: 'auto' | 'none' | null;
+  forcedCursor: "auto" | "none" | null;
   /** The DOM element currently being hovered, if any. */
   hoverTarget: HTMLElement | null;
   /** Whether the user has `prefers-reduced-motion` enabled. */
@@ -67,7 +67,7 @@ export interface MouseState {
   interaction: InteractionState;
 }
 
-export type NativeIgnoreStrategy = 'auto' | 'tag' | 'css';
+export type NativeIgnoreStrategy = "auto" | "tag" | "css";
 
 /**
  * Configuration options passed to the Supermouse constructor.

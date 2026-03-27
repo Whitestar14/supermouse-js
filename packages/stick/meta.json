@@ -1,4 +1,3 @@
-
 {
   "id": "stick",
   "name": "Stick",
@@ -8,6 +7,12 @@
   "recipeId": "sticky-element",
   "icon": "stick",
   "options": [
-    { "name": "padding", "type": "number", "default": "10", "description": "Extra padding around the target element in pixels.", "reactive": true }
+    {
+      "name": "padding",
+      "type": "number",
+      "default": "10",
+      "description": "Extra padding around the target element in pixels.",
+      "reactive": true
+    }
   ]
 }

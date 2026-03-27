@@ -7,14 +7,22 @@ export class Stage {
   private id: string;
   private scopeClass: string;
 
-  private currentCursorState: 'none' | 'auto' | '' | null = null;
+  private currentCursorState: "none" | "auto" | "" | null = null;
 
   private selectors: Set<string> = new Set([
-    'a', 'button', 'input', 'textarea', 'select',
-    '[role="button"]', '[tabindex]'
+    "a",
+    "button",
+    "input",
+    "textarea",
+    "select",
+    '[role="button"]',
+    "[tabindex]"
   ]);
 
-  constructor(private container: HTMLElement = document.body, private hideNativeCursor: boolean) {
+  constructor(
+    private container: HTMLElement = document.body,
+    private hideNativeCursor: boolean
+  ) {
     if (!container || !(container instanceof HTMLElement)) {
       throw new Error(`[Supermouse] Invalid container: ${container}. Must be an HTMLElement.`);
     }
@@ -25,33 +33,36 @@ export class Stage {
 
     const isBody = container === document.body;
 
-    this.element = document.createElement('div');
+    this.element = document.createElement("div");
     Object.assign(this.element.style, {
-      position: isBody ? 'fixed' : 'absolute',
-      top: '0', left: '0', width: '100%', height: '100%',
-      pointerEvents: 'none',
-      zIndex: '9999',
-      opacity: '1',
-      transition: 'opacity 0.15s ease'
+      position: isBody ? "fixed" : "absolute",
+      top: "0",
+      left: "0",
+      width: "100%",
+      height: "100%",
+      pointerEvents: "none",
+      zIndex: "9999",
+      opacity: "1",
+      transition: "opacity 0.15s ease"
     });
 
     if (!isBody) {
-        const computed = window.getComputedStyle(container);
-        if (computed.position === 'static') {
-            container.style.position = 'relative';
-        }
+      const computed = window.getComputedStyle(container);
+      if (computed.position === "static") {
+        container.style.position = "relative";
+      }
     }
 
     container.appendChild(this.element);
 
-    this.styleTag = document.createElement('style');
+    this.styleTag = document.createElement("style");
     this.styleTag.id = this.id;
     document.head.appendChild(this.styleTag);
 
     this.container.classList.add(this.scopeClass);
 
     if (this.hideNativeCursor) {
-      this.setNativeCursor('none');
+      this.setNativeCursor("none");
     }
   }
 
@@ -68,36 +79,36 @@ export class Stage {
   }
 
   public setVisibility(visible: boolean) {
-    this.element.style.opacity = visible ? '1' : '0';
+    this.element.style.opacity = visible ? "1" : "0";
   }
 
   /**
    * Toggles the visibility of the native cursor via CSS injection.
    * @param type 'none' to hide, 'auto' to show.
    */
-  public setNativeCursor(type: 'none' | 'auto' | '') {
-    if (!this.hideNativeCursor && type === 'none') return;
+  public setNativeCursor(type: "none" | "auto" | "") {
+    if (!this.hideNativeCursor && type === "none") return;
 
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
 
-    if (type === 'none') {
-      this.container.style.cursor = 'none';
+    if (type === "none") {
+      this.container.style.cursor = "none";
       this.updateCursorCSS();
     } else {
-      this.container.style.cursor = '';
-      this.styleTag.innerText = '';
+      this.container.style.cursor = "";
+      this.styleTag.innerText = "";
     }
   }
 
   private updateCursorCSS() {
     const rawSelectors = Array.from(this.selectors);
     if (rawSelectors.length === 0) {
-      this.styleTag.innerText = '';
+      this.styleTag.innerText = "";
       return;
     }
 
-    const scopedSelectors = rawSelectors.map(s => `.${this.scopeClass} ${s}`).join(', ');
+    const scopedSelectors = rawSelectors.map((s) => `.${this.scopeClass} ${s}`).join(", ");
 
     this.styleTag.innerText = `
       ${scopedSelectors} {
@@ -109,7 +120,7 @@ export class Stage {
   public destroy() {
     this.element.remove();
     this.styleTag.remove();
-    this.container.style.cursor = '';
+    this.container.style.cursor = "";
     this.container.classList.remove(this.scopeClass);
   }
 }
