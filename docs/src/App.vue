@@ -7,20 +7,16 @@ import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
 
-// 1. Initialize Global Cursor (Singleton across entire app)
 const mouse = useAppCursor();
 
-// 2. Global Editor State
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
-// 3. Search State
 const isSearchOpen = ref(false);
 
 const toggleSearch = () => {
   isSearchOpen.value = !isSearchOpen.value;
 };
 
-// 4. Keyboard Shortcuts & Smooth Scroll
 const handleKeydown = (e: KeyboardEvent) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "k") {
     e.preventDefault();
@@ -34,7 +30,6 @@ let rafId: number;
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
 
-  // Initialize Lenis
   lenis = new Lenis({
     duration: 1.2,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -51,6 +46,25 @@ onMounted(() => {
   }
 
   rafId = requestAnimationFrame(raf);
+
+  watch(
+    [isEditorOpen, isSearchOpen],
+    ([editor, search]) => {
+      if (typeof window === "undefined") return;
+
+      if (editor || search) {
+        lenis?.stop();
+      } else {
+        lenis?.start();
+      }
+
+      if (mouse.value) {
+        if (editor || search) mouse.value.disable();
+        else mouse.value.enable();
+      }
+    },
+    { flush: "post" }
+  );
 });
 
 onUnmounted(() => {
@@ -58,21 +72,6 @@ onUnmounted(() => {
   if (lenis) {
     lenis.destroy();
     cancelAnimationFrame(rafId);
-  }
-});
-
-// 5. Coordinator: Disable global cursor when ANY modal is open
-watch([isEditorOpen, isSearchOpen], ([editor, search]) => {
-  // Pause scroll when modals are open
-  if (editor || search) {
-    lenis?.stop();
-  } else {
-    lenis?.start();
-  }
-
-  if (mouse.value) {
-    if (editor || search) mouse.value.disable();
-    else mouse.value.enable();
   }
 });
 </script>

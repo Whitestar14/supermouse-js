@@ -93,10 +93,12 @@ watch(
     clearRightSidebar();
     mobileMenuOpen.value = false;
 
-    if ((window as any).lenis) {
-      (window as any).lenis.scrollTo(0, { immediate: true });
-    } else {
-      window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      if ((window as any).lenis) {
+        (window as any).lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
     }
   },
   { immediate: true }
