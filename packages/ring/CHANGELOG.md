@@ -1,5 +1,24 @@
 # @supermousejs/ring
 
+## 2.2.0
+
+### Minor Changes
+
+- 9fe1a7b: - Implemented idiomatic approach to using supermouse/utils
+  - Rewrote `applyStyles`, `setTransform` and `setStyles` to share a global cache registry
+
+### Patch Changes
+
+- 6d70c18: remove legacy package and update supermouse domain in readme
+- 14fb5b6: Updated tsconfig to be reference-compliant with core, utils and zoetrope when required
+- Updated dependencies [6d70c18]
+- Updated dependencies [2590af3]
+- Updated dependencies [14fb5b6]
+- Updated dependencies [9fe1a7b]
+- Updated dependencies [9fa6ece]
+  - @supermousejs/core@2.1.0
+  - @supermousejs/utils@2.2.0
+
 ## 2.1.1
 
 ### Patch Changes

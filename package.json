@@ -30,7 +30,7 @@
     "remove:plugin": "node scripts/remove-plugin.js",
     "sync": "node scripts/sync-configs.js",
     "lint": "eslint . --fix",
-    "format": "prettier --write .",
+    "format": "prettier --write . --ignore-path .prettierignore",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm install && pnpm build && changeset publish"
