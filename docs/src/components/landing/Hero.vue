@@ -104,7 +104,6 @@ app.use(Dot({
             </div>
           </div>
 
-          <!-- Code Column -->
           <div
             class="w-full lg:w-[520px] shrink-0 bg-zinc-50/50 flex flex-col justify-center p-8 lg:p-12"
           >
@@ -115,7 +114,6 @@ app.use(Dot({
             />
 
             <div class="mt-8 flex gap-8 justify-center opacity-40 grayscale">
-              <!-- Fake logos/tech badges -->
               <div class="size-6 text-zinc-300">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
                   <path

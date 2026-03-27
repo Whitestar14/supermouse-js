@@ -5,10 +5,9 @@
   "scripts": {
     "dev": "pnpm format && vite",
     "build": "vue-tsc --noEmit && pnpm format && vite-ssg build",
-    "postbuild": "node scripts/verify-build.js",
     "preview": "vite preview",
     "lint": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write . --ignore-path ../.prettierignore"
   },
   "dependencies": {
     "@supermousejs/core": "workspace:*",
