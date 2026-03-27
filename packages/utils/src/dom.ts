@@ -1,14 +1,4 @@
 /**
- * Applies a dictionary of styles to an HTMLElement.
- * @param el The element to style
- * @param styles An object where keys are CSS properties and values are the corresponding values.
- * Example: applyStyles(myDiv, { color: 'red', backgroundColor: 'blue' });
- */
-export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
-  Object.assign(el.style, styles);
-}
-
-/**
  * Injects global CSS styles into the document head safely.
  * Checks for existing IDs to prevent duplication during SPA routing or HMR.
  *
@@ -16,10 +6,10 @@ export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration
  * @param css A string of CSS rules to inject.
  */
 export const injectStyles = (id: string, css: string) => {
-  if (typeof document === 'undefined') return;
+  if (typeof document === "undefined") return;
   if (document.getElementById(id)) return;
 
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.id = id;
   style.innerHTML = css;
   document.head.appendChild(style);
@@ -29,24 +19,45 @@ export const injectStyles = (id: string, css: string) => {
 const styleCache = new WeakMap<HTMLElement, Record<string, string | number>>();
 
 /**
- * Smart Style Setter.
+ * Smart Style Setter (Batch).
  * Only writes to the DOM if the value has actually changed.
  * @param el The element to style
- * @param property The CSS property to set (in camelCase, e.g., backgroundColor)
- * @param value The value to set for the property
+ * @param styles An object of CSS properties and values
  */
-export function setStyle(el: HTMLElement, property: keyof CSSStyleDeclaration, value: string | number) {
+export function applyStyles(
+  el: HTMLElement,
+  styles: Partial<CSSStyleDeclaration>
+) {
+  if (typeof document === "undefined" || !el) return;
+
   let cache = styleCache.get(el);
   if (!cache) {
     cache = {};
     styleCache.set(el, cache);
   }
 
-  if (cache[property as string] !== value) {
-    // @ts-ignore - Dynamic access
-    el.style[property] = value;
-    cache[property as string] = value;
+  for (const prop in styles) {
+    const value = (styles as any)[prop];
+    if (cache[prop] !== value) {
+      (el.style as any)[prop] = value;
+      cache[prop] = value;
+    }
   }
+}
+
+/**
+ * Smart Style Setter (Single).
+ * Proxies to applyStyles for consistency.
+ * @param el The element to style
+ * @param property The CSS property to set
+ * @param value The value to set for the property
+ */
+export function setStyle(
+  el: HTMLElement,
+  property: keyof CSSStyleDeclaration,
+  value: string | number
+) {
+  applyStyles(el, { [property]: value } as any);
 }
 
 /**
@@ -72,19 +83,18 @@ export function setTransform(
   skewX: number = 0,
   skewY: number = 0
 ) {
-  el.style.transform = `
-    translate3d(${x}px, ${y}px, 0)
-    translate(-50%, -50%)
-    rotate(${rotation}deg)
-    skew(${skewX}deg, ${skewY}deg)
-    scale(${scaleX}, ${scaleY})
-  `;
+  const transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) rotate(${rotation}deg) skew(${skewX}deg, ${skewY}deg) scale(${scaleX}, ${scaleY})`;
+
+  setStyle(el, "transform", transform);
 }
 
 /**
  * Calculates the bounding rectangle of an element relative to a container.
  */
-export function projectRect(element: HTMLElement, container: HTMLElement = document.body): DOMRect {
+export function projectRect(
+  element: HTMLElement,
+  container: HTMLElement = document.body
+): DOMRect {
   const rect = element.getBoundingClientRect();
 
   if (container !== document.body) {
@@ -104,16 +114,16 @@ export function projectRect(element: HTMLElement, container: HTMLElement = docum
  *
  * @param tagName The HTML tag to create (default: 'div')
  */
-export function createActor(tagName: string = 'div'): HTMLElement {
+export function createActor(tagName: string = "div"): HTMLElement {
   const el = document.createElement(tagName);
   applyStyles(el, {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    pointerEvents: 'none',
-    boxSizing: 'border-box',
-    display: 'block',
-    willChange: 'transform'
+    position: "absolute",
+    top: "0",
+    left: "0",
+    pointerEvents: "none",
+    boxSizing: "border-box",
+    display: "block",
+    willChange: "transform",
   });
   return el;
 }
@@ -122,11 +132,11 @@ export function createActor(tagName: string = 'div'): HTMLElement {
  * Creates a circular HTML div using the standard actor base.
  */
 export function createCircle(size: number, color: string): HTMLDivElement {
-  const el = createActor('div') as HTMLDivElement;
+  const el = createActor("div") as HTMLDivElement;
   applyStyles(el, {
     width: `${size}px`,
     height: `${size}px`,
-    borderRadius: '50%',
+    borderRadius: "50%",
     backgroundColor: color,
   });
   return el;
@@ -137,5 +147,5 @@ export function createCircle(size: number, color: string): HTMLDivElement {
  * @deprecated Use createActor() instead.
  */
 export function createDiv(): HTMLDivElement {
-  return createActor('div') as HTMLDivElement;
+  return createActor("div") as HTMLDivElement;
 }
