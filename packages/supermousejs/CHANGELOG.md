@@ -1,5 +1,18 @@
 # supermousejs
 
+## 2.2.0
+
+### Patch Changes
+
+- 6d70c18: remove legacy package and update supermouse domain in readme
+- Updated dependencies [6d70c18]
+- Updated dependencies [2590af3]
+- Updated dependencies [14fb5b6]
+- Updated dependencies [9fe1a7b]
+  - @supermousejs/core@2.1.0
+  - @supermousejs/dot@2.2.0
+  - @supermousejs/ring@2.2.0
+
 ## 2.1.1
 
 ### Patch Changes

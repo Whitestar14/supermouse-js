@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/core",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "The core physics engine and state manager for Supermouse.",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
