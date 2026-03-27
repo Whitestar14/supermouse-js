@@ -1,37 +1,37 @@
-import fs from 'fs';
-import path from 'path';
-import zlib from 'zlib';
-import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import fs from "fs";
+import path from "path";
+import zlib from "zlib";
+import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
-const rootDir = path.resolve(path.dirname(__filename), '..');
+const rootDir = path.resolve(path.dirname(__filename), "..");
 
 // Configuration
-const TARGET_PACKAGE = 'packages/core';
-const BUILD_FILE = 'dist/index.mjs';
+const TARGET_PACKAGE = "packages/core";
+const BUILD_FILE = "dist/index.mjs";
 const WARNING_LIMIT = 5000;
 
 function formatBytes(bytes) {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB'];
+  const sizes = ["Bytes", "KB", "MB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 async function run() {
-  console.log('⚖️  Measuring @supermousejs/core size...\n');
+  console.log("⚖️  Measuring @supermousejs/core size...\n");
 
   const pkgDir = path.join(rootDir, TARGET_PACKAGE);
   const filePath = path.join(pkgDir, BUILD_FILE);
 
   // 1. Ensure fresh build
   try {
-    console.log('   Running build...');
-    execSync('pnpm --filter @supermousejs/core build', { stdio: 'ignore' });
+    console.log("   Running build...");
+    execSync("pnpm --filter @supermousejs/core build", { stdio: "ignore" });
   } catch (e) {
-    console.error('[x] Build failed.');
+    console.error("[x] Build failed.");
     process.exit(1);
   }
 
@@ -47,14 +47,14 @@ async function run() {
   // 3. Gzip
   zlib.gzip(fileBuffer, (err, buffer) => {
     if (err) {
-      console.error('[x] Gzip failed:', err);
+      console.error("[x] Gzip failed:", err);
       process.exit(1);
     }
 
     const gzippedSize = buffer.length;
     const isOverLimit = gzippedSize > WARNING_LIMIT;
-    const color = isOverLimit ? '\x1b[31m' : '\x1b[32m'; // Red or Green
-    const reset = '\x1b[0m';
+    const color = isOverLimit ? "\x1b[31m" : "\x1b[32m"; // Red or Green
+    const reset = "\x1b[0m";
 
     console.log(`\n   ----------------------------------------`);
     console.log(`   📂  Original Size:  ${formatBytes(originalSize)}`);
@@ -66,7 +66,7 @@ async function run() {
     } else {
       console.log(`   [ok]  Within budget.`);
     }
-    console.log('');
+    console.log("");
   });
 }
 

@@ -7,33 +7,33 @@
 
 /** @type {SharedLib[]} */
 export const SHARED_LIBS = [
-  { pkg: '@supermousejs/utils',    path: '../utils/src/index.ts',    global: 'SupermouseUtils'    },
-  { pkg: '@supermousejs/zoetrope', path: '../zoetrope/src/index.ts', global: 'SupermouseZoetrope' },
+  { pkg: "@supermousejs/utils", path: "../utils/src/index.ts", global: "SupermouseUtils" },
+  { pkg: "@supermousejs/zoetrope", path: "../zoetrope/src/index.ts", global: "SupermouseZoetrope" }
 ];
 
 /** @type {Record<string, SpecialCase>} */
 export const SPECIAL_CASES = {
   legacy: {
-    umdName:        'Supermouse',
+    umdName: "Supermouse",
     extraExternals: [],
-    extraGlobals:   {},
+    extraGlobals: {}
   },
   vue: {
-    umdName:        'SupermouseVue',
-    extraExternals: ['vue'],
-    extraGlobals:   { vue: 'Vue' },
+    umdName: "SupermouseVue",
+    extraExternals: ["vue"],
+    extraGlobals: { vue: "Vue" }
   },
   react: {
-    umdName:        'SupermouseReact',
-    extraExternals: ['react'],
-    extraGlobals:   { react: 'React' },
-  },
+    umdName: "SupermouseReact",
+    extraExternals: ["react"],
+    extraGlobals: { react: "React" }
+  }
 };
 
 /** Directories inside /packages to skip entirely */
-export const EXCLUDED_PACKAGES = ['.DS_Store', 'node_modules'];
+export const EXCLUDED_PACKAGES = [".DS_Store", "node_modules"];
 
-export const UMD_NAME_PREFIX = 'Supermouse';
+export const UMD_NAME_PREFIX = "Supermouse";
 
 /**
  * Convert a kebab-case string to PascalCase.
@@ -41,7 +41,7 @@ export const UMD_NAME_PREFIX = 'Supermouse';
  * @returns {string}
  */
 export function toPascalCase(str) {
-  return str.replace(/(^\w|-\w)/g, (m) => m.replace('-', '').toUpperCase());
+  return str.replace(/(^\w|-\w)/g, (m) => m.replace("-", "").toUpperCase());
 }
 
 /**
@@ -51,6 +51,6 @@ export function toPascalCase(str) {
  */
 export function getUmdName(pkgName) {
   if (SPECIAL_CASES[pkgName]?.umdName) return SPECIAL_CASES[pkgName].umdName;
-  if (pkgName === 'core') return 'SupermouseCore';
+  if (pkgName === "core") return "SupermouseCore";
   return `${UMD_NAME_PREFIX}${toPascalCase(pkgName)}`;
 }

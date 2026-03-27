@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "description": "A modular, high-performance cursor engine for the modern web.",
   "type": "module",
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitestar14/supermouse-js.git"
   },
-    "bugs": {
+  "bugs": {
     "url": "https://github.com/Whitestar14/supermouse-js/issues"
   },
   "homepage": "https://github.com/Whitestar14/supermouse-js#readme",
@@ -23,14 +23,14 @@
     "build": "pnpm generate-docs && pnpm -r run build",
     "build:docs": "pnpm generate-docs && pnpm --filter supermouse-docs build",
     "test": "pnpm -r run test",
-
     "generate-docs": "node scripts/generate-docs-data.js",
     "check:size": "node scripts/check-size.js",
     "manage": "node scripts/manage.js",
     "create:plugin": "node scripts/create-plugin.js",
     "remove:plugin": "node scripts/remove-plugin.js",
     "sync": "node scripts/sync-configs.js",
-
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm install && pnpm build && changeset publish"
@@ -53,8 +53,13 @@
   "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "^2.29.8",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^20.0.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-vue": "^9.33.0",
+    "prettier": "^3.8.1",
     "typescript": "~5.8.3",
+    "typescript-eslint": "^8.57.2",
     "vite": "^7.3.0",
     "vite-plugin-dts": "^3.9.1",
     "vitest": "^4.0.13"

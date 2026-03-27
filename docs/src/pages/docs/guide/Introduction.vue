@@ -102,7 +102,7 @@ const metaItems = [
     </div>
 
     <!-- Core Philosophy -->
-    <SectionHeader :level="2">Core Philosophy</SectionHeader>
+    <SectionHeader :level="2"> Core Philosophy </SectionHeader>
     <div class="border-t border-zinc-200">
       <div
         class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-200 border-b border-zinc-200"

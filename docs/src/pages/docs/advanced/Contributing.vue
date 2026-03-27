@@ -42,7 +42,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
     </div>
 
     <!-- Scope Grid -->
-    <SectionHeader :level="2">What belongs in this repo</SectionHeader>
+    <SectionHeader :level="2"> What belongs in this repo </SectionHeader>
     <Text size="base" class="mb-8">
       This monorepo is intentionally conservative. We maintain the core runtime and reference
       implementations.
@@ -118,28 +118,28 @@ const removePluginCode = "pnpm run remove:plugin <name>";
     <Callout title="Tip"> If you’re unsure, open a discussion first. No pressure. </Callout>
 
     <!-- Contributing Code -->
-    <SectionHeader :level="2">Contributing Code</SectionHeader>
+    <SectionHeader :level="2"> Contributing Code </SectionHeader>
     <ul class="space-y-4 text-zinc-600 mb-8 list-none pl-0 text-sm">
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
-        <Text size="sm">Use <strong>pnpm</strong>.</Text>
+        <Text size="sm"> Use <strong>pnpm</strong>. </Text>
       </li>
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
-        <Text size="sm">Keep changes scoped.</Text>
+        <Text size="sm"> Keep changes scoped. </Text>
       </li>
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
-        <Text size="sm"
-          >Avoid introducing new abstractions without a clear perf or ergonomics win.</Text
-        >
+        <Text size="sm">
+          Avoid introducing new abstractions without a clear perf or ergonomics win.
+        </Text>
       </li>
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
-        <Text size="sm"
-          >Cursor logic is <strong>hot-path code</strong>. Allocations and layout reads are
-          scrutinized.</Text
-        >
+        <Text size="sm">
+          Cursor logic is <strong>hot-path code</strong>. Allocations and layout reads are
+          scrutinized.
+        </Text>
       </li>
     </ul>
 
@@ -149,7 +149,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
 
     <!-- Toolchain Section -->
     <div class="border-t border-zinc-200 pt-12 mb-16">
-      <SectionHeader :level="2">Toolchain</SectionHeader>
+      <SectionHeader :level="2"> Toolchain </SectionHeader>
       <Text size="base" class="mb-8">
         This repository includes a custom CLI toolchain to manage the monorepo structure, making it
         easy to create and manage plugins.
@@ -183,7 +183,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
       <div class="space-y-8">
         <div class="flex flex-col md:flex-row gap-8 items-start">
           <div class="w-full md:w-1/3 shrink-0">
-            <Text weight="bold" size="sm" class="mb-1">Scaffold Plugin</Text>
+            <Text weight="bold" size="sm" class="mb-1"> Scaffold Plugin </Text>
             <Text size="xs" color="subtle" class="mb-4">
               Creates package folder, tsconfig, vite config, and links it to the playground.
             </Text>
@@ -195,7 +195,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
 
         <div class="flex flex-col md:flex-row gap-8 items-start">
           <div class="w-full md:w-1/3 shrink-0">
-            <Text weight="bold" size="sm" class="mb-1">Remove Plugin</Text>
+            <Text weight="bold" size="sm" class="mb-1"> Remove Plugin </Text>
             <Text size="xs" color="subtle" class="mb-4">
               Safely unlinks from workspace and playground, then deletes the package.
             </Text>
@@ -209,7 +209,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
 
     <!-- Philosophy Grid -->
     <div class="border-t border-zinc-200 pt-12">
-      <SectionHeader :level="2">Philosophy</SectionHeader>
+      <SectionHeader :level="2"> Philosophy </SectionHeader>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 mb-12">
         <div class="bg-white p-8">

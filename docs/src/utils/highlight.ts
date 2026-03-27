@@ -112,7 +112,6 @@ export function highlight(code: string, lang: string = "js"): string {
   const islands: string[] = [];
   let maskedCode = code;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     let bestMatch: { index: number; length: number; rule: GrammarRule } | null = null;
 

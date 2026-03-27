@@ -3,8 +3,8 @@
  * Handles package.json, tsconfig.json, and vite.config.ts modifications
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 /**
  * Safely modify a JSON file
@@ -16,24 +16,24 @@ import path from 'path';
 export function patchJsonFile(filePath, modifier, dryRun = false) {
   try {
     if (!fs.existsSync(filePath)) {
-      return { modified: false, changes: [], error: 'File not found' };
+      return { modified: false, changes: [], error: "File not found" };
     }
 
-    const originalContent = fs.readFileSync(filePath, 'utf-8');
+    const originalContent = fs.readFileSync(filePath, "utf-8");
     const data = JSON.parse(originalContent);
 
     // Call modifier and get back { content, changes }
     const result = modifier(data);
     const { content: modified, changes = [] } = result;
 
-    const newContent = JSON.stringify(modified, null, 2) + '\n';
+    const newContent = JSON.stringify(modified, null, 2) + "\n";
 
     // Normalize line endings for comparison (handle both \n and \r\n)
-    const originalNormalized = originalContent.replace(/\r\n/g, '\n');
-    const newNormalized = newContent.replace(/\r\n/g, '\n');
+    const originalNormalized = originalContent.replace(/\r\n/g, "\n");
+    const newNormalized = newContent.replace(/\r\n/g, "\n");
 
     if (originalNormalized === newNormalized) {
-      return { modified: false, changes, note: 'No changes needed' };
+      return { modified: false, changes, note: "No changes needed" };
     }
 
     if (!dryRun) {
@@ -57,10 +57,10 @@ export function patchTextFile(filePath, replacements, dryRun = false) {
   const changes = [];
   try {
     if (!fs.existsSync(filePath)) {
-      return { modified: false, changes, error: 'File not found' };
+      return { modified: false, changes, error: "File not found" };
     }
 
-    let content = fs.readFileSync(filePath, 'utf-8');
+    let content = fs.readFileSync(filePath, "utf-8");
     let modified = false;
 
     for (const { pattern, replacement, description } of replacements) {
@@ -72,7 +72,7 @@ export function patchTextFile(filePath, replacements, dryRun = false) {
     }
 
     if (!modified) {
-      return { modified: false, changes, note: 'No changes needed' };
+      return { modified: false, changes, note: "No changes needed" };
     }
 
     if (!dryRun) {
@@ -89,7 +89,7 @@ export function patchTextFile(filePath, replacements, dryRun = false) {
  * Ensure a property exists in an object, optionally merging with existing values
  */
 export function ensureProperty(obj, prop, value, merge = false) {
-  if (merge && obj[prop] && typeof obj[prop] === 'object') {
+  if (merge && obj[prop] && typeof obj[prop] === "object") {
     obj[prop] = { ...obj[prop], ...value };
   } else {
     obj[prop] = value;
@@ -100,12 +100,12 @@ export function ensureProperty(obj, prop, value, merge = false) {
  * Ensure nested property in an object
  */
 export function ensureNestedProperty(obj, path, value) {
-  const keys = path.split('.');
+  const keys = path.split(".");
   let current = obj;
 
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
-    if (!current[key] || typeof current[key] !== 'object') {
+    if (!current[key] || typeof current[key] !== "object") {
       current[key] = {};
     }
     current = current[key];
@@ -132,13 +132,15 @@ export function scanForImports(srcDir, importPatterns) {
   try {
     const files = fs.readdirSync(srcDir);
     for (const file of files) {
-      if ((file.endsWith('.ts') || file.endsWith('.tsx')) && !file.endsWith('.d.ts')) {
+      if ((file.endsWith(".ts") || file.endsWith(".tsx")) && !file.endsWith(".d.ts")) {
         const filePath = path.join(srcDir, file);
-        const content = fs.readFileSync(filePath, 'utf-8');
+        const content = fs.readFileSync(filePath, "utf-8");
 
         for (const pattern of importPatterns) {
-          if (content.includes(`from '${pattern.pkg}'`) ||
-              content.includes(`from "${pattern.pkg}"`)) {
+          if (
+            content.includes(`from '${pattern.pkg}'`) ||
+            content.includes(`from "${pattern.pkg}"`)
+          ) {
             detected.add(pattern);
           }
         }
@@ -160,7 +162,7 @@ export function formatChanges(description, changes, dryRun = false) {
   else if (changes.length === 0) lines.push(`   [-] ${description} (no changes)`);
   else {
     lines.push(`   [✓] ${description}`);
-    changes.forEach(change => lines.push(`       - ${change}`));
+    changes.forEach((change) => lines.push(`       - ${change}`));
   }
-  return lines.join('\n');
+  return lines.join("\n");
 }

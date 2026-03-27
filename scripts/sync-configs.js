@@ -2,15 +2,10 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import readline from "readline";
-import {
-  getUmdName,
-  SHARED_LIBS,
-  SPECIAL_CASES,
-  EXCLUDED_PACKAGES,
-} from "./config.js";
+import { getUmdName, SHARED_LIBS, SPECIAL_CASES, EXCLUDED_PACKAGES } from "./config.js";
 import {
   patchJsonFile as utilPatchJsonFile,
-  scanForImports as utilScanForImports,
+  scanForImports as utilScanForImports
 } from "./utils/config-patcher.js";
 
 // --- Setup ---
@@ -23,8 +18,7 @@ const packagesDir = path.join(rootDir, "packages");
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
-const nonInteractive =
-  args.includes("--non-interactive") || args.includes("-y");
+const nonInteractive = args.includes("--non-interactive") || args.includes("-y");
 const syncAll = args.includes("--all");
 const filterArg = args.find((a) => a.startsWith("--packages="));
 const selectedPackages = filterArg ? filterArg.split("=")[1].split(",") : null;
@@ -49,7 +43,7 @@ function patchPackageJson(pkgPath, pkgName, usedLibs) {
       const entrypoints = {
         main: "dist/index.umd.js",
         module: "dist/index.mjs",
-        types: "dist/index.d.ts",
+        types: "dist/index.d.ts"
       };
       for (const [field, expected] of Object.entries(entrypoints)) {
         if (content[field] !== expected) {
@@ -74,7 +68,7 @@ function patchPackageJson(pkgPath, pkgName, usedLibs) {
       content.exports["."] = {
         types: "./dist/index.d.ts",
         import: "./dist/index.mjs",
-        require: "./dist/index.umd.js",
+        require: "./dist/index.umd.js"
       };
 
       // deps
@@ -113,13 +107,8 @@ function patchPackageJson(pkgPath, pkgName, usedLibs) {
       }
 
       // prune empty dep blocks
-      for (const key of [
-        "dependencies",
-        "peerDependencies",
-        "devDependencies",
-      ]) {
-        if (content[key] && Object.keys(content[key]).length === 0)
-          delete content[key];
+      for (const key of ["dependencies", "peerDependencies", "devDependencies"]) {
+        if (content[key] && Object.keys(content[key]).length === 0) delete content[key];
       }
 
       return { content, changes };
@@ -138,21 +127,15 @@ function patchTsConfig(configPath, pkgName, usedLibs) {
     (content) => {
       const changes = [];
 
-      (content.extends ??= "../../tsconfig.base.json"),
-        changes.push("set extends");
-      (content.include ??= ["src"]), changes.push("set include");
+      ((content.extends ??= "../../tsconfig.base.json"), changes.push("set extends"));
+      ((content.include ??= ["src"]), changes.push("set include"));
       content.compilerOptions ??= {};
-      (content.compilerOptions.outDir ??= "dist"), changes.push("set outDir");
-      (content.compilerOptions.baseUrl ??= "."), changes.push("set baseUrl");
+      ((content.compilerOptions.outDir ??= "dist"), changes.push("set outDir"));
+      ((content.compilerOptions.baseUrl ??= "."), changes.push("set baseUrl"));
       content.compilerOptions.paths ??= {};
 
-      if (
-        pkgName !== "core" &&
-        !content.compilerOptions.paths["@supermousejs/core"]
-      ) {
-        content.compilerOptions.paths["@supermousejs/core"] = [
-          "../core/src/index.ts",
-        ];
+      if (pkgName !== "core" && !content.compilerOptions.paths["@supermousejs/core"]) {
+        content.compilerOptions.paths["@supermousejs/core"] = ["../core/src/index.ts"];
         changes.push("added @supermousejs/core path alias");
       }
 
@@ -250,10 +233,7 @@ ${globObj}
   const desiredFileName = `(format) => format === 'es' ? 'index.mjs' : 'index.umd.js'`;
   const fileNameMatch = content.match(/(fileName:\s*)(\([^)]*\)\s*=>[^\n,]+)/);
   if (fileNameMatch && !fileNameMatch[2].includes("=== 'es'")) {
-    content = content.replace(
-      /(fileName:\s*)(\([^)]*\)\s*=>[^\n,]+)/,
-      `$1${desiredFileName}`
-    );
+    content = content.replace(/(fileName:\s*)(\([^)]*\)\s*=>[^\n,]+)/, `$1${desiredFileName}`);
     modified = true;
     changes.push("updated fileName strategy");
   }
@@ -261,9 +241,7 @@ ${globObj}
   // Fix / add globals
   for (const [k, v] of Object.entries(requiredGlobals)) {
     const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const keyRegex = new RegExp(
-      `(['"\`])${escaped}\\1\\s*:\\s*(['"\`])([^'"]+)\\2`
-    );
+    const keyRegex = new RegExp(`(['"\`])${escaped}\\1\\s*:\\s*(['"\`])([^'"]+)\\2`);
     const match = content.match(keyRegex);
     if (match) {
       if (match[3] !== v) {
@@ -272,10 +250,7 @@ ${globObj}
         changes.push(`fixed global for ${k}`);
       }
     } else if (content.includes("globals:")) {
-      content = content.replace(
-        /(globals:\s*\{)([\s\S]*?)(\})/,
-        `$1\n        '${k}': '${v}',$2$3`
-      );
+      content = content.replace(/(globals:\s*\{)([\s\S]*?)(\})/, `$1\n        '${k}': '${v}',$2$3`);
       modified = true;
       changes.push(`added global for ${k}`);
     }
@@ -337,7 +312,7 @@ async function getPackagesToSync() {
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout,
+    output: process.stdout
   });
 
   return new Promise((resolve) => {
@@ -376,11 +351,7 @@ async function run() {
   }
 
   const packages = await getPackagesToSync();
-  console.log(
-    `\nsyncing ${packages.length} package${
-      packages.length === 1 ? "" : "s"
-    }...\n`
-  );
+  console.log(`\nsyncing ${packages.length} package${packages.length === 1 ? "" : "s"}...\n`);
 
   for (const pkgName of packages) {
     const pkgPath = path.join(packagesDir, pkgName);
@@ -398,9 +369,7 @@ async function run() {
     console.log("   run without --dry-run to apply:");
     console.log("   pnpm sync\n");
   } else {
-    console.log(
-      "[ok] sync complete. run 'pnpm install' to refresh workspace links.\n"
-    );
+    console.log("[ok] sync complete. run 'pnpm install' to refresh workspace links.\n");
   }
 }
 

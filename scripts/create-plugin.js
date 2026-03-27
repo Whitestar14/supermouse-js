@@ -35,7 +35,7 @@ function makeTemplates() {
       name: `@supermousejs/${pluginName}`,
       version: "2.0.0",
       private: false,
-      description: `Supermouse ${pascalName} plugin`,
+      description: `Supermouse ${pascalName} plugin`
     },
 
     tsConfig: {
@@ -44,8 +44,8 @@ function makeTemplates() {
       compilerOptions: {
         outDir: "dist",
         baseUrl: ".",
-        paths: { "@supermousejs/core": ["../core/src/index.ts"] },
-      },
+        paths: { "@supermousejs/core": ["../core/src/index.ts"] }
+      }
     },
 
     indexTs: `\
@@ -74,7 +74,7 @@ export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlu
     },
   };
 };
-`,
+`
   };
 }
 
@@ -112,13 +112,9 @@ function updateConsumerPackageJson(folderName) {
 function runSyncConfigs() {
   return new Promise((resolve, reject) => {
     const syncPath = path.join(__dirname, "sync-configs.js");
-    const child = spawn(
-      "node",
-      [syncPath, `--packages=${pluginName}`, "--non-interactive"],
-      {
-        stdio: "inherit",
-      }
-    );
+    const child = spawn("node", [syncPath, `--packages=${pluginName}`, "--non-interactive"], {
+      stdio: "inherit"
+    });
     child.on("close", (code) =>
       code === 0 ? resolve() : reject(new Error(`sync exited ${code}`))
     );
@@ -131,7 +127,7 @@ function runSyncConfigs() {
 async function run() {
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout,
+    output: process.stdout
   });
   const templates = makeTemplates();
 
@@ -142,9 +138,7 @@ async function run() {
         `    overwrite configs but KEEP src/index.ts? (y/N) `
     );
     if (answer.toLowerCase() !== "y") {
-      console.log(
-        '[-] aborted. use "pnpm sync" for non-destructive config updates.'
-      );
+      console.log('[-] aborted. use "pnpm sync" for non-destructive config updates.');
       rl.close();
       process.exit(0);
     }
@@ -157,10 +151,7 @@ async function run() {
 
   console.log(">> writing configuration files...");
   const finalPkg = preserveVersion(pluginDir, templates.packageJson);
-  fs.writeFileSync(
-    path.join(pluginDir, "package.json"),
-    JSON.stringify(finalPkg, null, 2)
-  );
+  fs.writeFileSync(path.join(pluginDir, "package.json"), JSON.stringify(finalPkg, null, 2));
   fs.writeFileSync(
     path.join(pluginDir, "tsconfig.json"),
     JSON.stringify(templates.tsConfig, null, 2)

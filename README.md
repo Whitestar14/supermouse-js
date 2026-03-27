@@ -44,7 +44,7 @@ import { Dot } from "@supermousejs/dot";
 import { Ring } from "@supermousejs/ring";
 
 const app = new Supermouse({
-  plugins: [Dot({ size: 8 }), Ring({ size: 24 })],
+  plugins: [Dot({ size: 8 }), Ring({ size: 24 })]
 });
 ```
 
@@ -56,7 +56,7 @@ supermouse is tunable for performance and accuracy.
 const app = new Supermouse({
   smoothness: 0.15,
   hideCursor: true,
-  ignoreOnNative: "tag",
+  ignoreOnNative: "tag"
 });
 ```
 

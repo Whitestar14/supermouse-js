@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --font-mono: 'Google Sans Code', Consolas, monospace;
-    font-size: 18px;
+  --font-mono: "Google Sans Code", Consolas, monospace;
+  font-size: 18px;
 }
 body {
   font-family: var(--font-mono) !important;

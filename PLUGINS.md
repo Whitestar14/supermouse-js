@@ -1,12 +1,12 @@
-
 # supermouse plugins
 
 plugins are the primary extension mechanism in supermouse.
 the core exists to coordinate them, not to replace them.
 
->if a feature can be a plugin, it probably should be.
+> if a feature can be a plugin, it probably should be.
 
 this document describes:
+
 - how the plugin system works
 - how to write plugins
 - how plugins are expected to live in the ecosystem
@@ -17,6 +17,7 @@ this document describes:
 a plugin is any module that participates in the cursor pipeline.
 
 plugins can:
+
 - modify cursor intent (logic)
 - render cursor visuals (visuals)
 - augment interaction semantics
@@ -30,6 +31,7 @@ if a plugin crashes, it is disabled automatically.
 **plugins are expected to be published independently.**
 
 you do not need to:
+
 - submit a pull request
 - use the `@supermousejs/*` namespace
 - ask for permission
@@ -50,11 +52,13 @@ supermouse runs a deterministic pipeline every frame (~16ms). understanding this
 4. **Visual Plugins** (`priority >= 0`): Read `state.smooth`, render to DOM.
 
 ### priority & the "tearing" bug
+
 logic plugins (like `Magnetic` or `Stick`) **must** have negative priority (e.g. `-10`).
 
 if a logic plugin has default priority (`0`), it runs mixed in with visual plugins. this causes "tearing":
-- visuals registered *before* it will render the **old** position (frame N-1).
-- visuals registered *after* it will render the **new** position (frame N).
+
+- visuals registered _before_ it will render the **old** position (frame N-1).
+- visuals registered _after_ it will render the **new** position (frame N).
 
 this results in the cursor dot snapping correctly, while the ring trails behind for a single frame.
 
@@ -66,7 +70,7 @@ logic plugins modify where the cursor goes and write to `app.state.target`. they
 
 ```ts
 const Gravity = {
-  name: 'gravity',
+  name: "gravity",
   priority: -10, // Must run BEFORE physics
   update(app) {
     app.state.target.y += 5;
@@ -78,7 +82,7 @@ visual plugins render at the cursor position (`app.state.pointer`) or read `app.
 
 ```ts
 const Dot = {
-  name: 'dot',
+  name: "dot",
   priority: 0, // Runs AFTER physics
   update(app) {
     const { x, y } = app.state.smooth; // Read interpolated value
@@ -94,6 +98,7 @@ supermouse automatically handles detecting when to show the native OS cursor (e.
 this state is exposed to plugins via `app.state.isNative`.
 
 ### why allow native fallback?
+
 custom cursors often break usability on native controls (inputs, text selection, drag handles). `ignoreOnNative` allows the app to briefly yield control back to the OS cursor for these interactions, ensuring accessibility isn't compromised for style.
 
 ## inter-plugin communication
@@ -116,46 +121,48 @@ populated by the core input system. plugins read this to react to specific eleme
 ## plugin lifecycle
 
 every plugin runs in the direct `install` -> `update` -> `onEnable` + `onDisable` + `destroy` pipline.
-| hook        | when it runs                            |
+| hook | when it runs |
 | ----------- | --------------------------------------- |
-| `install`   | once, when `app.use()` is called        |
-| `update`    | every frame (~60fps)                    |
-| `onEnable`  | when enabled via `app.enablePlugin()`   |
+| `install` | once, when `app.use()` is called |
+| `update` | every frame (~60fps) |
+| `onEnable` | when enabled via `app.enablePlugin()` |
 | `onDisable` | when disabled via `app.disablePlugin()` |
-| `destroy`   | when the app is destroyed               |
+| `destroy` | when the app is destroyed |
 
 > it is recommended that visual plugins fade out, not remove dom, on disable.
 
 ## writing plugins
 
 Supermouse plugins are simple. You do not need complex classes to build one. plugins can be written in two ways:
+
 - **plain objects** (no helpers, full control)
 - **`definePlugin` helper** (recommended for published plugins)
 
 both result in the same runtime behavior.
 
 > plugins may be defined as objects or factories but factories are recommended to avoid cross-instance state leakage.
+
 ### minimal plugin (plain object)
 
 good for experiments, learning, or custom local effects.
 
 ```ts
-import type { SupermousePlugin } from '@supermousejs/core';
+import type { SupermousePlugin } from "@supermousejs/core";
 
 export const RedDot = (): SupermousePlugin => {
   let el: HTMLDivElement | null = null;
 
   return {
-    name: 'red-dot',
+    name: "red-dot",
 
     install(app) {
-      el = document.createElement('div');
-      el.style.width = '8px';
-      el.style.height = '8px';
-      el.style.borderRadius = '50%';
-      el.style.background = 'red';
-      el.style.position = 'fixed';
-      el.style.pointerEvents = 'none';
+      el = document.createElement("div");
+      el.style.width = "8px";
+      el.style.height = "8px";
+      el.style.borderRadius = "50%";
+      el.style.background = "red";
+      el.style.position = "fixed";
+      el.style.pointerEvents = "none";
 
       app.container.appendChild(el);
     },
@@ -174,25 +181,26 @@ export const RedDot = (): SupermousePlugin => {
 ```
 
 ### packaged plugin (definePlugin helper)
+
 recommended for reusable or published plugins.
 
 ```ts
-import { definePlugin, dom } from '@supermousejs/utils';
+import { definePlugin, dom } from "@supermousejs/utils";
 
 export const RedDot = () =>
-    definePlugin({
-     name: 'red-dot',
+  definePlugin({
+    name: "red-dot",
 
     create: () => {
-        const el = dom.createCircle(8, 'red');
-        return el;
+      const el = dom.createCircle(8, "red");
+      return el;
     },
 
     update: (app, el) => {
-        const { x, y } = app.state.smooth;
-        dom.setTransform(el, x, y);
+      const { x, y } = app.state.smooth;
+      dom.setTransform(el, x, y);
     }
-    });
+  });
 ```
 
 ### which should I use?
@@ -207,31 +215,39 @@ export const RedDot = () =>
 | logic-only plugin             | plain object |
 
 ## performance contract (non-negotiable)
+
 supermousejs is optimized for performance. plugins running at 60-240fps on the main thread must be disciplined.
 
 ### 1. the dom firewall (`state.interaction`)
+
 **why?** reading DOM attributes (`getAttribute`) or layout (`getBoundingClientRect`, `getComputedStyle`) inside the loop forces the browser to synchronously recalculate layout. this is called "Layout Thrashing" and causes stutter.
 
-**solution:** the input system scrapes interactive data *once* on `mouseover` and caches it in `state.interaction`.
-*   ❌ `el.getAttribute('data-color')` inside `update()`
-*   ✅ `app.state.interaction.color` inside `update()`
+**solution:** the input system scrapes interactive data _once_ on `mouseover` and caches it in `state.interaction`.
+
+- ❌ `el.getAttribute('data-color')` inside `update()`
+- ✅ `app.state.interaction.color` inside `update()`
 
 ### 2. frame rate independence (`dt`)
+
 **why?** users have different refresh rates (60hz vs 144hz). if you move `x += 5` every frame, the cursor moves 2.4x faster on a gaming monitor.
 
 **solution:** use the `deltaTime` (dt) argument or the provided math helpers (`damp`, `lerp`).
-*   ❌ `current += (target - current) * 0.1`
-*   ✅ `current = damp(current, target, 10, dt)`
+
+- ❌ `current += (target - current) * 0.1`
+- ✅ `current = damp(current, target, 10, dt)`
 
 ### 3. allocation discipline
+
 **why?** creating objects (`{ x, y }`) or arrays every frame triggers Garbage Collection pauses.
 
 **solution:**
-*   reuse vectors/objects where possible.
-*   do not create DOM elements in `update`.
-*   use CSS transforms (GPU) instead of `top`/`left` (CPU Layout).
 
-##  common footguns (read before publishing)
+- reuse vectors/objects where possible.
+- do not create DOM elements in `update`.
+- use CSS transforms (GPU) instead of `top`/`left` (CPU Layout).
+
+## common footguns (read before publishing)
+
 ### plugin instances are singletons
 
 a plugin instance persists for the lifetime of `app.use()` and closures persist across enable/disable so state is **not** reset automatically. if you need to reset visuals, do it in `onEnable` / `onDisable` explicitely.
@@ -240,6 +256,7 @@ a plugin instance persists for the lifetime of `app.use()` and closures persist 
 if you need multiple elements, conditional mounting or custom containers, use a plain object plugin instead.
 
 ### priority matters more than helpers
+
 - helpers do not change execution order.
 - logic plugins must have negative priority
 - visual plugins should not mutate state.target
@@ -253,6 +270,7 @@ changing options later will not automatically update behavior unless you design 
 document this clearly in your plugin.
 
 ### bad candidates for core
+
 - stylistic variants
 - personal design preferences
 - one-off site effects

@@ -97,8 +97,8 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
           >
             troubleshooting page
           </router-link>
-          . Check the <ApiLink to="hidecursor">hideCursor</ApiLink> and
-          <ApiLink to="ignoreonnative">ignoreOnNative</ApiLink> options for more control.
+          . Check the <ApiLink to="hidecursor"> hideCursor </ApiLink> and
+          <ApiLink to="ignoreonnative"> ignoreOnNative </ApiLink> options for more control.
         </Text>
       </StepCard>
     </div>
