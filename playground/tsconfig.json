@@ -2,9 +2,7 @@
   "extends": "../tsconfig.app.json",
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "compilerOptions": {
-    "paths": {
-      "@supermousejs/*": ["../packages/*/dist"]
-    }
+    "rewriteRelativeImportExtensions": false,
   },
   "references": [{ "path": "./tsconfig.node.json" }]
 }

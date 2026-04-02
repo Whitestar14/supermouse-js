@@ -5,6 +5,7 @@ import { Text } from "@supermousejs/text";
 import { Magnetic } from "@supermousejs/magnetic";
 import { Pointer } from "@supermousejs/pointer";
 import { Stick } from "@supermousejs/stick";
+import { Trail } from "@supermousejs/trail";
 // Use Labs for complex plugins
 import { SmartIcon, SmartRing, TextRing, Sparkles } from "@supermousejs/labs";
 import { ICONS } from "@config/icons";
@@ -381,6 +382,14 @@ export const RECIPES: PresetRecipe[] = [
           color: () => config.color,
           mixBlendMode: "normal",
           enableSkew: true
+        })
+      );
+      app.use(
+        Trail({
+          length: 15,
+          size: () => config.size,
+          color: () => config.color,
+          isEnabled: true
         })
       );
     }

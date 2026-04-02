@@ -1,21 +1,24 @@
 {
   "extends": "../tsconfig.app.json",
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.json"],
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@shared/*": ["src/components/shared/*"],
-      "@landing/*": ["src/components/landing/*"],
-      "@playground/*": ["src/components/playground/*"],
-      "@components/*": ["src/components/*"],
-      "@composables/*": ["src/composables/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@pages/*": ["src/pages/*"],
-      "@config/*": ["src/config/*"],
-      "@data/*": ["src/data/*"],
-      "@utils/*": ["src/utils/*"],
-      "@supermousejs/*": ["../packages/*/dist"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["./src/components/shared/*"],
+      "@landing/*": ["./src/components/landing/*"],
+      "@playground/*": ["./src/components/playground/*"],
+      "@components/*": ["./src/components/*"],
+      "@util/*s": ["./src/utils/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@layouts/*": ["./src/layouts/*"],
+      "@config/*": ["./src/config/*"],
+      "@data/*": ["./src/data/*"],
+      "@composables/*": ["./src/composables/*"],
+      "@utils/*": ["./src/utils/*"],
+
+      "@supermousejs/*": ["../packages/*/src/index.ts"]
     }
   },
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src"],
+  "references": []
 }

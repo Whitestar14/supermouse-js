@@ -8,7 +8,6 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "rewriteRelativeImportExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -23,22 +22,22 @@
     /* Path aliases for monorepo packages */
     "baseUrl": ".",
     "paths": {
-      "@supermousejs/core": ["packages/core/src"],
-      "@supermousejs/utils": ["packages/utils/src"],
-      "@supermousejs/dot": ["packages/dot/src"],
-      "@supermousejs/icon": ["packages/icon/src"],
-      "@supermousejs/image": ["packages/image/src"],
-      "@supermousejs/labs": ["packages/labs/src"],
-      "@supermousejs/magnetic": ["packages/magnetic/src"],
-      "@supermousejs/pointer": ["packages/pointer/src"],
-      "@supermousejs/ring": ["packages/ring/src"],
-      "@supermousejs/states": ["packages/states/src"],
-      "@supermousejs/stick": ["packages/stick/src"],
-      "@supermousejs/text": ["packages/text/src"],
-      "@supermousejs/trail": ["packages/trail/src"],
-      "@supermousejs/zoetrope": ["packages/zoetrope/src"],
-      "@supermousejs/react": ["packages/react/src"],
-      "@supermousejs/vue": ["packages/vue/src"]
+      "@supermousejs/core": ["./packages/core/src"],
+      "@supermousejs/utils": ["./packages/utils/src"],
+      "@supermousejs/dot": ["./packages/dot/src"],
+      "@supermousejs/ring": ["./packages/ring/src"],
+      "@supermousejs/text": ["./packages/text/src"],
+      "@supermousejs/image": ["./packages/image/src"],
+      "@supermousejs/magnetic": ["./packages/magnetic/src"],
+      "@supermousejs/pointer": ["./packages/pointer/src"],
+      "@supermousejs/icon": ["./packages/icon/src"],
+      "@supermousejs/states": ["./packages/states/src"],
+      "@supermousejs/stick": ["./packages/stick/src"],
+      "@supermousejs/vue": ["./packages/vue/src"],
+      "@supermousejs/react": ["./packages/react/src"],
+      "@supermousejs/trail": ["./packages/trail/src"],
+      "@supermousejs/labs": ["./packages/labs/src"],
+      "@supermousejs/zoetrope": ["./packages/zoetrope/src"]
     }
   }
 }
