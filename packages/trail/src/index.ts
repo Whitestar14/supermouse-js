@@ -17,7 +17,7 @@ export const Trail = (options: TrailOptions = {}) => {
   const segments: HTMLDivElement[] = [];
   const history: { x: number; y: number }[] = [];
 
-  definePlugin<HTMLDivElement, TrailOptions>(
+  return definePlugin<HTMLDivElement, TrailOptions>(
     {
       name: options.name || "trail",
 
