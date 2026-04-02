@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import vue from "eslint-plugin-vue";
+import globals from "globals";
 
 export default tseslint.config(
   {
@@ -29,17 +30,15 @@ export default tseslint.config(
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
-        window: "readonly",
-        document: "readonly",
-        process: "readonly",
-        console: "readonly"
+        ...globals.browser,
+        ...globals.node,
+        ...globals.es2021
       },
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: [".vue"],
-        ecmaFeatures: {
-          jsx: true
-        }
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
       }
     },
     rules: {
@@ -48,46 +47,42 @@ export default tseslint.config(
       "vue/no-v-html": "off",
       "vue/component-definition-name-casing": "off",
       "vue/no-setup-props-reactivity-loss": "warn",
-      "vue/prefer-import-style-variable-name": "warn",
+      "vue/no-unused-vars": ["warn", { ignorePattern: "^_" }],
 
-      // TypeScript Rules - Catch actual bugs
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", {
-        argsIgnorePattern: "^_",
-        varsIgnorePattern: "^_"
-      }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
+      ],
+
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/no-misused-promises": "error",
       "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/no-unnecessary-type-assertion": "warn",
-      "@typescript-eslint/explicit-function-return-types": ["warn", {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true,
-        allowHigherOrderFunctions: true
-      }],
+      "@typescript-eslint/explicit-function-return-type": [
+        "warn",
+        {
+          allowExpressions: true,
+          allowTypedFunctionExpressions: true,
+          allowHigherOrderFunctions: true
+        }
+      ],
 
-      // Console Rules - Allow warn/error, warn on log
       "no-console": ["warn", { allow: ["warn", "error", "info"] }],
-
-      // Debugging & Code Quality
       "no-debugger": "error",
       "no-var": "error",
       "prefer-const": "warn",
       "object-shorthand": "warn",
       "prefer-arrow-callback": "warn",
       "prefer-template": "warn",
-
-      // Bug Prevention
       "no-eval": "error",
       "no-implied-eval": "error",
       "no-new-func": "error",
       "no-throw-literal": "error",
-      "eqeqeq": ["error", "always", { null: "ignore" }],
+      eqeqeq: ["error", "always", { null: "ignore" }],
       "no-unmodified-loop-condition": "error",
       "no-constant-condition": "warn",
       "no-unreachable": "error",
-
-      // Disabled: Too many false positives
       "no-useless-assignment": "off"
     }
   }
