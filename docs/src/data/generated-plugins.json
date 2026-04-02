@@ -598,6 +598,6 @@
     "installCommand": "pnpm install @supermousejs/trail",
     "importSnippet": "import { Trail } from '@supermousejs/trail'",
     "hasDetailedDocs": true,
-    "version": "2.2.0"
+    "version": "2.2.1"
   }
 ]

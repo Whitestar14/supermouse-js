@@ -2,7 +2,7 @@
   "extends": "../tsconfig.app.json",
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
   "compilerOptions": {
-    "rewriteRelativeImportExtensions": false,
+    "rewriteRelativeImportExtensions": false
   },
   "references": [{ "path": "./tsconfig.node.json" }]
 }

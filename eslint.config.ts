@@ -47,15 +47,48 @@ export default tseslint.config(
       "vue/multi-word-component-names": "off",
       "vue/no-v-html": "off",
       "vue/component-definition-name-casing": "off",
+      "vue/no-setup-props-reactivity-loss": "warn",
+      "vue/prefer-import-style-variable-name": "warn",
 
-      // TypeScript Rules
+      // TypeScript Rules - Catch actual bugs
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "no-console": "warn",
-      "no-debugger": "warn",
-      "object-shorthand": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_"
+      }],
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+      "@typescript-eslint/await-thenable": "error",
+      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+      "@typescript-eslint/explicit-function-return-types": ["warn", {
+        allowExpressions: true,
+        allowTypedFunctionExpressions: true,
+        allowHigherOrderFunctions: true
+      }],
+
+      // Console Rules - Allow warn/error, warn on log
+      "no-console": ["warn", { allow: ["warn", "error", "info"] }],
+
+      // Debugging & Code Quality
+      "no-debugger": "error",
+      "no-var": "error",
       "prefer-const": "warn",
-      "no-var": "error"
+      "object-shorthand": "warn",
+      "prefer-arrow-callback": "warn",
+      "prefer-template": "warn",
+
+      // Bug Prevention
+      "no-eval": "error",
+      "no-implied-eval": "error",
+      "no-new-func": "error",
+      "no-throw-literal": "error",
+      "eqeqeq": ["error", "always", { null: "ignore" }],
+      "no-unmodified-loop-condition": "error",
+      "no-constant-condition": "warn",
+      "no-unreachable": "error",
+
+      // Disabled: Too many false positives
+      "no-useless-assignment": "off"
     }
   }
 );

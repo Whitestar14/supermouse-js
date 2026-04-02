@@ -12,8 +12,5 @@
     "noImplicitReturns": true,
     "moduleResolution": "bundler"
   },
-  "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/utils" }
-  ]
+  "references": [{ "path": "./packages/core" }, { "path": "./packages/utils" }]
 }
