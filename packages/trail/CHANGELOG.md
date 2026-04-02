@@ -1,5 +1,11 @@
 # @supermousejs/trail
 
+## 2.2.1
+
+### Patch Changes
+
+- a72f5a3: bugfix: fixed a type declaration issue from missing `return` keyword with the Trail package export
+
 ## 2.2.0
 
 ### Patch Changes
