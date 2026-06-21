@@ -20,7 +20,6 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Path aliases for monorepo packages */
-    "baseUrl": ".",
     "paths": {
       "@supermousejs/core": ["./packages/core/src"],
       "@supermousejs/utils": ["./packages/utils/src"],
