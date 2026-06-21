@@ -43,9 +43,10 @@ export class Input {
     this.bindEvents();
   }
 
+  private abortController = new AbortController();
+
   /**
    * Automatically disables the custom cursor on devices without fine pointer control.
-   * Relies on `matchMedia('(pointer: fine)')`.
    */
   private checkDeviceCapability(): void {
     if (!this.options.autoDisableOnMobile) return;
@@ -56,7 +57,9 @@ export class Input {
     this.mediaQueryHandler = (e: MediaQueryListEvent) => {
       this.updateEnabledState(e.matches);
     };
-    this.mediaQueryList.addEventListener("change", this.mediaQueryHandler);
+    this.mediaQueryList.addEventListener("change", this.mediaQueryHandler, {
+      signal: this.abortController.signal
+    });
   }
 
   /**
@@ -67,9 +70,13 @@ export class Input {
     this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     this.state.reducedMotion = this.motionQuery.matches;
 
-    this.motionQuery.addEventListener("change", (e) => {
-      this.state.reducedMotion = e.matches;
-    });
+    this.motionQuery.addEventListener(
+      "change",
+      (e) => {
+        this.state.reducedMotion = e.matches;
+      },
+      { signal: this.abortController.signal }
+    );
   }
 
   private updateEnabledState(enabled: boolean): void {
@@ -218,31 +225,18 @@ export class Input {
   }
 
   private bindEvents(): void {
-    window.addEventListener("pointermove", this.handleMove.bind(this), { passive: true });
-    window.addEventListener("pointerdown", this.handleDown.bind(this), { passive: true });
-    window.addEventListener("pointerup", this.handleUp.bind(this));
+    const { signal } = this.abortController;
+    window.addEventListener("pointermove", this.handleMove.bind(this), { passive: true, signal });
+    window.addEventListener("pointerdown", this.handleDown.bind(this), { passive: true, signal });
+    window.addEventListener("pointerup", this.handleUp.bind(this), { signal });
 
-    document.addEventListener("mouseover", this.handleMouseOver.bind(this));
-    document.addEventListener("mouseout", this.handleMouseOut.bind(this));
-    document.addEventListener("mouseleave", this.handleWindowLeave.bind(this));
+    document.addEventListener("mouseover", this.handleMouseOver.bind(this), { signal });
+    document.addEventListener("mouseout", this.handleMouseOut.bind(this), { signal });
+    document.addEventListener("mouseleave", this.handleWindowLeave.bind(this), { signal });
   }
 
   public destroy(): void {
-    if (this.mediaQueryList && this.mediaQueryHandler) {
-      this.mediaQueryList.removeEventListener("change", this.mediaQueryHandler);
-    }
-    if (this.motionQuery) {
-      // Modern browsers support removeEventListener on MediaQueryList
-      this.motionQuery.onchange = null;
-    }
-
-    window.removeEventListener("pointermove", this.handleMove);
-    window.removeEventListener("pointerdown", this.handleDown);
-    window.removeEventListener("pointerup", this.handleUp);
-
-    document.removeEventListener("mouseover", this.handleMouseOver);
-    document.removeEventListener("mouseout", this.handleMouseOut);
-    document.removeEventListener("mouseleave", this.handleWindowLeave);
+    this.abortController.abort();
   }
 }
 
