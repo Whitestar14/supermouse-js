@@ -9,7 +9,7 @@ const emit = defineEmits(["update:modelValue"]);
 const updateHex = (e: Event) => {
   const val = (e.target as HTMLInputElement).value;
   if (/^[0-9A-Fa-f]{0,6}$/.test(val)) {
-    emit("update:modelValue", "#" + val);
+    emit("update:modelValue", `#${val}`);
   }
 };
 </script>
