@@ -10,7 +10,7 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
   logger.header("Generate Documentation Data");
 
   const packagesDir = path.join(rootDir, "packages");
-  const outputFile = path.join(rootDir, "docs", "src", "data", "plugin-data.ts");
+  const outputFile = path.join(rootDir, "docs", "src", "data", "generated-plugins.json");
 
   logger.section("Scanning Packages");
 
@@ -27,14 +27,11 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
         return fs.statSync(fullPath).isDirectory() && !name.startsWith(".");
       })
       .filter((name) => {
-        // Skip non-plugin packages
-        const pkgJson = path.join(packagesDir, name, "package.json");
-        if (!fs.existsSync(pkgJson)) return false;
-        const pkg = FileOps.readJSON(pkgJson);
-        return pkg.name?.startsWith("@supermousejs/");
+        const metaPath = path.join(packagesDir, name, "meta.json");
+        return fs.existsSync(metaPath);
       });
 
-    logger.info(`Found ${packages.length} plugins`);
+    logger.info(`Found ${packages.length} plugins with metadata`);
 
     if (dryRun) {
       logger.warn("DRY RUN - No files will be written");
@@ -43,7 +40,7 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
       return;
     }
 
-    // Generate TypeScript data file
+    // Generate JSON data file
     const pluginData = generatePluginData(packagesDir, packages, logger);
 
     // Ensure output directory exists
@@ -54,8 +51,7 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
     FileOps.writeFile(outputFile, pluginData);
     logger.success(`Generated ${packages.length} plugin entries`);
 
-    logger.box("success", `✓ Documentation data generated`,
-      `File: docs/src/data/plugin-data.ts`);
+    logger.box("success", `✓ Documentation data generated`, `File: ${outputFile}`);
   } catch (error) {
     logger.error("Failed to generate docs:", error.message);
     if (verbose) logger.debug(error.stack);
@@ -65,41 +61,22 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
 
 function generatePluginData(packagesDir, packages, logger) {
   const pluginList = packages
-    .map((name) => {
-      const pkgJson = FileOps.readJSON(path.join(packagesDir, name, "package.json"));
-      const readmePath = path.join(packagesDir, name, "README.md");
-      const hasReadme = fs.existsSync(readmePath);
+    .flatMap((name) => {
+      const metaPath = path.join(packagesDir, name, "meta.json");
+      const metaContent = FileOps.readJSON(metaPath);
+      const metaArray = Array.isArray(metaContent) ? metaContent : [metaContent];
 
-      return {
-        id: name,
-        name: pkgJson.name,
-        version: pkgJson.version || "2.1.1",
-        description: pkgJson.description || "Supermouse plugin",
-        hasReadme
-      };
+      const pkgJson = FileOps.readJSON(path.join(packagesDir, name, "package.json"));
+
+      return metaArray.map((metaData) => ({
+        ...metaData,
+        version: metaData.version || pkgJson.version || "2.1.1",
+        installCommand: `pnpm install ${pkgJson.name}`,
+        importSnippet: `import { ${metaData.name} } from '${pkgJson.name}'`,
+        hasDetailedDocs: true
+      }));
     })
     .sort((a, b) => a.id.localeCompare(b.id));
 
-  const ts = `/**
- * Auto-generated plugin metadata file
- * Do not edit manually - run: pnpm generate-docs
- */
-
-export interface PluginMeta {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  hasReadme: boolean;
-}
-
-export const PLUGINS: PluginMeta[] = ${JSON.stringify(pluginList, null, 2)};
-
-export const LABS_IDS = [
-  "labs",
-  "zoetrope"
-];
-`;
-
-  return ts;
+  return JSON.stringify(pluginList, null, 2);
 }
