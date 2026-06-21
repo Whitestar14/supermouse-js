@@ -1,5 +1,11 @@
 # @supermousejs/core
 
+## 2.2.0
+
+### Minor Changes
+
+- f6f44b2: Improved tree-shaking by consolidating subordinate files and helpers into the main module file
+
 ## 2.1.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # @supermousejs/labs
 
+## 2.3.0
+
+### Patch Changes
+
+- Updated dependencies [f6f44b2]
+  - @supermousejs/core@2.2.0
+  - @supermousejs/utils@2.3.0
+  - @supermousejs/zoetrope@2.3.0
+
 ## 2.2.0
 
 ### Minor Changes
