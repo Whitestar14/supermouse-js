@@ -317,8 +317,8 @@ export class Stage {
   }
 
   /**
-   * Adds a new CSS selector to the Hide Native Cursor list.
-   * Called by `Supermouse` (and subsequently plugins) during install to ensure
+   * Adds a new CSS selector to the `selectors` set.
+   * Called by `Supermouse` and subsequently plugins during install to ensure
    * the native cursor is hidden on their specific interactive targets.
    */
   public addSelector(selector: string): void {
