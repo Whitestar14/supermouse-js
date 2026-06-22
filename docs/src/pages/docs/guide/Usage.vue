@@ -68,14 +68,14 @@ const app = new Supermouse({
 // Coordinates are automatically relative to the container.
 // CSS injection is scoped to this container.`;
 
-const visibilityCode = `// Force SHOW native cursor (e.g. dragging, specialized UI)
-app.setCursor('auto');
+const visibilityCode = `// Force show native cursor
+app.setNativeCursor('show');
 
-// Force HIDE native cursor (override auto-detection)
-app.setCursor('none');
+// Force hide native cursor
+app.setNativeCursor('hide');
 
-// Reset to automatic behavior (based on ignoreOnNative / isHover)
-app.setCursor(null);`;
+// Reset to automatic behavior
+app.setNativeCursor('auto');`;
 
 const cleanupCode = `// React / Vue / Svelte
 // You MUST destroy the instance to stop the RequestAnimationFrame loop
@@ -198,7 +198,8 @@ onUnmounted(() => {
     <Text class="mb-6">
       Sometimes you need strict control over the cursor visibility (e.g., drag and drop operations,
       custom modals, or games). Use
-      <ApiLink to="setcursor"> setCursor </ApiLink> to override the internal auto-detection.
+      <ApiLink to="setnativecursor"> setNativeCursor </ApiLink> to override the internal
+      auto-detection.
     </Text>
     <div class="mb-12">
       <CodeBlock :code="visibilityCode" lang="typescript" class="border border-zinc-200" />

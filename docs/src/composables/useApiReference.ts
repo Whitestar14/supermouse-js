@@ -34,7 +34,7 @@ export const coreClassDef = `class Supermouse {
   destroy(): void;
   step(time: number): void;
 
-  setCursor(type: 'auto' | 'none' | null): void;
+  setNativeCursor(type: 'show' | 'hide' | 'auto'): void;
   registerHoverTarget(selector: string): void;
 }`;
 
@@ -59,7 +59,7 @@ export const optionsData = [
   },
   {
     name: "ignoreOnNative",
-    type: "boolean | 'auto' | 'tag' | 'css'",
+    type: "'auto' | 'tag' | 'css' | null",
     default: "'auto'",
     desc: "Strategy for unhiding native cursor. 'tag' is fastest (HTML only). 'css' checks computed style."
   },
@@ -123,7 +123,7 @@ export const stateData = [
   {
     name: "forcedCursor",
     type: "'auto' | 'none' | null",
-    desc: "Override for native cursor visibility. Managed via setCursor()."
+    desc: "Override for native cursor visibility. Managed via setNativeCursor()."
   }
 ];
 
@@ -148,8 +148,8 @@ export const methodsData = [
   },
   { name: "destroy", params: "-", return: "void", desc: "Full cleanup." },
   {
-    name: "setCursor",
-    params: "type: 'auto' | 'none' | null",
+    name: "setNativeCursor",
+    params: "type: 'show' | 'hide' | 'auto'",
     return: "void",
     desc: "Force native cursor visibility."
   },

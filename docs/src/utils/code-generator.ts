@@ -116,7 +116,7 @@ export const generateCode = (recipeId: string, config: any, globalConfig: any) =
   if (!globalConfig.showNative) coreOptions.hideCursor = true;
 
   if (recipeId === "context-icon") {
-    coreOptions.ignoreOnNative = false;
+    coreOptions.ignoreOnNative = null;
     coreOptions.rules = obj({
       "'a, button'": obj({ icon: "hand" }),
       "'input'": obj({ icon: "text" })

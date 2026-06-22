@@ -135,7 +135,7 @@ export const RECIPES: PresetRecipe[] = [
       }
     ],
     setup: (app, config) => {
-      app.options.ignoreOnNative = false;
+      app.options.ignoreOnNative = null;
 
       // Define rules via standard options
       app.options.rules = {

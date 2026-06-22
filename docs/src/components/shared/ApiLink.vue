@@ -7,8 +7,8 @@ defineProps<{
 
 const router = useRouter();
 
-const navigate = (anchor: string) => {
-  router.push({ path: "/docs/reference/api", hash: `#${anchor}` });
+const navigate = async (anchor: string): Promise<void> => {
+  await router.push({ path: "/docs/reference/api", hash: `#${anchor}` });
 };
 </script>
 

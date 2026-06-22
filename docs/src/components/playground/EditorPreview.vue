@@ -54,27 +54,18 @@ const initCursor = () => {
   // Sync initial config
   Object.assign(liveConfig, props.config);
 
-  // 1. Create Core attached to THIS CONTAINER
-  // Now that plugins use `projectRect`, this works correctly for Sticky/Magnetic.
   mouse = new Supermouse({
     container: containerRef.value,
     smoothness: props.globalConfig.smoothness,
-    hideCursor: true,
-    // CRITICAL: Set to false so the custom cursor persists over buttons/links
-    // This allows Stick/Magnetic effects to be visible.
-    ignoreOnNative: true
+    hideCursor: true
   });
 
-  // Apply initial Native Cursor state (if toggled on)
   if (props.globalConfig.showNative) {
-    mouse.setCursor("auto");
+    mouse.setNativeCursor("show");
   }
 
-  // 2. Start in DISABLED state.
-  // We only enable it when the user hovers the preview area.
   mouse.disable();
 
-  // 3. Run Recipe Setup with Reactive Config
   props.recipe.setup(mouse, liveConfig);
 };
 
@@ -92,17 +83,13 @@ const onLeave = () => {
   mouse?.disable();
 };
 
-// --- Reactivity ---
-
-// 1. Recipe Change: HARD Reload (Different plugins needed)
 watch(
   () => props.recipe.id,
-  () => {
-    nextTick(initCursor);
+  async () => {
+    await nextTick(initCursor);
   }
 );
 
-// 2. Config Change: SOFT Update (Update reactive state)
 watch(
   () => props.config,
   (newVal) => {
@@ -111,21 +98,16 @@ watch(
   { deep: true }
 );
 
-// 3. Global Config: Update core options via public API
 watch(
   () => props.globalConfig,
   (newVal) => {
     if (mouse) {
-      // Update smooth factor
       mouse.options.smoothness = newVal.smoothness;
 
-      // Handle Native Cursor visibility override via public API
-      // If showNative is true, we force it to 'auto'.
-      // If showNative is false, we set it to null (resume auto-detection based on ignoreOnNative)
       if (newVal.showNative) {
-        mouse.setCursor("auto");
+        mouse.setNativeCursor("show");
       } else {
-        mouse.setCursor(null);
+        mouse.setNativeCursor("auto");
       }
     }
   },
@@ -142,12 +124,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!--
-    Removed data-supermouse-ignore="true":
-    The container should NOT be ignored by its own Supermouse instance.
-    Since the Global Cursor is disabled when the Editor is open (via App.vue),
-    we don't need to ignore it here.
-  -->
   <div
     ref="containerRef"
     class="w-full h-full relative bg-zinc-50 flex flex-col overflow-hidden"

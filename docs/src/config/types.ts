@@ -22,7 +22,7 @@ export interface SupermouseOptions {
   smoothness?: number;
   enableTouch?: boolean;
   autoDisableOnMobile?: boolean;
-  ignoreOnNative?: boolean;
+  ignoreOnNative?: string | null;
   hideCursor?: boolean;
 }
 
