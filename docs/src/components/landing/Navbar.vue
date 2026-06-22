@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { GITHUB_URL } from "@config/constants";
+import { GITHUB_URL, APP_VERSION } from "@config/constants";
 import { useSupermouse } from "@supermousejs/vue";
 
 const emit = defineEmits(["openSearch"]);
@@ -101,7 +101,7 @@ const triggerSpin = () => {
               class="flex items-center gap-1 text-[10px] font-bold text-zinc-400 tracking-widest uppercase hover:text-black relative top-[1px]"
               @click="showVersionMenu = !showVersionMenu"
             >
-              v2.1
+              {{ APP_VERSION.slice(0, 4) }}
               <svg
                 width="8"
                 height="8"
@@ -125,11 +125,11 @@ const triggerSpin = () => {
                 href="#"
                 class="flex items-center justify-between px-4 py-3 text-xs font-bold text-black bg-white hover:bg-black hover:text-white uppercase tracking-widest border-b border-zinc-200"
               >
-                <span>v2.1 (Stable)</span>
-                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-none" />
+                <span>{{ APP_VERSION.slice(0, 4) }}</span>
+                <div class="w-1.5 h-1.5 bg-amber-500 rounded-none" />
               </a>
               <a
-                :href="GITHUB_URL"
+                :href="GITHUB_URL.concat('/tree/legacy')"
                 target="_blank"
                 class="flex items-center justify-between px-4 py-3 text-xs font-bold text-zinc-500 hover:bg-black hover:text-white uppercase tracking-widest"
               >

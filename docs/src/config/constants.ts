@@ -5,8 +5,8 @@
 
 export const APP_VERSION = `v${__SUPERMOUSE_VERSION__}`;
 export const APP_NAME = "Supermouse.js";
-export const LAST_UPDATED = "Dec 24, 2025";
-export const BUNDLE_SIZE = "5.4kb";
+export const LAST_UPDATED = "June 22, 2026";
+export const BUNDLE_SIZE = "3.4kb";
 export const LICENSE = "MIT";
 export const AUTHOR = "Stud.io Inc.";
 export const YEAR = "2024-2026";

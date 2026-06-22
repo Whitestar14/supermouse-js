@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { APP_VERSION } from "@/config/constants";
 import CodeBlock from "@shared/CodeBlock.vue";
 
 const copied = ref(false);
+const version: string = APP_VERSION || "2.2.0";
 
-const copyCommand = () => {
-  navigator.clipboard.writeText("pnpm add @supermousejs/core");
+const copyCommand = async (): Promise<void> => {
+  await navigator.clipboard.writeText("pnpm add @supermousejs/core");
   copied.value = true;
   setTimeout(() => (copied.value = false), 2000);
 };
@@ -41,7 +43,7 @@ app.use(Dot({
             <!-- Version Badge -->
             <div class="inline-flex items-center gap-2 mb-10">
               <span class="mono text-[11px] uppercase tracking-widest text-zinc-500 font-bold"
-                >v2.0 Stable</span
+                >{{ version }} Stable</span
               >
             </div>
 
