@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { watch, ref, onMounted, onUnmounted } from "vue";
+import { watch, ref, onMounted, onUnmounted, computed } from "vue";
+import { useRoute } from "vue-router";
 import Lenis from "lenis";
 import Navbar from "@components/landing/Navbar.vue";
 import CursorEditor from "@components/playground/CursorEditor.vue";
@@ -7,6 +8,8 @@ import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
 
+const route = useRoute();
+const isLandingPage = computed(() => route.path === "/");
 const mouse = useAppCursor();
 
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
@@ -30,32 +33,35 @@ let rafId: number;
 onMounted(() => {
   window.addEventListener("keydown", handleKeydown);
 
-  lenis = new Lenis({
-    duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    orientation: "vertical",
-    gestureOrientation: "vertical",
-    smoothWheel: true
-  });
+  // Only initialize Lenis for landing page
+  if (isLandingPage.value) {
+    lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true
+    });
 
-  (window as any).lenis = lenis;
+    (window as any).lenis = lenis;
 
-  function raf(time: number): void {
-    lenis?.raf(time);
+    function raf(time: number): void {
+      lenis?.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+
     rafId = requestAnimationFrame(raf);
   }
-
-  rafId = requestAnimationFrame(raf);
 
   watch(
     [isEditorOpen, isSearchOpen],
     ([editor, search]) => {
-      if (typeof window === "undefined") return;
+      if (typeof window === "undefined" || !lenis) return;
 
       if (editor || search) {
-        lenis?.stop();
+        lenis.stop();
       } else {
-        lenis?.start();
+        lenis.start();
       }
 
       if (mouse.value) {
