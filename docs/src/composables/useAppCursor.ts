@@ -37,7 +37,7 @@ export function useAppCursor() {
       smoothness: 0.05,
       enableTouch: false,
       hideCursor: true,
-      ignoreOnNative: false
+      ignoreOnNative: null
     },
     [
       SmartIcon({
