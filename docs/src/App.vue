@@ -40,7 +40,7 @@ onMounted(() => {
 
   (window as any).lenis = lenis;
 
-  function raf(time: number) {
+  function raf(time: number): void {
     lenis?.raf(time);
     rafId = requestAnimationFrame(raf);
   }
