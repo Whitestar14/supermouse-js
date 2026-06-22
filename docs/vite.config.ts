@@ -33,6 +33,7 @@ export default defineConfig({
         }
       ],
       dynamicRoutes: [
+        "/",
         "/docs/guide/introduction",
         "/docs/guide/installation",
         "/docs/guide/usage",
@@ -44,7 +45,7 @@ export default defineConfig({
         "/docs/advanced/authoring",
         "/docs/advanced/contributing",
         "/docs/advanced/tips-and-tricks",
-        "/reference/api",
+        "/docs/reference/api",
         ...pluginRoutes
       ]
     })
