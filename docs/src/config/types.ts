@@ -51,5 +51,10 @@ export interface PluginMeta {
   description: string;
   code: string;
   icon: string;
+  recipeId: string;
+  version: string;
   options?: OptionSchema[];
+  installCommand: string;
+  importSnippet: string;
+  hasDetailedDocs: boolean;
 }
