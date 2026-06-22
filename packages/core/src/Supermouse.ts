@@ -169,9 +169,9 @@ export class Input {
 
     const strategy = this.options.ignoreOnNative;
 
-    if (strategy) {
-      const checkTags = strategy === true || strategy === "auto" || strategy === "tag";
-      const checkCSS = strategy === true || strategy === "auto" || strategy === "css";
+    if (strategy && strategy !== null) {
+      const checkTags = strategy === "auto" || strategy === "tag";
+      const checkCSS = strategy === "auto" || strategy === "css";
       let isNative = false;
 
       if (checkTags) {
@@ -543,12 +543,12 @@ export class Supermouse {
   }
 
   /**
-   * Manually override the native cursor visibility.
+   * Sets the native cursor visibility.
    *
-   * @param type 'auto' (Show Native), 'none' (Hide Native), or null (Resume Auto-detection)
+   * @param mode
    */
-  public setCursor(type: "auto" | "none" | null): void {
-    this.state.forcedCursor = type;
+  public setNativeCursor(mode: "hide" | "show" | "auto"): void {
+    this.state.forcedCursor = mode === "auto" ? null : mode === "hide" ? "none" : "auto";
   }
 
   private init(): void {

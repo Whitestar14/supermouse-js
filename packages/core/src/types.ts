@@ -95,13 +95,14 @@ export interface SupermouseOptions {
   autoDisableOnMobile?: boolean;
   /**
    * Strategy for detecting when to fallback to the native cursor.
-   * - `true` / `'auto'`: Checks both HTML tags and CSS cursor styles (Accurate but slower).
+   * - `'auto'`: Checks both HTML tags and CSS cursor styles (Accurate but slower).
    * - `'tag'`: Checks only semantic tags like <input>, <textarea> (Fastest, prevents layout thrashing).
    * - `'css'`: Checks only computed CSS cursor styles (Slow, triggers reflow).
-   * - `false`: Never fallback to native cursor.
+   * - `null`: Never fallback to native cursor.
+   *
    * @default 'auto'
    */
-  ignoreOnNative?: boolean | NativeIgnoreStrategy;
+  ignoreOnNative?: NativeIgnoreStrategy | null;
   /**
    * Whether to hide the native cursor via global CSS injection.
    * @default true
