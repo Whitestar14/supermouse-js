@@ -1,23 +1,20 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { computed } from "vue";
+import { resolveApiHref } from "@config/api-anchors";
 
-defineProps<{
+const props = defineProps<{
   to: string;
 }>();
 
-const router = useRouter();
-
-const navigate = async (anchor: string): Promise<void> => {
-  await router.push({ path: "/docs/reference/api", hash: `#${anchor}` });
-};
+const href = computed(() => resolveApiHref(props.to));
 </script>
 
 <template>
-  <button
+  <a
+    :href="href"
     :data-supermouse-text="`Jump to API: ${to}`"
     class="text-black font-bold underline decoration-dotted decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all"
-    @click="navigate(to)"
   >
     <slot>{{ to }}</slot>
-  </button>
+  </a>
 </template>

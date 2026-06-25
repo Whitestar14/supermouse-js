@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/animejs": "^3.1.13",
     "@vitejs/plugin-vue": "^6.0.3",
-    "@vueuse/head": "^2.0.0",
+    "@unhead/vue": "^2.0.0",
     "vite-plugin-sitemap": "^0.8.2",
     "vite-ssg": "^28.3.0",
     "vue-router": "4.2.5",

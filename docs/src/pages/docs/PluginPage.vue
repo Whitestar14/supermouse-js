@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import CodeBlock from "@/components/shared/CodeBlock.vue";
 import MetadataStrip from "@/components/shared/MetadataStrip.vue";
 import Table from "@/components/shared/Table.vue";
+import { usePageHead } from "@composables/usePageHead";
 import { PLUGINS } from "@data/plugin-data";
 
 const route = useRoute();
@@ -29,6 +30,11 @@ const optionColumns = [
   { key: "default", label: "Default", class: "w-1/6" },
   { key: "description", label: "Description" }
 ];
+
+usePageHead({
+  title: computed(() => plugin.value?.name ?? "Plugin"),
+  description: computed(() => plugin.value?.description ?? "Supermouse plugin documentation.")
+});
 </script>
 
 <template>

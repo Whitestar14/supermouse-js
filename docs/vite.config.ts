@@ -2,6 +2,7 @@ import { defineConfig, UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import Sitemap from "vite-plugin-sitemap";
 import path from "path";
+import { copyFileSync, existsSync, rmSync } from "fs";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import type { ViteSSGOptions } from "vite-ssg";
@@ -53,6 +54,7 @@ export default defineConfig({
   ssgOptions: {
     script: "async",
     formatting: "minify",
+    dirStyle: "nested",
     includedRoutes(paths: string[]) {
       return paths.flatMap((path) => {
         if (path.includes("pathMatch")) return [];
@@ -63,7 +65,23 @@ export default defineConfig({
         return path;
       });
     },
-    onFinished() {}
+    onFinished() {
+      const dist = path.resolve(__dirname, "dist");
+
+      const nested404 = path.join(dist, "404", "index.html");
+      const flat404 = path.join(dist, "404.html");
+      if (existsSync(nested404)) {
+        copyFileSync(nested404, flat404);
+        rmSync(path.join(dist, "404"), { recursive: true, force: true });
+      }
+
+      const nestedIndex = path.join(dist, "index", "index.html");
+      const rootIndex = path.join(dist, "index.html");
+      if (existsSync(nestedIndex)) {
+        copyFileSync(nestedIndex, rootIndex);
+        rmSync(path.join(dist, "index"), { recursive: true, force: true });
+      }
+    }
   },
   define: {
     __SUPERMOUSE_VERSION__: JSON.stringify(corePkg.version),

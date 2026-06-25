@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useHead } from "@vueuse/head";
-import { APP_NAME, DOMAIN } from "@config/constants";
+import { useHead } from "@unhead/vue";
+import { APP_NAME, SITE_URL } from "@config/constants";
 import Footer from "@/components/landing/Footer.vue";
 import { useDocsSidebar } from "@composables/useDocsSidebar";
+import { usePageHead } from "@composables/usePageHead";
 import { DOCS_NAVIGATION } from "@config/navigation";
 
 const route = useRoute();
@@ -53,7 +54,7 @@ const breadcrumbSchema = computed(() => {
         "@type": "ListItem",
         position: 1,
         name: "Docs",
-        item: `${DOMAIN}/docs/guide/introduction`
+        item: `${SITE_URL}/docs/guide/introduction`
       },
       {
         "@type": "ListItem",
@@ -64,24 +65,22 @@ const breadcrumbSchema = computed(() => {
         "@type": "ListItem",
         position: 3,
         name: breadcrumbs.value.page,
-        item: `${DOMAIN}${route.path}`
+        item: `${SITE_URL}${route.path}`
       }
     ]
   };
 });
 
+usePageHead({
+  title: computed(() => breadcrumbs.value.page),
+  description: computed(() => `Documentation for ${breadcrumbs.value.page} in ${APP_NAME}.`)
+});
+
 useHead({
-  title: computed(() => `${breadcrumbs.value.page} | ${APP_NAME}`),
   script: [
     {
       type: "application/ld+json",
-      children: computed(() => JSON.stringify(breadcrumbSchema.value))
-    }
-  ],
-  meta: [
-    {
-      name: "description",
-      content: computed(() => `Documentation for ${breadcrumbs.value.page} in ${APP_NAME}.`)
+      innerHTML: computed(() => JSON.stringify(breadcrumbSchema.value))
     }
   ]
 });

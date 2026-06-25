@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { watch, ref, onMounted, onUnmounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { watch, ref, onMounted, onUnmounted, computed, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import Lenis from "lenis";
 import Navbar from "@components/landing/Navbar.vue";
 import CursorEditor from "@components/playground/CursorEditor.vue";
@@ -9,12 +9,13 @@ import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
 
 const route = useRoute();
-const isLandingPage = computed(() => route.path === "/");
+const router = useRouter();
 const mouse = useAppCursor();
 
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
 const isSearchOpen = ref(false);
+const isRouteReady = ref(import.meta.env.SSR);
 
 const toggleSearch = () => {
   isSearchOpen.value = !isSearchOpen.value;
@@ -29,56 +30,84 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 let lenis: Lenis | null = null;
 let rafId: number;
+let resizeObserver: ResizeObserver | null = null;
 
-onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
+const startLenis = () => {
+  if (lenis || typeof window === "undefined") return;
 
-  // Only initialize Lenis for landing page
-  if (isLandingPage.value) {
-    lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      gestureOrientation: "vertical",
-      smoothWheel: true
-    });
+  lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    orientation: "vertical",
+    gestureOrientation: "vertical",
+    smoothWheel: true
+  });
 
-    (window as any).lenis = lenis;
+  (window as any).lenis = lenis;
 
-    function raf(time: number): void {
-      lenis?.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-
+  function raf(time: number): void {
+    lenis?.raf(time);
     rafId = requestAnimationFrame(raf);
   }
 
-  watch(
-    [isEditorOpen, isSearchOpen],
-    ([editor, search]) => {
-      if (typeof window === "undefined" || !lenis) return;
+  rafId = requestAnimationFrame(raf);
+};
 
-      if (editor || search) {
-        lenis.stop();
-      } else {
-        lenis.start();
-      }
+const stopLenis = () => {
+  if (!lenis) return;
+  cancelAnimationFrame(rafId);
+  lenis.destroy();
+  lenis = null;
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+  delete (window as any).lenis;
+};
 
-      if (mouse.value) {
-        if (editor || search) mouse.value.disable();
-        else mouse.value.enable();
-      }
-    },
-    { flush: "post" }
-  );
+onMounted(async () => {
+  window.addEventListener("keydown", handleKeydown);
+
+  if (!import.meta.env.SSR) {
+    await router.isReady();
+    isRouteReady.value = true;
+    document.documentElement.classList.remove("route-pending");
+  }
+
+  startLenis();
+
+  if (typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(() => {
+      if (lenis) lenis.resize();
+    });
+    nextTick(() => {
+      resizeObserver?.observe(document.body);
+    });
+  }
 });
+
+watch(
+  [isEditorOpen, isSearchOpen],
+  ([editor, search]) => {
+    if (typeof window === "undefined" || !lenis) return;
+
+    if (editor || search) {
+      lenis.stop();
+    } else {
+      lenis.start();
+    }
+
+    if (mouse.value) {
+      if (editor || search) mouse.value.disable();
+      else mouse.value.enable();
+    }
+  },
+  { flush: "post" }
+);
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
-  if (lenis) {
-    lenis.destroy();
-    cancelAnimationFrame(rafId);
-  }
+  stopLenis();
 });
 </script>
 
@@ -92,7 +121,7 @@ onUnmounted(() => {
       <Navbar @open-search="isSearchOpen = true" />
 
       <!-- Route Content -->
-      <main class="flex-1 flex flex-col min-h-0 relative z-10">
+      <main v-if="isRouteReady" class="flex-1 flex flex-col min-h-0 relative z-10">
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>

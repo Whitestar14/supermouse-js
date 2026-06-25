@@ -5,6 +5,13 @@ import Mission from "@/components/landing/Mission.vue";
 import Stats from "@/components/landing/Stats.vue";
 import CTA from "@/components/landing/CTA.vue";
 import Footer from "@/components/landing/Footer.vue";
+import { usePageHead } from "@composables/usePageHead";
+
+usePageHead({
+  title: "Modular Cursor System",
+  description:
+    "A modular, high-performance cursor engine for building dynamic, beautiful cursors for the web."
+});
 </script>
 
 <template>

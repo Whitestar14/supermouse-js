@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
 import Callout from "@/components/shared/Callout.vue";
+import Text from "@/components/shared/Text.vue";
 import { RECIPES } from "@/components/playground/recipes";
 import { usePlayground } from "@composables/usePlayground";
 
@@ -16,10 +17,10 @@ const PLAY_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
       pointer.
     </Callout>
 
-    <p class="text-lg text-zinc-600 mb-12 leading-relaxed max-w-2xl">
+    <Text size="lg" color="subtle" class="mb-12 max-w-2xl">
       A collection of pre-configured cursor effects. Launch a recipe to tweak parameters and grab
       the implementation code.
-    </p>
+    </Text>
 
     <div class="grid grid-cols-1 md:grid-cols-2 border-t border-l border-zinc-200">
       <div
@@ -44,12 +45,12 @@ const PLAY_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
         </div>
 
         <div class="flex-1 pr-8">
-          <h3 class="text-xl font-bold text-zinc-900 tracking-tighter mb-2">
+          <Text weight="bold" size="lg" class="mb-2 tracking-tighter text-zinc-900">
             {{ recipe.name }}
-          </h3>
-          <p class="text-sm text-zinc-500 leading-relaxed">
+          </Text>
+          <Text size="sm" color="subtle">
             {{ recipe.description }}
-          </p>
+          </Text>
         </div>
 
         <div class="mt-8">

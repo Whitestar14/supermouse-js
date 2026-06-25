@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref, reactive, nextTick } from "vue";
 import { Supermouse } from "@supermousejs/core";
+import { useSupermouse } from "@supermousejs/vue";
 import type { PresetRecipe } from "./recipes";
 
 const props = defineProps<{
@@ -71,16 +72,19 @@ const initCursor = () => {
 
 // --- Hover Management ---
 
+const globalMouse = useSupermouse();
 const isHovering = ref(false);
 
 const onEnter = () => {
   isHovering.value = true;
+  globalMouse.value?.disable();
   mouse?.enable();
 };
 
 const onLeave = () => {
   isHovering.value = false;
   mouse?.disable();
+  globalMouse.value?.enable();
 };
 
 watch(

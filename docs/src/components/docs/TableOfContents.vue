@@ -20,18 +20,18 @@ defineEmits<{
       On This Page
     </div>
     <nav class="flex flex-col gap-2 text-sm">
-      <button
+      <a
         v-for="section in sections"
         :key="section.id"
-        type="button"
+        :href="`#${section.id}`"
         class="text-left w-full transition-colors"
         :class="
           activeSection === section.id ? 'text-black font-bold' : 'text-zinc-600 hover:text-black'
         "
-        @click="$emit('navigate', section.id)"
+        @click.prevent="$emit('navigate', section.id)"
       >
         {{ section.label }}
-      </button>
+      </a>
     </nav>
   </div>
 </template>

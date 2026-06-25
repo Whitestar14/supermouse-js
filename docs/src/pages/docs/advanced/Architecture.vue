@@ -107,6 +107,76 @@ function tick(time) {
       </TimelineStep>
     </div>
 
+    <!-- Design Philosophy -->
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Design Philosophy</h3>
+
+    <div class="mb-16">
+      <Text>
+        Supermouse adopts a <strong>Brutalist-lite</strong> aesthetic. The interface is
+        high-contrast, instant, and rigid, while the cursor is fluid, physics-driven, and organic.
+        This contrast emphasizes the library's capability.
+      </Text>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 mt-8">
+        <div class="bg-white p-8">
+          <h4 class="text-lg font-bold text-zinc-900 mb-4">No-Transition Rule</h4>
+          <p class="text-sm text-zinc-600 leading-relaxed">
+            The user interface should feel like a high-precision tool. Modal appearances, tab
+            switches, and layout changes must be instantaneous. Only micro-interactions on hover
+            (colors, borders) are allowed fast transitions.
+          </p>
+        </div>
+        <div class="bg-white p-8">
+          <h4 class="text-lg font-bold text-zinc-900 mb-4">Physics-First Rule</h4>
+          <p class="text-sm text-zinc-600 leading-relaxed">
+            <strong>Only</strong> the cursor and cursor-related effects are allowed to be smooth or
+            floaty. This stark contrast makes the cursor interactions stand out.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plugin Architecture -->
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Plugin Architecture</h3>
+    <div class="mb-16">
+      <Text>
+        Plugins are the primary extension mechanism in Supermouse. The core exists to coordinate
+        them, not to replace them. If a feature can be a plugin, it probably should be.
+      </Text>
+
+      <div class="space-y-12 mt-8 border-l border-zinc-200 pl-8">
+        <div>
+          <h4 class="text-lg font-bold text-zinc-900 mb-2">Priority & The "Tearing" Bug</h4>
+          <Text size="sm" color="subtle">
+            Logic plugins (like Magnetic) <strong>must</strong> have negative priority (e.g.
+            <code>-10</code>). If a logic plugin has default priority (<code>0</code>), it runs
+            mixed in with visual plugins causing "tearing" (visuals registered before it render the
+            old position, visuals registered after render the new position).
+          </Text>
+        </div>
+
+        <div>
+          <h4 class="text-lg font-bold text-zinc-900 mb-2">Logic vs Visual Plugins</h4>
+          <Text size="sm" color="subtle">
+            <strong>Logic plugins</strong> modify where the cursor goes by writing to
+            <code>state.target</code> and generally shouldn't touch the DOM.
+            <strong>Visual plugins</strong> read <code>state.smooth</code> and render to the DOM,
+            usually running with non-negative priority.
+          </Text>
+        </div>
+
+        <div>
+          <h4 class="text-lg font-bold text-zinc-900 mb-2">Inter-Plugin Communication</h4>
+          <Text size="sm" color="subtle">
+            Plugins coordinate via state channels. For example, <code>state.shape</code> bridges
+            logic and visuals. A Stick logic plugin measures the hovered element and writes
+            dimensions to <code>state.shape</code>, and a Ring visual plugin reads it to morph its
+            shape, decoupling behavior from rendering.
+          </Text>
+        </div>
+      </div>
+    </div>
+
     <!-- Performance Systems -->
     <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Performance Strategy</h3>
 
@@ -114,14 +184,12 @@ function tick(time) {
       <div class="bg-white p-8">
         <h4 class="text-lg font-bold text-zinc-900 mb-4">Interaction Scraping</h4>
         <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-          Reading DOM attributes (<code>getAttribute</code>) or styles
-          (<code>getComputedStyle</code>) during the render loop causes layout thrashing.
+          Reading DOM attributes or styles during the render loop causes layout thrashing.
         </p>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          Supermouse solves this by parsing interaction data
-          <strong>only once</strong> when the <code>mouseover</code> event fires. It stores the
-          result in a <code>WeakMap</code> cache. The loop reads from this cache, making interaction
-          checks O(1).
+          Supermouse solves this by parsing interaction data <strong>only once</strong> when the
+          <code>mouseover</code> event fires. It stores the result in a cache. The loop reads from
+          this cache, making interaction checks O(1).
         </p>
       </div>
       <div class="bg-white p-8">
@@ -131,10 +199,8 @@ function tick(time) {
           body's `cursor: none`.
         </p>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          Hiding the body cursor won't be enough, so Supermouse injects a dynamic
-          <code>&lt;style&gt;</code> tag that targets every interactive selector registered by
-          plugins (e.g. <code>a, button, [data-hover]</code>) and applies
-          <code>cursor: none !important</code>.
+          Supermouse injects a dynamic <code>&lt;style&gt;</code> tag targeting every interactive
+          selector registered by plugins and applies <code>cursor: none !important</code>.
         </p>
       </div>
     </div>

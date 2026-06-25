@@ -10,40 +10,42 @@ const removePluginCode = "pnpm run remove:plugin <name>";
 <template>
   <DocsSection label="Guide" title="Toolchain">
     <Text size="lg" class="mb-8">
-      This repository includes a custom CLI toolchain to manage the monorepo structure, making it
-      easy to create and manage plugins.
+      This repository utilizes a custom Command Line Interface (CLI) toolchain to manage the
+      monorepo architecture, facilitating efficient plugin scaffolding and workspace management.
     </Text>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
       <div class="p-6 border border-zinc-200">
         <h4 class="font-bold text-zinc-900 mb-2">Workspace</h4>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          Managed with <code>pnpm</code>. Internal packages are linked via
-          <code>workspace:*</code> protocol for instant updates.
+          Managed via <code>pnpm</code>. Internal dependencies are linked using the
+          <code>workspace:*</code> protocol to ensure instant updates across packages.
         </p>
       </div>
       <div class="p-6 border border-zinc-200">
         <h4 class="font-bold text-zinc-900 mb-2">Bundler</h4>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          <code>vite</code> in library mode. Emits dual ESM/UMD builds for maximum compatibility
-          (Browser + Node).
+          <code>vite</code> configured in library mode. Emits dual ESM and UMD builds for optimal
+          compatibility in both browser and Node.js environments.
         </p>
       </div>
       <div class="p-6 border border-zinc-200">
         <h4 class="font-bold text-zinc-900 mb-2">Versioning</h4>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          <code>@changesets/cli</code> manages semver bumping and changelog generation based on PRs.
+          <code>@changesets/cli</code> automates semantic versioning bumps and changelog generation
+          based on merged pull requests.
         </p>
       </div>
     </div>
 
-    <h3 class="text-xl font-bold text-zinc-900 mb-6 tracking-tight">CLI Scripts</h3>
+    <h3 class="text-xl font-bold text-zinc-900 mb-6 tracking-tight">Command Line Interface</h3>
     <div class="space-y-8">
       <div class="flex flex-col md:flex-row gap-8 items-start">
         <div class="w-full md:w-1/3 shrink-0">
           <Text weight="bold" size="sm" class="mb-1"> Scaffold Plugin </Text>
           <Text size="xs" color="subtle" class="mb-4">
-            Creates package folder, tsconfig, vite config, and links it to the playground.
+            Generates the package directory, TypeScript configuration, and Vite configuration, and
+            automatically links it to the playground workspace.
           </Text>
         </div>
         <div class="w-full md:w-2/3">
@@ -55,7 +57,8 @@ const removePluginCode = "pnpm run remove:plugin <name>";
         <div class="w-full md:w-1/3 shrink-0">
           <Text weight="bold" size="sm" class="mb-1"> Remove Plugin </Text>
           <Text size="xs" color="subtle" class="mb-4">
-            Safely unlinks from workspace and playground, then deletes the package.
+            Safely unlinks the plugin from the workspace and playground, subsequently removing the
+            package directory.
           </Text>
         </div>
         <div class="w-full md:w-2/3">

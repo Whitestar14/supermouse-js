@@ -12,28 +12,26 @@
       rel="stylesheet"
     />
 
-    <link rel="canonical" href="https://supermouse.js.org/" />
     <meta
       name="description"
       content="A modular, high-performance cursor engine for building dynamic, beautiful cursors for the web"
     />
-    <meta property="og:title" content="Supermouse | Modular Cursor System" />
-    <meta
-      property="og:description"
-      content="A modular, high-performance cursor engine for building dynamic, beautiful cursors for the web"
-    />
     <meta property="og:image" content="https://supermouse.js.org/social-banner.png" />
-    <meta property="og:url" content="https://supermouse.js.org/" />
     <meta property="og:type" content="website" />
 
     <meta name="google-site-verification" content="uZ6MsSjY_clcMoUs6D2HywTCmrdyZW0UUNGsP-EO8YY" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Supermouse | Modular Cursor System" />
-    <meta
-      name="twitter:description"
-      content="A modular, high-performance cursor engine for building dynamic, beautiful cursors for the web"
-    />
     <meta name="twitter:image" content="https://supermouse.js.org/social-banner.png" />
+    <style>
+      html.route-pending #app {
+        visibility: hidden;
+      }
+    </style>
+    <script>
+      if (location.pathname !== "/") {
+        document.documentElement.classList.add("route-pending");
+      }
+    </script>
   </head>
   <body class="antialiased overflow-x-hidden">
     <div id="app"></div>
