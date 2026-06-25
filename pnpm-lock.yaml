@@ -117,7 +117,7 @@ importers:
         specifier: ^3.1.13
         version: 3.1.13
       '@unhead/vue':
-        specifier: ^2.1.12
+        specifier: ^2.0.0
         version: 2.1.12(vue@3.5.31(typescript@5.8.3))
       '@vitejs/plugin-vue':
         specifier: ^6.0.3

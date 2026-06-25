@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { watch, ref, onMounted, onUnmounted, computed, nextTick } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { watch, ref, onMounted, onUnmounted, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import Lenis from "lenis";
 import Navbar from "@components/landing/Navbar.vue";
 import CursorEditor from "@components/playground/CursorEditor.vue";
@@ -8,7 +8,6 @@ import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
 
-const route = useRoute();
 const router = useRouter();
 const mouse = useAppCursor();
 
