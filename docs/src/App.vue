@@ -107,24 +107,21 @@ onUnmounted(() => {
 
 <template>
   <div class="relative min-h-screen bg-white">
-    <!-- Master Container -->
     <div
       class="relative mx-auto max-w-[1440px] bg-white min-h-screen border-x border-zinc-200 shadow-2xl shadow-zinc-100 flex flex-col"
     >
-      <!-- Global Navigation -->
       <Navbar @open-search="isSearchOpen = true" />
 
-      <!-- Route Content -->
       <main v-if="isRouteReady" class="flex-1 flex flex-col min-h-0 relative z-10">
         <router-view v-slot="{ Component }">
-          <component :is="Component" />
+          <Suspense>
+            <component :is="Component" />
+          </Suspense>
         </router-view>
       </main>
     </div>
 
-    <!-- Global Modals -->
     <CursorEditor v-if="isEditorOpen" :active-recipe-id="activeRecipeId" @close="closeEditor" />
-
     <SearchPalette v-if="isSearchOpen" @close="isSearchOpen = false" />
   </div>
 </template>

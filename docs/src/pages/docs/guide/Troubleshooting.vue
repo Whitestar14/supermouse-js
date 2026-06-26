@@ -8,7 +8,7 @@ const diagnostics = [
     type: "TOOL",
     title: "Unknown Conflict",
     signal: "Elements behave inconsistently or multiple cursors appear.",
-    fix: 'The optional <code>@supermousejs/utils</code> package includes a diagnostic <a href="/docs/reference/api#doctor" class="text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all"><code>doctor()</code></a> utility. It audits the active document layers for inline <code>cursor</code> styles or specificity conflicts that override Supermouse styles.',
+    fix: 'The optional <code>@supermousejs/utils</code> package includes a diagnostic <ApiLink to="doctor" class="link font-mono">doctor()</ApiLink> utility. It audits the active document layers for inline <code>cursor</code> styles or specificity conflicts that override Supermouse styles.',
     code: "import { doctor } from '@supermousejs/utils';\n\ndoctor(); // Run in browser console"
   },
   {
@@ -16,7 +16,7 @@ const diagnostics = [
     type: "VISUAL",
     title: "Double Cursor",
     signal: "The native OS cursor flickers or renders on top of the custom cursor.",
-    fix: 'Usually caused by inline styles (<code>style="cursor: pointer"</code>) or high-specificity selector declarations overriding the dynamically injected stage rules. Migrate CSS pointer definitions to programmatic <a href="/docs/reference/api#rules" class="text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all"><code>rules</code></a>.',
+    fix: 'Usually caused by inline styles (<code>style="cursor: pointer"</code>) or high-specificity selector declarations overriding the dynamically injected stage rules. Migrate CSS pointer definitions to programmatic <ApiLink to="rules" class="link font-mono" />rules</ApiLink>.',
     code: null
   },
   {
@@ -40,7 +40,7 @@ const diagnostics = [
     type: "ENV",
     title: "Mobile Ghosts",
     signal: "Interacting on touch screens renders a static cursor node at tap points.",
-    fix: 'Supermouse is designed to hibernate on coarse pointer contexts via <a href="/docs/reference/api#autodisableonmobile" class="text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all"><code>autoDisableOnMobile</code></a>. Ensure <a href="/docs/reference/api#enabletouch" class="text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all"><code>enableTouch</code></a> is not set to true.',
+    fix: 'Supermouse is designed to hibernate on coarse pointer contexts via <ApiLink to="autodisableonmobile" class="link font-mono" />autoDisableOnMobile</ApiLink>. Ensure <ApiLink to="enabletouch" class="link font-mono" />enableTouch</ApiLink> is not set to true.',
     code: null
   },
   {
@@ -48,7 +48,7 @@ const diagnostics = [
     type: "DEV",
     title: "React Strict Mode",
     signal: "Duplicate cursors mount in development, or frame listeners run twice.",
-    fix: 'React 18 mounts effects twice during development. Ensure you call <a href="/docs/reference/api#destroy" class="text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all"><code>destroy()</code></a> on cleanup if not using our official wrapper.',
+    fix: 'React 18 mounts effects twice during development. Ensure you call <ApiLink to="destroy" class="link font-mono" />destroy()</ApiLink> on cleanup if not using our official wrapper.',
     code: "useEffect(() => {\n  const app = new Supermouse();\n  return () => app.destroy(); \n}, []);"
   },
   {
@@ -56,7 +56,7 @@ const diagnostics = [
     type: "PERF",
     title: "High Hz Jitter",
     signal: "Damping dynamics stutter or speed up on high-frequency monitors.",
-    fix: 'Avoid basic frame-count linear interpolations. Visual updates must account for variable hardware refresh rates by using the frame delta parameter (<code>dt</code>) and the <a href="/docs/reference/api#damp" class="text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all"><code>math.damp()</code></a> helper.',
+    fix: 'Avoid basic frame-count linear interpolations. Visual updates must account for variable hardware refresh rates by using the frame delta parameter (<code>dt</code>) and the <ApiLink to="damp" class="link font-mono" />math.damp()</ApiLink> helper.',
     code: null
   }
 ];
@@ -90,7 +90,7 @@ const diagnostics = [
 
           <div class="mt-auto pl-3 border-l-2 border-zinc-100">
             <p class="text-xs italic text-zinc-500 font-medium leading-relaxed">
-              "{{ item.signal }}"
+              {{ item.signal }}
             </p>
           </div>
         </div>

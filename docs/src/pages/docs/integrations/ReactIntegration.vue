@@ -9,8 +9,7 @@ import ApiLink from "@/components/shared/ApiLink.vue";
 
 const installCode = "pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot";
 
-const providerCode = `// src/App.tsx
-import { SupermouseProvider } from '@supermousejs/react';
+const providerCode = `import { SupermouseProvider } from '@supermousejs/react';
 import { Dot } from '@supermousejs/dot';
 
 export default function App() {
@@ -29,8 +28,7 @@ export default function App() {
   );
 }`;
 
-const hookCode = `// src/components/CustomButton.tsx
-import { useSupermouse } from '@supermousejs/react';
+const hookCode = `import { useSupermouse } from '@supermousejs/react';
 
 export const CustomButton = () => {
   // Returns the Supermouse instance or null before mount
@@ -45,8 +43,7 @@ export const CustomButton = () => {
   return <button onClick={handleClick}>Log Position</button>;
 };`;
 
-const nextCode = `// src/app/layout.tsx
-import { SupermouseProvider } from '@supermousejs/react';
+const nextCode = `import { SupermouseProvider } from '@supermousejs/react';
 
 export default function RootLayout({ children }) {
   return (

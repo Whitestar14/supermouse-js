@@ -10,7 +10,8 @@ type TokenType =
   | "tag"
   | "attr"
   | "operator"
-  | "punctuation";
+  | "punctuation"
+  | "interpolation";
 
 interface GrammarRule {
   type: TokenType;
@@ -57,15 +58,22 @@ const JS_GRAMMAR: LanguageGrammar = {
   ]
 };
 
+// Extended HTML Grammar with Vue directives & interpolation
 const HTML_GRAMMAR: LanguageGrammar = {
   islands: [
     { type: "comment", pattern: /<!--[\s\S]*?-->/g, style: COLORS.comment },
-    { type: "string", pattern: /(['"])(?:\\.|(?!\1).)*\1/g, style: COLORS.mediumGrey }
+    { type: "string", pattern: /(['"])(?:\\.|(?!\1).)*\1/g, style: COLORS.mediumGrey },
+    { type: "interpolation", pattern: /\{\{[^}]*\}\}/g, style: COLORS.white }
   ],
   sea: [
     { type: "tag", pattern: /<\/?[a-zA-Z0-9-]+/g, style: COLORS.amber },
-    { type: "attr", pattern: /\b[a-zA-Z0-9-@:]+(?==)/g, style: COLORS.lightGrey }, // Expanded for Vue @click etc
-    { type: "punctuation", pattern: /[<>=\/]/g, style: COLORS.darkGrey }
+    {
+      type: "attr",
+      pattern: /\b(v-[a-zA-Z-]+|@[a-zA-Z-]+|:[a-zA-Z-]+)(?==)/g,
+      style: COLORS.lightGrey
+    },
+    { type: "attr", pattern: /\b[a-zA-Z0-9-@:]+(?==)/g, style: COLORS.lightGrey },
+    { type: "punctuation", pattern: /[<>=\/{}]/g, style: COLORS.darkGrey }
   ]
 };
 
@@ -105,9 +113,7 @@ interface TokenMatch {
   style: string;
 }
 
-export function highlight(code: string, lang: string = "js"): string {
-  const grammar = GRAMMARS[lang.toLowerCase()] || GRAMMARS.js;
-
+function highlightCore(code: string, grammar: LanguageGrammar): string {
   // 1. Extract Islands (Comments, Strings)
   const islands: string[] = [];
   let maskedCode = code;
@@ -184,4 +190,46 @@ export function highlight(code: string, lang: string = "js"): string {
   return result.replace(/___ISLAND_(\d+)___/g, (_, index) => {
     return islands[Number(index)];
   });
+}
+
+function highlightVue(code: string): string {
+  const scriptMatch = code.match(/<script([^>]*)>([\s\S]*?)<\/script>/);
+  const templateMatch = code.match(/<template([^>]*)>([\s\S]*?)<\/template>/);
+  const styleMatch = code.match(/<style([^>]*)>([\s\S]*?)<\/style>/);
+
+  const scriptContent = scriptMatch ? highlightCore(scriptMatch[2], JS_GRAMMAR) : "";
+  const templateContent = templateMatch ? highlightCore(templateMatch[2], HTML_GRAMMAR) : "";
+  const styleContent = styleMatch ? highlightCore(styleMatch[2], CSS_GRAMMAR) : "";
+
+  let result = code;
+  if (scriptMatch) {
+    const attrs = scriptMatch[1];
+    const tagOpen = `<span class="${COLORS.amber}">&lt;script${attrs}&gt;</span>`;
+    const tagClose = `<span class="${COLORS.amber}">&lt;/script&gt;</span>`;
+    result = result.replace(scriptMatch[0], `${tagOpen}${scriptContent}${tagClose}`);
+  }
+  if (templateMatch) {
+    const attrs = templateMatch[1];
+    const tagOpen = `<span class="${COLORS.amber}">&lt;template${attrs}&gt;</span>`;
+    const tagClose = `<span class="${COLORS.amber}">&lt;/template&gt;</span>`;
+    result = result.replace(templateMatch[0], `${tagOpen}${templateContent}${tagClose}`);
+  }
+  if (styleMatch) {
+    const attrs = styleMatch[1];
+    const tagOpen = `<span class="${COLORS.amber}">&lt;style${attrs}&gt;</span>`;
+    const tagClose = `<span class="${COLORS.amber}">&lt;/style&gt;</span>`;
+    result = result.replace(styleMatch[0], `${tagOpen}${styleContent}${tagClose}`);
+  }
+
+  return result;
+}
+
+// Main export
+export function highlight(code: string, lang: string = "js"): string {
+  const normalizedLang = lang.toLowerCase();
+  if (normalizedLang === "vue") {
+    return highlightVue(code);
+  }
+  const grammar = GRAMMARS[normalizedLang] || GRAMMARS.js;
+  return highlightCore(code, grammar);
 }

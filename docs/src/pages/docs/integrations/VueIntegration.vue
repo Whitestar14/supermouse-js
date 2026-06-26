@@ -9,8 +9,7 @@ import ApiLink from "@/components/shared/ApiLink.vue";
 
 const installCode = "pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot";
 
-const appCode = `// src/App.vue
-<script setup>
+const appCode = `<script setup>
 import { provideSupermouse } from '@supermousejs/vue';
 import { Dot } from '@supermousejs/dot';
 
@@ -27,8 +26,7 @@ provideSupermouse({
   <router-view />
 </template>`;
 
-const componentCode = `// src/components/MyButton.vue
-<script setup>
+const componentCode = `<script setup>
 import { useSupermouse } from '@supermousejs/vue';
 
 // Returns Ref<Supermouse | null> — null until the engine is mounted.
