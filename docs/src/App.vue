@@ -9,7 +9,7 @@ import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
 
 const router = useRouter();
-const mouse = useAppCursor();
+useAppCursor();
 
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
@@ -79,7 +79,7 @@ onMounted(async () => {
     resizeObserver = new ResizeObserver(() => {
       if (lenis) lenis.resize();
     });
-    nextTick(() => {
+    await nextTick(() => {
       resizeObserver?.observe(document.body);
     });
   }

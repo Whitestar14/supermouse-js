@@ -2,117 +2,120 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --grid-size: 40px;
-  --grid-color: #f0f0f0;
-  --text-main: #09090b;
-  @apply text-base;
-}
+@layer base {
+  html {
+    @apply text-base;
+  }
 
-@font-face {
-  font-family: "Satoshi";
-  src:
-    url("/fonts/Satoshi-Variable.woff2") format("woff2"),
-    url("/fonts/Satoshi-Variable.woff") format("woff");
-  font-feature-settings:
-    "salt" 1,
-    "tnum" 1;
-  font-variant-ligatures: none;
-}
+  :root {
+    --grid-size: 40px;
+    --grid-color: #f0f0f0;
+    --text-main: #09090b;
+    @apply text-base;
+  }
 
-code {
-  @apply text-[0.9rem];
-}
+  @font-face {
+    font-family: "Satoshi";
+    src:
+      url("/fonts/Satoshi-Variable.woff2") format("woff2"),
+      url("/fonts/Satoshi-Variable.woff") format("woff");
+    font-feature-settings:
+      "salt" 1,
+      "tnum" 1;
+    font-variant-ligatures: none;
+  }
 
-b {
-  @apply text-zinc-600;
-}
+  code {
+    @apply text-[0.9rem];
+  }
 
-p {
-  font-feature-settings: "salt" 0;
-}
+  b {
+    @apply text-zinc-600;
+  }
 
-html.lenis,
-html.lenis body {
-  height: auto;
-}
+  p {
+    font-feature-settings: "salt" 0;
+  }
 
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
 
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
 
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
 
-.lenis.lenis-scrolling iframe {
-  pointer-events: none;
-}
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
 
-body {
-  @apply font-sans;
-  margin: 0;
-  background-color: #fff;
-  color: var(--text-main);
-  -webkit-font-smoothing: antialiased;
-}
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
+  }
 
-.mono,
-code,
-pre,
-kbd {
-  font-family: "JetBrains Mono", monospace !important;
-}
+  body {
+    @apply font-sans;
+    margin: 0;
+    background-color: #fff;
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+  }
 
-/* Supermouse Text Plugin Styling */
-.tooltip-cursor {
-  background-color: #09090b;
-  color: white;
-  padding: 4px 8px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: 2px;
-  pointer-events: none;
-}
+  .mono,
+  code,
+  pre,
+  kbd {
+    font-family: "JetBrains Mono", monospace !important;
+  }
 
-.grid-bg {
-  background-image:
-    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-  background-size: var(--grid-size) var(--grid-size);
-  background-position: center top;
-}
+  /* Supermouse Text Plugin Styling */
+  .tooltip-cursor {
+    background-color: #09090b;
+    color: white;
+    padding: 4px 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+    pointer-events: none;
+  }
 
-::selection {
-  background: #0000000c;
-  color: #000;
-}
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    background-position: center top;
+  }
 
-::-webkit-scrollbar {
-  width: 6px;
-}
+  ::selection {
+    background: #0000000c;
+    color: #000;
+  }
 
-::-webkit-scrollbar-track {
-  background: #fff;
-}
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #e4e4e7;
-  border-radius: 3px;
+  ::-webkit-scrollbar-track {
+    background: #fff;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 3px;
+  }
 }
 
 @layer components {
   .link {
     @apply cursor-pointer text-black font-bold underline decoration-dotted decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all;
   }
-}
-
-@layer base {
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import DocsSection from "@/components/docs/DocsSection.vue";
 import CodeBlock from "@/components/shared/CodeBlock.vue";
-import { GITHUB_URL } from "@config/constants";
 
 const diagnostics = [
   {
