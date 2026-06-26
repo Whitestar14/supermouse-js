@@ -3,6 +3,7 @@ import DocsSection from "@/components/docs/DocsSection.vue";
 import MetadataStrip from "@/components/shared/MetadataStrip.vue";
 import Text from "@/components/shared/Text.vue";
 import SectionHeader from "@/components/shared/SectionHeader.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 import { APP_VERSION, BUNDLE_SIZE } from "@config/constants";
 
 const metaItems = [
@@ -18,20 +19,13 @@ const metaItems = [
 
     <div class="mb-12 space-y-4">
       <Text weight="medium" size="lg">
-        Supermouse is a <b>high-performance</b> runtime that decouples <b>cursor intent</b> from
-        <b>cursor rendering</b>.
+        Supermouse is a high-performance cursor engine for the modern web, designed to isolate <strong>cursor intent</strong> from <strong>cursor rendering</strong>.
       </Text>
       <Text size="lg">
-        It provides a plugin system that allows for flexible plugin integration and complex visual
-        effects. Unlike most cursor libraries that behave more or less like UI components, binding
-        state to a specific framework's render cycle (React, Vue) or relying on heavy animation
-        libraries (GSAP) to move a div, Supermouse runs its own deterministic game loop (60fps)
-        using <code>requestAnimationFrame</code>
+        Conventional cursor libraries treat cursors as standard UI elements, tying their coordinates to framework reactive state (React, Vue) or relying on heavy animation wrappers (like GSAP) that operate on CPU layout properties. This coupling introduces input lag and rendering delays. Supermouse runs a standalone, deterministic animation loop (60–120Hz) managed directly via <code>requestAnimationFrame</code>.
       </Text>
       <Text size="lg">
-        It manages the hard parts (input normalization and physics interpolation) so it remains
-        performant, and a priority-based plugin system with auto-recovery to render effects without
-        layout thrashing.
+        By separating physics interpolation from paint routines and enforcing a strict DOM Firewall, Supermouse enables fluid pointer dynamics without layout thrashing.
       </Text>
     </div>
 
@@ -45,56 +39,44 @@ const metaItems = [
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">01.</span>
             <p>
-              <strong>The Double Cursor Glitch.</strong> Hiding the native cursor via CSS is very
-              fragile. <code>input</code>, <code>a</code>, and user-agent stylesheets often force it
-              back, creating a flickering ghost cursor.
+              <strong>The Double Cursor Glitch.</strong> Hiding the OS cursor via standard CSS is fragile; inputs, dynamic targets, and user-agent stylesheets regularly force it back, creating flickering.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">02.</span>
             <p>
-              <strong>Input Lag.</strong> React/Vue state updates are asynchronous. Binding mouse
-              coordinates to reactive state causes the cursor to trail 1-2 frames behind input,
-              feeling mushy, laggy or unresponsive.
+              <strong>Input Lag.</strong> Framework state updates are asynchronous. Driving coordinates through a virtual DOM deferment trails the native pointer by 1–2 frames.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">03.</span>
             <p>
-              <strong>Logic/Visual Coupling.</strong> Most libraries bake the visual style (e.g a
-              dot, a ring) into the logic, which makes attempts to swapping or layering effects
-              non-trivial
+              <strong>Coupled Architectures.</strong> Mixing physical tracking bounds with visual render elements limits layout composability and stops developer modifications.
             </p>
           </li>
         </ul>
       </div>
       <div class="bg-zinc-50 p-8">
-        <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-400 mb-4">
+        <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-4">
           The Supermouse Solution
         </h3>
         <ul class="space-y-4 text-sm text-zinc-700">
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">01.</span>
             <p>
-              <strong>The Stage System.</strong> Supermouse injects a scoped, high-specificity
-              stylesheet to aggressively suppress the native cursor on registered targets,
-              guaranteeing it vanishes, with additional guardrails to ensure that and granularity to
-              restore it if necessary.
+              <strong>The Stage Controller.</strong> Supermouse injects a scoped, high-specificity stylesheet to suppress native pointers over registered regions, utilizing granularity controls to show or hide the OS pointer.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">02.</span>
             <p>
-              <strong>Direct DOM Access.</strong> The core loop bypasses framework Virtual DOMs
-              entirely, applying transforms directly to the GPU layer for 120hz+ fluidity.
+              <strong>Direct GPU Transforms.</strong> By bypassing the virtual DOM, updates apply hardware-accelerated CSS translation vectors directly onto target layers.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">03.</span>
             <p>
-              <strong>Plugin Pipeline.</strong> Logic plugins (e.g Magnetc) runs first to modify the
-              target. Physics runs second to smooth movement. Visuals (e.g Dot, Ring) run last to
-              render. Completely decoupled.
+              <strong>Decoupled Pipeline.</strong> Logic layers compute coordinates, physics smooths movement, and visuals render. Plugins hook into specific stages without side-effects.
             </p>
           </li>
         </ul>
@@ -110,26 +92,19 @@ const metaItems = [
         <div class="p-6">
           <strong class="block text-zinc-900 text-sm mb-2">1. Intent vs. Render</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            We separate where the cursor <em>wants</em> to go from where it actually <em>is</em> and
-            what it <em>looks like</em>. This allows plugins to hijack the target position without
-            visually rendered cursors knowing.
+            Physics models track coordinate intent on <ApiLink to="target"><code>state.target</code></ApiLink>, while visual plugins read from the interpolated <ApiLink to="smooth"><code>state.smooth</code></ApiLink> values. This decoupling lets plugins modify tracking bounds dynamically.
           </p>
         </div>
         <div class="p-6">
-          <strong class="block text-zinc-900 text-sm mb-2">2. Modular Defaults</strong>
+          <strong class="block text-zinc-900 text-sm mb-2">2. Modular Pipeline</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            Supermouse ships with performance-optimized defaults that work out of the box. However,
-            nothing is locked in. You can replace the renderer, logic, or input system entirely via
-            plugins.
+            The core engine registers plugins on a chainable stack via <ApiLink to="use"><code>app.use()</code></ApiLink>, coordinating execution priority. You can swap, enable, or disable layers at runtime.
           </p>
         </div>
         <div class="p-6">
           <strong class="block text-zinc-900 text-sm mb-2">3. Accessibility First</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            The library automatically detects touch devices (coarse pointer) and disables itself. It
-            listens for
-            <code>prefers-reduced-motion</code> and snaps physics instantly to prevent motion
-            sickness.
+            Coarse pointers (touch devices) trigger automatic hibernation via <ApiLink to="autodisableonmobile"><code>autoDisableOnMobile</code></ApiLink>. Operating system preferences for <ApiLink to="reducedmotion"><code>state.reducedMotion</code></ApiLink> instantly skip floaty physics to prevent motion sickness.
           </p>
         </div>
       </div>

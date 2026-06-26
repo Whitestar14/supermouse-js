@@ -4,6 +4,7 @@ import CodeBlock from "@/components/shared/CodeBlock.vue";
 import Callout from "@/components/shared/Callout.vue";
 import SectionHeader from "@/components/shared/SectionHeader.vue";
 import Text from "@/components/shared/Text.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 // Plugin Architecture & Design
 const definePluginCode = `export const MyPlugin = (options) =>
@@ -260,20 +261,20 @@ const update = (app, el) => {
 };`;
 
 // Debugging
-const tearingFixCode = `// ❌ WRONG
+const tearingFixCode = `// ❌ WRONG - Priority causes visual sync mismatch
 priority: 0,
 update(app) { app.state.target.x += 5; }
 
-// ✅ CORRECT
+// ✅ CORRECT - Modifies target before physics or visuals run
 priority: -10,
 update(app) { app.state.target.x += 5; }`;
 
-const thrashingFixCode = `// ❌ WRONG
+const thrashingFixCode = `// ❌ WRONG - Queries DOM rect every single frame
 update(app) {
   const rect = el.getBoundingClientRect();
 }
 
-// ✅ CORRECT
+// ✅ CORRECT - Scrapes targeting class once, caches calculations
 let cachedRect = null;
 install(app) {
   app.registerHoverTarget('[data-my-attr]');
@@ -375,10 +376,10 @@ app.use(
 <template>
   <DocsSection label="Advanced" title="Tips & Tricks">
     <!-- Intro -->
-    <Callout title="Pro Tip" class="mb-12">
-      Supermouse is designed to be composable. Use small plugins together to build surprising cursor
-      experiences without sacrificing performance. These tips will help you build efficient,
-      maintainable plugins and avoid common pitfalls.
+    <Callout title="Design Philosophy Tip" class="mb-12">
+      Supermouse is built on a modular design. To build amazing cursor experiences, stack multiple
+      simple plugins together rather than compiling heavy multi-purpose layers. Keep UI transitions
+      instantaneous and physics smooth to create high-precision, premium interfaces.
     </Callout>
 
     <!-- PLUGIN ARCHITECTURE & DESIGN -->
@@ -386,36 +387,39 @@ app.use(
       <SectionHeader :level="2"> Plugin Architecture & Design </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Choose the Right Plugin Type </SectionHeader>
+        <SectionHeader :level="3"> Choose the Right Plugin Template </SectionHeader>
         <Text size="sm">
-          <strong>Use <code>definePlugin</code> helper</strong> for packaged/published plugins:
-          cleaner syntax, less boilerplate, handles lifecycle automatically, type-safe element
-          binding, and good for visual plugins with a single primary element.
+          <strong
+            >Use <ApiLink to="defineplugin"><code>definePlugin</code></ApiLink> helper</strong
+          >
+          for standard visual widgets (like circles, icons, or rings) that represent single DOM
+          entities. It manages configuration watches, mounts, style synchronization, and cleanups
+          for you.
         </Text>
         <CodeBlock lang="typescript" :code="definePluginCode" :clean="true" />
 
         <Text size="sm" class="mt-6">
-          <strong>Use plain objects</strong> for quick experiments, complex multi-element layouts,
-          conditional rendering, logic-only plugins, learning, or when you need maximum control over
-          lifecycle.
+          <strong>Use plain objects</strong> for raw performance hooks, plugins with multiple DOM
+          elements, custom canvas contexts, dynamic routing bounds, or logic-only scripts.
         </Text>
         <CodeBlock lang="typescript" :code="plainObjectCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Priority is Non-Negotiable </SectionHeader>
+        <SectionHeader :level="3"> Priority Execution Order </SectionHeader>
         <Text size="sm">
-          <strong>Logic plugins must use negative priority</strong> (<code>-10</code> or lower).
-          These modify <code>state.target</code> (where the cursor should go) and must run
-          <em>before</em> physics interpolation. Running at default priority (<code>0</code>) causes
-          "tearing" where some visuals render old position while others render new position.
+          <strong>Logic plugins must use negative priority</strong> (e.g. <code>-10</code>). These
+          write to <ApiLink to="target"><code>state.target</code></ApiLink> (directing where the
+          cursor should go) and must run before physics calculations. Using positive or zero
+          priority for positioning updates causes frame lag ("tearing") as rendering occurs before
+          targets stabilize.
         </Text>
         <CodeBlock lang="typescript" :code="priorityLogicCode" :clean="true" />
 
         <Text size="sm" class="mt-6">
-          <strong>Visual plugins use zero or positive priority.</strong> These read
-          <code>state.smooth</code> (interpolated position) or modify visuals and run
-          <em>after</em> physics and target modifications.
+          <strong>Visual plugins use zero or positive priority.</strong> These hooks run after logic
+          and physics steps to read the interpolated
+          <ApiLink to="smooth"><code>state.smooth</code></ApiLink> coordinates and update styling.
         </Text>
         <CodeBlock lang="typescript" :code="priorityVisualCode" :clean="true" />
       </div>
@@ -426,11 +430,14 @@ app.use(
       <SectionHeader :level="2"> State Management & Inter-Plugin Communication </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Leverage <code>state.shape</code> for Morphing </SectionHeader>
+        <SectionHeader :level="3">
+          Share Geometry via <ApiLink to="shape"><code>state.shape</code></ApiLink>
+        </SectionHeader>
         <Text size="sm">
-          Don't duplicate geometry calculations. Use <code>state.shape</code> to bridge logic and
-          visual plugins. This decouples geometry logic from visuals—swap the visual plugin without
-          rewriting logic.
+          Avoid redundant DOM rect measurements. Storing bounds in the shared
+          <ApiLink to="shape"><code>state.shape</code></ApiLink> container allows logic layers (like
+          Stick) to communicate sizes to rendering layers (like Ring) without directly coupling
+          their classes.
         </Text>
         <Text size="sm" weight="medium"> Logic Plugin (Stick): </Text>
         <CodeBlock lang="typescript" :code="stateShapeLogicCode" :clean="true" />
@@ -441,19 +448,21 @@ app.use(
 
       <div class="mb-8">
         <SectionHeader :level="3">
-          Use <code>state.interaction</code> to React to Attributes
+          Use <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> instead of
+          DOM Reads
         </SectionHeader>
         <Text size="sm">
-          Don't read DOM attributes in <code>update()</code> (causes layout thrashing). The input
-          system pre-scrapes data attributes into <code>state.interaction</code>.
+          Do not query DOM nodes inside the hot update loop. The input system scrapes attributes
+          from active hovered elements and registers them inside the O(1)
+          <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> store, avoiding
+          heavy reflow calculations.
         </Text>
         <CodeBlock lang="typescript" :code="interactionWrongCode" :clean="true" />
 
         <CodeBlock lang="typescript" :code="interactionCorrectCode" :clean="true" />
 
         <Text size="sm" class="mt-6">
-          Control behavior through HTML by registering hover targets and reading normalized
-          interaction keys:
+          Define interactive targets in HTML and read them reactively:
         </Text>
         <CodeBlock lang="typescript" :code="interactionPluginCode" :clean="true" />
       </div>
@@ -464,53 +473,61 @@ app.use(
       <SectionHeader :level="2"> Performance Optimization </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> 1. Avoid Layout Thrashing (The DOM Firewall) </SectionHeader>
+        <SectionHeader :level="3"> 1. Adhere to the DOM Firewall </SectionHeader>
         <Text size="sm">
-          Every <code>getBoundingClientRect()</code>, <code>getComputedStyle()</code>, or
-          <code>getAttribute()</code> in the update loop forces the browser to synchronously
-          recalculate layout.
+          Calling properties like <code>getBoundingClientRect()</code> inside high-frequency frames
+          triggers layout thrashing. Perform measurements inside event listener updates or cache
+          them on hover target changes.
         </Text>
         <CodeBlock lang="typescript" :code="thrashingWrongCode" :clean="true" />
-        <Text size="sm" weight="medium" class="mt-4"> ✅ Correct - Cache on hover: </Text>
+        <Text size="sm" weight="medium" class="mt-4">
+          ✅ Correct - Cache calculations on target shift:
+        </Text>
         <CodeBlock lang="typescript" :code="thrashingCorrectCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> 2. Use Frame-Rate Independent Motion </SectionHeader>
+        <SectionHeader :level="3"> 2. Frame-Rate Independent Damping </SectionHeader>
         <Text size="sm">
-          Velocities and timings must account for variable refresh rates (60hz vs 144hz). Motion
-          calculated per-frame without delta time moves 2.4x faster on 144hz.
+          Ensure velocities and spring timings account for high-refresh screens (e.g. 144Hz). Always
+          use the frame delta time (<code>dt</code>) argument or the
+          <ApiLink to="damp"><code>math.damp</code></ApiLink> helper.
         </Text>
         <CodeBlock lang="typescript" :code="frameRateWrongCode" :clean="true" />
-        <Text size="sm" weight="medium" class="mt-4">
-          ✅ Correct - Use <code>damp</code> helper:
-        </Text>
+        <Text size="sm" weight="medium" class="mt-4"> ✅ Correct - Use the damping utility: </Text>
         <CodeBlock lang="typescript" :code="frameRateCorrectCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> 3. Minimize Allocations </SectionHeader>
+        <SectionHeader :level="3"> 3. Allocation Discipline </SectionHeader>
         <Text size="sm">
-          Creating objects or arrays every frame triggers garbage collection pauses.
+          Creating objects (`{ x, y }`) inside the render loop triggers garbage collection pauses.
+          Reuse persistent local objects or compute indices inline.
         </Text>
         <CodeBlock lang="typescript" :code="allocationWrongCode" :clean="true" />
-        <Text size="sm" weight="medium" class="mt-4"> ✅ Correct - Reuse or calc inline: </Text>
+        <Text size="sm" weight="medium" class="mt-4">
+          ✅ Correct - Inline values or use scalar maths:
+        </Text>
         <CodeBlock lang="typescript" :code="allocationCorrectCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> 4. Smart Style Writes </SectionHeader>
+        <SectionHeader :level="3"> 4. Smart Styling Writes </SectionHeader>
         <Text size="sm">
-          The <code>dom.setStyle()</code> utility caches previous values and skips DOM writes if
-          unchanged. Use <code>dom.applyStyles()</code> for bulk initialization.
+          Use the <ApiLink to="setstyle"><code>dom.setStyle</code></ApiLink> helper to skip styling
+          writes unless the property value changes. For bulk initialization inside create/install
+          hooks, use <ApiLink to="applystyles"><code>dom.applyStyles</code></ApiLink
+          >.
         </Text>
         <CodeBlock lang="typescript" :code="styleWriteCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> 5. Prefer CSS Transforms Over Position </SectionHeader>
+        <SectionHeader :level="3"> 5. Prefer CSS GPU Transforms </SectionHeader>
         <Text size="sm">
-          Transforms are GPU-accelerated. Position properties trigger CPU layout recalculation.
+          Never mutate CPU-bound properties like `top/left` inside updates. Use
+          <ApiLink to="settransform"><code>dom.setTransform</code></ApiLink> to center elements via
+          translate3d, offloading rendering to the GPU.
         </Text>
         <CodeBlock lang="typescript" :code="transformCode" :clean="true" />
       </div>
@@ -521,24 +538,24 @@ app.use(
       <SectionHeader :level="2"> Plugin Composition Patterns </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Chaining Multiple Effects </SectionHeader>
+        <SectionHeader :level="3"> Stacking Compositions </SectionHeader>
         <Text size="sm">
-          Stack logic and visual plugins to build complex effects. Order matters: logic plugins run
-          first (negative priority), then physics, then visual plugins.
+          Layer multiple single-purpose plugins to construct compound cursors. Differentiating
+          priority ensures logic (Stick) feeds coordinates into rendering layers (Ring) correctly.
         </Text>
         <CodeBlock lang="typescript" :code="compositionCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Conditional Plugins </SectionHeader>
+        <SectionHeader :level="3"> Runtime Dynamic Control </SectionHeader>
         <Text size="sm">
-          Enable/disable plugins at runtime based on user actions or page state.
+          Call <ApiLink to="disableplugin"><code>disablePlugin()</code></ApiLink> or
+          <ApiLink to="enableplugin"><code>enablePlugin()</code></ApiLink> to toggle specific layers
+          on routes or configurations.
         </Text>
         <CodeBlock lang="typescript" :code="conditionalPluginCode" :clean="true" />
 
-        <Text size="sm" class="mt-6">
-          Use <code>onEnable()</code> and <code>onDisable()</code> lifecycle hooks for state reset.
-        </Text>
+        <Text size="sm" class="mt-6"> Always write clean visual exits in lifecycle hooks: </Text>
         <CodeBlock lang="typescript" :code="enableDisableCode" :clean="true" />
       </div>
     </section>
@@ -548,22 +565,24 @@ app.use(
       <SectionHeader :level="2"> Configuration Best Practices </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Use <code>normalize()</code> for Dynamic Values </SectionHeader>
+        <SectionHeader :level="3"> Handle Diverse Option Values </SectionHeader>
         <Text size="sm">
-          Options can be static values, functions, or reactive getters. The
-          <code>normalize()</code> helper handles all cases.
+          Users might pass static numbers, raw strings, or dynamic getters. The
+          <ApiLink to="normalize"><code>normalize()</code></ApiLink> utility compiles any option
+          shape into a clean getter.
         </Text>
         <CodeBlock lang="typescript" :code="normalizeCode" :clean="true" />
 
-        <Text size="sm" class="mt-6"> Usage examples: </Text>
+        <Text size="sm" class="mt-6"> Standard configurations: </Text>
         <CodeBlock lang="typescript" :code="normalizeUsageCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Document Static Options </SectionHeader>
+        <SectionHeader :level="3"> Document Static Restrictions </SectionHeader>
         <Text size="sm">
-          Options are read at construction time, not reactively. Document this clearly and provide
-          methods if users need to change options at runtime.
+          Remember that options passed inside constructor calls are static. If users need to adjust
+          size or color dynamically, register methods or expose dynamic getter callbacks in the
+          options.
         </Text>
         <CodeBlock lang="typescript" :code="staticOptionsCode" :clean="true" />
       </div>
@@ -574,29 +593,30 @@ app.use(
       <SectionHeader :level="2"> Common Plugin Patterns </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Rotation Based on Movement </SectionHeader>
+        <SectionHeader :level="3"> Rotation Syncing </SectionHeader>
         <Text size="sm">
-          Use <code>app.state.angle</code> to rotate elements based on cursor velocity with smooth
-          interpolation.
+          Rotate elements in visual hooks based on cursor travel direction using
+          <ApiLink to="lerpangle"><code>math.lerpAngle</code></ApiLink
+          >.
         </Text>
         <CodeBlock lang="typescript" :code="rotationCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Timeout-Based State Reset </SectionHeader>
+        <SectionHeader :level="3"> Sleep Timeouts </SectionHeader>
         <Text size="sm">
-          Reset cursor state after inactivity using
-          <code>performance.now()</code> for frame-independent timing.
+          Reset elements to default idle configurations when pointer velocities approach zero using
+          performance timestamps.
         </Text>
         <CodeBlock lang="typescript" :code="timeoutCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Single-Element to Center-Mounted </SectionHeader>
+        <SectionHeader :level="3"> Precise Element Centering </SectionHeader>
         <Text size="sm">
-          Position element centered at cursor location using
-          <code>dom.setTransform()</code> which automatically centers with
-          <code>translate(-50%, -50%)</code>.
+          Align custom visuals directly on the active cursor using
+          <ApiLink to="settransform"><code>dom.setTransform</code></ApiLink
+          >.
         </Text>
         <CodeBlock lang="typescript" :code="centeredElementCode" :clean="true" />
       </div>
@@ -604,34 +624,39 @@ app.use(
 
     <!-- DEBUGGING & TROUBLESHOOTING -->
     <section class="mb-16">
-      <h2 class="text-2xl font-bold mb-6 text-zinc-900">Debugging & Troubleshooting</h2>
+      <h2 class="text-2xl font-bold mb-6 text-zinc-900 border-b border-zinc-200 pb-2">
+        Debugging & Troubleshooting
+      </h2>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Visual Jitter or Tearing </SectionHeader>
+        <SectionHeader :level="3"> Visual Tearing / Lag </SectionHeader>
         <Text size="sm">
-          <strong>Symptom:</strong> Cursor dot snaps correctly but ring lags one frame behind.
+          <strong>Symptom:</strong> The cursor inner dot tracks perfectly, but outer follower layers
+          jitter or drift.
         </Text>
         <Text size="sm" class="mt-4">
-          <strong>Cause:</strong> Logic plugin has positive priority and runs mixed with visual
-          plugins.
+          <strong>Fix:</strong> Ensure logic-modifying plugins (e.g. Magnetics, Snappers) use a
+          negative priority value so they run before visual layers read coordinates.
         </Text>
         <CodeBlock lang="typescript" :code="tearingFixCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Layout Thrashing </SectionHeader>
+        <SectionHeader :level="3"> Layout Stutters </SectionHeader>
         <Text size="sm">
-          <strong>Symptom:</strong> Cursor stutters, especially over interactive elements.
+          <strong>Symptom:</strong> Scrolling or rendering skips frames on hover shifts.
         </Text>
         <Text size="sm" class="mt-4">
-          <strong>Cause:</strong> Reading DOM attributes or layout inside <code>update()</code>.
+          <strong>Fix:</strong> Stop reading sizes inside frame callbacks. Use
+          <ApiLink to="registerhovertarget"><code>app.registerHoverTarget()</code></ApiLink> and
+          cache client boundaries only when the hover target changes.
         </Text>
         <CodeBlock lang="typescript" :code="thrashingFixCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Use the Doctor </SectionHeader>
-        <Text size="sm"> Built-in debugging utility identifies common issues: </Text>
+        <SectionHeader :level="3"> Audit Configuration </SectionHeader>
+        <Text size="sm"> Run the built-in diagnostic test inside the developer console: </Text>
         <CodeBlock lang="typescript" :code="doctorCode" :clean="true" />
       </div>
     </section>
@@ -641,27 +666,28 @@ app.use(
       <SectionHeader :level="2"> Advanced Patterns </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Multi-Instance Patterns (Avoid) </SectionHeader>
+        <SectionHeader :level="3"> Deduplicate Core Instantiations </SectionHeader>
         <Text size="sm">
-          Don't create multiple instances of the same element unnecessarily. Better approach: use
-          <code>state.shape</code> or <code>state.interaction</code> to control variants.
+          Avoid mounting multiple identical visual plugins. Let one coordinator manage multiple
+          variants to keep DOM trees light.
         </Text>
         <CodeBlock lang="typescript" :code="multiInstanceCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Stateful Enable/Disable </SectionHeader>
+        <SectionHeader :level="3"> Stateful Toggling </SectionHeader>
         <Text size="sm">
-          Reset state when plugin is toggled. Use lifecycle hooks to ensure clean entry and exit.
+          Implement state cleanups in `onEnable` and `onDisable` hooks to prevent garbage
+          coordinates carrying over on toggle events.
         </Text>
         <CodeBlock lang="typescript" :code="statefulEnableCode" :clean="true" />
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Responsive Sizing </SectionHeader>
+        <SectionHeader :level="3"> Responsive Damping shifts </SectionHeader>
         <Text size="sm">
-          Use media queries or window resize events to adjust plugin behavior across different
-          screen sizes.
+          Scale cursor footprint sizes or turn off visual tracking altogether on narrow viewports to
+          avoid blocking click actions.
         </Text>
         <CodeBlock lang="typescript" :code="responsiveCode" :clean="true" />
       </div>
@@ -672,91 +698,66 @@ app.use(
       <SectionHeader :level="2"> Publishing & Community </SectionHeader>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Plugin Naming </SectionHeader>
+        <SectionHeader :level="3"> Naming Convention </SectionHeader>
         <Text size="sm">
-          <strong>Community plugins:</strong>
-          <code>supermouse-plugin-xyz</code> or
-          <code>@yourscope/supermouse-xyz</code>
-          <br />
-          <strong>Core plugins:</strong> Reserved for <code>@supermousejs/*</code> org
-          <br />
-          Be descriptive: <code>supermouse-plugin-glass-morphism</code> not
-          <code>cursor-effect</code>
+          Keep scope clear: name scopes as <code>supermouse-plugin-xyz</code> or
+          <code>@scope/supermouse-xyz</code>. Organise namespace organization under
+          <code>@supermousejs/*</code> organization naming.
         </Text>
       </div>
 
       <div class="mb-8">
-        <SectionHeader :level="3"> Plugin Metadata </SectionHeader>
-        <Text size="sm"> Include a <code>meta.json</code> for discovery and documentation: </Text>
+        <SectionHeader :level="3"> Package Meta definition </SectionHeader>
+        <Text size="sm"> Define a <code>meta.json</code> package wrapper configuration: </Text>
         <CodeBlock lang="json" :code="metaJsonCode" :clean="true" />
-      </div>
-
-      <div class="mb-8">
-        <SectionHeader :level="3"> Common Pitfalls to Avoid </SectionHeader>
-        <ul class="text-sm text-zinc-600 space-y-2">
-          <li>
-            <strong>Singleton state leakage</strong> - Always use factory functions to create new
-            instances per app
-          </li>
-          <li>
-            <strong>Changing options at runtime</strong> - Document that options are static at
-            construction
-          </li>
-          <li>
-            <strong>Incorrect priority</strong> - Logic must be <code>-10</code>, visuals must be
-            <code>&gt;= 0</code>
-          </li>
-          <li>
-            <strong>DOM thrashing</strong> - Always cache layout reads and use
-            <code>state.interaction</code>
-          </li>
-          <li>
-            <strong>Allocations in loop</strong> - Reuse or calculate values inline every frame
-          </li>
-        </ul>
       </div>
     </section>
 
     <!-- PERFORMANCE CHECKLIST -->
     <section class="mb-16">
       <SectionHeader :level="2"> Performance Checklist </SectionHeader>
-      <div class="border border-zinc-200 bg-white p-6 rounded">
-        <ul class="text-sm text-zinc-600 space-y-2">
+      <div class="border border-zinc-200 bg-white p-6 rounded-sm">
+        <ul class="text-sm text-zinc-600 space-y-2 font-mono">
           <li>
-            <input type="checkbox" class="mr-2" /> Logic plugins have <code>priority: -10</code> or
-            lower
+            <input type="checkbox" class="mr-2" checked disabled /> Logic plugins run on negative
+            priority (<code>-10</code> or lower)
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> No <code>getBoundingClientRect()</code> or
-            <code>getComputedStyle()</code> in update loop
+            <input type="checkbox" class="mr-2" checked disabled /> No direct DOM layout queries
+            inside the update loop
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> Use <code>dom.setStyle()</code> instead of direct
-            style writes
+            <input type="checkbox" class="mr-2" checked disabled /> Style updates go through
+            <ApiLink to="setstyle"><code>dom.setStyle</code></ApiLink>
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> Use <code>dom.setTransform()</code> for
-            positioning
+            <input type="checkbox" class="mr-2" checked disabled /> Render alignment uses GPU
+            transform translation vectors
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> Motion uses <code>damp()</code> or
-            frame-rate-adjusted <code>lerp()</code>
-          </li>
-          <li><input type="checkbox" class="mr-2" /> No object allocations in update loop</li>
-          <li>
-            <input type="checkbox" class="mr-2" /> Hover target geometry cached on target change
+            <input type="checkbox" class="mr-2" checked disabled /> Movements are multiplied against
+            delta timers or damp coefficients
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> Use <code>state.interaction</code> instead of
-            reading DOM attributes
+            <input type="checkbox" class="mr-2" checked disabled /> No object array instantiations
+            inside frame updates
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> Visual plugins fade out on disable, don't
-            abruptly remove
+            <input type="checkbox" class="mr-2" checked disabled /> Targets boundaries calculations
+            are cached on target changes
           </li>
           <li>
-            <input type="checkbox" class="mr-2" /> Plugin instances are factories to avoid state
-            leakage
+            <input type="checkbox" class="mr-2" checked disabled /> Interaction reads fetch from
+            pre-scraped
+            <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> caches
+          </li>
+          <li>
+            <input type="checkbox" class="mr-2" checked disabled /> Elements fade out smoothly when
+            deactivated
+          </li>
+          <li>
+            <input type="checkbox" class="mr-2" checked disabled /> Plugins use factory scopes to
+            prevent memory leaks
           </li>
         </ul>
       </div>
@@ -767,24 +768,24 @@ app.use(
       <SectionHeader :level="2"> Quick Reference: Common Compositions </SectionHeader>
 
       <div class="grid gap-12 lg:grid-cols-2">
-        <div class="border border-zinc-200 bg-white p-6">
+        <div class="border border-zinc-200 bg-white p-6 rounded-sm">
           <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
-            Magnetic Hover Effects
+            Magnetic Snap Combos
           </h3>
           <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-            Combine <code>Magnetic</code> with a visible cursor plugin (Dot, Ring) to create a slick
-            interactive hover state. Works great on buttons and cards.
+            Combine Magnetic snappers with circular visual elements to pull attention to clickable
+            targets cleanly.
           </p>
           <CodeBlock lang="typescript" :code="magneticCode" :clean="true" />
         </div>
 
-        <div class="border border-zinc-200 bg-white p-6">
+        <div class="border border-zinc-200 bg-white p-6 rounded-sm">
           <h3 class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
-            Trail + Momentum
+            Momentum Trails
           </h3>
           <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-            Use <code>Trail</code> to leave a fading motion line behind the cursor. Pair it with
-            <code>smoothness</code> to tune how tight the trail feels.
+            Pair Trail plugins with physics damping variables to create organic movements that draw
+            visual interest.
           </p>
           <CodeBlock lang="typescript" :code="trailCode" :clean="true" />
         </div>

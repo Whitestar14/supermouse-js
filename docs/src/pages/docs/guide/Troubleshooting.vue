@@ -9,55 +9,55 @@ const diagnostics = [
     type: "TOOL",
     title: "Unknown Conflict",
     signal: "Elements behave inconsistently or multiple cursors appear.",
-    fix: "The optional <code>@supermousejs/utils</code> package includes a <code>doctor()</code> utility. It scans your DOM for elements with inline <code>cursor: pointer</code> styles or other specificity conflicts that commonly break custom cursors.",
-    code: "import { doctor } from '@supermousejs/utils';\n\ndoctor(); // Check console for warnings"
+    fix: "The optional <code>@supermousejs/utils</code> package includes a diagnostic <a href=\"/docs/reference/api#doctor\" class=\"text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all\"><code>doctor()</code></a> utility. It audits the active document layers for inline <code>cursor</code> styles or specificity conflicts that override Supermouse styles.",
+    code: "import { doctor } from '@supermousejs/utils';\n\ndoctor(); // Run in browser console"
   },
   {
     id: "01",
     type: "VISUAL",
     title: "Double Cursor",
-    signal: "The native cursor flickers on top of the custom cursor.",
-    fix: 'Usually caused by CSS specificity. Inline styles (<code>style="cursor: pointer"</code>) or user-agent stylesheets (especially on inputs/links) override the global rule injected by Supermouse.',
+    signal: "The native OS cursor flickers or renders on top of the custom cursor.",
+    fix: "Usually caused by inline styles (<code>style=\"cursor: pointer\"</code>) or high-specificity selector declarations overriding the dynamically injected stage rules. Migrate CSS pointer definitions to programmatic <a href=\"/docs/reference/api#rules\" class=\"text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all\"><code>rules</code></a>.",
     code: null
   },
   {
     id: "02",
     type: "LAYER",
     title: "Hidden Behind Modals",
-    signal: "Cursor vanishes when opening a dialog, navbar, or toast.",
-    fix: "Your modal has a higher <code>z-index</code> than the cursor container. Supermouse defaults to typical overlay values (300-400), but some UI libraries use <code>9999</code> or higher.",
-    code: ":root { --cursor-z-index: 99999; }"
+    signal: "Cursor vanishes when opening a dialog, overlay container, or side drawer.",
+    fix: "The overlay container has a higher layout priority than the cursor stage. Supermouse mounts overlays between <code>300-400</code>, but third-party components often use extreme limits like <code>9999</code>. Configure your CSS theme parameters accordingly.",
+    code: ":root {\n  --cursor-z-index: 99999; /* Set higher than modal layer */\n}"
   },
   {
     id: "03",
     type: "BROWSER",
     title: "Stuck on iFrames",
-    signal: "Cursor freezes or disappears at the edge of a YouTube embed or map.",
-    fix: "Browsers stop sending mouse events to the parent window once the pointer crosses into an iframe context. This is a security limitation. You must disable pointer events on the iframe to keep the custom cursor moving over it.",
-    code: "iframe { pointer-events: none; }"
+    signal: "Cursor freezes or disappears at the boundary of a video player or map element.",
+    fix: "Browsers suspend mouse event dispatching to the host window when hovering iframe embeds. Disable pointer interaction on frame blocks if cursor continuity is required.",
+    code: "iframe {\n  pointer-events: none; /* Passes mouse coordinates to parent */\n}"
   },
   {
     id: "04",
     type: "ENV",
     title: "Mobile Ghosts",
-    signal: "Tapping on mobile shows a frozen cursor at the tap location.",
-    fix: `This is not intended behavior. Supermouse is designed to hibernate completely on touch devices (<code>autoDisableOnMobile: true</code>). If you see this, ensure you haven't manually set <code>enableTouch: true</code>. If persistent, <a href="${GITHUB_URL}/issues" class="underline decoration-zinc-300 hover:decoration-black">file an issue</a>.`,
+    signal: "Interacting on touch screens renders a static cursor node at tap points.",
+    fix: "Supermouse is designed to hibernate on coarse pointer contexts via <a href=\"/docs/reference/api#autodisableonmobile\" class=\"text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all\"><code>autoDisableOnMobile</code></a>. Ensure <a href=\"/docs/reference/api#enabletouch\" class=\"text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all\"><code>enableTouch</code></a> is not set to true.",
     code: null
   },
   {
     id: "05",
     type: "DEV",
     title: "React Strict Mode",
-    signal: "Two cursors appear in development, or events fire twice.",
-    fix: "React 18 Strict Mode mounts effects twice. If you are not using the provided <code>@supermousejs/react</code> provider, ensure you call <code>destroy()</code> in your cleanup function.",
+    signal: "Duplicate cursors mount in development, or frame listeners run twice.",
+    fix: "React 18 mounts effects twice during development. Ensure you call <a href=\"/docs/reference/api#destroy\" class=\"text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all\"><code>destroy()</code></a> on cleanup if not using our official wrapper.",
     code: "useEffect(() => {\n  const app = new Supermouse();\n  return () => app.destroy(); \n}, []);"
   },
   {
     id: "06",
     type: "PERF",
     title: "High Hz Jitter",
-    signal: "Cursor stutters on 120hz/144hz monitors.",
-    fix: "Supermouse v2 uses frame-rate independent damping. If you are writing a custom plugin, do NOT use simple lerp. Use the <code>dt</code> (delta time) argument provided in the update loop.",
+    signal: "Damping dynamics stutter or speed up on high-frequency monitors.",
+    fix: "Avoid basic frame-count linear interpolations. Visual updates must account for variable hardware refresh rates by using the frame delta parameter (<code>dt</code>) and the <a href=\"/docs/reference/api#damp\" class=\"text-black font-bold underline decoration-zinc-300 hover:decoration-black transition-all\"><code>math.damp()</code></a> helper.",
     code: null
   }
 ];
@@ -66,8 +66,7 @@ const diagnostics = [
 <template>
   <DocsSection label="Guide" title="Troubleshooting">
     <p class="text-lg text-zinc-600 mb-12 leading-relaxed">
-      Custom cursors inevitably fight against the browser's default behavior. Use this diagnostic
-      matrix to identify conflicts.
+      Custom cursor implementations must coordinate with native browser pointer behaviors. Use this diagnostic matrix to isolate and resolve runtime conflicts.
     </p>
 
     <!-- Diagnostic Grid (Border Collapsed) -->
@@ -77,10 +76,10 @@ const diagnostics = [
         :key="item.id"
         class="grid grid-cols-1 lg:grid-cols-12 bg-white"
       >
-        <!-- Left: Signal (Span 4) -->
+        <!-- Left: Signal -->
         <div class="lg:col-span-4 p-6 md:p-8 flex flex-col gap-4 border-b border-r border-zinc-200">
           <div class="flex items-center justify-between">
-            <span class="mono text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+            <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-400">
               {{ item.id }} / {{ item.type }}
             </span>
           </div>
@@ -96,7 +95,7 @@ const diagnostics = [
           </div>
         </div>
 
-        <!-- Right: Correction (Span 8) -->
+        <!-- Right: Correction -->
         <div
           class="lg:col-span-8 p-6 md:p-8 flex flex-col justify-center border-b border-r border-zinc-200"
         >

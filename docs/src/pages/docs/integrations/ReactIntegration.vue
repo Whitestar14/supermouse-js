@@ -5,6 +5,7 @@ import Callout from "@/components/shared/Callout.vue";
 import MetadataStrip from "@/components/shared/MetadataStrip.vue";
 import Text from "@/components/shared/Text.vue";
 import StepCard from "@/components/shared/StepCard.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 const installCode = "pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot";
 
@@ -32,10 +33,10 @@ const hookCode = `// src/components/CustomButton.tsx
 import { useSupermouse } from '@supermousejs/react';
 
 export const CustomButton = () => {
+  // Returns the Supermouse instance or null before mount
   const mouse = useSupermouse();
 
   const handleClick = () => {
-    // Direct access to the core instance
     if (mouse) {
       console.log('Cursor at:', mouse.state.pointer);
     }
@@ -46,13 +47,13 @@ export const CustomButton = () => {
 
 const nextCode = `// src/app/layout.tsx
 import { SupermouseProvider } from '@supermousejs/react';
-// ... imports
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <SupermouseProvider options={{...}}>
+        {/* SupermouseProvider is already marked 'use client' internally */}
+        <SupermouseProvider options={{ smoothness: 0.15, hideCursor: true }}>
            {children}
         </SupermouseProvider>
       </body>
@@ -73,9 +74,9 @@ const metaItems = [
     <MetadataStrip :items="metaItems" />
 
     <Text size="lg" class="mb-12">
-      The React adapter provides a <code>SupermouseProvider</code> context and hooks to easily
-      integrate the cursor engine into your React application lifecycle. It automatically handles
-      cleanup to prevent memory leaks in strict mode.
+      The React adapter provides a <code>SupermouseProvider</code> context and a
+      <code>useSupermouse</code> hook. It wraps <code>@supermousejs/core</code> in React's context
+      API and handles cleanup on unmount — including React 18 Strict Mode's double-mount behavior.
     </Text>
 
     <!-- Installation -->
@@ -86,8 +87,9 @@ const metaItems = [
     <!-- Provider -->
     <StepCard number="2" title="Root Provider" divider>
       <Text size="sm">
-        Wrap your application in the <code>SupermouseProvider</code>. This creates the instance and
-        makes it available throughout your component tree.
+        Wrap your application in <code>SupermouseProvider</code>. This creates the engine instance
+        and makes it available via context. <code>options</code> accepts the same fields as the
+        <ApiLink to="constructor" >Supermouse constructor</ApiLink>.
       </Text>
       <CodeBlock
         :code="providerCode"
@@ -100,8 +102,9 @@ const metaItems = [
     <!-- Hooks -->
     <StepCard number="3" title="Usage in Components" divider>
       <Text size="sm">
-        Use the <code>useSupermouse</code> hook to access the core instance from any child
-        component.
+        Call <code>useSupermouse()</code> in any descendant component to get the live instance.
+        It returns <code>Supermouse | null</code> — guard before accessing
+        <ApiLink name="state" to="state" /> or calling methods like <ApiLink name="destroy" to="destroy" />.
       </Text>
       <CodeBlock
         :code="hookCode"
@@ -114,10 +117,10 @@ const metaItems = [
     <!-- Next.js -->
     <StepCard number="4" title="Next.js (App Router)">
       <Text size="sm">
-        Because Supermouse relies on the `window` object, you must ensure the provider runs on the
-        client. However, the package is already marked with
-        <code>"use client"</code> compatible exports, so you can often import it directly in layouts
-        if using simple setups, or wrap it in a dedicated client component.
+        Because Supermouse accesses <code>window</code> on initialization, it must run on the
+        client. <code>SupermouseProvider</code> is already compiled with <code>"use client"</code>
+        directives, so you can import it directly in a server-rendered layout. For more complex
+        setups, extract it into a dedicated client component.
       </Text>
       <CodeBlock
         :code="nextCode"
@@ -128,9 +131,8 @@ const metaItems = [
     </StepCard>
 
     <Callout title="Strict Mode" class="mt-16">
-      React 18 Strict Mode mounts components twice in development.
-      <code>SupermouseProvider</code> handles this internally, ensuring only one cursor instance is
-      active at a time.
+      React 18 Strict Mode mounts components twice in development. <code>SupermouseProvider</code>
+      tracks mount count internally, ensuring only one engine instance is active at a time.
     </Callout>
   </DocsSection>
 </template>

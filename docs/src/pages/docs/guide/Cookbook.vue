@@ -18,8 +18,7 @@ const PLAY_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
     </Callout>
 
     <Text size="lg" color="subtle" class="mb-12 max-w-2xl">
-      A collection of pre-configured cursor effects. Launch a recipe to tweak parameters and grab
-      the implementation code.
+      A curated library of pre-configured cursor effects. Launch any recipe to test dynamics, adjust physics parameters, and export its integration code.
     </Text>
 
     <div class="grid grid-cols-1 md:grid-cols-2 border-t border-l border-zinc-200">

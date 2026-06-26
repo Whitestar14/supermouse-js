@@ -74,17 +74,23 @@ const initCursor = () => {
 
 const globalMouse = useSupermouse();
 const isHovering = ref(false);
+let wasGlobalEnabled = false;
 
 const onEnter = () => {
   isHovering.value = true;
-  globalMouse.value?.disable();
+  wasGlobalEnabled = globalMouse.value?.isEnabled ?? false;
+  if (wasGlobalEnabled) {
+    globalMouse.value?.disable();
+  }
   mouse?.enable();
 };
 
 const onLeave = () => {
   isHovering.value = false;
   mouse?.disable();
-  globalMouse.value?.enable();
+  if (wasGlobalEnabled) {
+    globalMouse.value?.enable();
+  }
 };
 
 watch(

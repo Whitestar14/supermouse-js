@@ -19,44 +19,42 @@ const app = new Supermouse({
   ignoreOnNative: 'tag'
 });
 
-// Also valid
-app.use(Dot({ ... })).use(Ring({ ... }))
+// Also valid:
+// app.use(Dot({ ... })).use(Ring({ ... }))
 `;
 
 const globalUsageCode = `const app = new Supermouse({ smoothness: 0.1 });
 app.use(Supermouse.Dot());
 app.use(Supermouse.Ring());`;
 
-const chainingCode = `const app = new Supermouse({ ... })
-
-...
+const chainingCode = `const app = new Supermouse({ /* options */ });
 
 if (prefersComplexEffects) {
   app.use(Sparkles({ color: 'gold' }));
 }`;
 
-const interactionCode = `// 1. Configure Rules
+const interactionCode = `// 1. Configure Rules during initialization
 const app = new Supermouse({
   rules: {
-    // Selector : State Object
+    // Selector : State Configuration
     'button': { magnetic: true },
     'a': { color: '#00ff00' }
   }
 });
 
-// 2. Plugins consume the State
-// The "Magnetic" plugin looks for app.state.interaction.magnetic
+// 2. Decoupled plugins read from state.interaction
+// The Magnetic plugin queries app.state.interaction.magnetic
 app.use(Magnetic());
 
-// The "Dot" plugin looks for app.state.interaction.color
+// The Dot plugin queries app.state.interaction.color
 app.use(Dot());`;
 
-const htmlCode = `<!-- You can also define state directly in HTML -->
+const htmlCode = `<!-- Define overrides directly in document markup -->
 <button data-supermouse-magnetic="true" data-supermouse-color="red">
   Complex Interaction
 </button>`;
 
-const containerCode = `// 1. Target a specific element
+const containerCode = `// Restrict runtime calculations to a specific element
 const modal = document.getElementById('my-modal');
 
 const app = new Supermouse({
@@ -64,22 +62,20 @@ const app = new Supermouse({
   hideCursor: true
 });
 
-// The custom cursor will now exist INSIDE #my-modal
-// Coordinates are automatically relative to the container.
-// CSS injection is scoped to this container.`;
+// The custom cursor is bounded inside #my-modal.
+// Coordinates and stylesheet rules are scoped automatically.`;
 
-const visibilityCode = `// Force show native cursor
+const visibilityCode = `// Force show the OS native pointer
 app.setNativeCursor('show');
 
-// Force hide native cursor
+// Force hide the OS native pointer
 app.setNativeCursor('hide');
 
-// Reset to automatic behavior
+// Restore automatic visibility management
 app.setNativeCursor('auto');`;
 
-const cleanupCode = `// React / Vue / Svelte
-// You MUST destroy the instance to stop the RequestAnimationFrame loop
-// and remove event listeners.
+const cleanupCode = `// React / Vue / Svelte lifecycle hooks
+// Invoke destroy to clear listeners and frame loops on unmount
 
 onUnmounted(() => {
   app.destroy();
@@ -89,18 +85,13 @@ onUnmounted(() => {
 <template>
   <DocsSection label="Guide" title="Usage">
     <Text weight="medium" size="lg" class="mb-12">
-      Supermouse is a <b>singleton runtime</b>. It manages the animation loop, input listeners, and
-      the plugin pipeline. You initialize it once when your application mounts. See the
-      <ApiLink to="constructor"> constructor options </ApiLink> for all available settings.
+      Supermouse operates as a singleton engine, managing input events, physics interpolation, and the plugin queue. Instantiate it once when your application mounts. Refer to the <ApiLink to="constructor">constructor options</ApiLink> for a complete parameter reference.
     </Text>
 
     <!-- Configuration -->
     <SectionHeader :level="2" class="mb-6"> 1. Configuration </SectionHeader>
     <Text class="mb-6">
-      The constructor accepts a <code>SupermouseOptions</code> object. There are two acceptable ways
-      of invoking your plugins. You can either pass
-      <ApiLink to="plugins"> plugins </ApiLink> directly in the configuration array or use
-      <ApiLink to="use"> use() </ApiLink> at runtime.
+      The core runtime requires configuration via a <code>SupermouseOptions</code> argument. You can load plugins declaratively inside the <ApiLink to="plugins-option"><code>plugins</code></ApiLink> constructor parameter, or register them dynamically using the chainable <ApiLink to="use"><code>use()</code></ApiLink> api.
     </Text>
     <div class="mb-8">
       <CodeBlock
@@ -111,9 +102,8 @@ onUnmounted(() => {
       />
     </div>
 
-    <Callout title="Global Usage">
-      If you are using the <strong>CDN bundle</strong>, the core and standard plugins are available
-      on the global <code>window.Supermouse</code> object.
+    <Callout title="Global CDN Usage">
+      When loading Supermouse via the direct script CDN bundle, classes and default plugins are exported on the global <code>window.Supermouse</code> namespace.
       <div class="mt-4">
         <CodeBlock :code="globalUsageCode" lang="javascript" :clean="true" />
       </div>
@@ -122,9 +112,7 @@ onUnmounted(() => {
     <!-- Plugins -->
     <SectionHeader :level="2" class="mb-6 mt-16"> 2. Runtime Registration </SectionHeader>
     <Text class="mb-6">
-      If you need to add plugins later e.g. lazy loading or conditional events, you can use the
-      chainable
-      <ApiLink to="use"> use() </ApiLink> method to add them imperatively.
+      Register plugins dynamically at runtime to support conditional scripts, route-based triggers, or lazy-loading configurations.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -139,24 +127,18 @@ onUnmounted(() => {
     <SectionHeader :level="2" class="mb-6"> 3. Defining Interactions </SectionHeader>
 
     <Text class="mb-6">
-      Interaction in Supermouse is completely data-driven. The Core does not know what "magnetic"
-      means. It simply parses metadata (State) from the DOM and exposes it to plugins via
-      <ApiLink to="state.interaction"> state.interaction </ApiLink>.
+      Interactive triggers in Supermouse are declarative. The core engine remains agnostic to specific visual responses; it parses hovered element layouts and exposes them to visual and logic layers via the O(1) <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> cache.
     </Text>
 
-    <Callout title="The Concept">
-      The Input system scrapes <ApiLink to="rules"> rules </ApiLink> or
-      <code>data-supermouse-*</code> attributes to populate
-      <ApiLink to="state.interaction"> state.interaction </ApiLink>. Plugins like
-      <strong>Magnetic</strong> or <strong>Dot</strong> read this state to decide what to do.
+    <Callout title="Scraper Flow">
+      The core input processor reads global selectors mapped in <ApiLink to="rules"><code>rules</code></ApiLink> or watches for raw inline markup to populate the <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> store, preventing layout thrashing.
     </Callout>
 
     <div class="grid grid-cols-1 gap-8 mb-12">
       <div>
         <SectionHeader :level="4"> Global Rules (Recommended) </SectionHeader>
         <Text size="sm" class="mb-4">
-          Map CSS selectors to state objects via the <ApiLink to="rules"> rules option </ApiLink>.
-          This keeps your HTML clean.
+          Bind selectors to interaction configurations inside your initialization parameters to keep DOM markup clean.
         </Text>
         <CodeBlock
           :code="interactionCode"
@@ -169,9 +151,7 @@ onUnmounted(() => {
       <div>
         <SectionHeader :level="4"> HTML Overrides </SectionHeader>
         <Text size="sm" class="mb-4">
-          Use <code>data-supermouse-*</code> attributes (see
-          <ApiLink to="data-attributes"> data attribute docs </ApiLink>) for one-off overrides.
-          These take precedence over rules.
+          For ad-hoc configurations, write <ApiLink to="data-attributes"><code>data-supermouse-*</code></ApiLink> attributes directly on HTML targets. Inline overrides take precedence over global rules.
         </Text>
         <CodeBlock :code="htmlCode" title="index.html" lang="html" class="border border-zinc-200" />
       </div>
@@ -180,9 +160,7 @@ onUnmounted(() => {
     <!-- Scoped Containers -->
     <SectionHeader :level="2" class="mb-6"> 4. Scoped Containers </SectionHeader>
     <Text class="mb-6 max-w-2xl">
-      By default, Supermouse appends to <code>document.body</code> and tracks the window. You can
-      restrict the cursor to a specific div (e.g., a modal, a canvas wrapper) using the
-      <ApiLink to="container"> container </ApiLink> option.
+      By default, Supermouse appends its rendering stage to <code>document.body</code> and captures window viewport boundaries. Pass a custom <ApiLink to="container"><code>container</code></ApiLink> reference to restrict rendering, styles, and hover bounds to a specific element.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -196,10 +174,7 @@ onUnmounted(() => {
     <!-- Manual Visibility -->
     <SectionHeader :level="2" class="mb-6"> 5. Manual Visibility </SectionHeader>
     <Text class="mb-6">
-      Sometimes you need strict control over the cursor visibility (e.g., drag and drop operations,
-      custom modals, or games). Use
-      <ApiLink to="setnativecursor"> setNativeCursor </ApiLink> to override the internal
-      auto-detection.
+      For custom interfaces like canvas games, custom drag-and-drop handles, or text input fields, invoke <ApiLink to="setnativecursor"><code>setNativeCursor()</code></ApiLink> to force cursor overrides.
     </Text>
     <div class="mb-12">
       <CodeBlock :code="visibilityCode" lang="typescript" class="border border-zinc-200" />
@@ -207,10 +182,8 @@ onUnmounted(() => {
 
     <!-- Cleanup -->
     <SectionHeader :level="2" class="mb-6"> 6. Cleanup </SectionHeader>
-    <Callout title="Important for SPA Navigation">
-      If your app navigates between pages that mount/unmount the cursor (or if you use Hot Module
-      Replacement), you must call <ApiLink to="destroy"> destroy </ApiLink> to prevent memory leaks
-      and duplicate cursors.
+    <Callout title="Important for SPA routing">
+      In Single Page Applications (SPAs) or under Hot Module Replacement (HMR) reload cycles, you must call <ApiLink to="destroy"><code>destroy()</code></ApiLink> to clear window event listeners, remove injected stylesheets, and cancel the animation frame loop.
     </Callout>
     <div class="mb-12">
       <CodeBlock :code="cleanupCode" lang="typescript" class="border border-zinc-200" />

@@ -16,7 +16,6 @@ const Installation = () => import("@/pages/docs/guide/Installation.vue");
 const Usage = () => import("@/pages/docs/guide/Usage.vue");
 const Troubleshooting = () => import("@/pages/docs/guide/Troubleshooting.vue");
 const Cookbook = () => import("@/pages/docs/guide/Cookbook.vue");
-const Toolchain = () => import("@/pages/docs/guide/Toolchain.vue");
 
 const VueIntegration = () => import("@/pages/docs/integrations/VueIntegration.vue");
 const ReactIntegration = () => import("@/pages/docs/integrations/ReactIntegration.vue");
@@ -42,7 +41,7 @@ export const routes: RouteRecordRaw[] = [
       { path: "guide/usage", component: Usage, name: "DOCS_USAGE" },
       { path: "guide/troubleshooting", component: Troubleshooting, name: "DOCS_TROUBLESHOOTING" },
       { path: "guide/cookbook", component: Cookbook, name: "DOCS_COOKBOOK" },
-      { path: "guide/toolchain", component: Toolchain, name: "DOCS_TOOLCHAIN" },
+      { path: "guide/toolchain", redirect: "/docs/advanced/contributing" },
 
       { path: "integrations/vue", component: VueIntegration, name: "DOCS_INTEGRATION_VUE" },
       { path: "integrations/react", component: ReactIntegration, name: "DOCS_INTEGRATION_REACT" },

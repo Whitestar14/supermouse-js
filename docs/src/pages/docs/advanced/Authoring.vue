@@ -4,6 +4,7 @@ import CodeBlock from "@/components/shared/CodeBlock.vue";
 import Callout from "@/components/shared/Callout.vue";
 import SectionHeader from "@/components/shared/SectionHeader.vue";
 import Text from "@/components/shared/Text.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 const rawVisualCode = `// A "Raw" Visual Plugin
 // No helpers. Just the lifecycle methods.
@@ -95,11 +96,11 @@ const logicCode = `export const Gravity = (intensity = 5) => ({
   }
 });`;
 
-const interactionCode = `// ❌ BAD: Layout Thrashing
+const interactionCode = `// ❌ BAD: Layout Thrashing (DOM Firewall Violation)
 // Reading DOM properties forces the browser to recalculate layout mid-frame.
 // const data = el.getAttribute('data-color');
 
-// ✅ GOOD: State Cache
+// ✅ GOOD: State Cache (DOM Firewall Adhered)
 // The Input system pre-scrapes attributes on mouseover.
 // Access is O(1).
 const color = app.state.interaction.color;
@@ -112,12 +113,12 @@ if (color) {
 <template>
   <DocsSection label="Advanced" title="Plugin Authoring">
     <Text size="lg" class="mb-12">
-      Plugins are the primary extension mechanism. The core exists solely to coordinate them. You
-      can write plugins in two ways: using the
-      <span class="text-black font-bold border-b-2 border-black/10">Raw Interface</span> (full
-      control) or the
+      Plugins are the primary extension mechanism in Supermouse. The core runner exists solely to
+      coordinate them. You can write plugins in two ways: using the
+      <span class="text-black font-bold border-b-2 border-black/10">Raw Interface</span> (for full
+      control and logic-only utilities) or the
       <span class="text-black font-bold border-b-2 border-black/10">definePlugin Helper</span>
-      (recommended for visuals).
+      (recommended for single-element visual layers).
     </Text>
 
     <!-- METHOD 1 -->
@@ -128,9 +129,11 @@ if (color) {
       The Raw Interface (The Source of Truth)
     </SectionHeader>
     <Text size="base" class="mb-6 max-w-2xl">
-      At its simplest, a plugin is just an object with a name and lifecycle methods. You don't
-      <em>need</em> any helpers to write a plugin. Understanding this structure is key for advanced
-      use cases (like plugins that manage multiple elements or canvas contexts).
+      At its simplest, a plugin is just an object with a unique <code>name</code> and standard
+      lifecycle hooks. You don't <em>need</em> any helper functions to author a plugin.
+      Understanding this raw structure is crucial for advanced use cases, such as plugins that
+      manage multiple DOM elements, coordinate dynamic canvas contexts, or handle logic-only
+      operations.
     </Text>
 
     <div class="mb-16">
@@ -145,16 +148,17 @@ if (color) {
       The Helper Strategy (definePlugin)
     </SectionHeader>
     <Text size="base" class="mb-6 max-w-2xl">
-      For 90% of visual plugins, you just want to create a single DOM element, style it based on
-      options, and move it.
-      <code>definePlugin</code> creates a standard wrapper that handles the boilerplate.
+      For 90% of visual plugins, you want to create a single DOM element, dynamically style it based
+      on options, and center it on the cursor. The
+      <ApiLink to="defineplugin"><code>definePlugin</code></ApiLink> utility provides a standard
+      wrapper that handles the lifecycle, DOM mounting, and configuration watch boilerplate for you.
     </Text>
 
     <div class="mb-8">
       <CodeBlock :code="helperCode" title="SmartSquare.ts" />
     </div>
 
-    <Callout title="What is the 'styles' object?">
+    <Callout title="What is the 'styles' mapping object?">
       <p class="mb-2">
         The <code>styles</code> property in <code>definePlugin</code> is a declarative map. It tells
         the runtime:
@@ -168,7 +172,8 @@ if (color) {
         <span class="text-zinc-400">// maps options.opacity -> style.opacity</span>
       </div>
       <p class="mt-2 text-xs text-zinc-500">
-        It is optimized to only touch the DOM if the value actually changes (dirty checking).
+        It is optimized internally to perform dirty-checking, ensuring style changes only touch the
+        DOM if their evaluated value changes.
       </p>
     </Callout>
 
@@ -180,9 +185,10 @@ if (color) {
       Logic Plugins
     </SectionHeader>
     <Text size="base" class="mb-6 max-w-2xl">
-      Logic plugins manipulate the cursor's <strong>intent</strong> rather than its appearance. They
-      typically run before visual plugins (negative priority) to modify <code>state.target</code>.
-      They should use the Raw Interface as they rarely need DOM elements.
+      Logic plugins manipulate the cursor's <strong>intent</strong> (its destination or bounds)
+      rather than its rendering. They typically run before visual plugins (using negative priority)
+      to modify <ApiLink to="target"><code>state.target</code></ApiLink
+      >. Because they rarely create DOM nodes, they should be written using the Raw Interface.
     </Text>
 
     <div class="mb-16">
@@ -193,13 +199,20 @@ if (color) {
     <div class="border-t border-zinc-200 pt-12 mb-16">
       <SectionHeader :level="2"> Handling Interaction </SectionHeader>
       <Text size="base" class="mb-6">
-        Supermouse optimizes DOM access. Do <strong>not</strong> query the DOM or read attributes
-        inside the <code>update</code> loop. It causes forced reflows and kills 120fps performance.
+        Supermouse enforces a strict **DOM Firewall** for rendering performance. You should
+        **never** query the DOM or read layout properties (such as
+        <code>getBoundingClientRect()</code> or <code>getComputedStyle()</code>) inside your
+        plugin's <ApiLink to="update"><code>update()</code></ApiLink> loop. Doing so causes
+        synchronous layout calculations, known as **Layout Thrashing**, which destroys 120fps+
+        smoothness.
       </Text>
       <Text size="base" class="mb-6">
-        Instead, read from <code>app.state.interaction</code>. The Input system automatically
-        populates this object with any <code>data-supermouse-*</code> attributes found on the
-        hovered element.
+        Instead, read scraped attributes from
+        <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink
+        >. The core input layer listens for hover changes and pre-scrapes any
+        <ApiLink to="data-attributes"><code>data-supermouse-*</code></ApiLink> attributes on the
+        hovered target, making them instantly available to your plugin update cycles in an O(1)
+        dictionary.
       </Text>
       <CodeBlock :code="interactionCode" lang="javascript" />
     </div>
@@ -211,44 +224,48 @@ if (color) {
     >
       <div class="bg-white p-6">
         <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
-          >install(app)</strong
+          ><ApiLink to="install">install(app)</ApiLink></strong
         >
         <p class="text-sm text-zinc-600">
-          Runs once when <code>app.use()</code> is called. Setup your DOM and listeners here.
+          Runs once when a plugin is registered via
+          <ApiLink to="use"><code>app.use()</code></ApiLink
+          >. Create your DOM structures and bind global event listeners here.
         </p>
       </div>
       <div class="bg-white p-6">
         <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
-          >update(app, dt)</strong
+          ><ApiLink to="update">update(app, dt)</ApiLink></strong
         >
         <p class="text-sm text-zinc-600">
-          Runs every frame via requestAnimationFrame. Keep this function extremely hot-path
-          optimized.
+          Runs every frame inside the animation loop. Keep this function lean and optimized for
+          hot-path rendering.
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2"
-          >destroy(app)</strong
+        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
+          ><ApiLink to="plugin-destroy">destroy(app)</ApiLink></strong
         >
         <p class="text-sm text-zinc-600">
-          Runs when the app is destroyed. Remove elements and unbind listeners.
+          Runs during runtime teardown or route shifts. Always clean up your created elements and
+          unbind any event listeners to prevent memory leaks.
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2"
-          >onEnable(app)</strong
+        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
+          ><ApiLink to="onenable">onEnable(app)</ApiLink></strong
         >
         <p class="text-sm text-zinc-600">
-          Runs when <code>enablePlugin</code> is called. Restore visibility (opacity: 1).
+          Called when a disabled plugin is re-enabled. Use this hook to restore element opacity or
+          visibility.
         </p>
       </div>
       <div class="bg-white p-6">
-        <strong class="font-mono text-xs text-zinc-400 uppercase tracking-widest block mb-2"
-          >onDisable(app)</strong
+        <strong class="font-mono text-xs text-black uppercase tracking-widest block mb-2"
+          ><ApiLink to="ondisable">onDisable(app)</ApiLink></strong
         >
         <p class="text-sm text-zinc-600">
-          Runs when <code>disablePlugin</code> is called. Hide visuals (opacity: 0). Do not destroy
-          DOM.
+          Called when a plugin is disabled. Hide your visual elements but keep them in the DOM to
+          avoid costly re-creation.
         </p>
       </div>
     </div>
@@ -260,22 +277,31 @@ if (color) {
         <li class="flex gap-4">
           <span class="text-zinc-500 font-bold">01.</span>
           <span
-            >Do not create/destroy DOM elements in `update`. Use object pooling or CSS
-            opacity.</span
+            >Do not create/destroy DOM elements in
+            <ApiLink to="update"><code>update()</code></ApiLink
+            >. Pre-allocate or reuse elements.</span
           >
         </li>
         <li class="flex gap-4">
           <span class="text-zinc-500 font-bold">02.</span>
-          <span>Do not use `getBoundingClientRect` or `getComputedStyle` in `update`.</span>
+          <span
+            >Do not read layouts (e.g. `getBoundingClientRect`) in update cycles. Cache values on
+            target changes.</span
+          >
         </li>
         <li class="flex gap-4">
           <span class="text-zinc-500 font-bold">03.</span>
-          <span>Use `transform: translate3d()` for positioning. Never `top/left`.</span>
+          <span
+            >Use <code>dom.setTransform()</code> for hardware-accelerated 3D transforms. Avoid
+            CPU-heavy `top/left` styles.</span
+          >
         </li>
         <li class="flex gap-4">
           <span class="text-white font-bold">04.</span>
           <span
-            >Respect `app.state.reducedMotion`. If true, disable animations or huge movements.</span
+            >Respect <ApiLink to="reducedmotion"><code>app.state.reducedMotion</code></ApiLink
+            >. When true, disable animation springiness and trails to support screen
+            readability.</span
           >
         </li>
       </ul>

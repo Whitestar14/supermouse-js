@@ -4,26 +4,25 @@ import CodeBlock from "@/components/shared/CodeBlock.vue";
 import TimelineStep from "@/components/shared/TimelineStep.vue";
 import Text from "@/components/shared/Text.vue";
 import ResponsibilityBox from "@/components/shared/ResponsibilityBox.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 const dampCode = `const damp = (current, target, lambda, dt) => {
   return lerp(current, target, 1 - Math.exp(-lambda * dt));
 };`;
 
-const loopCode = `// Pseudocode of the actual tick function
+const loopCode = `// Simplified tick function — packages/core/src/Supermouse.ts
 function tick(time) {
   const dt = time - lastTime;
 
-  // 1. Logic (Priority < 0)
-  // Plugins modify where we WANT to go
+  // Phase 1 — Logic plugins (priority < 0) modify target
   state.target = { ...state.pointer };
   runLogicPlugins(state);
 
-  // 2. Physics
-  // Core smooths the movement
+  // Phase 2 — Physics: frame-rate independent damping
   state.smooth.x = damp(state.smooth.x, state.target.x, lambda, dt);
+  state.smooth.y = damp(state.smooth.y, state.target.y, lambda, dt);
 
-  // 3. Visuals (Priority >= 0)
-  // Plugins render the result
+  // Phase 3 — Visual plugins (priority >= 0) render the result
   runVisualPlugins(state);
 }`;
 </script>
@@ -32,33 +31,34 @@ function tick(time) {
   <DocsSection label="Advanced" title="Core Architecture">
     <div class="mb-16">
       <p class="text-lg text-zinc-600 leading-relaxed mb-6">
-        Supermouse treats the cursor as a game character. It runs a continuous loop that separates
-        <span class="text-black font-bold border-b-2 border-black/10">User Input</span>
-        from
-        <span class="text-black font-bold border-b-2 border-black/10">Cursor Intent</span>
-        and
-        <span class="text-black font-bold border-b-2 border-black/10">Visual Rendering</span>.
+        Supermouse models the cursor as a game entity running a deterministic
+        <code>requestAnimationFrame</code> loop. The pipeline separates three
+        distinct concerns every frame:
+        <span class="text-black font-bold border-b-2 border-black/10">Input</span>,
+        <span class="text-black font-bold border-b-2 border-black/10">Intent</span>, and
+        <span class="text-black font-bold border-b-2 border-black/10">Rendering</span>.
       </p>
       <p class="text-lg text-zinc-600 leading-relaxed">
-        This separation is what allows a magnetic button to "pull" the cursor (modifying Intent)
-        without the input system needing to know, and without the visual dot jumping instantly
-        (Physics handles the smoothing).
+        This separation is what lets a magnetic button pull the cursor (modifying Intent via
+        <ApiLink name="state.target" to="state.target" /> in Phase 01) without the input layer knowing — and without
+        the visual dot jumping (Phase 02 physics handles the interpolation).
       </p>
     </div>
 
     <!-- The Pipeline -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-8">The Frame Loop (16ms)</h3>
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-8">The Frame Loop</h3>
 
     <div class="relative border-l-2 border-zinc-200 ml-4 md:ml-8 space-y-16">
       <!-- STEP 1: SENSE -->
-      <TimelineStep phase="Phase 01: Sense" title="Input Normalization">
+      <TimelineStep phase="Phase 01: Input" title="Input Normalization">
         <Text>
-          The <code>Input</code> system captures native DOM events (mousemove, touchmove). It
-          normalizes coordinates relative to the container and checks for accessibility preferences
-          (reduced-motion).
+          The <code>Input</code> system captures native DOM events (<code>mousemove</code>,
+          <code>touchmove</code>). It normalizes pointer coordinates relative to the container,
+          checks accessibility preferences (<code>prefers-reduced-motion</code>), and writes the
+          result to <ApiLink name="state.pointer" to="state.pointer" />.
         </Text>
         <ResponsibilityBox title="Responsibility">
-          Sanitize input. Check device capabilities. Update
+          Sanitize raw input. Check device capabilities. Write
           <span class="text-zinc-900 font-bold">state.pointer</span>.
         </ResponsibilityBox>
       </TimelineStep>
@@ -66,12 +66,14 @@ function tick(time) {
       <!-- STEP 2: LOGIC -->
       <TimelineStep phase="Phase 02: Intent" title="Logic Plugins">
         <Text>
-          Plugins with <code>priority &lt; 0</code> execute. This is where "magic" happens. A
-          magnetic plugin might look at the hovered element and say "Hey, I know the mouse is at
-          500, but I want the cursor to snap to the center of this button at 550."
+          Plugins with <ApiLink name="priority" to="priority" /> <code>&lt; 0</code> run here. A magnetic plugin
+          reads the hovered element's geometry from
+          <ApiLink name="state.interaction" to="state.interaction" /> (pre-scraped on <code>mouseover</code>) and adjusts
+          <ApiLink name="state.target" to="state.target" /> to pull the cursor toward the element's center.
         </Text>
         <ResponsibilityBox title="Responsibility">
-          Hijack the user's intent. Modify
+          Read <span class="text-zinc-900 font-bold">state.pointer</span> /
+          <span class="text-zinc-900 font-bold">state.interaction</span>. Write
           <span class="text-zinc-900 font-bold">state.target</span>.
         </ResponsibilityBox>
       </TimelineStep>
@@ -79,30 +81,24 @@ function tick(time) {
       <!-- STEP 3: PHYSICS -->
       <TimelineStep phase="Phase 03: Physics" title="Core Damping" :active="true">
         <Text>
-          The Core calculates the difference between where we are (<span
-            class="mono text-xs text-black bg-zinc-100 px-1"
-            >smooth</span
-          >) and where we want to go (<span class="mono text-xs text-black bg-zinc-100 px-1"
-            >target</span
-          >). It applies frame-rate independent damping to calculate the new position for this
-          specific frame.
+          The core interpolates between where the cursor is (<ApiLink name="state.smooth" to="state.smooth" />) and
+          where it needs to go (<ApiLink name="state.target" to="state.target" />) using frame-rate independent
+          exponential damping. <ApiLink name="smoothness" to="smoothness" /> controls the
+          <code>lambda</code> coefficient — higher values produce tighter tracking.
         </Text>
-        <CodeBlock
-          :code="dampCode"
-          lang="javascript"
-          :clean="true"
-          class="border border-zinc-200"
-        />
+        <CodeBlock :code="dampCode" lang="javascript" :clean="true" class="border border-zinc-200" />
       </TimelineStep>
 
       <!-- STEP 4: RENDER -->
       <TimelineStep phase="Phase 04: Render" title="Visual Plugins" :last="true">
         <Text>
-          Visual plugins (Dot, Ring) read the final
-          <code>state.smooth</code> coordinates and apply CSS transforms to their DOM elements.
+          Visual plugins — <code>Dot</code>, <code>Ring</code> — read the final
+          <ApiLink name="state.smooth" to="state.smooth" /> coordinates and write <code>transform</code> to their DOM
+          elements. This is the only phase allowed to touch the DOM.
         </Text>
         <ResponsibilityBox title="Responsibility">
-          Read <span class="text-zinc-900 font-bold">state.smooth</span>. Write to DOM (transform).
+          Read <span class="text-zinc-900 font-bold">state.smooth</span>. Write
+          <code>transform</code> to the DOM.
         </ResponsibilityBox>
       </TimelineStep>
     </div>
@@ -112,25 +108,25 @@ function tick(time) {
 
     <div class="mb-16">
       <Text>
-        Supermouse adopts a <strong>Brutalist-lite</strong> aesthetic. The interface is
-        high-contrast, instant, and rigid, while the cursor is fluid, physics-driven, and organic.
-        This contrast emphasizes the library's capability.
+        Supermouse follows a <strong>Brutalism-lite</strong> aesthetic contract: the UI is
+        high-contrast, instant, and rigid; the cursor is fluid, physics-driven, and organic. The
+        contrast is deliberate — it makes cursor interactions the only "living" element on the page.
       </Text>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 mt-8">
         <div class="bg-white p-8">
           <h4 class="text-lg font-bold text-zinc-900 mb-4">No-Transition Rule</h4>
           <p class="text-sm text-zinc-600 leading-relaxed">
-            The user interface should feel like a high-precision tool. Modal appearances, tab
-            switches, and layout changes must be instantaneous. Only micro-interactions on hover
-            (colors, borders) are allowed fast transitions.
+            Modal appearances, tab switches, and layout changes must be instantaneous
+            (<code>duration-0</code>). Only hover micro-interactions (color, border) may have fast
+            transitions.
           </p>
         </div>
         <div class="bg-white p-8">
           <h4 class="text-lg font-bold text-zinc-900 mb-4">Physics-First Rule</h4>
           <p class="text-sm text-zinc-600 leading-relaxed">
-            <strong>Only</strong> the cursor and cursor-related effects are allowed to be smooth or
-            floaty. This stark contrast makes the cursor interactions stand out.
+            <strong>Only</strong> the cursor and cursor-related effects are smooth. Everything else
+            snaps. This contrast makes physics-based cursor motion stand out.
           </p>
         </div>
       </div>
@@ -140,67 +136,76 @@ function tick(time) {
     <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Plugin Architecture</h3>
     <div class="mb-16">
       <Text>
-        Plugins are the primary extension mechanism in Supermouse. The core exists to coordinate
-        them, not to replace them. If a feature can be a plugin, it probably should be.
+        Plugins are the primary extension mechanism. The core coordinates them — it does not replace
+        them. If a feature can be a plugin, it should be a plugin. See
+        <router-link to="/docs/advanced/authoring" class="underline font-bold hover:text-black"
+          >Plugin Authoring</router-link
+        >
+        for the full contract.
       </Text>
 
       <div class="space-y-12 mt-8 border-l border-zinc-200 pl-8">
         <div>
           <h4 class="text-lg font-bold text-zinc-900 mb-2">Priority & The "Tearing" Bug</h4>
           <Text size="sm" color="subtle">
-            Logic plugins (like Magnetic) <strong>must</strong> have negative priority (e.g.
-            <code>-10</code>). If a logic plugin has default priority (<code>0</code>), it runs
-            mixed in with visual plugins causing "tearing" (visuals registered before it render the
-            old position, visuals registered after render the new position).
+            Logic plugins (e.g. Magnetic) <strong>must</strong> declare a negative
+            <ApiLink name="priority" to="priority" /> (e.g. <code>-10</code>). If a logic plugin runs at default
+            priority (<code>0</code>), it executes interleaved with visual plugins — visuals
+            registered before it render the old position while those registered after render the new
+            one. This causes visible "tearing."
           </Text>
         </div>
 
         <div>
-          <h4 class="text-lg font-bold text-zinc-900 mb-2">Logic vs Visual Plugins</h4>
+          <h4 class="text-lg font-bold text-zinc-900 mb-2">Logic vs. Visual Plugins</h4>
           <Text size="sm" color="subtle">
-            <strong>Logic plugins</strong> modify where the cursor goes by writing to
-            <code>state.target</code> and generally shouldn't touch the DOM.
-            <strong>Visual plugins</strong> read <code>state.smooth</code> and render to the DOM,
-            usually running with non-negative priority.
+            <strong>Logic plugins</strong> write to <ApiLink name="state.target" to="state.target" /> and must not
+            touch the DOM. <strong>Visual plugins</strong> read <ApiLink name="state.smooth" to="state.smooth" /> and
+            write <code>transform</code> to the DOM. Mixing these responsibilities breaks the
+            pipeline.
           </Text>
         </div>
 
         <div>
           <h4 class="text-lg font-bold text-zinc-900 mb-2">Inter-Plugin Communication</h4>
           <Text size="sm" color="subtle">
-            Plugins coordinate via state channels. For example, <code>state.shape</code> bridges
-            logic and visuals. A Stick logic plugin measures the hovered element and writes
-            dimensions to <code>state.shape</code>, and a Ring visual plugin reads it to morph its
-            shape, decoupling behavior from rendering.
+            Plugins coordinate via state channels. For example,
+            <ApiLink name="state.shape" to="state.shape" /> bridges logic and visuals: a Stick plugin reads the
+            hovered element's geometry and writes it to <code>state.shape</code>; a Ring plugin
+            reads it to morph its border radius. Behavior and rendering remain fully decoupled.
           </Text>
         </div>
       </div>
     </div>
 
     <!-- Performance Systems -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Performance Strategy</h3>
+    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">
+      Performance Contracts
+    </h3>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
       <div class="bg-white p-8">
-        <h4 class="text-lg font-bold text-zinc-900 mb-4">Interaction Scraping</h4>
+        <h4 class="text-lg font-bold text-zinc-900 mb-4">DOM Firewall</h4>
         <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-          Reading DOM attributes or styles during the render loop causes layout thrashing.
+          Reading layout properties (e.g. <code>getBoundingClientRect</code>) inside
+          <code>update()</code> causes layout thrashing and breaks the 60fps budget.
         </p>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          Supermouse solves this by parsing interaction data <strong>only once</strong> when the
-          <code>mouseover</code> event fires. It stores the result in a cache. The loop reads from
-          this cache, making interaction checks O(1).
+          The core scrapes element geometry <strong>once</strong> on the <code>mouseover</code>
+          event and caches it in <ApiLink name="state.interaction" to="state.interaction" />. The render loop reads from
+          this cache — all geometry lookups are O(1).
         </p>
       </div>
       <div class="bg-white p-8">
         <h4 class="text-lg font-bold text-zinc-900 mb-4">The Stage System</h4>
         <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-          The "Double Cursor" glitch happens when an element's CSS (`cursor: pointer`) overrides the
-          body's `cursor: none`.
+          The "double cursor" glitch occurs when an element's <code>cursor: pointer</code> overrides
+          <code>body { cursor: none }</code>.
         </p>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          Supermouse injects a dynamic <code>&lt;style&gt;</code> tag targeting every interactive
-          selector registered by plugins and applies <code>cursor: none !important</code>.
+          On init, Supermouse injects a <code>&lt;style&gt;</code> tag targeting every interactive
+          selector registered by plugins and applies <code>cursor: none !important</code>. This is
+          the Stage system.
         </p>
       </div>
     </div>

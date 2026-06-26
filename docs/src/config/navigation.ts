@@ -20,7 +20,6 @@ export const DOCS_NAVIGATION = [
       { label: "Installation", path: "/docs/guide/installation" },
       { label: "Usage", path: "/docs/guide/usage" },
       { label: "Cookbook", path: "/docs/guide/cookbook" },
-      { label: "Toolchain", path: "/docs/guide/toolchain" },
       { label: "Troubleshooting", path: "/docs/guide/troubleshooting" }
     ]
   },

@@ -107,3 +107,11 @@ kbd {
   background: #e4e4e7;
   border-radius: 3px;
 }
+
+@layer components {
+  .link {
+    @apply cursor-pointer text-black font-bold underline decoration-dotted decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all;
+  }
+}
+
+@layer base {}

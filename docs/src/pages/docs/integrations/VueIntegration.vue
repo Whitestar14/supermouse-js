@@ -5,6 +5,7 @@ import Callout from "@/components/shared/Callout.vue";
 import MetadataStrip from "@/components/shared/MetadataStrip.vue";
 import Text from "@/components/shared/Text.vue";
 import StepCard from "@/components/shared/StepCard.vue";
+import ApiLink from "@/components/shared/ApiLink.vue";
 
 const installCode = "pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot";
 
@@ -13,7 +14,7 @@ const appCode = `// src/App.vue
 import { provideSupermouse } from '@supermousejs/vue';
 import { Dot } from '@supermousejs/dot';
 
-// Initialize core once at the root
+// Call once at the root component. Mirrors the Supermouse constructor options.
 provideSupermouse({
   smoothness: 0.15,
   hideCursor: true,
@@ -30,12 +31,12 @@ const componentCode = `// src/components/MyButton.vue
 <script setup>
 import { useSupermouse } from '@supermousejs/vue';
 
-// Access the instance (Ref<Supermouse | null>)
+// Returns Ref<Supermouse | null> — null until the engine is mounted.
 const mouse = useSupermouse();
 
 const snap = () => {
-  // Direct API access
   if (mouse.value) {
+    // Direct write to state.target — picked up next frame
     mouse.value.state.target.y += 100;
   }
 };
@@ -53,9 +54,9 @@ const metadataItems = [
     <MetadataStrip :items="metadataItems" />
 
     <Text size="lg" class="mb-12">
-      While Supermouse is framework-agnostic, the Vue adapter provides a seamless
-      Injection/Composition API experience. It handles the lifecycle (mount/unmount) automatically
-      so you don't have to manually destroy instances.
+      The Vue adapter wraps <code>@supermousejs/core</code> in Vue's
+      <code>provide</code>/<code>inject</code> system. It handles engine lifecycle (mount/unmount)
+      automatically so you don't manage <ApiLink name="destroy" to="destroy" /> calls manually.
     </Text>
 
     <!-- Installation -->
@@ -66,8 +67,10 @@ const metadataItems = [
     <!-- Provider -->
     <StepCard number="2" title="Root Provider" divider>
       <Text size="sm">
-        Use <code>provideSupermouse</code> in your root component (`App.vue` or a layout). This
-        initializes the engine and makes it available to all child components via `provide/inject`.
+        Call <code>provideSupermouse</code> once in your root component (<code>App.vue</code> or a
+        layout). It accepts the same options as the
+        <ApiLink to="constructor" >Supermouse constructor</ApiLink>
+        plus a plugins array.
       </Text>
       <CodeBlock
         :code="appCode"
@@ -80,9 +83,10 @@ const metadataItems = [
     <!-- Composable -->
     <StepCard number="3" title="Usage in Components" divider>
       <Text size="sm">
-        Any child component can grab the running instance using
-        <code>useSupermouse()</code>. It returns a reactive `Ref` that resolves to the instance once
-        mounted.
+        Use <code>useSupermouse()</code> in any child component to access the running instance. The
+        return value is a reactive <code>Ref&lt;Supermouse | null&gt;</code> — always guard with
+        <code>mouse.value</code> before accessing
+        <ApiLink name="state" to="state" /> or calling methods.
       </Text>
       <CodeBlock
         :code="componentCode"
@@ -94,9 +98,9 @@ const metadataItems = [
 
     <!-- Nuxt Warning -->
     <Callout title="Using with Nuxt?" class="mt-16">
-      Ensure you wrap the provider in <code>&lt;ClientOnly&gt;</code> or checking for
-      <code>process.client</code>. Supermouse accesses the <code>window</code> object immediately
-      upon initialization.
+      Wrap <code>provideSupermouse</code> in a <code>&lt;ClientOnly&gt;</code> component or guard
+      it with <code>process.client</code>. The engine accesses <code>window</code> on
+      initialization and will throw during SSR.
     </Callout>
   </DocsSection>
 </template>

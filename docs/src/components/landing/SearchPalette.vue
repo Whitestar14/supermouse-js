@@ -2,9 +2,11 @@
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useSearch } from "@composables/useSearch";
+import { useSupermouse } from "@supermousejs/vue";
 
 const emit = defineEmits(["close"]);
 const router = useRouter();
+const mouse = useSupermouse();
 const { query, results } = useSearch();
 const searchInput = ref<HTMLInputElement | null>(null);
 const selectedIndex = ref(0);
@@ -37,10 +39,12 @@ const handleKeydown = (e: KeyboardEvent) => {
 onMounted(() => {
   searchInput.value?.focus();
   window.addEventListener("keydown", handleKeydown);
+  mouse.value?.setNativeCursor("hide");
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
+  mouse.value?.setNativeCursor("auto");
 });
 
 watch(query, () => {

@@ -28,7 +28,7 @@ const app = new Supermouse({
   hideCursor: true
 });
 
-app.use(Dot({ size: 8, color: '#f0f' }).use(Ring({ size: 20 }));`;
+app.use(Dot({ size: 8, color: '#f0f' })).use(Ring({ size: 20 }));`;
 
 const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
 <a data-supermouse-img="/path/to/img.jpg">Show image on hover</a>`;
@@ -40,13 +40,12 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
       <!-- Step 1: Package Manager -->
       <StepCard number="1" title="Via Package Manager">
         <Text>
-          For modular setups, use the scoped packages. This allows for better tree-shaking.
+          Install scoped packages to optimize tree-shaking and bundle footprint.
         </Text>
         <CodeBlock :code="shellCode" title="Terminal" lang="text" />
 
         <Text>
-          Alternatively, use the unscoped convenience bundle if you prefer clean import paths and
-          standard defaults:
+          Alternatively, you can install the unscoped bundle which contains standard defaults:
         </Text>
         <CodeBlock :code="unscopedCode" title="Terminal" lang="text" />
       </StepCard>
@@ -54,8 +53,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
       <!-- Step 2: CDN -->
       <StepCard number="2" title="CDN / Direct Script" divider>
         <Text>
-          If you aren't using a build tool, you can load the all-in-one bundle directly via a CDN
-          like Unpkg or JSDelivr which includes the standard core, dot and ring plugins
+          For projects without a bundler, load the compiled package via unpkg or jsDelivr. This exposes the core constructor alongside standard Dot and Ring visual hooks on the global namespace.
         </Text>
         <CodeBlock :code="cdnCode" title="index.html" lang="html" />
       </StepCard>
@@ -63,42 +61,35 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
       <!-- Step 3: Initialization -->
       <StepCard number="3" title="Initialize (Modules)" divider>
         <Text>
-          Create the instance in your app's entry point (e.g.,
-          <code>main.ts</code> or a top-level `useEffect`).
+          Instantiate the runtime within your application entry point (e.g. <code>main.ts</code> or a root lifecycle wrapper).
         </Text>
         <CodeBlock :code="mainCode" title="src/main.ts" lang="typescript" />
       </StepCard>
 
       <!-- Step 4: Markup Control -->
       <StepCard number="4" title="Markup Control" divider>
-        <Text> Plugins automatically listen for data attributes on your HTML elements. </Text>
+        <Text> Visual plugins watch for configured data attributes in the document markup automatically. </Text>
         <CodeBlock :code="htmlCode" title="index.html" lang="html" />
 
         <Callout title="Warning: CSS Conflicts" variant="warning">
           <p class="mb-2">
-            <strong
-              >Do not use <code>cursor: pointer</code> or <code>cursor: none</code> in your own
-              CSS.</strong
-            >
+            <strong>Do not define <code>cursor: pointer</code> or <code>cursor: none</code> rules in your application stylesheets.</strong>
           </p>
           <p>
-            Supermouse manages cursor visibility dynamically. Manually setting cursor styles often
-            results in the double cursor glitch where the OS cursor reappears on top of the custom
-            one. If you need a pointer state, use the <code>rules</code> config in Supermouse to
-            handle it programmatically.
+            Supermouse handles native pointer visibility dynamically. Ad-hoc CSS cursor overrides bypass target detection and cause double-cursor rendering or cursor flickering. Define hover affordances programmatically using <ApiLink to="rules"><code>rules</code></ApiLink> configurations.
           </p>
         </Callout>
 
         <Text size="sm">
-          To read more on resolving conflicts and edge cases, visit the
+          To manage edge-cases or resolve browser conflicts, see the
           <router-link
             to="/docs/guide/troubleshooting"
             class="text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all"
           >
-            troubleshooting page
+            troubleshooting guide
           </router-link>
-          . Check the <ApiLink to="hidecursor"> hideCursor </ApiLink> and
-          <ApiLink to="ignoreonnative"> ignoreOnNative </ApiLink> options for more control.
+          . Configure the <ApiLink to="hidecursor"><code>hideCursor</code></ApiLink> and
+          <ApiLink to="ignoreonnative"><code>ignoreOnNative</code></ApiLink> parameters for detailed granularity.
         </Text>
       </StepCard>
     </div>
