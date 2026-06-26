@@ -1,4 +1,5 @@
-declare const __VERSION__: string;
+declare const __VERSION__: string | undefined;
+const VERSION: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0";
 
 import type { MouseState, SupermouseOptions, SupermousePlugin } from "./types";
 
@@ -25,6 +26,8 @@ export class Input {
   private mediaQueryList?: MediaQueryList;
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;
   private motionQuery?: MediaQueryList;
+  private dataPrefix: string;
+  private ignoreAttribute: string;
 
   /**
    * Master switch for input processing.
@@ -41,6 +44,8 @@ export class Input {
     this.checkDeviceCapability();
     this.checkMotionPreference();
     this.bindEvents();
+    this.dataPrefix = this.options.dataPrefix ?? "supermouse";
+    this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
   }
 
   private abortController = new AbortController();
@@ -86,7 +91,7 @@ export class Input {
 
   private parseDOMInteraction(element: HTMLElement): void {
     if (this.options.resolveInteraction) {
-      this.state.interaction = this.options.resolveInteraction(element);
+      this.state.interaction = this.options.resolveInteraction(element) || {};
       return;
     }
 
@@ -102,8 +107,8 @@ export class Input {
 
     const dataset = element.dataset;
     for (const key in dataset) {
-      if (key.startsWith("supermouse")) {
-        const prop = key.slice(10);
+      if (key.startsWith(this.dataPrefix)) {
+        const prop = key.slice(this.dataPrefix.length);
         if (prop) {
           const cleanKey = prop.charAt(0).toLowerCase() + prop.slice(1);
           const val = dataset[key];
@@ -120,7 +125,8 @@ export class Input {
   private handleMove(e: PointerEvent): void {
     if (!this.isEnabled) return;
 
-    if (this.options.autoDisableOnMobile && e.pointerType === "touch") return;
+    if (this.options.autoDisableOnMobile && e.pointerType === "touch" && !this.options.enableTouch)
+      return;
 
     let x = e.clientX;
     let y = e.clientY;
@@ -153,7 +159,7 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
 
-    if (target.closest("[data-supermouse-ignore]")) {
+    if (target.closest(`[${this.ignoreAttribute}]`)) {
       this.state.isNative = true;
       return;
     }
@@ -222,6 +228,7 @@ export class Input {
     this.state.isHover = false;
     this.state.hoverTarget = null;
     this.state.isNative = false;
+    this.state.interaction = {};
   }
 
   private bindEvents(): void {
@@ -258,7 +265,7 @@ export class Stage {
   private scopeClass: string;
 
   private currentCursorState: "none" | "auto" | "" | null = null;
-
+  private originalContainerPosition: string = "";
   private selectors: Set<string> = new Set([
     "a",
     "button",
@@ -286,10 +293,7 @@ export class Stage {
     this.element = document.createElement("div");
     Object.assign(this.element.style, {
       position: isBody ? "fixed" : "absolute",
-      top: "0",
-      left: "0",
-      width: "100%",
-      height: "100%",
+      inset: "0px",
       pointerEvents: "none",
       zIndex: "9999",
       opacity: "1",
@@ -298,6 +302,7 @@ export class Stage {
 
     if (!isBody) {
       const computed = window.getComputedStyle(container);
+      this.originalContainerPosition = computed.position;
       if (computed.position === "static") {
         container.style.position = "relative";
       }
@@ -336,7 +341,7 @@ export class Stage {
    * Toggles the visibility of the native cursor via CSS injection.
    * @param type 'none' to hide, 'auto' to show.
    */
-  public setNativeCursor(type: "none" | "auto" | ""): void {
+  public setNativeCursor(type: "none" | "auto"): void {
     if (!this.hideNativeCursor && type === "none") return;
 
     if (type === this.currentCursorState) return;
@@ -372,6 +377,10 @@ export class Stage {
     this.styleTag.remove();
     this.container.style.cursor = "";
     this.container.classList.remove(this.scopeClass);
+
+    if (this.container !== document.body && this.originalContainerPosition === "static") {
+      this.container.style.position = "";
+    }
   }
 }
 
@@ -394,8 +403,8 @@ export const DEFAULT_HOVER_SELECTORS = [
  * @default
  */
 export class Supermouse {
-  public static readonly version: string = __VERSION__;
-  public readonly version: string = __VERSION__;
+  public static readonly version: string = VERSION;
+  public readonly version: string = VERSION;
 
   state: MouseState;
 
@@ -430,10 +439,11 @@ export class Supermouse {
       hideOnLeave: true,
       autoStart: true,
       container: document.body,
+      dataPrefix: "supermouse",
       ...options
     };
 
-    if (!this.options.container) {
+    if (!(this.options.container instanceof HTMLElement)) {
       this.options.container = document.body;
     }
 
@@ -585,7 +595,12 @@ export class Supermouse {
     this.plugins.push(plugin);
     this.plugins.sort((a, b) => (a.priority || 0) - (b.priority || 0));
 
-    plugin.install?.(this);
+    try {
+      plugin.install?.(this);
+    } catch (e) {
+      console.error(`[Supermouse] Failed to install plugin '${plugin.name}'.`, e);
+      plugin.isEnabled = false;
+    }
     return this;
   }
 
@@ -609,6 +624,14 @@ export class Supermouse {
     this.isRunning = true;
     this.lastTime = performance.now();
     this.tick(this.lastTime);
+  }
+
+  /**
+   * Starts the animation loop. This is automatically called if `autoStart` is true.
+   * Plugins can call this method to resume the loop if it has been stopped.
+   */
+  public start(): void {
+    this.startLoop();
   }
 
   /**
@@ -689,7 +712,7 @@ export class Supermouse {
       }
     }
 
-    if (this.options.autoStart && this.isRunning) {
+    if (this.isRunning) {
       this.rafId = requestAnimationFrame(this.tick);
     }
   };

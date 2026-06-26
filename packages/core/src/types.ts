@@ -137,6 +137,13 @@ export interface SupermouseOptions {
    * Overrides the default data-attribute scraping.
    */
   resolveInteraction?: (target: HTMLElement) => InteractionState;
+  /**
+   * The prefix used for data attributes to store hover metadata.
+   * For example, if dataPrefix is "supermouse", then the attribute would be "data-supermouse-*".
+   * This allows for multiple instances of Supermouse to coexist without conflicting data attributes.
+   * @default "supermouse"
+   */
+  dataPrefix?: string;
 }
 
 /**
