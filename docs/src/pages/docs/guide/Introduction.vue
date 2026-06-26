@@ -19,13 +19,19 @@ const metaItems = [
 
     <div class="mb-12 space-y-4">
       <Text weight="medium" size="lg">
-        Supermouse is a high-performance cursor engine for the modern web, designed to isolate <strong>cursor intent</strong> from <strong>cursor rendering</strong>.
+        Supermouse is a high-performance cursor engine for the modern web, designed to isolate
+        <strong>cursor intent</strong> from <strong>cursor rendering</strong>.
       </Text>
       <Text size="lg">
-        Conventional cursor libraries treat cursors as standard UI elements, tying their coordinates to framework reactive state (React, Vue) or relying on heavy animation wrappers (like GSAP) that operate on CPU layout properties. This coupling introduces input lag and rendering delays. Supermouse runs a standalone, deterministic animation loop (60–120Hz) managed directly via <code>requestAnimationFrame</code>.
+        Conventional cursor libraries treat cursors as standard UI elements, tying their coordinates
+        to framework reactive state (React, Vue) or relying on heavy animation wrappers (like GSAP)
+        that operate on CPU layout properties. This coupling introduces input lag and rendering
+        delays. Supermouse runs a standalone, deterministic animation loop (60–120Hz) managed
+        directly via <code>requestAnimationFrame</code>.
       </Text>
       <Text size="lg">
-        By separating physics interpolation from paint routines and enforcing a strict DOM Firewall, Supermouse enables fluid pointer dynamics without layout thrashing.
+        By separating physics interpolation from paint routines and enforcing a strict DOM Firewall,
+        Supermouse enables fluid pointer dynamics without layout thrashing.
       </Text>
     </div>
 
@@ -39,19 +45,23 @@ const metaItems = [
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">01.</span>
             <p>
-              <strong>The Double Cursor Glitch.</strong> Hiding the OS cursor via standard CSS is fragile; inputs, dynamic targets, and user-agent stylesheets regularly force it back, creating flickering.
+              <strong>The Double Cursor Glitch.</strong> Hiding the OS cursor via standard CSS is
+              fragile; inputs, dynamic targets, and user-agent stylesheets regularly force it back,
+              creating flickering.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">02.</span>
             <p>
-              <strong>Input Lag.</strong> Framework state updates are asynchronous. Driving coordinates through a virtual DOM deferment trails the native pointer by 1–2 frames.
+              <strong>Input Lag.</strong> Framework state updates are asynchronous. Driving
+              coordinates through a virtual DOM deferment trails the native pointer by 1–2 frames.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-400 min-w-[3ch]">03.</span>
             <p>
-              <strong>Coupled Architectures.</strong> Mixing physical tracking bounds with visual render elements limits layout composability and stops developer modifications.
+              <strong>Coupled Architectures.</strong> Mixing physical tracking bounds with visual
+              render elements limits layout composability and stops developer modifications.
             </p>
           </li>
         </ul>
@@ -64,19 +74,23 @@ const metaItems = [
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">01.</span>
             <p>
-              <strong>The Stage Controller.</strong> Supermouse injects a scoped, high-specificity stylesheet to suppress native pointers over registered regions, utilizing granularity controls to show or hide the OS pointer.
+              <strong>The Stage Controller.</strong> Supermouse injects a scoped, high-specificity
+              stylesheet to suppress native pointers over registered regions, utilizing granularity
+              controls to show or hide the OS pointer.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">02.</span>
             <p>
-              <strong>Direct GPU Transforms.</strong> By bypassing the virtual DOM, updates apply hardware-accelerated CSS translation vectors directly onto target layers.
+              <strong>Direct GPU Transforms.</strong> By bypassing the virtual DOM, updates apply
+              hardware-accelerated CSS translation vectors directly onto target layers.
             </p>
           </li>
           <li class="flex gap-3">
             <span class="font-bold text-zinc-900 min-w-[3ch]">03.</span>
             <p>
-              <strong>Decoupled Pipeline.</strong> Logic layers compute coordinates, physics smooths movement, and visuals render. Plugins hook into specific stages without side-effects.
+              <strong>Decoupled Pipeline.</strong> Logic layers compute coordinates, physics smooths
+              movement, and visuals render. Plugins hook into specific stages without side-effects.
             </p>
           </li>
         </ul>
@@ -92,19 +106,29 @@ const metaItems = [
         <div class="p-6">
           <strong class="block text-zinc-900 text-sm mb-2">1. Intent vs. Render</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            Physics models track coordinate intent on <ApiLink to="target"><code>state.target</code></ApiLink>, while visual plugins read from the interpolated <ApiLink to="smooth"><code>state.smooth</code></ApiLink> values. This decoupling lets plugins modify tracking bounds dynamically.
+            Physics models track coordinate intent on
+            <ApiLink to="target"><code>state.target</code></ApiLink
+            >, while visual plugins read from the interpolated
+            <ApiLink to="smooth"><code>state.smooth</code></ApiLink> values. This decoupling lets
+            plugins modify tracking bounds dynamically.
           </p>
         </div>
         <div class="p-6">
           <strong class="block text-zinc-900 text-sm mb-2">2. Modular Pipeline</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            The core engine registers plugins on a chainable stack via <ApiLink to="use"><code>app.use()</code></ApiLink>, coordinating execution priority. You can swap, enable, or disable layers at runtime.
+            The core engine registers plugins on a chainable stack via
+            <ApiLink to="use"><code>app.use()</code></ApiLink
+            >, coordinating execution priority. You can swap, enable, or disable layers at runtime.
           </p>
         </div>
         <div class="p-6">
           <strong class="block text-zinc-900 text-sm mb-2">3. Accessibility First</strong>
           <p class="text-xs text-zinc-500 leading-relaxed">
-            Coarse pointers (touch devices) trigger automatic hibernation via <ApiLink to="autodisableonmobile"><code>autoDisableOnMobile</code></ApiLink>. Operating system preferences for <ApiLink to="reducedmotion"><code>state.reducedMotion</code></ApiLink> instantly skip floaty physics to prevent motion sickness.
+            Coarse pointers (touch devices) trigger automatic hibernation via
+            <ApiLink to="autodisableonmobile"><code>autoDisableOnMobile</code></ApiLink
+            >. Operating system preferences for
+            <ApiLink to="reducedmotion"><code>state.reducedMotion</code></ApiLink> instantly skip
+            floaty physics to prevent motion sickness.
           </p>
         </div>
       </div>

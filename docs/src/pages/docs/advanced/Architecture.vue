@@ -32,16 +32,15 @@ function tick(time) {
     <div class="mb-16">
       <p class="text-lg text-zinc-600 leading-relaxed mb-6">
         Supermouse models the cursor as a game entity running a deterministic
-        <code>requestAnimationFrame</code> loop. The pipeline separates three
-        distinct concerns every frame:
-        <span class="text-black font-bold border-b-2 border-black/10">Input</span>,
+        <code>requestAnimationFrame</code> loop. The pipeline separates three distinct concerns
+        every frame: <span class="text-black font-bold border-b-2 border-black/10">Input</span>,
         <span class="text-black font-bold border-b-2 border-black/10">Intent</span>, and
         <span class="text-black font-bold border-b-2 border-black/10">Rendering</span>.
       </p>
       <p class="text-lg text-zinc-600 leading-relaxed">
         This separation is what lets a magnetic button pull the cursor (modifying Intent via
-        <ApiLink name="state.target" to="state.target" /> in Phase 01) without the input layer knowing — and without
-        the visual dot jumping (Phase 02 physics handles the interpolation).
+        <ApiLink name="state.target" to="state.target" /> in Phase 01) without the input layer
+        knowing — and without the visual dot jumping (Phase 02 physics handles the interpolation).
       </p>
     </div>
 
@@ -66,10 +65,11 @@ function tick(time) {
       <!-- STEP 2: LOGIC -->
       <TimelineStep phase="Phase 02: Intent" title="Logic Plugins">
         <Text>
-          Plugins with <ApiLink name="priority" to="priority" /> <code>&lt; 0</code> run here. A magnetic plugin
-          reads the hovered element's geometry from
-          <ApiLink name="state.interaction" to="state.interaction" /> (pre-scraped on <code>mouseover</code>) and adjusts
-          <ApiLink name="state.target" to="state.target" /> to pull the cursor toward the element's center.
+          Plugins with <ApiLink name="priority" to="priority" /> <code>&lt; 0</code> run here. A
+          magnetic plugin reads the hovered element's geometry from
+          <ApiLink name="state.interaction" to="state.interaction" /> (pre-scraped on
+          <code>mouseover</code>) and adjusts <ApiLink name="state.target" to="state.target" /> to
+          pull the cursor toward the element's center.
         </Text>
         <ResponsibilityBox title="Responsibility">
           Read <span class="text-zinc-900 font-bold">state.pointer</span> /
@@ -81,20 +81,29 @@ function tick(time) {
       <!-- STEP 3: PHYSICS -->
       <TimelineStep phase="Phase 03: Physics" title="Core Damping" :active="true">
         <Text>
-          The core interpolates between where the cursor is (<ApiLink name="state.smooth" to="state.smooth" />) and
-          where it needs to go (<ApiLink name="state.target" to="state.target" />) using frame-rate independent
-          exponential damping. <ApiLink name="smoothness" to="smoothness" /> controls the
-          <code>lambda</code> coefficient — higher values produce tighter tracking.
+          The core interpolates between where the cursor is (<ApiLink
+            name="state.smooth"
+            to="state.smooth"
+          />) and where it needs to go (<ApiLink name="state.target" to="state.target" />) using
+          frame-rate independent exponential damping.
+          <ApiLink name="smoothness" to="smoothness" /> controls the <code>lambda</code> coefficient
+          — higher values produce tighter tracking.
         </Text>
-        <CodeBlock :code="dampCode" lang="javascript" :clean="true" class="border border-zinc-200" />
+        <CodeBlock
+          :code="dampCode"
+          lang="javascript"
+          :clean="true"
+          class="border border-zinc-200"
+        />
       </TimelineStep>
 
       <!-- STEP 4: RENDER -->
       <TimelineStep phase="Phase 04: Render" title="Visual Plugins" :last="true">
         <Text>
           Visual plugins — <code>Dot</code>, <code>Ring</code> — read the final
-          <ApiLink name="state.smooth" to="state.smooth" /> coordinates and write <code>transform</code> to their DOM
-          elements. This is the only phase allowed to touch the DOM.
+          <ApiLink name="state.smooth" to="state.smooth" /> coordinates and write
+          <code>transform</code> to their DOM elements. This is the only phase allowed to touch the
+          DOM.
         </Text>
         <ResponsibilityBox title="Responsibility">
           Read <span class="text-zinc-900 font-bold">state.smooth</span>. Write
@@ -149,20 +158,21 @@ function tick(time) {
           <h4 class="text-lg font-bold text-zinc-900 mb-2">Priority & The "Tearing" Bug</h4>
           <Text size="sm" color="subtle">
             Logic plugins (e.g. Magnetic) <strong>must</strong> declare a negative
-            <ApiLink name="priority" to="priority" /> (e.g. <code>-10</code>). If a logic plugin runs at default
-            priority (<code>0</code>), it executes interleaved with visual plugins — visuals
-            registered before it render the old position while those registered after render the new
-            one. This causes visible "tearing."
+            <ApiLink name="priority" to="priority" /> (e.g. <code>-10</code>). If a logic plugin
+            runs at default priority (<code>0</code>), it executes interleaved with visual plugins —
+            visuals registered before it render the old position while those registered after render
+            the new one. This causes visible "tearing."
           </Text>
         </div>
 
         <div>
           <h4 class="text-lg font-bold text-zinc-900 mb-2">Logic vs. Visual Plugins</h4>
           <Text size="sm" color="subtle">
-            <strong>Logic plugins</strong> write to <ApiLink name="state.target" to="state.target" /> and must not
-            touch the DOM. <strong>Visual plugins</strong> read <ApiLink name="state.smooth" to="state.smooth" /> and
-            write <code>transform</code> to the DOM. Mixing these responsibilities breaks the
-            pipeline.
+            <strong>Logic plugins</strong> write to
+            <ApiLink name="state.target" to="state.target" /> and must not touch the DOM.
+            <strong>Visual plugins</strong> read
+            <ApiLink name="state.smooth" to="state.smooth" /> and write <code>transform</code> to
+            the DOM. Mixing these responsibilities breaks the pipeline.
           </Text>
         </div>
 
@@ -170,9 +180,10 @@ function tick(time) {
           <h4 class="text-lg font-bold text-zinc-900 mb-2">Inter-Plugin Communication</h4>
           <Text size="sm" color="subtle">
             Plugins coordinate via state channels. For example,
-            <ApiLink name="state.shape" to="state.shape" /> bridges logic and visuals: a Stick plugin reads the
-            hovered element's geometry and writes it to <code>state.shape</code>; a Ring plugin
-            reads it to morph its border radius. Behavior and rendering remain fully decoupled.
+            <ApiLink name="state.shape" to="state.shape" /> bridges logic and visuals: a Stick
+            plugin reads the hovered element's geometry and writes it to <code>state.shape</code>; a
+            Ring plugin reads it to morph its border radius. Behavior and rendering remain fully
+            decoupled.
           </Text>
         </div>
       </div>
@@ -191,8 +202,9 @@ function tick(time) {
           <code>update()</code> causes layout thrashing and breaks the 60fps budget.
         </p>
         <p class="text-sm text-zinc-600 leading-relaxed">
-          The core scrapes element geometry <strong>once</strong> on the <code>mouseover</code>
-          event and caches it in <ApiLink name="state.interaction" to="state.interaction" />. The render loop reads from
+          The core scrapes element geometry <strong>once</strong> on the
+          <code>mouseover</code> event and caches it in
+          <ApiLink name="state.interaction" to="state.interaction" />. The render loop reads from
           this cache — all geometry lookups are O(1).
         </p>
       </div>

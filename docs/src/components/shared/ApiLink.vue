@@ -10,11 +10,7 @@ const href = computed(() => resolveApiHref(props.to));
 </script>
 
 <template>
-  <a
-    :href="href"
-    :data-supermouse-text="`Jump to API: ${to}`"
-    class="link"
-  >
+  <a :href="href" :data-supermouse-text="`Jump to API: ${to}`" class="link">
     <slot>{{ to }}</slot>
   </a>
 </template>

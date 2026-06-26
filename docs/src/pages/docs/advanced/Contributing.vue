@@ -19,8 +19,9 @@ const removePluginCode = "pnpm run remove:plugin <name>";
     <Text size="lg" class="mb-12">
       Supermouse is a plugin-first cursor runtime. Contributions are welcome — this page covers
       <span class="text-black font-bold border-b-2 border-black/10">what belongs in this repo</span
-      >, <span class="text-black font-bold border-b-2 border-black/10">how to contribute code</span
-      >, and
+      >,
+      <span class="text-black font-bold border-b-2 border-black/10">how to contribute code</span>,
+      and
       <span class="text-black font-bold border-b-2 border-black/10">how the toolchain works</span>.
     </Text>
 
@@ -129,7 +130,8 @@ const removePluginCode = "pnpm run remove:plugin <name>";
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
         <Text size="sm">
-          Avoid introducing new abstractions without a clear performance or ergonomics justification.
+          Avoid introducing new abstractions without a clear performance or ergonomics
+          justification.
         </Text>
       </li>
       <li class="flex gap-3">
@@ -146,8 +148,8 @@ const removePluginCode = "pnpm run remove:plugin <name>";
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
         <Text size="sm">
-          Logic plugins must declare <ApiLink name="priority" to="priority" />
-          <code>&lt; 0</code>. Positive or zero priority causes visual tearing.
+          Logic plugins must declare <ApiLink name="priority" to="priority" /> <code>&lt; 0</code>.
+          Positive or zero priority causes visual tearing.
         </Text>
       </li>
     </ul>
@@ -244,7 +246,9 @@ const removePluginCode = "pnpm run remove:plugin <name>";
         <div class="bg-white p-8">
           <span class="mono text-xs font-bold text-zinc-400 mb-2 block">04</span>
           <strong class="block text-zinc-900 font-bold text-sm mb-2">Userland Extensibility</strong>
-          <p class="text-sm text-zinc-600 leading-relaxed">The core is small. The ecosystem is not.</p>
+          <p class="text-sm text-zinc-600 leading-relaxed">
+            The core is small. The ecosystem is not.
+          </p>
         </div>
       </div>
     </div>

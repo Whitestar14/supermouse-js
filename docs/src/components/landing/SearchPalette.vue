@@ -2,11 +2,9 @@
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useSearch } from "@composables/useSearch";
-import { useSupermouse } from "@supermousejs/vue";
 
 const emit = defineEmits(["close"]);
 const router = useRouter();
-const mouse = useSupermouse();
 const { query, results } = useSearch();
 const searchInput = ref<HTMLInputElement | null>(null);
 const selectedIndex = ref(0);
@@ -39,12 +37,10 @@ const handleKeydown = (e: KeyboardEvent) => {
 onMounted(() => {
   searchInput.value?.focus();
   window.addEventListener("keydown", handleKeydown);
-  mouse.value?.setNativeCursor("hide");
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
-  mouse.value?.setNativeCursor("auto");
 });
 
 watch(query, () => {
@@ -62,7 +58,7 @@ watch(query, () => {
 
     <!-- Modal -->
     <div
-      class="relative w-full max-w-2xl bg-white border border-zinc-900 shadow-2xl flex flex-col overflow-hidden rounded-none duration-0"
+      class="relative w-full max-w-2xl bg-white border border-zinc-500 shadow-2xl flex flex-col overflow-hidden rounded-none duration-0"
     >
       <!-- Input -->
       <div class="flex items-center px-6 h-16 border-b border-zinc-200 bg-white">
@@ -86,7 +82,7 @@ watch(query, () => {
           class="flex-1 h-full outline-none text-lg font-medium placeholder:text-zinc-400 bg-transparent text-black"
         />
         <div
-          class="mono text-[10px] bg-zinc-100 px-2 py-1 rounded-sm text-zinc-500 font-bold tracking-widest uppercase border border-zinc-200"
+          class="mono text-[10px] bg-zinc-100 px-2 py-0.5 text-zinc-500 font-bold tracking-widest uppercase border border-zinc-200"
         >
           ESC
         </div>
@@ -134,7 +130,7 @@ watch(query, () => {
             </span>
           </div>
           <span
-            class="mono text-[10px] uppercase tracking-widest font-bold whitespace-nowrap flex-shrink-0 px-2 py-1 border transition-colors duration-100 rounded-sm"
+            class="mono text-[10px] uppercase tracking-widest font-bold whitespace-nowrap flex-shrink-0 px-2 py-0.5 border transition-colors duration-100"
             :class="[
               i === selectedIndex
                 ? 'bg-white text-black border-white'

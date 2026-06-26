@@ -89,7 +89,7 @@ const metaItems = [
       <Text size="sm">
         Wrap your application in <code>SupermouseProvider</code>. This creates the engine instance
         and makes it available via context. <code>options</code> accepts the same fields as the
-        <ApiLink to="constructor" >Supermouse constructor</ApiLink>.
+        <ApiLink to="constructor">Supermouse constructor</ApiLink>.
       </Text>
       <CodeBlock
         :code="providerCode"
@@ -102,9 +102,10 @@ const metaItems = [
     <!-- Hooks -->
     <StepCard number="3" title="Usage in Components" divider>
       <Text size="sm">
-        Call <code>useSupermouse()</code> in any descendant component to get the live instance.
-        It returns <code>Supermouse | null</code> — guard before accessing
-        <ApiLink name="state" to="state" /> or calling methods like <ApiLink name="destroy" to="destroy" />.
+        Call <code>useSupermouse()</code> in any descendant component to get the live instance. It
+        returns <code>Supermouse | null</code> — guard before accessing
+        <ApiLink name="state" to="state" /> or calling methods like
+        <ApiLink name="destroy" to="destroy" />.
       </Text>
       <CodeBlock
         :code="hookCode"

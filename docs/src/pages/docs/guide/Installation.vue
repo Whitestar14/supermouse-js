@@ -39,9 +39,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
     <div class="flex flex-col gap-12">
       <!-- Step 1: Package Manager -->
       <StepCard number="1" title="Via Package Manager">
-        <Text>
-          Install scoped packages to optimize tree-shaking and bundle footprint.
-        </Text>
+        <Text> Install scoped packages to optimize tree-shaking and bundle footprint. </Text>
         <CodeBlock :code="shellCode" title="Terminal" lang="text" />
 
         <Text>
@@ -53,7 +51,9 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
       <!-- Step 2: CDN -->
       <StepCard number="2" title="CDN / Direct Script" divider>
         <Text>
-          For projects without a bundler, load the compiled package via unpkg or jsDelivr. This exposes the core constructor alongside standard Dot and Ring visual hooks on the global namespace.
+          For projects without a bundler, load the compiled package via unpkg or jsDelivr. This
+          exposes the core constructor alongside standard Dot and Ring visual hooks on the global
+          namespace.
         </Text>
         <CodeBlock :code="cdnCode" title="index.html" lang="html" />
       </StepCard>
@@ -61,22 +61,31 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
       <!-- Step 3: Initialization -->
       <StepCard number="3" title="Initialize (Modules)" divider>
         <Text>
-          Instantiate the runtime within your application entry point (e.g. <code>main.ts</code> or a root lifecycle wrapper).
+          Instantiate the runtime within your application entry point (e.g. <code>main.ts</code> or
+          a root lifecycle wrapper).
         </Text>
         <CodeBlock :code="mainCode" title="src/main.ts" lang="typescript" />
       </StepCard>
 
       <!-- Step 4: Markup Control -->
       <StepCard number="4" title="Markup Control" divider>
-        <Text> Visual plugins watch for configured data attributes in the document markup automatically. </Text>
+        <Text>
+          Visual plugins watch for configured data attributes in the document markup automatically.
+        </Text>
         <CodeBlock :code="htmlCode" title="index.html" lang="html" />
 
         <Callout title="Warning: CSS Conflicts" variant="warning">
           <p class="mb-2">
-            <strong>Do not define <code>cursor: pointer</code> or <code>cursor: none</code> rules in your application stylesheets.</strong>
+            <strong
+              >Do not define <code>cursor: pointer</code> or <code>cursor: none</code> rules in your
+              application stylesheets.</strong
+            >
           </p>
           <p>
-            Supermouse handles native pointer visibility dynamically. Ad-hoc CSS cursor overrides bypass target detection and cause double-cursor rendering or cursor flickering. Define hover affordances programmatically using <ApiLink to="rules"><code>rules</code></ApiLink> configurations.
+            Supermouse handles native pointer visibility dynamically. Ad-hoc CSS cursor overrides
+            bypass target detection and cause double-cursor rendering or cursor flickering. Define
+            hover affordances programmatically using
+            <ApiLink to="rules"><code>rules</code></ApiLink> configurations.
           </p>
         </Callout>
 
@@ -89,7 +98,8 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
             troubleshooting guide
           </router-link>
           . Configure the <ApiLink to="hidecursor"><code>hideCursor</code></ApiLink> and
-          <ApiLink to="ignoreonnative"><code>ignoreOnNative</code></ApiLink> parameters for detailed granularity.
+          <ApiLink to="ignoreonnative"><code>ignoreOnNative</code></ApiLink> parameters for detailed
+          granularity.
         </Text>
       </StepCard>
     </div>

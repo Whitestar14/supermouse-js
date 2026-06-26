@@ -54,9 +54,11 @@ const metadataItems = [
     <MetadataStrip :items="metadataItems" />
 
     <Text size="lg" class="mb-12">
-      The Vue adapter wraps <code>@supermousejs/core</code> in Vue's
-      <code>provide</code>/<code>inject</code> system. It handles engine lifecycle (mount/unmount)
-      automatically so you don't manage <ApiLink name="destroy" to="destroy" /> calls manually.
+      The Vue adapter wraps <code>@supermousejs/core</code> in Vue's <code>provide</code>/<code
+        >inject</code
+      >
+      system. It handles engine lifecycle (mount/unmount) automatically so you don't manage
+      <ApiLink name="destroy" to="destroy" /> calls manually.
     </Text>
 
     <!-- Installation -->
@@ -69,7 +71,7 @@ const metadataItems = [
       <Text size="sm">
         Call <code>provideSupermouse</code> once in your root component (<code>App.vue</code> or a
         layout). It accepts the same options as the
-        <ApiLink to="constructor" >Supermouse constructor</ApiLink>
+        <ApiLink to="constructor">Supermouse constructor</ApiLink>
         plus a plugins array.
       </Text>
       <CodeBlock
@@ -85,8 +87,8 @@ const metadataItems = [
       <Text size="sm">
         Use <code>useSupermouse()</code> in any child component to access the running instance. The
         return value is a reactive <code>Ref&lt;Supermouse | null&gt;</code> — always guard with
-        <code>mouse.value</code> before accessing
-        <ApiLink name="state" to="state" /> or calling methods.
+        <code>mouse.value</code> before accessing <ApiLink name="state" to="state" /> or calling
+        methods.
       </Text>
       <CodeBlock
         :code="componentCode"
@@ -98,9 +100,9 @@ const metadataItems = [
 
     <!-- Nuxt Warning -->
     <Callout title="Using with Nuxt?" class="mt-16">
-      Wrap <code>provideSupermouse</code> in a <code>&lt;ClientOnly&gt;</code> component or guard
-      it with <code>process.client</code>. The engine accesses <code>window</code> on
-      initialization and will throw during SSR.
+      Wrap <code>provideSupermouse</code> in a <code>&lt;ClientOnly&gt;</code> component or guard it
+      with <code>process.client</code>. The engine accesses <code>window</code> on initialization
+      and will throw during SSR.
     </Callout>
   </DocsSection>
 </template>

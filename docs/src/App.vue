@@ -95,11 +95,6 @@ watch(
     } else {
       lenis.start();
     }
-
-    if (mouse.value) {
-      if (editor || search) mouse.value.disable();
-      else mouse.value.enable();
-    }
   },
   { flush: "post" }
 );

@@ -85,13 +85,18 @@ onUnmounted(() => {
 <template>
   <DocsSection label="Guide" title="Usage">
     <Text weight="medium" size="lg" class="mb-12">
-      Supermouse operates as a singleton engine, managing input events, physics interpolation, and the plugin queue. Instantiate it once when your application mounts. Refer to the <ApiLink to="constructor">constructor options</ApiLink> for a complete parameter reference.
+      Supermouse operates as a singleton engine, managing input events, physics interpolation, and
+      the plugin queue. Instantiate it once when your application mounts. Refer to the
+      <ApiLink to="constructor">constructor options</ApiLink> for a complete parameter reference.
     </Text>
 
     <!-- Configuration -->
     <SectionHeader :level="2" class="mb-6"> 1. Configuration </SectionHeader>
     <Text class="mb-6">
-      The core runtime requires configuration via a <code>SupermouseOptions</code> argument. You can load plugins declaratively inside the <ApiLink to="plugins-option"><code>plugins</code></ApiLink> constructor parameter, or register them dynamically using the chainable <ApiLink to="use"><code>use()</code></ApiLink> api.
+      The core runtime requires configuration via a <code>SupermouseOptions</code> argument. You can
+      load plugins declaratively inside the
+      <ApiLink to="plugins-option"><code>plugins</code></ApiLink> constructor parameter, or register
+      them dynamically using the chainable <ApiLink to="use"><code>use()</code></ApiLink> api.
     </Text>
     <div class="mb-8">
       <CodeBlock
@@ -103,7 +108,8 @@ onUnmounted(() => {
     </div>
 
     <Callout title="Global CDN Usage">
-      When loading Supermouse via the direct script CDN bundle, classes and default plugins are exported on the global <code>window.Supermouse</code> namespace.
+      When loading Supermouse via the direct script CDN bundle, classes and default plugins are
+      exported on the global <code>window.Supermouse</code> namespace.
       <div class="mt-4">
         <CodeBlock :code="globalUsageCode" lang="javascript" :clean="true" />
       </div>
@@ -112,7 +118,8 @@ onUnmounted(() => {
     <!-- Plugins -->
     <SectionHeader :level="2" class="mb-6 mt-16"> 2. Runtime Registration </SectionHeader>
     <Text class="mb-6">
-      Register plugins dynamically at runtime to support conditional scripts, route-based triggers, or lazy-loading configurations.
+      Register plugins dynamically at runtime to support conditional scripts, route-based triggers,
+      or lazy-loading configurations.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -127,18 +134,25 @@ onUnmounted(() => {
     <SectionHeader :level="2" class="mb-6"> 3. Defining Interactions </SectionHeader>
 
     <Text class="mb-6">
-      Interactive triggers in Supermouse are declarative. The core engine remains agnostic to specific visual responses; it parses hovered element layouts and exposes them to visual and logic layers via the O(1) <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> cache.
+      Interactive triggers in Supermouse are declarative. The core engine remains agnostic to
+      specific visual responses; it parses hovered element layouts and exposes them to visual and
+      logic layers via the O(1)
+      <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> cache.
     </Text>
 
     <Callout title="Scraper Flow">
-      The core input processor reads global selectors mapped in <ApiLink to="rules"><code>rules</code></ApiLink> or watches for raw inline markup to populate the <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> store, preventing layout thrashing.
+      The core input processor reads global selectors mapped in
+      <ApiLink to="rules"><code>rules</code></ApiLink> or watches for raw inline markup to populate
+      the <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> store, preventing
+      layout thrashing.
     </Callout>
 
     <div class="grid grid-cols-1 gap-8 mb-12">
       <div>
         <SectionHeader :level="4"> Global Rules (Recommended) </SectionHeader>
         <Text size="sm" class="mb-4">
-          Bind selectors to interaction configurations inside your initialization parameters to keep DOM markup clean.
+          Bind selectors to interaction configurations inside your initialization parameters to keep
+          DOM markup clean.
         </Text>
         <CodeBlock
           :code="interactionCode"
@@ -151,7 +165,9 @@ onUnmounted(() => {
       <div>
         <SectionHeader :level="4"> HTML Overrides </SectionHeader>
         <Text size="sm" class="mb-4">
-          For ad-hoc configurations, write <ApiLink to="data-attributes"><code>data-supermouse-*</code></ApiLink> attributes directly on HTML targets. Inline overrides take precedence over global rules.
+          For ad-hoc configurations, write
+          <ApiLink to="data-attributes"><code>data-supermouse-*</code></ApiLink> attributes directly
+          on HTML targets. Inline overrides take precedence over global rules.
         </Text>
         <CodeBlock :code="htmlCode" title="index.html" lang="html" class="border border-zinc-200" />
       </div>
@@ -160,7 +176,10 @@ onUnmounted(() => {
     <!-- Scoped Containers -->
     <SectionHeader :level="2" class="mb-6"> 4. Scoped Containers </SectionHeader>
     <Text class="mb-6 max-w-2xl">
-      By default, Supermouse appends its rendering stage to <code>document.body</code> and captures window viewport boundaries. Pass a custom <ApiLink to="container"><code>container</code></ApiLink> reference to restrict rendering, styles, and hover bounds to a specific element.
+      By default, Supermouse appends its rendering stage to <code>document.body</code> and captures
+      window viewport boundaries. Pass a custom
+      <ApiLink to="container"><code>container</code></ApiLink> reference to restrict rendering,
+      styles, and hover bounds to a specific element.
     </Text>
     <div class="mb-12">
       <CodeBlock
@@ -174,7 +193,9 @@ onUnmounted(() => {
     <!-- Manual Visibility -->
     <SectionHeader :level="2" class="mb-6"> 5. Manual Visibility </SectionHeader>
     <Text class="mb-6">
-      For custom interfaces like canvas games, custom drag-and-drop handles, or text input fields, invoke <ApiLink to="setnativecursor"><code>setNativeCursor()</code></ApiLink> to force cursor overrides.
+      For custom interfaces like canvas games, custom drag-and-drop handles, or text input fields,
+      invoke <ApiLink to="setnativecursor"><code>setNativeCursor()</code></ApiLink> to force cursor
+      overrides.
     </Text>
     <div class="mb-12">
       <CodeBlock :code="visibilityCode" lang="typescript" class="border border-zinc-200" />
@@ -183,7 +204,9 @@ onUnmounted(() => {
     <!-- Cleanup -->
     <SectionHeader :level="2" class="mb-6"> 6. Cleanup </SectionHeader>
     <Callout title="Important for SPA routing">
-      In Single Page Applications (SPAs) or under Hot Module Replacement (HMR) reload cycles, you must call <ApiLink to="destroy"><code>destroy()</code></ApiLink> to clear window event listeners, remove injected stylesheets, and cancel the animation frame loop.
+      In Single Page Applications (SPAs) or under Hot Module Replacement (HMR) reload cycles, you
+      must call <ApiLink to="destroy"><code>destroy()</code></ApiLink> to clear window event
+      listeners, remove injected stylesheets, and cancel the animation frame loop.
     </Callout>
     <div class="mb-12">
       <CodeBlock :code="cleanupCode" lang="typescript" class="border border-zinc-200" />
