@@ -33,22 +33,6 @@ if (prefersComplexEffects) {
   app.use(Sparkles({ color: 'gold' }));
 }`;
 
-const interactionCode = `// 1. Configure Rules during initialization
-const app = new Supermouse({
-  rules: {
-    // Selector : State Configuration
-    'button': { magnetic: true },
-    'a': { color: '#00ff00' }
-  }
-});
-
-// 2. Decoupled plugins read from state.interaction
-// The Magnetic plugin queries app.state.interaction.magnetic
-app.use(Magnetic());
-
-// The Dot plugin queries app.state.interaction.color
-app.use(Dot());`;
-
 const htmlCode = `<!-- Define overrides directly in document markup -->
 <button data-supermouse-magnetic="true" data-supermouse-color="red">
   Complex Interaction
