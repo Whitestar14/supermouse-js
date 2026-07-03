@@ -9,12 +9,12 @@ const { query, results } = useSearch();
 const searchInput = ref<HTMLInputElement | null>(null);
 const selectedIndex = ref(0);
 
-const navigate = (path: string) => {
-  router.push(path);
+const navigate = async (path: string): Promise<void> => {
+  await router.push(path);
   emit("close");
 };
 
-const handleKeydown = (e: KeyboardEvent) => {
+const handleKeydown = (e: KeyboardEvent): void => {
   const count = results.value.length;
   if (count === 0) return;
 
@@ -27,7 +27,10 @@ const handleKeydown = (e: KeyboardEvent) => {
   } else if (e.key === "Enter") {
     e.preventDefault();
     if (results.value[selectedIndex.value]) {
-      navigate(results.value[selectedIndex.value].path);
+      void (async () => {
+        await navigate(results.value[selectedIndex.value].path);
+        emit("close");
+      })();
     }
   } else if (e.key === "Escape") {
     emit("close");

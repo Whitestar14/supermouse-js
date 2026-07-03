@@ -19,7 +19,7 @@ const route = useRoute();
 const activeSection = ref<string>("core-class");
 const { setRightSidebar, clearRightSidebar } = useDocsSidebar();
 
-const scrollTo = (id: string, behavior: ScrollBehavior = "smooth") => {
+const scrollTo = (id: string, behavior: ScrollBehavior = "smooth"): void => {
   const el = document.getElementById(id);
   if (!el) return;
 
@@ -43,13 +43,13 @@ const scrollTo = (id: string, behavior: ScrollBehavior = "smooth") => {
   }
 };
 
-const scrollToHash = (behavior: ScrollBehavior = "smooth") => {
+const scrollToHash = (behavior: ScrollBehavior = "smooth"): void => {
   const hash = route.hash.replace("#", "");
   if (!hash) return;
   scrollTo(hash, behavior);
 };
 
-const updateActiveSection = () => {
+const updateActiveSection = (): void => {
   const offset = 120;
   const fromTop = window.scrollY + offset;
   let current = API_SECTIONS[0]?.id ?? "";
@@ -66,7 +66,7 @@ const updateActiveSection = () => {
   activeSection.value = current;
 };
 
-onMounted(() => {
+onMounted(async () => {
   updateActiveSection();
   window.addEventListener("scroll", updateActiveSection, { passive: true });
   window.addEventListener("resize", updateActiveSection, { passive: true });
@@ -82,7 +82,7 @@ onMounted(() => {
     }
   });
 
-  nextTick(() => scrollToHash("auto"));
+  await nextTick(() => scrollToHash("auto"));
 });
 
 watch(

@@ -3,10 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    @apply text-base;
-  }
-
   :root {
     --grid-size: 40px;
     --grid-color: #f0f0f0;

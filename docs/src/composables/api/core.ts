@@ -78,7 +78,7 @@ const native = new Supermouse({ hideCursor: false });`
     name: "enableTouch",
     type: "boolean",
     defaultValue: "false",
-    desc: "Runs the cursor system on touch devices. Not recommended — Supermouse is designed to hibernate on coarse pointers.",
+    desc: "When set to true, touch events (e.g., on tablets) are processed instead of being ignored. This enables custom cursor effects on touch devices. Marked as experimental as performance and UX may vary across devices",
     usage: `// Only enable if you explicitly need touch support
 const app = new Supermouse({ enableTouch: true });`
   },
