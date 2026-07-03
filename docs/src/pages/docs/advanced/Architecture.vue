@@ -5,228 +5,378 @@ import TimelineStep from "@/components/shared/TimelineStep.vue";
 import Text from "@/components/shared/Text.vue";
 import ResponsibilityBox from "@/components/shared/ResponsibilityBox.vue";
 import ApiLink from "@/components/shared/ApiLink.vue";
+import Callout from "@/components/shared/Callout.vue";
+import SectionHeader from "@/components/shared/SectionHeader.vue";
+import SectionDivider from "@/components/shared/SectionDivider.vue";
 
-const dampCode = `const damp = (current, target, lambda, dt) => {
-  return lerp(current, target, 1 - Math.exp(-lambda * dt));
-};`;
-
-const loopCode = `// Simplified tick function — packages/core/src/Supermouse.ts
+const loopCode = `// Simplified internal tick function
 function tick(time) {
   const dt = time - lastTime;
 
-  // Phase 1 — Logic plugins (priority < 0) modify target
+  // 1. Reset target to follow raw pointer
   state.target = { ...state.pointer };
+
+  // 2. Logic Plugins (priority < 0) modify target
   runLogicPlugins(state);
 
-  // Phase 2 — Physics: frame-rate independent damping
+  // 3. Physics Damping
   state.smooth.x = damp(state.smooth.x, state.target.x, lambda, dt);
   state.smooth.y = damp(state.smooth.y, state.target.y, lambda, dt);
 
-  // Phase 3 — Visual plugins (priority >= 0) render the result
+  // 4. Update internal velocity & angle
+  state.velocity.x = state.target.x - state.smooth.x;
+  state.velocity.y = state.target.y - state.smooth.y;
+  state.angle = Math.atan2(state.velocity.y, state.velocity.x) * (180 / Math.PI);
+
+  // 5. Visual Plugins (priority >= 0) render results
   runVisualPlugins(state);
 }`;
+
+const hoverRegisterCode = `export default {
+  name: 'my-plugin',
+  install(app) {
+    // Tells the core to scrape data-my-plugin attributes on hover
+    // and hides the native cursor for these elements.
+    app.registerHoverTarget('[data-my-plugin]');
+  },
+  update(app) {
+    if (app.state.interaction['my-plugin']) {
+      // React to the scraped state
+    }
+  }
+}`;
+
+const customResolverCode = `new Supermouse({
+  resolveInteraction(el) {
+    return {
+      color: el.style.color,
+      magnetic: el.hasAttribute("data-magnetic")
+    };
+  }
+});`;
+
+const closestExampleCode = `<!-- Register: '[data-hover] a' -->
+<div data-hover>
+  <a href="#">Hover me</a>  <!-- ✅ matched: <a> inside [data-hover] -->
+</div>
+
+<!-- Register: 'a [data-hover]' (WRONG mental model) -->
+<a href="#">
+  <span data-hover>text</span> <!-- ❗ closest('a [data-hover]') matches the <a>, not the <span> -->
+</a>`;
+
+const trueVelocityCode = `// Inside your plugin
+let lastPointer = { x: 0, y: 0 };
+
+update(app) {
+  // Calculate actual pixel movement per frame
+  const dx = app.state.pointer.x - lastPointer.x;
+  const dy = app.state.pointer.y - lastPointer.y;
+
+  lastPointer = { ...app.state.pointer };
+}`;
+
+const valueOrGetterCode = `import { normalize } from "@supermousejs/utils";
+
+// In your plugin's install/update method:
+const size = normalize(options.size, 16); // If options.size is undefined, defaults to 16
+// 'size' is now guaranteed to be a resolved number,
+// even if options.size was passed as (state) => number`;
+
+const scopingBadGood = `// ❌ BAD: selector starts with a combinator
+'> .child'   → becomes '.supermouse-scope-0 > .child'
+// ✅ GOOD: simple selectors only
+'.child', '[data-my-plugin]'`;
 </script>
 
 <template>
-  <DocsSection label="Advanced" title="Core Architecture">
+  <DocsSection label="Advanced" title="Architecture">
     <div class="mb-16">
-      <p class="text-lg text-zinc-600 leading-relaxed mb-6">
-        Supermouse models the cursor as a game entity running a deterministic
-        <code>requestAnimationFrame</code> loop. The pipeline separates three distinct concerns
-        every frame: <span class="text-black font-bold border-b-2 border-black/10">Input</span>,
-        <span class="text-black font-bold border-b-2 border-black/10">Intent</span>, and
-        <span class="text-black font-bold border-b-2 border-black/10">Rendering</span>.
-      </p>
-      <p class="text-lg text-zinc-600 leading-relaxed">
-        This separation is what lets a magnetic button pull the cursor (modifying Intent via
-        <ApiLink name="state.target" to="state.target" /> in Phase 01) without the input layer
-        knowing — and without the visual dot jumping (Phase 02 physics handles the interpolation).
-      </p>
+      <Text size="lg">
+        Supermouse is built on a rigid, highly-optimized frame loop inspired by game engines. To
+        write effective plugins, you need to understand how the core pipeline separates
+        <strong>intent</strong> from <strong>rendering</strong>, and how it protects performance
+        using a strict DOM firewall.
+      </Text>
     </div>
 
     <!-- The Pipeline -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mb-8">The Frame Loop</h3>
+    <SectionHeader :level="2" class="mb-8">The Render Pipeline & Execution Order</SectionHeader>
 
     <div class="relative border-l-2 border-zinc-200 ml-4 md:ml-8 space-y-16">
-      <!-- STEP 1: SENSE -->
-      <TimelineStep phase="Phase 01: Input" title="Input Normalization">
+      <TimelineStep phase="Phase 01: Input" title="Event Aggregation">
         <Text>
-          The <code>Input</code> system captures native DOM events (<code>mousemove</code>,
-          <code>touchmove</code>). It normalizes pointer coordinates relative to the container,
-          checks accessibility preferences (<code>prefers-reduced-motion</code>), and writes the
-          result to <ApiLink name="state.pointer" to="state.pointer" />.
+          The input system captures native DOM pointer events outside of the animation loop. It
+          normalizes coordinates and writes them to <ApiLink to="state.pointer" />. The core loop
+          never waits on the DOM; it strictly consumes the latest available pointer coordinates.
         </Text>
-        <ResponsibilityBox title="Responsibility">
-          Sanitize raw input. Check device capabilities. Write
-          <span class="text-zinc-900 font-bold">state.pointer</span>.
-        </ResponsibilityBox>
       </TimelineStep>
 
-      <!-- STEP 2: LOGIC -->
       <TimelineStep phase="Phase 02: Intent" title="Logic Plugins">
         <Text>
-          Plugins with <ApiLink name="priority" to="priority" /> <code>&lt; 0</code> run here. A
-          magnetic plugin reads the hovered element's geometry from
-          <ApiLink name="state.interaction" to="state.interaction" /> (pre-scraped on
-          <code>mouseover</code>) and adjusts <ApiLink name="state.target" to="state.target" /> to
-          pull the cursor toward the element's center.
+          Plugins with a negative <ApiLink to="priority" /> (e.g., <code>-10</code>) run first.
+          These are "Logic Plugins". They read the physical <ApiLink to="state.pointer" /> and
+          modify the <ApiLink to="state.target" /> destination. For example, a magnetic plugin will
+          override <code>state.target</code> to pull the cursor toward a button.
         </Text>
-        <ResponsibilityBox title="Responsibility">
-          Read <span class="text-zinc-900 font-bold">state.pointer</span> /
-          <span class="text-zinc-900 font-bold">state.interaction</span>. Write
-          <span class="text-zinc-900 font-bold">state.target</span>.
+        <ResponsibilityBox title="Rule">
+          Logic plugins must never touch the DOM. They only mutate state.
         </ResponsibilityBox>
       </TimelineStep>
 
-      <!-- STEP 3: PHYSICS -->
-      <TimelineStep phase="Phase 03: Physics" title="Core Damping" :active="true">
+      <TimelineStep phase="Phase 03: Physics" title="Interpolation" :active="true">
         <Text>
-          The core interpolates between where the cursor is (<ApiLink
-            name="state.smooth"
-            to="state.smooth"
-          />) and where it needs to go (<ApiLink name="state.target" to="state.target" />) using
-          frame-rate independent exponential damping.
-          <ApiLink name="smoothness" to="smoothness" /> controls the <code>lambda</code> coefficient
-          — higher values produce tighter tracking.
+          The core steps in and calculates the physics. It interpolates between the current physical
+          position (<ApiLink to="state.smooth" />) and the intended position (<ApiLink
+            to="state.target"
+          />) using a frame-rate independent exponential decay algorithm.
         </Text>
-        <CodeBlock
-          :code="dampCode"
-          lang="javascript"
-          :clean="true"
-          class="border border-zinc-200"
-        />
       </TimelineStep>
 
-      <!-- STEP 4: RENDER -->
       <TimelineStep phase="Phase 04: Render" title="Visual Plugins" :last="true">
         <Text>
-          Visual plugins — <code>Dot</code>, <code>Ring</code> — read the final
-          <ApiLink name="state.smooth" to="state.smooth" /> coordinates and write
-          <code>transform</code> to their DOM elements. This is the only phase allowed to touch the
-          DOM.
+          Plugins with a priority of <code>0</code> or higher run last. These are "Visual Plugins"
+          (like Dot, Ring, or Trail). They read the final, interpolated
+          <ApiLink to="state.smooth" /> coordinates and apply them to DOM elements via CSS
+          <code>transform</code>.
         </Text>
-        <ResponsibilityBox title="Responsibility">
-          Read <span class="text-zinc-900 font-bold">state.smooth</span>. Write
-          <code>transform</code> to the DOM.
-        </ResponsibilityBox>
       </TimelineStep>
     </div>
 
-    <!-- Design Philosophy -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Design Philosophy</h3>
+    <div class="mt-12">
+      <CodeBlock
+        :code="loopCode"
+        lang="javascript"
+        :clean="true"
+        class="border border-zinc-200 mb-6"
+      />
+      <Callout title="Execution Order Note" class="mb-6">
+        Plugins are installed in insertion order (the order <code>.use()</code> is called), but
+        their <code>update()</code> hooks run sorted by their <code>priority</code> number on every
+        frame. A logic plugin modifying <code>state.target</code> should always have a lower
+        (negative) priority than visual plugins reading <code>state.smooth</code>.
+      </Callout>
+    </div>
 
-    <div class="mb-16">
-      <Text>
-        Supermouse follows a <strong>Brutalism-lite</strong> aesthetic contract: the UI is
-        high-contrast, instant, and rigid; the cursor is fluid, physics-driven, and organic. The
-        contrast is deliberate — it makes cursor interactions the only "living" element on the page.
+    <!-- DOM Firewall -->
+    <SectionDivider size="lg" id="dom-firewall">
+      <SectionHeader :level="2"> The DOM Firewall </SectionHeader>
+      <Text class="mb-2">
+        <strong>“DOM Firewall”</strong> is the principle that all DOM‑scraping must happen at
+        hover‑start, never inside the animation loop. Querying the DOM (like calling
+        <code>getBoundingClientRect</code>) during a <code>requestAnimationFrame</code> loop causes
+        severe layout thrashing. Supermouse enforces this by caching metadata the moment a hover
+        begins.
       </Text>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 mt-8">
-        <div class="bg-white p-8">
-          <h4 class="text-lg font-bold text-zinc-900 mb-4">No-Transition Rule</h4>
-          <p class="text-sm text-zinc-600 leading-relaxed">
-            Modal appearances, tab switches, and layout changes must be instantaneous
-            (<code>duration-0</code>). Only hover micro-interactions (color, border) may have fast
-            transitions.
-          </p>
-        </div>
-        <div class="bg-white p-8">
-          <h4 class="text-lg font-bold text-zinc-900 mb-4">Physics-First Rule</h4>
-          <p class="text-sm text-zinc-600 leading-relaxed">
-            <strong>Only</strong> the cursor and cursor-related effects are smooth. Everything else
-            snaps. This contrast makes physics-based cursor motion stand out.
-          </p>
-        </div>
-      </div>
-    </div>
+      <SectionHeader :level="3" class="mt-8 mb-4">Registering Hover Targets</SectionHeader>
+      <Text class="mb-4">
+        For the core to know when to scrape data, your plugin must declare what CSS selectors it
+        cares about. You do this in your plugin's <code>install</code> method using
+        <ApiLink to="registerHoverTarget" />.
+      </Text>
+      <CodeBlock :code="hoverRegisterCode" lang="typescript" class="mb-6" />
+      <Text class="mb-4">
+        Calling <code>registerHoverTarget</code> does two critical things under the hood:
+      </Text>
+      <ul class="list-disc list-inside space-y-2 text-sm text-zinc-700 mb-8 pl-4">
+        <li>
+          It adds the selector to the internal list used for
+          <code>element.closest(selectors)</code> detection to trigger hover states.
+        </li>
+        <li>
+          It injects a global stylesheet (e.g.,
+          <code>.supermouse-scope-0 [data-my-plugin] { cursor: none !important; }</code>) to hide
+          the native cursor.
+        </li>
+      </ul>
 
-    <!-- Plugin Architecture -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">Plugin Architecture</h3>
-    <div class="mb-16">
-      <Text>
-        Plugins are the primary extension mechanism. The core coordinates them — it does not replace
-        them. If a feature can be a plugin, it should be a plugin. See
-        <router-link to="/docs/advanced/authoring" class="underline font-bold hover:text-black"
-          >Plugin Authoring</router-link
-        >
-        for the full contract.
+      <SectionHeader :level="3" class="mt-8 mb-4"
+        >Hover Detection & <code>closest()</code></SectionHeader
+      >
+      <Text class="mb-4">
+        Internally, all registered hover selectors are joined into a single string (e.g.
+        <code>"a, button, [data-supermouse-stick]"</code>). This string is passed to
+        <code>element.closest(selectors)</code>, which finds the
+        <strong>nearest ancestor</strong> (including self) that matches <em>any</em> of the
+        selectors.
+      </Text>
+      <Callout title="Compound Selectors Warning" class="mb-6">
+        If you register a compound selector like <code>[data-hover] a</code>,
+        <code>closest()</code> will match an ancestor that satisfies the full rule. It does
+        <strong>not</strong> match the innermost <code>a</code> alone unless it also satisfies the
+        selector. Prefer simple selectors or register multiple individual selectors.
+      </Callout>
+      <CodeBlock :code="closestExampleCode" lang="html" :clean="true" class="mb-8" />
+    </SectionDivider>
+
+    <!-- Interaction State Resolution -->
+    <SectionDivider size="lg" id="interaction-resolution">
+      <SectionHeader :level="2"> Interaction State Resolution </SectionHeader>
+      <Text class="mb-4">
+        When the user hovers over a registered element, the engine evaluates properties in the
+        following priority order (highest to lowest), merging them into a single flat object stored
+        at <code>state.interaction</code>:
+      </Text>
+      <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong>Custom <code>resolveInteraction()</code> function:</strong> User-provided custom
+          logic.
+        </li>
+        <li>
+          <strong>Per-element <code>data-supermouse-*</code> attributes:</strong> HTML overrides on
+          specific nodes.
+        </li>
+        <li>
+          <strong>CSS selector rules:</strong> Global mappings defined in
+          <code>options.rules</code>.
+        </li>
+      </ol>
+      <Text class="mb-4">
+        <strong>Parsing behavior:</strong> The prefix (<code>data-supermouse-</code> by default) is
+        stripped, and keys are camelCased (<code>data-supermouse-my-key</code> becomes
+        <code>interaction.myKey</code>). Empty attributes like
+        <code>data-supermouse-stick</code> resolve to boolean <code>true</code>.
+      </Text>
+      <CodeBlock :code="customResolverCode" lang="typescript" :clean="true" class="mt-6" />
+    </SectionDivider>
+
+    <!-- State & Plugin Coordination -->
+    <SectionDivider size="lg" id="shared-state">
+      <SectionHeader :level="2"> State & Plugin Coordination </SectionHeader>
+      <Text class="mb-6">
+        Plugins are isolated by design. They do not import or call methods on each other. Instead,
+        they coordinate entirely by reading and writing to the central
+        <ApiLink to="MouseState" /> object.
       </Text>
 
-      <div class="space-y-12 mt-8 border-l border-zinc-200 pl-8">
-        <div>
-          <h4 class="text-lg font-bold text-zinc-900 mb-2">Priority & The "Tearing" Bug</h4>
-          <Text size="sm" color="subtle">
-            Logic plugins (e.g. Magnetic) <strong>must</strong> declare a negative
-            <ApiLink name="priority" to="priority" /> (e.g. <code>-10</code>). If a logic plugin
-            runs at default priority (<code>0</code>), it executes interleaved with visual plugins —
-            visuals registered before it render the old position while those registered after render
-            the new one. This causes visible "tearing."
-          </Text>
+      <SectionHeader :level="3" class="mt-8 mb-4">The Shape State Contract</SectionHeader>
+      <Text class="mb-4">
+        <code>state.shape</code> is a read-mostly cache for the current cursor geometry (width,
+        height, borderRadius). It is intended to be:
+      </Text>
+      <ul class="list-disc list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong>Written by one logic plugin</strong> per context (e.g., a "stick" plugin that
+          computes the element's rect) early in the pipeline.
+        </li>
+        <li>
+          <strong>Read by visual plugins</strong> (ring, morph) to avoid redundant
+          <code>getBoundingClientRect</code> calls.
+        </li>
+        <li><strong>Set back to null</strong> when the condition that produced the shape ends.</li>
+      </ul>
+      <Callout title="Coordination Warning" class="mb-6">
+        Because plugins run in isolation, if multiple logic plugins attempt to write to
+        <code>state.shape</code> simultaneously, the one with the higher priority will overwrite the
+        other, leading to visual flickering or "tearing". To avoid conflicts, check
+        <code>if (!app.state.shape)</code> before writing from a lower-priority plugin.
+      </Callout>
+
+      <SectionHeader :level="3" class="mt-10 mb-4">Velocity & Angle Semantics</SectionHeader>
+      <Text class="mb-4">
+        It is a common misconception that <code>state.velocity</code> represents the true physical
+        speed of the user's mouse. It does not. As seen in the loop pipeline above,
+        <code>velocity</code> is derived directly from the mathematical difference between the
+        <strong>target</strong> and the <strong>smooth</strong> position.
+        <code>state.angle</code> is the direction (in degrees) of that same tracking error vector,
+        computed via <code>atan2(velocity.y, velocity.x)</code>.
+      </Text>
+      <CodeBlock
+        code="velocity.x = target.x - smooth.x
+velocity.y = target.y - smooth.y
+angle = atan2(velocity.y, velocity.x) * (180 / PI)"
+        lang="javascript"
+        :clean="true"
+        class="border border-zinc-200 mb-6"
+      />
+      <Text class="mb-4">
+        This makes <code>velocity</code> a vector representing the
+        <strong>spring tracking error</strong> (or distance to destination). This is highly useful
+        for squishy, organic animations where you want the cursor to stretch based on how far behind
+        it is.
+      </Text>
+      <Text class="mb-4">
+        If your plugin specifically requires the raw pixel delta per frame (true mouse speed), you
+        must track it manually against the un-smoothed <ApiLink to="state.pointer" />:
+      </Text>
+      <CodeBlock :code="trueVelocityCode" lang="typescript" />
+    </SectionDivider>
+
+    <!-- Utilities & Helpers -->
+    <SectionDivider size="lg" id="utilities">
+      <SectionHeader :level="2"> Utilities & Helpers </SectionHeader>
+      <SectionHeader :level="3" class="mt-8 mb-4"
+        ><code>ValueOrGetter&lt;T&gt;</code></SectionHeader
+      >
+      <Text class="mb-4">
+        Many plugin options accept either a static value or a reactive function
+        <code>(state: MouseState) =&gt; T</code>. The core library provides a
+        <code>normalize</code> helper to easily evaluate these inside your
+        <code>update</code> hooks:
+      </Text>
+      <CodeBlock :code="valueOrGetterCode" lang="typescript" class="mb-6" />
+    </SectionDivider>
+
+    <!-- Lifecycle & Error Handling -->
+    <SectionDivider size="lg" id="lifecycle">
+      <SectionHeader :level="2"> Lifecycle & Error Handling </SectionHeader>
+
+      <SectionHeader :level="3" class="mt-8 mb-4">Native Cursor Visibility Control</SectionHeader>
+      <Text class="mb-4"> Three layers control whether the real cursor is shown or hidden: </Text>
+      <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong>Global <code>options.hideCursor</code>:</strong> If false, the native cursor is
+          never hidden.
+        </li>
+        <li>
+          <strong>Automatic detection:</strong> Based on <code>state.isNative</code> (e.g. hovering
+          over native text inputs).
+        </li>
+        <li>
+          <strong>Forced override:</strong> Using
+          <code>app.setNativeCursor("hide" | "show" | "auto")</code> to bypass automatic logic.
+        </li>
+      </ol>
+      <Callout title="CSS Scoping Mechanism" class="mb-6">
+        When hiding the cursor automatically, Supermouse injects
+        <code>cursor: none !important</code> scoped with a generated class (e.g.
+        <code>.supermouse-scope-0</code>). Be careful: do <strong>not</strong> pass selectors that
+        start with combinators (<code>&gt;</code>, <code>+</code>, <code>~</code>), as prepending a
+        class to them results in invalid or unintended CSS scoping.
+        <div class="mt-4">
+          <CodeBlock :code="scopingBadGood" lang="text" :clean="true" />
         </div>
+      </Callout>
 
-        <div>
-          <h4 class="text-lg font-bold text-zinc-900 mb-2">Logic vs. Visual Plugins</h4>
-          <Text size="sm" color="subtle">
-            <strong>Logic plugins</strong> write to
-            <ApiLink name="state.target" to="state.target" /> and must not touch the DOM.
-            <strong>Visual plugins</strong> read
-            <ApiLink name="state.smooth" to="state.smooth" /> and write <code>transform</code> to
-            the DOM. Mixing these responsibilities breaks the pipeline.
-          </Text>
-        </div>
+      <SectionHeader :level="3" class="mt-8 mb-4"
+        >Execution Flags (<code>enableTouch</code> & <code>autoStart</code>)</SectionHeader
+      >
+      <ul class="list-disc list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong><code>enableTouch</code> (default: <code>false</code>):</strong> When true, touch
+          events are processed instead of ignored. Experimental.
+        </li>
+        <li>
+          <strong><code>autoStart</code> (default: <code>true</code>):</strong> If false, the
+          animation loop will not start until you explicitly call <code>app.start()</code>. Useful
+          when waiting for additional setup.
+        </li>
+      </ul>
 
-        <div>
-          <h4 class="text-lg font-bold text-zinc-900 mb-2">Inter-Plugin Communication</h4>
-          <Text size="sm" color="subtle">
-            Plugins coordinate via state channels. For example,
-            <ApiLink name="state.shape" to="state.shape" /> bridges logic and visuals: a Stick
-            plugin reads the hovered element's geometry and writes it to <code>state.shape</code>; a
-            Ring plugin reads it to morph its border radius. Behavior and rendering remain fully
-            decoupled.
-          </Text>
-        </div>
-      </div>
-    </div>
-
-    <!-- Performance Systems -->
-    <h3 class="text-2xl font-bold text-zinc-900 tracking-tight mt-20 mb-8">
-      Performance Contracts
-    </h3>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
-      <div class="bg-white p-8">
-        <h4 class="text-lg font-bold text-zinc-900 mb-4">DOM Firewall</h4>
-        <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-          Reading layout properties (e.g. <code>getBoundingClientRect</code>) inside
-          <code>update()</code> causes layout thrashing and breaks the 60fps budget.
-        </p>
-        <p class="text-sm text-zinc-600 leading-relaxed">
-          The core scrapes element geometry <strong>once</strong> on the
-          <code>mouseover</code> event and caches it in
-          <ApiLink name="state.interaction" to="state.interaction" />. The render loop reads from
-          this cache — all geometry lookups are O(1).
-        </p>
-      </div>
-      <div class="bg-white p-8">
-        <h4 class="text-lg font-bold text-zinc-900 mb-4">The Stage System</h4>
-        <p class="text-sm text-zinc-600 leading-relaxed mb-4">
-          The "double cursor" glitch occurs when an element's <code>cursor: pointer</code> overrides
-          <code>body { cursor: none }</code>.
-        </p>
-        <p class="text-sm text-zinc-600 leading-relaxed">
-          On init, Supermouse injects a <code>&lt;style&gt;</code> tag targeting every interactive
-          selector registered by plugins and applies <code>cursor: none !important</code>. This is
-          the Stage system.
-        </p>
-      </div>
-    </div>
-
-    <div class="mt-16">
-      <h3 class="text-sm font-bold text-zinc-900 mb-4 uppercase tracking-widest">
-        Reference Implementation
-      </h3>
-      <CodeBlock :code="loopCode" lang="typescript" title="core/Supermouse.ts (Simplified)" />
-    </div>
+      <SectionHeader :level="3" class="mt-8 mb-4">Plugin Error Handling</SectionHeader>
+      <Text class="mb-4">
+        To prevent a single plugin from crashing the entire pipeline, Supermouse guards plugin
+        execution. If a plugin throws an error in its <code>install()</code> or
+        <code>update()</code> hooks, the core catches it, disables that specific plugin (<code
+          >isEnabled = false</code
+        >), logs an error to the console, and attempts to safely run its
+        <code>onDisable</code> hook.
+      </Text>
+      <Callout title="Note" class="mb-6">
+        The <code>destroy()</code> lifecycle hook is <strong>not</strong> wrapped in a try‑catch.
+        Plugin authors must ensure their cleanup logic is defensive to avoid unhandled exceptions.
+      </Callout>
+    </SectionDivider>
   </DocsSection>
 </template>

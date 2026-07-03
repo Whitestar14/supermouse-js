@@ -134,43 +134,22 @@ onUnmounted(() => {
     <SectionHeader :level="2" class="mb-6"> 3. Defining Interactions </SectionHeader>
 
     <Text class="mb-6">
-      Interactive triggers in Supermouse are declarative. The core engine remains agnostic to
-      specific visual responses; it parses hovered element layouts and exposes them to visual and
-      logic layers via the O(1)
-      <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> cache.
+      You can define rules to customize cursor behavior per element, either globally during
+      configuration or directly using inline HTML data attributes (e.g.
+      <code>data-supermouse-color="red"</code>). These attributes are scraped automatically and
+      cached efficiently in the background.
+    </Text>
+    <Text class="mb-6">
+      To learn more about how attributes are processed, cached, and integrated with TypeScript
+      module augmentation, read the dedicated
+      <router-link to="/docs/advanced/architecture#interaction-state" class="link"
+        >Interaction State Resolution</router-link
+      >
+      concept guide.
     </Text>
 
-    <Callout title="Scraper Flow">
-      The core input processor reads global selectors mapped in
-      <ApiLink to="rules"><code>rules</code></ApiLink> or watches for raw inline markup to populate
-      the <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> store, preventing
-      layout thrashing.
-    </Callout>
-
-    <div class="grid grid-cols-1 gap-8 mb-12">
-      <div>
-        <SectionHeader :level="4"> Global Rules (Recommended) </SectionHeader>
-        <Text size="sm" class="mb-4">
-          Bind selectors to interaction configurations inside your initialization parameters to keep
-          DOM markup clean.
-        </Text>
-        <CodeBlock
-          :code="interactionCode"
-          title="main.ts"
-          lang="typescript"
-          class="border border-zinc-200"
-        />
-      </div>
-
-      <div>
-        <SectionHeader :level="4"> HTML Overrides </SectionHeader>
-        <Text size="sm" class="mb-4">
-          For ad-hoc configurations, write
-          <ApiLink to="data-attributes"><code>data-supermouse-*</code></ApiLink> attributes directly
-          on HTML targets. Inline overrides take precedence over global rules.
-        </Text>
-        <CodeBlock :code="htmlCode" title="index.html" lang="html" class="border border-zinc-200" />
-      </div>
+    <div class="mb-12">
+      <CodeBlock :code="htmlCode" title="index.html" lang="html" class="border border-zinc-200" />
     </div>
 
     <!-- Scoped Containers -->

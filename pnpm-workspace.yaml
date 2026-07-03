@@ -3,5 +3,5 @@ packages:
   - playground
   - docs
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  esbuild: true
