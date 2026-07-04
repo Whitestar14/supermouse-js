@@ -56,7 +56,7 @@ const metadataItems = [
         >inject</code
       >
       system. It handles engine lifecycle (mount/unmount) automatically so you don't manage
-      <ApiLink name="destroy" to="destroy" /> calls manually.
+      <ApiLink to="destroy" /> calls manually.
     </Text>
 
     <!-- Installation -->
@@ -85,8 +85,7 @@ const metadataItems = [
       <Text size="sm">
         Use <code>useSupermouse()</code> in any child component to access the running instance. The
         return value is a reactive <code>Ref&lt;Supermouse | null&gt;</code> — always guard with
-        <code>mouse.value</code> before accessing <ApiLink name="state" to="state" /> or calling
-        methods.
+        <code>mouse.value</code> before accessing <ApiLink to="state" /> or calling methods.
       </Text>
       <CodeBlock
         :code="componentCode"

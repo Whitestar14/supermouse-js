@@ -1,7 +1,33 @@
 <script setup lang="ts">
-import CodeBlock from "@shared/CodeBlock.vue";
-import Text from "@shared/Text.vue";
-import { coreClassDef } from "@composables/useApiReference";
+import CodeBlock from "@components/shared/CodeBlock.vue";
+import Text from "@components/shared/Text.vue";
+
+const coreClassDef = `class Supermouse {
+  static readonly version: string;
+
+  readonly version: string;
+  state: MouseState;
+  options: SupermouseOptions;
+  get container(): HTMLDivElement;
+  get isEnabled(): boolean;
+
+  constructor(options?: SupermouseOptions);
+
+  use(plugin: SupermousePlugin): this;
+  getPlugin(name: string): SupermousePlugin | undefined;
+  enablePlugin(name: string): void;
+  disablePlugin(name: string): void;
+  togglePlugin(name: string): void;
+
+  start(): void;
+  enable(): void;
+  disable(): void;
+  destroy(): void;
+  step(time: number): void;
+
+  setNativeCursor(type: 'show' | 'hide' | 'auto'): void;
+  registerHoverTarget(selector: string): void;
+}`;
 </script>
 
 <template>

@@ -87,6 +87,45 @@ const CSS_GRAMMAR: LanguageGrammar = {
   ]
 };
 
+const BASH_GRAMMAR: LanguageGrammar = {
+  islands: [
+    // Double‑quoted strings (allow escape sequences)
+    { type: "string", pattern: /"(?:\\.|[^"\\])*"/g, style: COLORS.mediumGrey },
+    // Single‑quoted strings (no escapes in POSIX)
+    { type: "string", pattern: /'[^']*'/g, style: COLORS.mediumGrey },
+    // Comments: from # to end of line
+    { type: "comment", pattern: /#.*/g, style: COLORS.comment }
+  ],
+  sea: [
+    {
+      type: "keyword",
+      pattern:
+        /\b(if|then|else|elif|fi|for|while|do|done|in|case|esac|select|until|function|time|coproc)\b/g,
+      style: COLORS.amber
+    },
+    {
+      type: "builtin",
+      pattern:
+        /\b(echo|cd|ls|pwd|export|source|read|printf|test|exec|eval|let|shift|getopts|type|hash|alias|unalias|bg|fg|jobs|kill|wait|disown|logout|exit|return|set|unset|env|sudo|cat|grep|awk|sed|find|xargs)\b/g,
+      style: COLORS.lightGrey
+    },
+    { type: "number", pattern: /\b\d+(\.\d+)?\b/g, style: COLORS.mediumGrey },
+    // Variables: $NAME or ${...}
+    {
+      type: "function",   // reuse function style (white) for variables
+      pattern: /\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[^}]+\}/g,
+      style: COLORS.white
+    },
+    // Punctuation: pipes, redirects, semicolons, ampersands, braces
+    { type: "punctuation", pattern: /[{}()\[\];|&<>]/g, style: COLORS.darkGrey }
+  ]
+};
+
+const PLAINTEXT_GRAMMAR: LanguageGrammar = {
+  islands: [],
+  sea: []
+};
+
 const GRAMMARS: Record<string, LanguageGrammar> = {
   js: JS_GRAMMAR,
   ts: JS_GRAMMAR,
@@ -94,7 +133,16 @@ const GRAMMARS: Record<string, LanguageGrammar> = {
   javascript: JS_GRAMMAR,
   html: HTML_GRAMMAR,
   vue: HTML_GRAMMAR,
-  css: CSS_GRAMMAR
+  css: CSS_GRAMMAR,
+
+  // New entries
+  bash: BASH_GRAMMAR,
+  sh: BASH_GRAMMAR,
+  shell: BASH_GRAMMAR,
+  zsh: BASH_GRAMMAR,
+  txt: PLAINTEXT_GRAMMAR,
+  text: PLAINTEXT_GRAMMAR,
+  plaintext: PLAINTEXT_GRAMMAR
 };
 
 const escapeHtml = (unsafe: string) => {

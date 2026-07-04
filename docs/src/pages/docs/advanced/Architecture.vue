@@ -93,10 +93,9 @@ const scopingBadGood = `// ❌ BAD: selector starts with a combinator
   <DocsSection label="Advanced" title="Architecture">
     <div class="mb-16">
       <Text size="lg">
-        Supermouse is built on a rigid, highly-optimized frame loop inspired by game engines. To
-        write effective plugins, you need to understand how the core pipeline separates
-        <strong>intent</strong> from <strong>rendering</strong>, and how it protects performance
-        using a strict DOM firewall.
+        Supermouse uses a predictable frame loop to maintain its high performance. Understanding how
+        this pipeline separates <strong>intent</strong> from <strong>rendering</strong>, and how it
+        handles DOM interactions, is the key to writing effective plugins.
       </Text>
     </div>
 
@@ -162,11 +161,10 @@ const scopingBadGood = `// ❌ BAD: selector starts with a combinator
     <SectionDivider size="lg" id="dom-firewall">
       <SectionHeader :level="2"> The DOM Firewall </SectionHeader>
       <Text class="mb-2">
-        <strong>“DOM Firewall”</strong> is the principle that all DOM‑scraping must happen at
-        hover‑start, never inside the animation loop. Querying the DOM (like calling
-        <code>getBoundingClientRect</code>) during a <code>requestAnimationFrame</code> loop causes
-        severe layout thrashing. Supermouse enforces this by caching metadata the moment a hover
-        begins.
+        The <strong>DOM Firewall</strong> is a core principle: all DOM‑scraping happens when a hover
+        starts, never inside the animation loop. Calling <code>getBoundingClientRect</code> or
+        reading computed styles during a <code>requestAnimationFrame</code> loop causes layout
+        thrashing. Supermouse avoids this by caching element metadata the moment a hover begins.
       </Text>
 
       <SectionHeader :level="3" class="mt-8 mb-4">Registering Hover Targets</SectionHeader>
@@ -224,7 +222,7 @@ const scopingBadGood = `// ❌ BAD: selector starts with a combinator
           logic.
         </li>
         <li>
-          <strong>Per-element <code>data-supermouse-*</code> attributes:</strong> HTML overrides on
+          <strong>Per-element <code>data-[prefix]-*</code> attributes:</strong> HTML overrides on
           specific nodes.
         </li>
         <li>
@@ -233,10 +231,11 @@ const scopingBadGood = `// ❌ BAD: selector starts with a combinator
         </li>
       </ol>
       <Text class="mb-4">
-        <strong>Parsing behavior:</strong> The prefix (<code>data-supermouse-</code> by default) is
-        stripped, and keys are camelCased (<code>data-supermouse-my-key</code> becomes
+        <strong>Parsing behavior:</strong> The prefix (configured via
+        <code>options.dataPrefix</code>, defaults to <code>"supermouse"</code>) is stripped, and
+        keys are camelCased (<code>data-[prefix]-my-key</code> becomes
         <code>interaction.myKey</code>). Empty attributes like
-        <code>data-supermouse-stick</code> resolve to boolean <code>true</code>.
+        <code>data-[prefix]-stick</code> resolve to boolean <code>true</code>.
       </Text>
       <CodeBlock :code="customResolverCode" lang="typescript" :clean="true" class="mt-6" />
     </SectionDivider>
@@ -366,16 +365,15 @@ angle = atan2(velocity.y, velocity.x) * (180 / PI)"
 
       <SectionHeader :level="3" class="mt-8 mb-4">Plugin Error Handling</SectionHeader>
       <Text class="mb-4">
-        To prevent a single plugin from crashing the entire pipeline, Supermouse guards plugin
-        execution. If a plugin throws an error in its <code>install()</code> or
-        <code>update()</code> hooks, the core catches it, disables that specific plugin (<code
-          >isEnabled = false</code
-        >), logs an error to the console, and attempts to safely run its
+        Supermouse wraps plugin execution so that one buggy plugin won't crash the entire cursor
+        loop. If a plugin throws an error in its <code>install()</code> or
+        <code>update()</code> hooks, the core catches it, logs the error to the console, disables
+        the plugin (<code>isEnabled = false</code>), and attempts to safely run its
         <code>onDisable</code> hook.
       </Text>
       <Callout title="Note" class="mb-6">
         The <code>destroy()</code> lifecycle hook is <strong>not</strong> wrapped in a try‑catch.
-        Plugin authors must ensure their cleanup logic is defensive to avoid unhandled exceptions.
+        Plugin authors should ensure their cleanup logic is defensive to avoid unhandled exceptions.
       </Callout>
     </SectionDivider>
   </DocsSection>

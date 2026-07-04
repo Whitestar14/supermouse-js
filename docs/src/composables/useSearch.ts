@@ -1,7 +1,7 @@
 import { computed, ref } from "vue";
 import { DOCS_NAVIGATION } from "@config/navigation";
 import { PLUGINS } from "@data/plugin-data";
-import { API_SECTIONS, ALL_API_ENTRIES } from "@composables/useApiReference";
+import { API_SECTIONS } from "@composables/useApiReference";
 
 export interface SearchResult {
   id: string;
@@ -213,17 +213,7 @@ export function useSearch() {
       });
     });
 
-    ALL_API_ENTRIES.forEach((entry) => {
-      items.push({
-        id: `api-${entry.id}`,
-        label: entry.name,
-        description: entry.desc,
-        path: `/docs/reference/api#${entry.id}`,
-        type: "API",
-        section: "Reference",
-        keywords: [entry.id, entry.name, entry.type ?? "", "api"].filter(Boolean)
-      });
-    });
+
 
     PLUGINS.forEach((p) => {
       const keywords = [p.id, p.package, p.name];

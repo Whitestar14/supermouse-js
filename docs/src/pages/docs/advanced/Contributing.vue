@@ -10,8 +10,9 @@ import { GITHUB_URL } from "@config/constants";
 const setupCode = `pnpm install
 pnpm dev`;
 
-const createPluginCode = "pnpm run create:plugin <name>";
-const removePluginCode = "pnpm run remove:plugin <name>";
+const manageCode = "pnpm run manage";
+const directCreateCode = "pnpm run create:plugin <name>";
+const directRemoveCode = "pnpm run remove:plugin <name>";
 </script>
 
 <template>
@@ -148,8 +149,8 @@ const removePluginCode = "pnpm run remove:plugin <name>";
       <li class="flex gap-3">
         <span class="w-1.5 h-1.5 bg-black rounded-full mt-2 shrink-0" />
         <Text size="sm">
-          Logic plugins must declare <ApiLink name="priority" to="priority" /> <code>&lt; 0</code>.
-          Positive or zero priority causes visual tearing.
+          Logic plugins must declare <ApiLink to="priority" /> <code>&lt; 0</code>. Positive or zero
+          priority causes visual tearing.
         </Text>
       </li>
     </ul>
@@ -189,7 +190,21 @@ const removePluginCode = "pnpm run remove:plugin <name>";
         </div>
       </div>
 
-      <h3 class="text-xl font-bold text-zinc-900 mb-6 tracking-tight">CLI Scripts</h3>
+      <h3 class="text-xl font-bold text-zinc-900 mb-6 tracking-tight">Interactive Manager</h3>
+      <Text class="mb-8">
+        We provide a unified, interactive CLI manager that acts as the control center for all plugin
+        operations. The vision is for this toolchain to eventually be standalone (e.g.,
+        <code>@supermousejs/cli</code>).
+      </Text>
+      <div class="mb-12">
+        <CodeBlock :code="manageCode" title="Terminal" lang="text" />
+      </div>
+
+      <h3 class="text-xl font-bold text-zinc-900 mb-6 tracking-tight">Direct CLI Commands</h3>
+      <Text class="mb-8">
+        For users wanting granularity or for CI pipelines, the underlying granular commands are also
+        available.
+      </Text>
       <div class="space-y-8">
         <div class="flex flex-col md:flex-row gap-8 items-start">
           <div class="w-full md:w-1/3 shrink-0">
@@ -199,7 +214,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
             </Text>
           </div>
           <div class="w-full md:w-2/3">
-            <CodeBlock :code="createPluginCode" title="Terminal" lang="text" />
+            <CodeBlock :code="directCreateCode" title="Terminal" lang="text" />
           </div>
         </div>
 
@@ -211,7 +226,7 @@ const removePluginCode = "pnpm run remove:plugin <name>";
             </Text>
           </div>
           <div class="w-full md:w-2/3">
-            <CodeBlock :code="removePluginCode" title="Terminal" lang="text" />
+            <CodeBlock :code="directRemoveCode" title="Terminal" lang="text" />
           </div>
         </div>
       </div>

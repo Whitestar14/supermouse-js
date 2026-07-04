@@ -7,6 +7,11 @@ import Text from "@/components/shared/Text.vue";
 import ApiLink from "@/components/shared/ApiLink.vue";
 import SectionDivider from "@/components/shared/SectionDivider.vue";
 
+const cliScaffoldCode = `pnpm run manage
+# Follow the interactive prompts to create a new plugin
+# OR run the direct command:
+# pnpm run create:plugin <plugin-name>`;
+
 const minimalPluginCode = `import type { SupermousePlugin } from '@supermousejs/core';
 
 export const RedDot = (): SupermousePlugin => {
@@ -99,41 +104,69 @@ update(app) {
   }
 }`;
 
-const interactionStateCode = `// inside update()
-const color = app.state.interaction.color;  // O(1) cached read
-
-if (color) {
-  el.style.backgroundColor = color;
-}`;
-
 const dtExampleCode = `// frame‑rate dependent (bad)
 x += (target.x - x) * 0.1;
 
 // frame‑rate independent (good)
 import { damp } from '@supermousejs/utils';
 x = damp(x, target.x, 12, dt);`;
+
+const interactionCodeDemo = `// 1. App initialization sets global rules
+const app = new Supermouse({
+  rules: {
+    '.btn-danger': { color: 'red' }
+  }
+});
+
+// 2. HTML can override rules via data attributes
+// <button class="btn-danger" data-supermouse-color="orange">Hover</button>
+
+// 3. Plugin reads the flat interaction state without querying DOM
+update(app) {
+  const color = app.state.interaction.color;
+  if (color) {
+    el.style.backgroundColor = color;
+  }
+}`;
 </script>
 
 <template>
   <DocsSection label="Advanced" title="Plugin Authoring">
     <Text size="lg" class="mb-10">
-      Plugins are the primary extension mechanism in Supermouse. The core exists to coordinate them.
-      You can write plugins in two ways, using the
-      <span class="text-black font-bold border-b-2 border-black/10">definePlugin helper </span>
-      (recommended for single-element visual layers) or as a
-      <span class="text-black font-bold border-b-2 border-black/10">plain object</span> (for full
-      control). Both produce the same runtime behavior
+      Plugins are the primary extension mechanism in Supermouse. The core runtime is intentionally
+      minimal; it simply aggregates input and coordinates an array of plugins.
     </Text>
 
-    <!-- Ownership & Publishing -->
-    <SectionDivider size="lg" id="ownership">
-      <SectionHeader :level="2">Plugin Ownership & Publishing</SectionHeader>
+    <!-- What is a Plugin? -->
+    <SectionDivider size="lg" id="what-is-a-plugin">
+      <SectionHeader :level="2">What is a Plugin?</SectionHeader>
       <Text class="mb-4">
-        Plugins are published <strong>independently</strong>: no pull requests, no namespace
-        restriction. Use a descriptive name like <code>supermouse-plugin-xyz</code> or
-        <code>@your-scope/supermouse-xyz</code>. The <code>@supermousejs/*</code> org is reserved
-        for core runtime, utilities, and reference implementations. Community promotion is optional
-        and rare.
+        At its core, a Supermouse plugin is simply a factory function that returns an object
+        containing lifecycle hooks (<code>install</code>, <code>update</code>, <code>destroy</code>,
+        etc.). This functional approach ensures that each plugin instance encapsulates its own
+        state, avoiding cross-contamination between different cursors on the same page.
+      </Text>
+      <CodeBlock :code="minimalPluginCode" lang="typescript" :clean="true" class="mb-6" />
+      <Text>
+        You can write plugins entirely from scratch as plain objects (like above), or you can use
+        our <ApiLink to="defineplugin"><code>definePlugin</code></ApiLink> helper which abstracts
+        away mounting and unmounting DOM elements for standard visual plugins.
+      </Text>
+    </SectionDivider>
+
+    <!-- Scaffolding Plugins -->
+    <SectionDivider size="lg" id="scaffolding">
+      <SectionHeader :level="2">Scaffolding Plugins (The CLI)</SectionHeader>
+      <Text class="mb-4">
+        To streamline plugin development, this repository includes an interactive CLI manager. It
+        automatically generates the correct directory structure, <code>package.json</code>, and a
+        boilerplate <code>index.ts</code> with the appropriate TypeScript types.
+      </Text>
+      <CodeBlock :code="cliScaffoldCode" lang="bash" title="Terminal" class="mb-6" />
+      <Text>
+        The CLI handles symlinking your new plugin into the Playground so you can instantly start
+        testing it. When you're ready to publish, the toolchain is fully compatible with our
+        <code>changeset</code> automated versioning.
       </Text>
     </SectionDivider>
 
@@ -235,14 +268,38 @@ x = damp(x, target.x, 12, dt);`;
       </Text>
       <CodeBlock :code="shapeCoordinationCode" lang="typescript" :clean="true" class="mb-8" />
 
-      <h3 class="text-lg font-bold mb-2">The <code>state.interaction</code> bus</h3>
+      <h3 class="text-lg font-bold mb-2" id="state-interaction">
+        The <code>state.interaction</code> bus
+      </h3>
       <Text class="mb-3">
-        The input system scrapes data attributes once per hover and caches them in
-        <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink
-        >. This bus broadcasts metadata to all plugins without any DOM calls. Plugins read it for
-        contextual styling, behavior flags, or custom logic.
+        The <code>state.interaction</code> object is a reactive dictionary populated automatically
+        by the core input system whenever a hover occurs. It acts as the primary "bus" that
+        broadcasts context about the hovered element to all plugins without any expensive DOM calls.
       </Text>
-      <CodeBlock :code="interactionStateCode" lang="typescript" :clean="true" />
+      <Text class="mb-3"> There are two main ways the input system populates this object: </Text>
+      <ol class="list-decimal list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong>CSS Selector Rules:</strong> Configured in the Supermouse constructor via
+          <code>options.rules</code>. These apply a static state object whenever the pointer is over
+          an element matching the CSS selector.
+        </li>
+        <li>
+          <strong>Data Attributes:</strong> Elements can override or supply state inline using
+          <code>data-[prefix]-*</code> attributes (where prefix defaults to
+          <code>supermouse</code>). Keys are camel-cased and values are coerced automatically.
+        </li>
+      </ol>
+      <Callout title="Resolution Priority" class="mb-6">
+        Data attributes on the hovered node will <b>override</b> the values defined in
+        <code>options.rules</code>. This is incredibly powerful as it allows you to configure global
+        fallback behaviors via CSS selectors and override them for specific DOM nodes via HTML
+        attributes.
+      </Callout>
+      <Text class="mb-3">
+        Inside a plugin's <code>update</code> loop, you simply read from the bus. Because
+        <code>state.interaction</code> is completely flat, you get O(1) cached reads:
+      </Text>
+      <CodeBlock :code="interactionCodeDemo" lang="typescript" :clean="true" />
     </SectionDivider>
 
     <!-- Lifecycle -->
@@ -302,14 +359,19 @@ x = damp(x, target.x, 12, dt);`;
         cross‑instance state leakage.
       </Text>
 
-      <h3 class="text-lg font-bold mb-2">Minimal Plugin (Plain Object)</h3>
-      <Text class="mb-3">Great for experiments, learning, or custom local effects.</Text>
-      <CodeBlock
-        title="MinimalPlugin.ts"
-        :code="minimalPluginCode"
-        lang="typescript"
-        class="mb-8"
-      />
+      <h3 class="text-lg font-bold mb-2">Plain Object Format</h3>
+      <Text class="mb-3"
+        >Great for logic plugins, experiments, learning, or multi-element visual effects.</Text
+      >
+      <Text class="mb-8"
+        ><em
+          >See
+          <router-link to="#what-is-a-plugin" class="underline font-bold hover:text-black"
+            >What is a Plugin?</router-link
+          >
+          for an example of the plain object format.</em
+        ></Text
+      >
 
       <h3 class="text-lg font-bold mb-2">Packaged Plugin (<code>definePlugin</code>)</h3>
       <Text class="mb-3">
@@ -364,11 +426,12 @@ x = damp(x, target.x, 12, dt);`;
       </Callout>
     </SectionDivider>
 
-    <!-- Performance Contract -->
-    <SectionDivider size="lg" id="performance-contract">
-      <SectionHeader :level="2">Performance Contract (Non‑Negotiable)</SectionHeader>
+    <!-- Performance Best Practices -->
+    <SectionDivider size="lg" id="performance">
+      <SectionHeader :level="2">Performance Best Practices</SectionHeader>
       <Text class="mb-6">
-        Plugins run at 60–240 fps on the main thread. Three rules keep the cursor smooth.
+        Plugins run at 60–240 fps on the main thread. Keep these three rules in mind to maintain a
+        smooth framerate.
       </Text>
 
       <h3 class="text-lg font-bold mb-2">1. The DOM Firewall</h3>
@@ -387,13 +450,22 @@ x = damp(x, target.x, 12, dt);`;
       </Text>
       <CodeBlock :code="dtExampleCode" lang="typescript" :clean="true" class="mb-8" />
 
-      <h3 class="text-lg font-bold mb-2">3. Allocation Discipline</h3>
+      <h3 class="text-lg font-bold mb-2">3. Memory Management</h3>
       <Text class="mb-3">
         Avoid creating objects or arrays every frame. Reuse vectors, do not create DOM elements in
-        <code>update</code>, and use CSS transforms (GPU) instead of <code>top</code>/<code
-          >left</code
-        >
-        (CPU).
+        <code>update</code>, and prefer CSS transforms over <code>top</code>/<code>left</code>
+        layout changes to keep the rendering on the GPU.
+      </Text>
+    </SectionDivider>
+
+    <!-- Ownership & Publishing -->
+    <SectionDivider size="lg" id="ownership">
+      <SectionHeader :level="2">Plugin Publishing</SectionHeader>
+      <Text class="mb-4">
+        You are free to publish your plugins to npm under your own namespace, such as
+        <code>supermouse-plugin-xyz</code> or <code>@your-scope/supermouse-xyz</code>. The
+        <code>@supermousejs/*</code> scope is strictly reserved for official plugins and the core
+        engine.
       </Text>
     </SectionDivider>
   </DocsSection>

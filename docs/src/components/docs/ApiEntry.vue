@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import CodeBlock from "@shared/CodeBlock.vue";
-
 defineProps<{
   id: string;
   name: string;
@@ -8,9 +6,6 @@ defineProps<{
   defaultValue?: string;
   returns?: string;
   signature?: string;
-  usage?: string;
-  usageTitle?: string;
-  usageLang?: string;
 }>();
 </script>
 
@@ -43,16 +38,6 @@ defineProps<{
 
     <div class="text-zinc-600 leading-relaxed text-sm space-y-3">
       <slot />
-    </div>
-
-    <div v-if="usage" class="mt-5">
-      <CodeBlock
-        :code="usage"
-        :lang="usageLang ?? 'typescript'"
-        :clean="true"
-        :title="usageTitle ?? 'Example'"
-        class="border border-zinc-200"
-      />
     </div>
   </article>
 </template>

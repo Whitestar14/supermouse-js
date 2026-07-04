@@ -1,28 +1,197 @@
 <script setup lang="ts">
 import ApiEntry from "@components/docs/ApiEntry.vue";
-import { methodsData } from "@composables/useApiReference";
+import CodeBlock from "@components/shared/CodeBlock.vue";
+
+const hoverTargetCode = `app.registerHoverTarget('[data-cursor="card"]');`;
 </script>
 
 <template>
   <div id="methods" class="mb-20 scroll-mt-32">
     <h3
-      class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-2 pb-2 border-b border-zinc-200 flex items-center justify-between"
+      class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-900 mb-2 pb-2 border-b border-zinc-200"
     >
-      <span>Instance Methods</span>
-      <span class="text-zinc-400 font-normal">Public API</span>
+      Methods
     </h3>
-    <p class="text-sm text-zinc-500 mb-8">Lifecycle, plugin management, and runtime controls.</p>
+    <p class="text-sm text-zinc-500 mb-8">Public methods on the Supermouse instance.</p>
 
     <ApiEntry
-      v-for="item in methodsData"
-      :key="item.id"
-      :id="item.id"
-      :name="item.name"
-      :signature="item.signature"
-      :returns="item.returns"
-      :usage="item.usage"
+      id="use"
+      name="use(plugin)"
+      signature="use(plugin: SupermousePlugin): this"
+      returns="this"
     >
-      <p>{{ item.desc }}</p>
+      <p>Registers a plugin instance. Chainable — call multiple times to layer effects.</p>
+      <CodeBlock
+        code="import { Dot } from '@supermousejs/dot';&#10;import { Ring } from '@supermousejs/ring';&#10;&#10;app.use(Dot({ size: 8 })).use(Ring({ size: 40 }));"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="enable" name="enable()" signature="enable(): void" returns="void">
+      <p>Starts the animation loop and attaches input listeners.</p>
+      <CodeBlock
+        code="const app = new Supermouse();&#10;app.use(Dot());&#10;app.enable();"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="start" name="start()" signature="start(): void" returns="void">
+      <p>
+        Starts the internal animation loop manually. Useful for plugins that need to resume the loop
+        if it was suspended, or if `autoStart` is false but you only want to start the loop without
+        attaching new DOM events (unlike `enable()`).
+      </p>
+      <CodeBlock
+        code="app.start();"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="disable" name="disable()" signature="disable(): void" returns="void">
+      <p>Stops the loop and restores native cursor behavior without destroying plugins.</p>
+      <CodeBlock
+        code="app.disable(); // pause while keeping configuration"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="destroy" name="destroy()" signature="destroy(): void" returns="void">
+      <p>
+        Full teardown — removes listeners, destroys plugins, and cleans injected styles. Required
+        before re-initializing on the same page (e.g. route changes in SPAs).
+      </p>
+      <CodeBlock
+        code="onUnmounted(() => {&#10;  app.destroy();&#10;});"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry
+      id="setnativecursor"
+      name="setNativeCursor(type)"
+      signature="setNativeCursor(type: 'show' | 'hide' | 'auto'): void"
+      returns="void"
+    >
+      <p>
+        Force native cursor visibility for edge cases like text selection or drag-and-drop
+        affordances.
+      </p>
+      <CodeBlock
+        code="textarea.addEventListener('focus', () => app.setNativeCursor('show'));&#10;textarea.addEventListener('blur', () => app.setNativeCursor('auto'));"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry
+      id="getplugin"
+      name="getPlugin(name)"
+      signature="getPlugin(name: string): SupermousePlugin | undefined"
+      returns="SupermousePlugin | undefined"
+    >
+      <p>Retrieves a registered plugin by its name key.</p>
+      <CodeBlock
+        code="const dot = app.getPlugin('dot');&#10;dot?.setOption?.('size', 12);"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry
+      id="enableplugin"
+      name="enablePlugin(name)"
+      signature="enablePlugin(name: string): void"
+      returns="void"
+    >
+      <p>Re-enables a previously disabled plugin and calls its onEnable hook.</p>
+      <CodeBlock
+        code="app.enablePlugin('ring');"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry
+      id="disableplugin"
+      name="disablePlugin(name)"
+      signature="disablePlugin(name: string): void"
+      returns="void"
+    >
+      <p>Disables a single plugin without removing it from the pipeline.</p>
+      <CodeBlock
+        code="app.disablePlugin('trail');"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry
+      id="toggleplugin"
+      name="togglePlugin(name)"
+      signature="togglePlugin(name: string): void"
+      returns="void"
+    >
+      <p>Toggles a plugin between enabled and disabled states.</p>
+      <CodeBlock
+        code="button.addEventListener('click', () => app.togglePlugin('sparkles'));"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry
+      id="registerhovertarget"
+      name="registerHoverTarget(selector)"
+      signature="registerHoverTarget(selector: string): void"
+      returns="void"
+    >
+      <p>Adds a CSS selector to hover detection at runtime.</p>
+      <CodeBlock
+        :code="hoverTargetCode"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="step" name="step(time)" signature="step(time: number): void" returns="void">
+      <p>
+        Manual frame tick when you control the loop yourself instead of the internal
+        requestAnimationFrame driver.
+      </p>
+      <CodeBlock
+        code="function frame(now: number) {&#10;  app.step(now);&#10;  requestAnimationFrame(frame);&#10;}&#10;requestAnimationFrame(frame);"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
     </ApiEntry>
   </div>
 </template>

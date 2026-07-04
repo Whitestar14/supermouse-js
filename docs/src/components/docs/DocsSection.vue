@@ -1,8 +1,15 @@
 <script setup lang="ts">
-defineProps<{
+import { useToc } from "@composables/useToc";
+
+import type { TOCSection } from "@composables/useApiReference";
+
+const props = defineProps<{
   label: string;
   title: string;
+  sections?: TOCSection[];
 }>();
+
+useToc(props.sections);
 </script>
 
 <template>
