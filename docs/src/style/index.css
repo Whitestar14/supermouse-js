@@ -68,8 +68,7 @@
 
   /* Supermouse Text Plugin Styling */
   .tooltip-cursor {
-    @apply fixed z-[9999] font-bold text-xs pointer-events-none select-none font-mono
-      bg-zinc-800 text-white px-2 py-1 rounded uppercase tracking-wider;
+    @apply fixed z-[9999] font-bold text-xs pointer-events-none select-none font-mono bg-zinc-800 text-white px-2 py-1 rounded uppercase tracking-wider;
   }
 
   .grid-bg {
@@ -100,6 +99,6 @@
 
 @layer components {
   .link {
-    @apply cursor-pointer text-black font-bold underline decoration-dotted decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all;
+    @apply text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all;
   }
 }

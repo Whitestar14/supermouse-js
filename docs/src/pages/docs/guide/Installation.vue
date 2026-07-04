@@ -91,10 +91,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
 
         <Text size="sm">
           To manage edge-cases or resolve browser conflicts, see the
-          <router-link
-            to="/docs/guide/troubleshooting"
-            class="text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all"
-          >
+          <router-link to="/docs/guide/troubleshooting" class="link">
             troubleshooting guide
           </router-link>
           . Configure the <ApiLink to="hidecursor"><code>hideCursor</code></ApiLink> and
