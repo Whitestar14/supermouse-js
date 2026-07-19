@@ -5,7 +5,8 @@
 import fs from "fs";
 import path from "path";
 import { FileOps } from "../core/file-ops.js";
-import { getUmdName, SPECIAL_CASES, EXCLUDED_PACKAGES } from "../config.js";
+import { EXCLUDED_PACKAGES } from "../config.js";
+import { syncPackageManifest } from "../core/package-policy.js";
 
 export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger) {
   logger.header("Synchronize Configuration Files");
@@ -68,67 +69,19 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
 }
 
 function syncPackage(pkgPath, pkgName, rootDir, logger) {
-  const changes = [];
   const pkgJsonPath = path.join(pkgPath, "package.json");
-  const viteConfigPath = path.join(pkgPath, "vite.config.ts");
 
   try {
     const pkg = FileOps.readJSON(pkgJsonPath);
+    const { changes } = syncPackageManifest(pkg, pkgName);
 
-    // Update build script
-    if (pkg.scripts?.build !== "vite build") {
-      pkg.scripts ??= {};
-      pkg.scripts.build = "vite build";
-      changes.push(`  → ${pkgName}: Updated build script`);
-    }
-
-    // Update entry points
-    const entries = {
-      main: "dist/index.umd.js",
-      module: "dist/index.mjs",
-      types: "dist/index.d.ts"
-    };
-
-    for (const [field, value] of Object.entries(entries)) {
-      if (pkg[field] !== value) {
-        pkg[field] = value;
-        changes.push(`  → ${pkgName}: Set ${field} → ${value}`);
-      }
-    }
-
-    // Update exports
-    if (!pkg.exports) {
-      pkg.exports = {
-        ".": {
-          types: "./dist/index.d.ts",
-          import: "./dist/index.mjs",
-          require: "./dist/index.umd.js"
-        }
-      };
-      changes.push(`  → ${pkgName}: Created exports field`);
-    }
-
-    // Update publishConfig
-    if (pkg.name?.startsWith("@supermousejs/")) {
-      pkg.publishConfig ??= {};
-      if (pkg.publishConfig.access !== "public") {
-        pkg.publishConfig.access = "public";
-        changes.push(`  → ${pkgName}: Set publishConfig.access → public`);
-      }
-    }
-
-    // Ensure dep sections exist
-    pkg.peerDependencies ??= {};
-    pkg.devDependencies ??= {};
-    pkg.dependencies ??= {};
-
-    // Save changes
     if (changes.length > 0) {
       FileOps.writeJSON(pkgJsonPath, pkg);
     }
+
+    return changes;
   } catch (error) {
     logger.warn(`Could not sync ${pkgName}:`, error.message);
+    return [];
   }
-
-  return changes;
 }

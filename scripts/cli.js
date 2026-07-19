@@ -8,8 +8,7 @@
 import { fileURLToPath } from "url";
 import path from "path";
 import { Logger } from "./core/logger.js";
-import { FileOps } from "./core/file-ops.js";
-import * as fs from "fs";
+import { createCommandRegistry, getCommandList } from "./core/command-registry.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,53 +18,17 @@ const logger = new Logger("supermouse-cli");
 
 // --- Commands ---
 
-const commands = {
-  create: {
-    description: "Create a new plugin",
-    usage: "create <name>",
-    run: async (args) => (await import("./commands/create-plugin.js")).handle(args, rootDir, logger)
-  },
+const commands = createCommandRegistry({
+  rootDir,
+  logger,
+  showHelp
+});
 
-  remove: {
-    description: "Remove an existing plugin",
-    usage: "remove <name>",
-    run: async (args) => (await import("./commands/remove-plugin.js")).handle(args, rootDir, logger)
-  },
-
-  sync: {
-    description: "Synchronize all configuration files",
-    usage: "sync [options]",
-    run: async (args) => (await import("./commands/sync-configs.js")).handle(args, rootDir, logger)
-  },
-
-  generate: {
-    description: "Generate documentation data",
-    usage: "generate [options]",
-    run: async (args) => (await import("./commands/generate-docs.js")).handle(args, rootDir, logger)
-  },
-
-  check: {
-    description: "Check bundle sizes",
-    usage: "check [options]",
-    run: async (args) => (await import("./commands/check-size.js")).handle(args, rootDir, logger)
-  },
-
-  manage: {
-    description: "Interactive plugin manager",
-    usage: "manage",
-    run: async (args) => (await import("./commands/manage.js")).handle(args, rootDir, logger)
-  },
-
-  help: {
-    description: "Show this help message",
-    usage: "help [command]",
-    run: showHelp
-  }
-};
+const commandList = getCommandList(commands);
 
 // --- Help System ---
 
-function showHelp(args) {
+function showHelp(args = []) {
   const [specificCmd] = args;
 
   if (specificCmd && commands[specificCmd]) {
@@ -79,9 +42,8 @@ function showHelp(args) {
     logger.info("Official tooling for supermouse-js plugin development\n");
 
     logger.section("Available Commands");
-    const cmdList = Object.entries(commands)
-      .filter(([key]) => key !== "manage") // Hide manage from compact list
-      .map(([key, cmd]) => [`  ${key.padEnd(12)}`, cmd.description])
+    const cmdList = commandList
+      .map(({ name, description }) => [`  ${name.padEnd(12)}`, description])
       .concat([["  manage".padEnd(12), "(interactive) " + commands.manage.description]]);
 
     cmdList.forEach(([key, desc]) => {

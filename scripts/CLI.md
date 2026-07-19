@@ -2,104 +2,128 @@
 
 ## Overview
 
-The Supermouse CLI provides a unified, professional interface for managing plugins and configurations in the supermouse-js monorepo.
+The Supermouse CLI is the repo’s shared plugin-development control plane. It is intentionally designed to be small, canonical, and easy to extract into a standalone package later, such as `@supermouse/cli`.
+
+The runtime now uses a single command registry module at [scripts/core/command-registry.js](scripts/core/command-registry.js), a shared scaffold helper at [scripts/core/plugin-scaffold.js](scripts/core/plugin-scaffold.js), and a canonical package policy module at [scripts/core/package-policy.js](scripts/core/package-policy.js) so command metadata, plugin bootstrapping, and package manifest normalization all flow through one repo-wide policy layer.
 
 ## Installation
 
-The CLI is built-in and requires no additional installation. All commands are available through `pnpm` scripts or direct `node scripts/cli.js` execution.
-
-## Usage
-
-### Basic Usage
+The CLI is built-in to the monorepo and is available through either:
 
 ```bash
 pnpm <command> [options]
 ```
 
-### Available Commands
-
-#### `create`
-
-Create a new plugin with proper scaffolding and configuration.
+or:
 
 ```bash
-pnpm create:plugin my-plugin       # Interactive
-pnpm create:plugin my-plugin -y    # Skip confirmations
-pnpm create:plugin my-plugin --dry-run  # Preview only
+node scripts/cli.js <command> [options]
 ```
 
-**What it does:**
+## Command Surface
 
-- ✓ Validates plugin name (kebab-case)
-- ✓ Creates directory structure
-- ✓ Generates `package.json` with proper metadata
-- ✓ Creates `tsconfig.json` extending `tsconfig.plugin.json` (NEW - fixes tsconfig mismatch!)
-- ✓ Scaffolds `src/index.ts` with plugin template
-- ✓ Auto-syncs configurations
+### `create`
 
-#### `remove`
-
-Remove a plugin from the monorepo.
+Scaffold a new plugin package using the shared plugin template helper.
 
 ```bash
-pnpm remove:plugin my-plugin       # Interactive
-pnpm remove:plugin my-plugin -y    # Skip confirmations
+pnpm create:plugin my-plugin
+pnpm create:plugin my-plugin -y
+pnpm create:plugin my-plugin --dry-run
 ```
 
-#### `sync`
+What it now does:
 
-Synchronize configuration files across all packages.
+- validates package naming
+- creates the package directory structure
+- writes the canonical plugin `package.json`
+- writes the canonical `tsconfig.json`
+- writes the default `src/index.ts` scaffold when missing
+- reuses the same scaffold path from the interactive manager
+
+### `remove`
+
+Remove a plugin from the workspace.
 
 ```bash
-pnpm sync              # Interactive
-pnpm sync -y           # Auto-confirm all changes
-pnpm sync --verbose    # Show detailed changes
-pnpm sync --dry-run    # Preview changes
+pnpm remove:plugin my-plugin
+pnpm remove:plugin my-plugin -y
 ```
 
-#### `generate`
+### `sync`
 
-Generate documentation data from plugins.
+Synchronize repo-level package configuration across all plugin packages using the shared package policy module.
+
+```bash
+pnpm sync
+pnpm sync -y
+pnpm sync --verbose
+pnpm sync --dry-run
+```
+
+What it now does:
+
+- enforces the canonical Vite build entry points
+- creates the standard `exports` map when missing
+- normalizes `publishConfig.access`
+- ensures dependency sections exist in a consistent shape
+- reuses the same policy in the interactive manager
+
+### `generate`
+
+Generate package README content and the docs JSON dataset from plugin metadata.
 
 ```bash
 pnpm generate-docs
 ```
 
-#### `check`
+### `check`
 
-Check bundle sizes of all packages.
+Check the published bundle size of packages.
 
 ```bash
 pnpm check:size
 ```
 
-#### `manage`
+### `manage`
 
-Interactive plugin manager (menu-driven).
+Run the interactive menu-driven plugin manager.
 
 ```bash
 pnpm manage
 ```
 
-### Global Options
+## Runtime Architecture
 
-All commands support these global options:
+The CLI is intentionally split into reusable, extractable building blocks:
 
-- `--help` - Show help for a command
-- `--verbose` / `-v` - Enable verbose output with debug information
-- `--dry-run` - Show what would be done without making changes
-- `--yes` / `-y` - Skip all confirmations
+- [scripts/cli.js](scripts/cli.js) — command dispatch and global option parsing
+- [scripts/core/command-registry.js](scripts/core/command-registry.js) — canonical command metadata source
+- [scripts/core/plugin-scaffold.js](scripts/core/plugin-scaffold.js) — shared plugin bootstrapping logic
+- [scripts/core/package-policy.js](scripts/core/package-policy.js) — repo-wide package manifest normalization policy
+- [scripts/commands/](scripts/commands/) — command implementations
 
-### Examples
+This makes the CLI much easier to later promote into a package such as `@supermouse/cli` without rewriting the command contract.
+
+## Global Options
+
+All commands support the following options:
+
+- `--help` — show help for the command
+- `--verbose` / `-v` — enable verbose/debug output
+- `--dry-run` — preview changes without writing files
+- `--yes` / `-y` — auto-confirm non-destructive workflows
+
+## Examples
 
 ```bash
 # Create a new plugin interactively
 pnpm create:plugin
 
-# Create plugin with specific name, skip confirmations
+# Create a plugin with a specific name
 pnpm create:plugin cool-effect -y
 
-# Preview configuration sync without making changes
+# Preview configuration sync without writing files
 pnpm sync --dry-run
 
 # Get help for a specific command

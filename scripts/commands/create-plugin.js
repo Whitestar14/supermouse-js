@@ -6,8 +6,7 @@ import fs from "fs";
 import path from "path";
 import readline from "readline";
 import { spawn } from "child_process";
-import { FileOps } from "../core/file-ops.js";
-import { toPascalCase } from "../config.js";
+import { scaffoldPlugin, normalizePluginName } from "../core/plugin-scaffold.js";
 
 export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger) {
   const rl = readline.createInterface({
@@ -32,7 +31,7 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
     process.exit(1);
   }
 
-  pluginName = pluginName.trim().toLowerCase();
+  pluginName = normalizePluginName(pluginName);
 
   // Validate name format
   if (!/^[a-z][a-z0-9-]*$/.test(pluginName)) {
@@ -41,9 +40,11 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
     process.exit(1);
   }
 
-  const pascalName = toPascalCase(pluginName);
+  const pascalName = pluginName
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
   const pluginDir = path.join(rootDir, "packages", pluginName);
-  const packagesDir = path.join(rootDir, "packages");
 
   // Check if plugin already exists
   if (fs.existsSync(pluginDir)) {
@@ -71,63 +72,7 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
   }
 
   try {
-    // Create directory structure
-    fs.mkdirSync(path.join(pluginDir, "src"), { recursive: true });
-    logger.success("Created directory structure");
-
-    // Templates
-    const packageJson = {
-      name: `@supermousejs/${pluginName}`,
-      version: "2.1.1",
-      private: false,
-      description: `Supermouse ${pascalName} plugin`
-    };
-
-    const tsconfigJson = {
-      extends: "../../tsconfig.plugin.json",
-      include: ["src"]
-    };
-
-    const indexTs = `import type { SupermousePlugin } from '@supermousejs/core';
-
-export interface ${pascalName}Options {
-  // Add options here
-}
-
-export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlugin => {
-  return {
-    name: '${pluginName}',
-
-    install(instance) {
-      // Setup logic here
-    },
-
-    update(instance, dt) {
-      // Per-frame logic here
-    },
-
-    destroy(instance) {
-      // Cleanup here
-    }
-  };
-};
-`;
-
-    // Write files
-    FileOps.writeJSON(path.join(pluginDir, "package.json"), packageJson);
-    logger.info("✓ Created package.json");
-
-    FileOps.writeJSON(path.join(pluginDir, "tsconfig.json"), tsconfigJson);
-    logger.info("✓ Created tsconfig.json (extends plugin template)");
-
-    // Only write index.ts if new
-    const indexPath = path.join(pluginDir, "src", "index.ts");
-    if (!fs.existsSync(indexPath)) {
-      FileOps.writeFile(indexPath, indexTs);
-      logger.info("✓ Created src/index.ts");
-    } else {
-      logger.info("ⓘ Kept existing src/index.ts");
-    }
+    scaffoldPlugin(pluginDir, pluginName, rootDir, logger);
 
     // Run sync-configs for this package
     logger.section("Syncing configurations");

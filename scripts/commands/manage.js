@@ -6,6 +6,8 @@ import fs from "fs";
 import path from "path";
 import readline from "readline";
 import { FileOps } from "../core/file-ops.js";
+import { scaffoldPlugin, normalizePluginName } from "../core/plugin-scaffold.js";
+import { syncPackageManifest } from "../core/package-policy.js";
 
 export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger) {
   const rl = readline.createInterface({
@@ -45,12 +47,12 @@ async function mainMenu(rl, question, rootDir, logger) {
   }
 
   logger.newline();
-  logger.section("Menu");
-  console.log(`  1) Create new plugin`);
-  console.log(`  2) Remove plugin`);
-  console.log(`  3) Synchronize configurations`);
-  console.log(`  4) Check bundle sizes`);
-  console.log(`  5) Exit`);
+  logger.section("Main Menu");
+  console.log(`  1) ✨ Create new plugin`);
+  console.log(`  2) 🗑️  Remove plugin`);
+  console.log(`  3) 🔄 Synchronize configurations`);
+  console.log(`  4) 📊 Check bundle sizes`);
+  console.log(`  5) 🚪 Exit`);
 
   const choice = await question(`\n  Select option (1-5): `);
 
@@ -95,77 +97,29 @@ async function createPluginInteractive(rl, question, rootDir, logger) {
     `\n  Plugin name (kebab-case, e.g. "my-effect"): `
   );
 
-  if (!name.trim()) {
+  const normalizedName = normalizePluginName(name);
+
+  if (!normalizedName) {
     logger.warn("Cancelled.");
     return;
   }
 
-  if (!/^[a-z][a-z0-9-]*$/.test(name)) {
+  if (!/^[a-z][a-z0-9-]*$/.test(normalizedName)) {
     logger.error("Invalid name format. Must be kebab-case.");
     return;
   }
 
-  const pluginDir = path.join(rootDir, "packages", name);
+  const pluginDir = path.join(rootDir, "packages", normalizedName);
   if (fs.existsSync(pluginDir)) {
     logger.warn(`Plugin already exists: ${name}`);
     return;
   }
 
-  logger.info(`\nCreating @supermousejs/${name}...`);
+  logger.info(`\nCreating @supermousejs/${normalizedName}...`);
 
   try {
-    // Create directory and files
-    fs.mkdirSync(path.join(pluginDir, "src"), { recursive: true });
-
-    const pkgJson = {
-      name: `@supermousejs/${name}`,
-      version: "2.1.1",
-      private: false,
-      description: `Supermouse ${name} plugin`
-    };
-
-    FileOps.writeJSON(path.join(pluginDir, "package.json"), pkgJson);
-
-    const tsconfig = {
-      extends: "../../tsconfig.plugin.json",
-      include: ["src"]
-    };
-
-    FileOps.writeJSON(path.join(pluginDir, "tsconfig.json"), tsconfig);
-
-    const pascalName = name
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join("");
-
-    const index = `import type { SupermousePlugin } from '@supermousejs/core';
-
-export interface ${pascalName}Options {
-  // Add options here
-}
-
-export const ${pascalName} = (options: ${pascalName}Options = {}): SupermousePlugin => {
-  return {
-    name: '${name}',
-
-    install(instance) {
-      // Setup
-    },
-
-    update(instance, dt) {
-      // Per-frame logic
-    },
-
-    destroy(instance) {
-      // Cleanup
-    }
-  };
-};
-`;
-
-    FileOps.writeFile(path.join(pluginDir, "src", "index.ts"), index);
-
-    logger.success(`Created @supermousejs/${name}`);
+    scaffoldPlugin(pluginDir, normalizedName, rootDir, logger);
+    logger.success(`Created @supermousejs/${normalizedName}`);
   } catch (error) {
     logger.error("Failed to create plugin:", error.message);
   }
@@ -228,28 +182,9 @@ function syncAll(packagesDir, logger) {
     if (!fs.existsSync(pkgJsonPath)) return;
 
     const pkg = FileOps.readJSON(pkgJsonPath);
-    let changed = false;
+    const { changes } = syncPackageManifest(pkg, pkgName);
 
-    if (pkg.scripts?.build !== "vite build") {
-      pkg.scripts ??= {};
-      pkg.scripts.build = "vite build";
-      changed = true;
-    }
-
-    const entries = {
-      main: "dist/index.umd.js",
-      module: "dist/index.mjs",
-      types: "dist/index.d.ts"
-    };
-
-    for (const [field, value] of Object.entries(entries)) {
-      if (pkg[field] !== value) {
-        pkg[field] = value;
-        changed = true;
-      }
-    }
-
-    if (changed) {
+    if (changes.length > 0) {
       FileOps.writeJSON(pkgJsonPath, pkg);
       count++;
     }
