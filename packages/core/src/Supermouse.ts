@@ -11,10 +11,6 @@ function damp(a: number, b: number, lambda: number, dt: number): number {
   return lerp(a, b, 1 - Math.exp(-lambda * dt));
 }
 
-function angle(x: number, y: number): number {
-  return Math.atan2(y, x) * (180 / Math.PI);
-}
-
 /**
  * Input.ts
  *
@@ -27,6 +23,7 @@ export class Input {
   private mediaQueryHandler?: (e: MediaQueryListEvent) => void;
   private motionQuery?: MediaQueryList;
   private dataPrefix: string;
+  private normalizedDataPrefix: string;
   private ignoreAttribute: string;
 
   /**
@@ -41,11 +38,13 @@ export class Input {
     private getHoverSelector: () => string,
     private onEnableChange: (enabled: boolean) => void
   ) {
+    this.dataPrefix = this.options.dataPrefix ?? "supermouse";
+    this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
+    this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
+
     this.checkDeviceCapability();
     this.checkMotionPreference();
     this.bindEvents();
-    this.dataPrefix = this.options.dataPrefix ?? "supermouse";
-    this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
   }
 
   private abortController = new AbortController();
@@ -94,31 +93,21 @@ export class Input {
       this.state.interaction = this.options.resolveInteraction(element) || {};
       return;
     }
-
     const data: Record<string, string | boolean> = {};
-
     if (this.options.rules) {
-      for (const [selector, rules] of Object.entries(this.options.rules)) {
-        if (element.matches(selector)) {
-          Object.assign(data, rules);
-        }
+      for (const [sel, rules] of Object.entries(this.options.rules)) {
+        if (element.matches(sel)) Object.assign(data, rules);
       }
     }
-
-    const dataset = element.dataset;
-    for (const key in dataset) {
-      if (key.startsWith(this.dataPrefix)) {
-        const prop = key.slice(this.dataPrefix.length);
-        if (prop) {
-          const cleanKey = prop.charAt(0).toLowerCase() + prop.slice(1);
-          const val = dataset[key];
-          if (val !== undefined) {
-            data[cleanKey] = val === "" ? true : val;
-          }
-        }
-      }
+    const pre = this.normalizedDataPrefix,
+      len = this.dataPrefix.length;
+    for (const key in element.dataset) {
+      if (!key.toLowerCase().startsWith(pre)) continue;
+      const prop = key.slice(len);
+      if (!prop) continue;
+      const val = element.dataset[key];
+      data[prop[0].toLowerCase() + prop.slice(1)] = val === "" ? true : val!;
     }
-
     this.state.interaction = data;
   }
 
@@ -221,6 +210,7 @@ export class Input {
   private handleWindowLeave(): void {
     if (this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
+      this.state.pointer = { ...OFFSCREEN };
     }
   }
 
@@ -266,6 +256,7 @@ export class Stage {
 
   private currentCursorState: "none" | "auto" | "" | null = null;
   private originalContainerPosition: string = "";
+  private originalContainerCursor: string = "";
   private selectors: Set<string> = new Set([
     "a",
     "button",
@@ -307,6 +298,8 @@ export class Stage {
         container.style.position = "relative";
       }
     }
+
+    this.originalContainerCursor = container.style.cursor;
 
     container.appendChild(this.element);
 
@@ -375,7 +368,8 @@ export class Stage {
   public destroy(): void {
     this.element.remove();
     this.styleTag.remove();
-    this.container.style.cursor = "";
+
+    this.container.style.cursor = this.originalContainerCursor;
     this.container.classList.remove(this.scopeClass);
 
     if (this.container !== document.body && this.originalContainerPosition === "static") {
@@ -443,10 +437,6 @@ export class Supermouse {
       ...options
     };
 
-    if (!(this.options.container instanceof HTMLElement)) {
-      this.options.container = document.body;
-    }
-
     this.state = {
       pointer: { x: -100, y: -100 },
       target: { x: -100, y: -100 },
@@ -478,7 +468,7 @@ export class Supermouse {
       this.options,
       () => Array.from(this.hoverSelectors).join(", "),
       (enabled) => {
-        if (!enabled) this.resetPosition();
+        if (!enabled) this.reset(true);
       }
     );
 
@@ -574,7 +564,7 @@ export class Supermouse {
   public disable(): void {
     this.input.isEnabled = false;
     this.stage.setNativeCursor("auto");
-    this.resetPosition();
+    this.reset(true);
   }
 
   /**
@@ -583,7 +573,9 @@ export class Supermouse {
    * @param plugin - The plugin object to install.
    */
   public use(plugin: SupermousePlugin): this {
-    if (this.plugins.find((p) => p.name === plugin.name)) {
+    const exists = this.plugins.some((p) => p.name === plugin.name);
+
+    if (exists) {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
       return this;
     }
@@ -592,36 +584,36 @@ export class Supermouse {
       plugin.isEnabled = true;
     }
 
-    this.plugins.push(plugin);
-    this.plugins.sort((a, b) => (a.priority || 0) - (b.priority || 0));
-
     try {
       plugin.install?.(this);
     } catch (e) {
       console.error(`[Supermouse] Failed to install plugin '${plugin.name}'.`, e);
-      plugin.isEnabled = false;
+      return this;
     }
+
+    this.plugins.push(plugin);
+    this.plugins.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+
     return this;
   }
 
-  private resetCoords(): void {
+  private reset(hard = false): void {
     this.state.pointer = { ...OFFSCREEN };
     this.state.target = { ...OFFSCREEN };
     this.state.smooth = { ...OFFSCREEN };
     this.state.velocity = { x: 0, y: 0 };
     this.state.angle = 0;
-  }
-
-  private resetPosition(): void {
-    this.resetCoords();
-    this.state.hasReceivedInput = false;
-    this.state.shape = null;
-    this.state.interaction = {};
+    if (hard) {
+      this.state.hasReceivedInput = false;
+      this.state.shape = null;
+      this.state.interaction = {};
+    }
   }
 
   private startLoop(): void {
     if (this.isRunning) return;
     this.isRunning = true;
+
     this.lastTime = performance.now();
     this.tick(this.lastTime);
   }
@@ -649,11 +641,21 @@ export class Supermouse {
       plugin.update?.(this, deltaTime);
     } catch (e) {
       console.error(`[Supermouse] Plugin '${plugin.name}' crashed and has been disabled.`, e);
+
+      // Remove from active array immediately so it doesn't iterate again
+      const index = this.plugins.indexOf(plugin);
+      if (index > -1) {
+        this.plugins.splice(index, 1);
+      }
+
       plugin.isEnabled = false;
+
+      // Attempt cleanup
       try {
+        plugin.destroy?.(this);
         plugin.onDisable?.(this);
       } catch (err) {
-        console.error(`[Supermouse] Failed to execute onDisable for plugin '${plugin.name}'.`, err);
+        console.error(`[Supermouse] Failed to cleanup crashed plugin '${plugin.name}'.`, err);
       }
     }
   }
@@ -685,11 +687,11 @@ export class Supermouse {
       this.stage.setNativeCursor(targetState);
     }
 
-    if (this.input.isEnabled) {
+    if (this.input.isEnabled && this.state.hasReceivedInput) {
       this.state.target.x = this.state.pointer.x;
       this.state.target.y = this.state.pointer.y;
     } else {
-      this.resetCoords();
+      this.state.target = { ...OFFSCREEN };
     }
 
     for (let i = 0; i < this.plugins.length; i++) {
@@ -702,13 +704,11 @@ export class Supermouse {
       this.state.smooth.x = damp(this.state.smooth.x, this.state.target.x, factor, dt);
       this.state.smooth.y = damp(this.state.smooth.y, this.state.target.y, factor, dt);
 
-      const vx = this.state.target.x - this.state.smooth.x;
-      const vy = this.state.target.y - this.state.smooth.y;
-      this.state.velocity.x = vx;
-      this.state.velocity.y = vy;
-
+      this.state.velocity.x = this.state.target.x - this.state.smooth.x;
+      this.state.velocity.y = this.state.target.y - this.state.smooth.y;
+      const { x: vx, y: vy } = this.state.velocity;
       if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
-        this.state.angle = angle(vx, vy);
+        this.state.angle = Math.atan2(vy, vx) * (180 / Math.PI);
       }
     }
 
