@@ -1,8 +1,6 @@
 # supermousejs
 
-The official all-in-one bundle for **Supermouse v2**.
-
-This package provides a convenient, unscoped entry point for the Supermouse ecosystem. It bundles `@supermousejs/core` with the standard `Dot` and `Ring` plugins.
+The official all-in-one bundle for Supermouse.js v2. High-performance, modular cursor engine.
 
 ## Installation
 
@@ -10,31 +8,22 @@ This package provides a convenient, unscoped entry point for the Supermouse ecos
 pnpm add supermousejs
 ```
 
-or
+## Supermouse JS (Standard)
 
-```bash
-npm install supermousejs
-```
+The official unscoped bundle for v2. Quickest way to get started with the standard Dot & Ring setup.
 
-## Usage
+### Usage
 
 ```ts
-import Supermouse, { Dot, Ring } from "supermousejs";
-
-const mouse = new Supermouse({
-  smoothness: 0.15
-});
-
-mouse.use(Dot({ size: 8 }));
-mouse.use(Ring({ size: 24 }));
+import { Supermouse } from "@supermousejs/core";
+import Supermouse, { Dot, Ring } from 'supermousejs';
+import { Supermouse JS (Standard) } from "supermousejs";
+app.use(Dot()).use(Ring());
 ```
 
-## Why use this over scoped packages?
+### Options
 
-If you prefer clean import paths or are using a CDN (like unpkg) and want a single file that "just works" with the standard cursor look, this is the package for you.
-
-For advanced users or those looking to minimize bundle size, we recommend using the modular packages:
-`@supermousejs/core`, `@supermousejs/dot`, etc.
+No explicit options are documented for this plugin.
 
 ## Documentation
 

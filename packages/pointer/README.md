@@ -1,6 +1,6 @@
 # @supermousejs/pointer
 
-A "Vehicle" style pointer arrow that rotates based on movement velocity.
+A 'Vehicle' style arrow that rotates based on velocity vectors.
 
 ## Installation
 
@@ -8,23 +8,31 @@ A "Vehicle" style pointer arrow that rotates based on movement velocity.
 pnpm add @supermousejs/pointer
 ```
 
-## Usage
+## Pointer
+
+A 'Vehicle' style arrow that rotates based on velocity vectors.
+
+### Usage
 
 ```ts
 import { Supermouse } from "@supermousejs/core";
 import { Pointer } from "@supermousejs/pointer";
-
 const app = new Supermouse();
-
-app.use(
-  Pointer({
-    size: 32,
-    color: "black",
-    restingAngle: -45, // Angle when stopped
-    returnToRest: true // Snap back when stopped
-  })
-);
+app.use(Pointer({ size: 32, color: '#000' }));
 ```
+
+### Options
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| size | number | 32 | Size of the pointer in pixels. |
+| color | string | 'black' | Fill color of the SVG. |
+| svg | string | Default Arrow | Custom SVG content string. |
+| restingAngle | number | -45 | Angle when stationary (degrees). |
+| returnToRest | boolean | true | Snap back to resting angle when stopped. |
+| restDelay | number | 200 | Milliseconds to wait before returning to rest. |
+| opacity | number | 1 | Opacity level (0-1). |
+| rotationSmoothing | number | 0.15 | Lerp factor for rotation. |
 
 ## Documentation
 

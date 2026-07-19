@@ -1,7 +1,6 @@
 # @supermousejs/states
 
-A **Logic Controller** that enables/disables other plugins based on hover attributes.
-Useful for creating complex interaction modes (e.g. "View" mode vs "Edit" mode).
+Logic controller that enables/disables other plugins based on hover attributes. The plugin names listed in `default` and `states` must match the registered `plugin.name` values you use in your app.
 
 ## Installation
 
@@ -9,37 +8,35 @@ Useful for creating complex interaction modes (e.g. "View" mode vs "Edit" mode).
 pnpm add @supermousejs/states
 ```
 
-## Usage
+## States
+
+Logic controller that enables/disables other plugins based on hover attributes. The plugin names listed in `default` and `states` must match the registered `plugin.name` values you use in your app.
+
+### Usage
 
 ```ts
 import { Supermouse } from "@supermousejs/core";
 import { States } from "@supermousejs/states";
-
 const app = new Supermouse();
-
-// Define your plugins normally (names are required)
-app.use(Dot({ name: "dot" }));
-app.use(Ring({ name: "ring" }));
-app.use(Text({ name: "text" }));
-
-// Configure states
-app.use(
-  States({
-    default: ["dot"], // Plugins active by default
-    states: {
-      hover: ["dot", "ring"],
-      info: ["text"]
-    }
-  })
-);
+app.use(States({ default: ['dot'], states: { 'hover': ['ring'] } }));
 ```
 
-**HTML:**
+### HTML Example
 
 ```html
-<div data-supermouse-state="hover">Hover me</div>
-<div data-supermouse-state="info" data-supermouse-text="Hello">Info</div>
+<div data-supermouse-state="hover">
+  <span class="dot"></span>
+  <span class="ring"></span>
+</div>
 ```
+
+### Options
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| default | string[] | [] | List of plugin names active by default. |
+| states | Record<string, string[]> | {} | Map of state names to lists of active plugins. |
+| attribute | string | 'data-supermouse-state' | DOM attribute to trigger state changes. |
 
 ## Documentation
 

@@ -2,8 +2,8 @@
   "id": "text",
   "name": "Text",
   "package": "@supermousejs/text",
-  "description": "Injects contextual text bubbles near the cursor on interaction.",
-  "code": "app.use(Text({ font: 'Mono' }));",
+  "description": "Injects contextual text bubbles near the cursor on interaction. Works like a tooltip.",
+  "code": "app.use(Text({ duration: 200 }));",
   "recipeId": "text-cursor",
   "icon": "text",
   "options": [

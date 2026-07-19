@@ -16,6 +16,34 @@
         "reactive": false
       },
       {
+        "name": "defaultState",
+        "type": "string",
+        "default": "'default'",
+        "description": "Initial semantic state used before any hover interaction resolves.",
+        "reactive": false
+      },
+      {
+        "name": "useSemanticTags",
+        "type": "boolean",
+        "default": "true",
+        "description": "Resolve smart states from semantic HTML tags such as links and buttons.",
+        "reactive": false
+      },
+      {
+        "name": "transitionDuration",
+        "type": "number",
+        "default": "200",
+        "description": "Morph transition time in ms.",
+        "reactive": false
+      },
+      {
+        "name": "switchDelay",
+        "type": "number",
+        "default": "80",
+        "description": "Minimum ms a state must be requested before committing to the next icon.",
+        "reactive": false
+      },
+      {
         "name": "size",
         "type": "number",
         "default": "24",
@@ -30,13 +58,6 @@
         "reactive": true
       },
       {
-        "name": "anchor",
-        "type": "string",
-        "default": "'center'",
-        "description": "Alignment (center, top-left, etc).",
-        "reactive": true
-      },
-      {
         "name": "offset",
         "type": "[number, number]",
         "default": "[0, 0]",
@@ -44,11 +65,25 @@
         "reactive": false
       },
       {
-        "name": "transitionDuration",
-        "type": "number",
-        "default": "200",
-        "description": "Morph transition time in ms.",
-        "reactive": false
+        "name": "anchor",
+        "type": "string",
+        "default": "'center'",
+        "description": "Alignment (center, top-left, etc).",
+        "reactive": true
+      },
+      {
+        "name": "followStrategy",
+        "type": "'smooth' | 'raw'",
+        "default": "'smooth'",
+        "description": "Whether the icon should smoothly follow the pointer or snap to it.",
+        "reactive": true
+      },
+      {
+        "name": "rotateWithVelocity",
+        "type": "boolean",
+        "default": "false",
+        "description": "Rotate the icon based on movement velocity.",
+        "reactive": true
       }
     ]
   },
@@ -75,6 +110,34 @@
         "reactive": true
       },
       {
+        "name": "color",
+        "type": "string",
+        "default": "'#ffffff'",
+        "description": "Border color used for the ring.",
+        "reactive": true
+      },
+      {
+        "name": "fill",
+        "type": "string",
+        "default": "'transparent'",
+        "description": "Background fill color applied to the ring.",
+        "reactive": true
+      },
+      {
+        "name": "borderWidth",
+        "type": "number",
+        "default": "2",
+        "description": "Border thickness in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "mixBlendMode",
+        "type": "string",
+        "default": "'difference'",
+        "description": "CSS mix-blend-mode applied to the ring element.",
+        "reactive": false
+      },
+      {
         "name": "enableSkew",
         "type": "boolean",
         "default": "false",
@@ -99,6 +162,13 @@
         "reactive": true
       },
       {
+        "name": "count",
+        "type": "number",
+        "default": "30",
+        "description": "Number of particles to keep in the pool.",
+        "reactive": false
+      },
+      {
         "name": "frequency",
         "type": "number",
         "default": "10",
@@ -110,6 +180,13 @@
         "type": "number",
         "default": "0.05",
         "description": "Fade rate.",
+        "reactive": false
+      },
+      {
+        "name": "scatter",
+        "type": "number",
+        "default": "5",
+        "description": "Random position offset for particle spawning.",
         "reactive": false
       }
     ]
@@ -125,7 +202,7 @@
       {
         "name": "text",
         "type": "string",
-        "default": "'SUPERMOUSE • '",
+        "default": "'SUPERMOUSE • SUPERMOUSE • '",
         "description": "Text content.",
         "reactive": true
       },
@@ -137,11 +214,46 @@
         "reactive": true
       },
       {
+        "name": "fontSize",
+        "type": "number",
+        "default": "12",
+        "description": "Text size in pixels.",
+        "reactive": true
+      },
+      {
         "name": "speed",
         "type": "number",
         "default": "0.5",
         "description": "Rotation speed deg/frame.",
         "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'currentColor'",
+        "description": "Text color used by the SVG ring.",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "1",
+        "description": "Opacity of the rendered ring container.",
+        "reactive": true
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "default": "''",
+        "description": "Optional CSS class added to the container.",
+        "reactive": false
+      },
+      {
+        "name": "spread",
+        "type": "boolean",
+        "default": "false",
+        "description": "Stretch the text to fit around the full loop.",
+        "reactive": false
       }
     ]
   }

@@ -59,3 +59,5 @@ export function useSupermouse(): Ref<Supermouse | null> {
   }
   return instance;
 }
+
+export type { Supermouse };

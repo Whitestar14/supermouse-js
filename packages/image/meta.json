@@ -2,8 +2,8 @@
   "id": "image",
   "name": "Image",
   "package": "@supermousejs/image",
-  "description": "Displays a custom image or thumbnail as the cursor hover state.",
-  "code": "app.use(Image({ rounded: true }));",
+  "description": "Displays a custom image or thumbnail as the cursor hover state using a hover target's `data-supermouse-img` attribute.",
+  "code": "import { Image } from '@supermousejs/image';\n\napp.use(Image({ className: 'supermouse-image', offset: [0, 30] }));\n\n// Hover target markup\n<a href=\"/gallery\" data-supermouse-img=\"/images/gallery-thumb.jpg\">Open gallery</a>",
   "icon": "image",
   "options": [
     {

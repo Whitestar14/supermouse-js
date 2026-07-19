@@ -1,7 +1,6 @@
 # @supermousejs/stick
 
-A **Logic Plugin** that calculates the bounding box of hovered elements.
-Used in combination with `@supermousejs/ring` (or SmartRing) to create a morphing effect.
+Morphs the cursor shape to match the bounding box of hovered elements.
 
 ## Installation
 
@@ -9,24 +8,24 @@ Used in combination with `@supermousejs/ring` (or SmartRing) to create a morphin
 pnpm add @supermousejs/stick
 ```
 
-## Usage
+## Stick
+
+Morphs the cursor shape to match the bounding box of hovered elements.
+
+### Usage
 
 ```ts
 import { Supermouse } from "@supermousejs/core";
 import { Stick } from "@supermousejs/stick";
-import { Ring } from "@supermousejs/ring";
-
 const app = new Supermouse();
-
 app.use(Stick({ padding: 10 }));
-app.use(Ring()); // Ring automatically detects 'stick' state and morphs
 ```
 
-**HTML:**
+### Options
 
-```html
-<button data-supermouse-stick="true">Sticky Element</button>
-```
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| padding | number | 10 | Extra padding around the target element in pixels. |
 
 ## Documentation
 

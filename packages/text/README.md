@@ -1,6 +1,6 @@
 # @supermousejs/text
 
-Displays a contextual text label next to the cursor when hovering interactive elements.
+Injects contextual text bubbles near the cursor on interaction. Works like a tooltip.
 
 ## Installation
 
@@ -8,27 +8,26 @@ Displays a contextual text label next to the cursor when hovering interactive el
 pnpm add @supermousejs/text
 ```
 
-## Usage
+## Text
+
+Injects contextual text bubbles near the cursor on interaction. Works like a tooltip.
+
+### Usage
 
 ```ts
 import { Supermouse } from "@supermousejs/core";
 import { Text } from "@supermousejs/text";
-
 const app = new Supermouse();
-
-app.use(
-  Text({
-    offset: [20, 20], // X, Y offset from cursor
-    duration: 200 // Fade duration
-  })
-);
+app.use(Text({ duration: 200 }));
 ```
 
-**HTML:**
+### Options
 
-```html
-<button data-supermouse-text="Click Me">Hover Here</button>
-```
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| className | string | 'supermouse-text' | CSS class added to container. |
+| offset | [number, number] | [0, 24] | X/Y offset from cursor. |
+| duration | number | 200 | Fade transition time in ms. |
 
 ## Documentation
 

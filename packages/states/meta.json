@@ -2,8 +2,9 @@
   "id": "states",
   "name": "States",
   "package": "@supermousejs/states",
-  "description": "Logic controller that enables/disables other plugins based on hover attributes.",
+  "description": "Logic controller that enables/disables other plugins based on hover attributes. The plugin names listed in `default` and `states` must match the registered `plugin.name` values you use in your app.",
   "code": "app.use(States({ default: ['dot'], states: { 'hover': ['ring'] } }));",
+  "htmlExample": "<div data-supermouse-state=\"hover\">\n  <span class=\"dot\"></span>\n  <span class=\"ring\"></span>\n</div>",
   "icon": "context",
   "options": [
     {
