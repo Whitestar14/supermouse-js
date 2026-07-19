@@ -16,9 +16,13 @@ defineProps<{
   >
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3">
       <h4 class="font-mono text-base font-bold text-zinc-900 tracking-tight">
-        <a :href="`#${id}`" class="hover:underline decoration-zinc-300 underline-offset-4">
+        <RouterLink
+          :to="`#${id}`"
+          replace
+          class="hover:underline decoration-zinc-300 underline-offset-4"
+        >
           {{ name }}
-        </a>
+        </RouterLink>
       </h4>
       <span
         v-if="type"

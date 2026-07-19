@@ -59,7 +59,10 @@ export function useToc(customSections?: TOCSection[]) {
       // Auto-scan document for sections if not provided
       const headings = document.querySelectorAll(".docs-content h2[id], .docs-content h3[id]");
       sections.value = Array.from(headings).map((el) => {
-        let text = (el.textContent || "").replace(/^\s*#\s*/, "").replace(/#$/, "").trim();
+        let text = (el.textContent || "")
+          .replace(/^\s*#\s*/, "")
+          .replace(/#$/, "")
+          .trim();
         return {
           id: el.id,
           label: text

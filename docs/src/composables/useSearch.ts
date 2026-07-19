@@ -213,8 +213,6 @@ export function useSearch() {
       });
     });
 
-
-
     PLUGINS.forEach((p) => {
       const keywords = [p.id, p.package, p.name];
       if (p.description) {

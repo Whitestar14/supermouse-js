@@ -31,8 +31,9 @@ import CodeBlock from "@components/shared/CodeBlock.vue";
       signature="update(app: Supermouse, dt: number): void"
     >
       <p>
-        Called every frame. Apply transforms and read state here. <code>dt</code> is delta time in
-        seconds.
+        Called every frame. Apply transforms and read state here. <code>dt</code> is the frame delta
+        time in milliseconds, matching the runtime loop’s <code>requestAnimationFrame</code>
+        bookkeeping.
       </p>
       <CodeBlock
         code="update(app, dt) {&#10;  const { x, y } = app.state.smooth;&#10;  dom.setTransform(this.el, x, y);&#10;}"

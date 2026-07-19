@@ -17,7 +17,8 @@ const overridesCode = `<!-- Magnetic pull on this card only -->
 <button class="btn-danger" data-supermouse-color="orange">Hover</button>
 <textarea data-supermouse-text></textarea>`;
 
-const defaultHoverSelectors = "['a', 'button', 'input', 'select', 'textarea', '[role=\"button\"]']";
+const defaultHoverSelectors =
+  "['a', 'button', 'input', 'textarea', '[data-hover]', '[data-cursor]']";
 </script>
 
 <template>
@@ -189,7 +190,8 @@ const defaultHoverSelectors = "['a', 'button', 'input', 'select', 'textarea', '[
     >
       <p>
         List of selectors that trigger the custom hover visual and register attributes on
-        state.isHover.
+        <code>state.isHover</code>. When omitted, the runtime uses the built-in defaults shown
+        above. Register additional selectors at runtime with <code>registerHoverTarget()</code>.
       </p>
       <CodeBlock
         code="const app = new Supermouse({&#10;  hoverSelectors: ['.custom-link', '[data-hoverable]']&#10;});"
@@ -201,9 +203,13 @@ const defaultHoverSelectors = "['a', 'button', 'input', 'select', 'textarea', '[
     </ApiEntry>
 
     <ApiEntry id="hideonleave" name="hideOnLeave" type="boolean" default-value="true">
-      <p>Hides the custom cursor DOM layers when the native pointer leaves the browser viewport.</p>
+      <p>
+        When enabled, the runtime clears the cursor back to an off-screen position as soon as the
+        pointer exits the browser viewport. This keeps the stage hidden and prevents stale hover
+        state from lingering after window leave events.
+      </p>
       <CodeBlock
-        code="const app = new Supermouse({ hideOnLeave: false });"
+        code="const app = new Supermouse({ hideOnLeave: false }); // keep the last pointer position visible"
         lang="typescript"
         :clean="true"
         title="Example"

@@ -112,7 +112,7 @@ const BASH_GRAMMAR: LanguageGrammar = {
     { type: "number", pattern: /\b\d+(\.\d+)?\b/g, style: COLORS.mediumGrey },
     // Variables: $NAME or ${...}
     {
-      type: "function",   // reuse function style (white) for variables
+      type: "function", // reuse function style (white) for variables
       pattern: /\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[^}]+\}/g,
       style: COLORS.white
     },

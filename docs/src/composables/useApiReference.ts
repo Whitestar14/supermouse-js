@@ -13,8 +13,17 @@ export const API_SECTIONS: TOCSection[] = [
 ];
 
 export function resolveApiAnchor(target: string): string {
-  return target
-    .toLowerCase()
+  const normalized = target.trim().toLowerCase();
+
+  if (normalized.startsWith("state.")) {
+    return normalized
+      .slice("state.".length)
+      .replace(/[()]/g, "")
+      .replace(/[^a-z0-9\-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  return normalized
     .replace(/[()]/g, "")
     .replace(/[^a-z0-9\-]+/g, "-")
     .replace(/^-+|-+$/g, "");

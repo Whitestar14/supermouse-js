@@ -103,6 +103,48 @@ if (shape) {
       />
     </ApiEntry>
 
+    <ApiEntry id="angle" name="angle" type="number">
+      <p>
+        Movement angle in degrees, derived from <code>velocity</code>. Useful for orienting rings,
+        arrows, or rotation-driven cursor effects.
+      </p>
+      <CodeBlock
+        code="const rotation = app.state.angle;"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="isnative" name="isNative" type="boolean">
+      <p>
+        Set to <code>true</code> when the current hover target is being handled natively by the
+        browser, such as form controls or elements with incompatible cursor styles.
+      </p>
+      <CodeBlock
+        code="if (app.state.isNative) {&#10;  // restore the browser cursor UI for this interaction&#10;}"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
+    <ApiEntry id="hasreceivedinput" name="hasReceivedInput" type="boolean">
+      <p>
+        Indicates whether the runtime has received a valid pointer position at least once. This is
+        the guard that determines whether the stage should become visible.
+      </p>
+      <CodeBlock
+        code="if (!app.state.hasReceivedInput) {&#10;  // wait for the first pointer move before showing the layer&#10;}"
+        lang="typescript"
+        :clean="true"
+        title="Example"
+        class="border border-zinc-200 mt-5"
+      />
+    </ApiEntry>
+
     <ApiEntry id="interaction" name="interaction" type="Record<string, any>">
       <p>
         A reactive dictionary containing metadata scraped from the currently hovered element using
@@ -158,7 +200,8 @@ if (shape) {
 
     <ApiEntry id="ishover" name="isHover" type="boolean">
       <p>
-        True when the pointer is over a registered selector from rules or registerHoverTarget().
+        True when the pointer is over a registered selector from rules or
+        <code>registerHoverTarget()</code>.
       </p>
       <CodeBlock
         code="const hovering = app.state.isHover;"
@@ -171,7 +214,8 @@ if (shape) {
 
     <ApiEntry id="forcedcursor" name="forcedCursor" type="'auto' | 'none' | null">
       <p>
-        Internal override for native cursor visibility. Usually managed through setNativeCursor().
+        Internal override for native cursor visibility. Usually managed through
+        <code>setNativeCursor()</code>.
       </p>
       <CodeBlock
         code="app.setNativeCursor('show'); // forcedCursor becomes 'auto'&#10;app.setNativeCursor('hide'); // forcedCursor becomes 'none'"

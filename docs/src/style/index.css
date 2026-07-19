@@ -7,7 +7,7 @@
     --grid-size: 40px;
     --grid-color: #f0f0f0;
     --text-main: #09090b;
-    @apply text-base;
+    @apply text-[16px] leading-[1.5rem] font-sans;
   }
 
   @font-face {

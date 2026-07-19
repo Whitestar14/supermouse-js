@@ -31,9 +31,13 @@ const hoverTargetCode = `app.registerHoverTarget('[data-cursor="card"]');`;
     </ApiEntry>
 
     <ApiEntry id="enable" name="enable()" signature="enable(): void" returns="void">
-      <p>Starts the animation loop and attaches input listeners.</p>
+      <p>
+        Resumes input processing and restores the custom-cursor hide behavior. This does not start
+        the loop by itself if the runtime was created with <code>autoStart: false</code>; use
+        <code>start()</code> for that case.
+      </p>
       <CodeBlock
-        code="const app = new Supermouse();&#10;app.use(Dot());&#10;app.enable();"
+        code="const app = new Supermouse({ autoStart: false });&#10;app.use(Dot());&#10;app.start(); // manually begin the animation loop&#10;app.enable(); // resume input processing"
         lang="typescript"
         :clean="true"
         title="Example"
@@ -57,9 +61,12 @@ const hoverTargetCode = `app.registerHoverTarget('[data-cursor="card"]');`;
     </ApiEntry>
 
     <ApiEntry id="disable" name="disable()" signature="disable(): void" returns="void">
-      <p>Stops the loop and restores native cursor behavior without destroying plugins.</p>
+      <p>
+        Pauses input processing, restores the native cursor behavior, and clears the runtime state
+        back to an off-screen position. Plugins remain registered and can be re-enabled later.
+      </p>
       <CodeBlock
-        code="app.disable(); // pause while keeping configuration"
+        code="app.disable(); // pause input while keeping configuration intact"
         lang="typescript"
         :clean="true"
         title="Example"
