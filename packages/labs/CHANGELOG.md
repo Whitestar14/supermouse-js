@@ -1,5 +1,22 @@
 # @supermousejs/labs
 
+## 2.3.1
+
+### Minor Changes
+
+- 9e93e6d: implement hysteresis logic for state transitions with configurable switch delay
+
+### Patch Changes
+
+- d09c83e: update README files for various plugins
+- Updated dependencies [b72e264]
+- Updated dependencies [d09c83e]
+- Updated dependencies [8dc8e06]
+- Updated dependencies [600de13]
+  - @supermousejs/core@2.3.0
+  - @supermousejs/zoetrope@2.3.1
+  - @supermousejs/utils@2.3.1
+
 ## 2.3.0
 
 ### Patch Changes

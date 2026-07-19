@@ -41,7 +41,7 @@ const mouse = provideSupermouse(
   {
     smoothness: 0.15,
     hideCursor: true,
-    ignoreOnNative: true,
+    ignoreOnNative: "auto",
     rules: { "a, button": { icon: "hand" } }
   },
   [

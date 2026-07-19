@@ -1,5 +1,17 @@
 # supermousejs
 
+## 2.3.1
+
+### Patch Changes
+
+- Updated dependencies [b72e264]
+- Updated dependencies [d09c83e]
+- Updated dependencies [8dc8e06]
+- Updated dependencies [600de13]
+  - @supermousejs/core@2.3.0
+  - @supermousejs/ring@2.3.1
+  - @supermousejs/dot@2.3.1
+
 ## 2.3.0
 
 ### Patch Changes

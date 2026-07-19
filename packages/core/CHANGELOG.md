@@ -1,5 +1,16 @@
 # @supermousejs/core
 
+## 2.3.0
+
+### Minor Changes
+
+- 8dc8e06: cleanup and robustness pass: better case-insensitive data-\* handling, safer plugin lifecycle behavior, more reliable cursor restoration, and a more consistent reset/update flow
+- 600de13: added `dataPrefix` option for customizable data attribute handling, added a `start()` public method to manually start the raf loop and enhanced supermouse's resistance to bugs
+
+### Patch Changes
+
+- b72e264: Renamed `setCursor` to `setNativeCursor` for simplicity and removed redundant checks on `ignoreOnNative`
+
 ## 2.2.0
 
 ### Minor Changes

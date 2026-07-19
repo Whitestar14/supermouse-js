@@ -1,5 +1,16 @@
 # @supermousejs/dot
 
+## 2.3.1
+
+### Patch Changes
+
+- d09c83e: update README files for various plugins
+- Updated dependencies [b72e264]
+- Updated dependencies [8dc8e06]
+- Updated dependencies [600de13]
+  - @supermousejs/core@2.3.0
+  - @supermousejs/utils@2.3.1
+
 ## 2.3.0
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @supermousejs/utils
 
+## 2.3.1
+
+### Patch Changes
+
+- Updated dependencies [b72e264]
+- Updated dependencies [8dc8e06]
+- Updated dependencies [600de13]
+  - @supermousejs/core@2.3.0
+
 ## 2.3.0
 
 ### Patch Changes
