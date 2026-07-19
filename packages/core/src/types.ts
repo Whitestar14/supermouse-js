@@ -32,21 +32,21 @@ export interface InteractionState {
 }
 
 export interface MouseState {
-  /** The raw position of the input pointer (mouse/touch). */
+  /** The raw position from the latest pointer event, before smoothing is applied. */
   pointer: MousePosition;
-  /** The target position the cursor logic wants to reach. */
+  /** The current goal position that the core loop is driving toward. */
   target: MousePosition;
   /** The smoothed/interpolated position used for rendering. */
   smooth: MousePosition;
-  /** The current velocity vector of the smooth position. */
+  /** The current movement vector derived from the smoothed state. */
   velocity: MousePosition;
-  /** The angle of movement in degrees. Calculated from velocity. */
+  /** The current movement angle in degrees, derived from velocity. */
   angle: number;
   /** Whether the pointer is currently pressed down. */
   isDown: boolean;
   /** Whether the pointer is currently hovering over a registered interactive element. */
   isHover: boolean;
-  /** Whether the native cursor is currently forced visible by internal logic (e.g. input elements). */
+  /** Whether the runtime has temporarily restored the native cursor due to native-input heuristics. */
   isNative: boolean;
   /**
    * If set, this overrides all auto-detection logic.
@@ -104,12 +104,15 @@ export interface SupermouseOptions {
    */
   ignoreOnNative?: NativeIgnoreStrategy | null;
   /**
-   * Whether to hide the native cursor via global CSS injection.
+   * Whether to hide the native cursor via scoped CSS injection on the container.
+   * When enabled, the stage toggles `cursor: none` on the configured container and
+   * on registered hover targets.
    * @default true
    */
   hideCursor?: boolean;
   /**
-   * Whether to hide the custom cursor when the mouse leaves the browser window.
+   * Whether to hide the custom cursor when the pointer leaves the browser viewport.
+   * When enabled the runtime clears the cursor back to an off-screen position to avoid stale hover state.
    * @default true
    */
   hideOnLeave?: boolean;
@@ -129,12 +132,15 @@ export interface SupermouseOptions {
   autoStart?: boolean;
   /**
    * Semantic rules mapping CSS selectors to interaction state.
+   * Rules are evaluated against hovered elements and merged into `state.interaction`.
+   * Matching data attributes on the same element are also read and can override or enrich the final object.
    * @example { 'button': { icon: 'pointer' } }
    */
   rules?: Record<string, InteractionState>;
   /**
    * Custom strategy to resolve interaction state from a hovered element.
-   * Overrides the default data-attribute scraping.
+   * When provided, this callback bypasses the default `rules` + `data-[prefix]-*` scraping and
+   * returns the interaction payload directly for the current hover target.
    */
   resolveInteraction?: (target: HTMLElement) => InteractionState;
   /**
@@ -148,6 +154,7 @@ export interface SupermouseOptions {
 
 /**
  * Allows a property to be a static value or a function that returns the value based on state.
+ * This is primarily useful for plugin option definitions that should react to the current runtime state.
  */
 export type ValueOrGetter<T> = T | ((state: MouseState) => T);
 
@@ -164,7 +171,7 @@ export interface SupermousePlugin {
 
   /** Called when `app.use()` is executed. */
   install?: (instance: Supermouse) => void;
-  /** Called on every animation frame. */
+  /** Called on every animation frame with the frame delta time in milliseconds. */
   update?: (instance: Supermouse, deltaTime: number) => void;
   /** Called when the plugin is removed or the app is destroyed. */
   destroy?: (instance: Supermouse) => void;
