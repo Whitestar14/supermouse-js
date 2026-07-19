@@ -43,6 +43,19 @@ export const RedDot = (): SupermousePlugin => {
   };
 };`;
 
+const pluginNameContractCode = `const app = new Supermouse();
+app.use(RedDot());
+app.use(Ring());
+app.use(States({
+  default: ['red-dot'],
+  states: {
+    hover: ['ring']
+  }
+}));
+
+// Plugin names are part of the runtime contract.
+// The strings in States() must match the plugin.name values exactly.`;
+
 const definePluginCode = `import { definePlugin, dom } from '@supermousejs/utils';
 
 export const RedDot = () =>
@@ -152,6 +165,13 @@ update(app) {
         our <ApiLink to="defineplugin"><code>definePlugin</code></ApiLink> helper which abstracts
         away mounting and unmounting DOM elements for standard visual plugins.
       </Text>
+      <Callout title="Plugin names are required" class="mt-6">
+        Every plugin should expose a stable <code>name</code> field. That value is how the core
+        instance looks up, enables, and disables plugins at runtime. This is especially important
+        for state-driven plugins such as <code>States()</code>, where the configured names must
+        match the registered plugin names exactly.
+      </Callout>
+      <CodeBlock :code="pluginNameContractCode" lang="typescript" :clean="true" class="mt-4 mb-6" />
     </SectionDivider>
 
     <!-- Scaffolding Plugins -->
@@ -358,6 +378,15 @@ update(app) {
         runtime behaviour. <strong>Use factories (functions returning the plugin)</strong> to avoid
         cross‑instance state leakage.
       </Text>
+      <Callout title="A few practical guardrails" class="mb-6">
+        If you are authoring a reusable plugin, prefer
+        <ApiLink to="defineplugin"><code>definePlugin</code></ApiLink> for a single visual root, but
+        switch to a plain object when you need multiple roots, custom fragments, logic-only
+        behavior, or specialized lifecycle control. Keep the plugin-name contract stable, use
+        <ApiLink to="state.interaction"><code>state.interaction</code></ApiLink> for hover context,
+        and let <ApiLink to="normalize"><code>normalize</code></ApiLink> resolve user options once
+        instead of branching inside the hot loop.
+      </Callout>
 
       <h3 class="text-lg font-bold mb-2">Plain Object Format</h3>
       <Text class="mb-3"
@@ -423,6 +452,14 @@ update(app) {
       <Callout title="Options are static" class="mt-6">
         Plugin options are read at construction time. Changing them later won't automatically update
         behaviour unless you design for it. <strong>Document this clearly for your users.</strong>
+      </Callout>
+      <Callout title="Edge cases to watch for" class="mt-6">
+        Some of the most common failures are: using zero or positive priority on a logic plugin,
+        reading DOM geometry in <code>update()</code>, re-creating DOM nodes on enable/disable, and
+        letting <code>States()</code> refer to plugin names that do not match the runtime
+        <code>plugin.name</code> values exactly. If a plugin misbehaves only in production, run
+        <ApiLink to="doctor"><code>doctor()</code></ApiLink> from the browser console to surface the
+        usual configuration mistakes quickly.
       </Callout>
     </SectionDivider>
 

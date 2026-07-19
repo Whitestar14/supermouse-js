@@ -109,8 +109,8 @@
     "id": "image",
     "name": "Image",
     "package": "@supermousejs/image",
-    "description": "Displays a custom image or thumbnail as the cursor hover state.",
-    "code": "app.use(Image({ rounded: true }));",
+    "description": "Displays a custom image or thumbnail as the cursor hover state using a hover target's `data-supermouse-img` attribute.",
+    "code": "import { Image } from '@supermousejs/image';\n\napp.use(Image({ className: 'supermouse-image', offset: [0, 30] }));\n\n// Hover target markup\n<a href=\"/gallery\" data-supermouse-img=\"/images/gallery-thumb.jpg\">Open gallery</a>",
     "icon": "image",
     "options": [
       {
@@ -314,6 +314,34 @@
         "reactive": false
       },
       {
+        "name": "defaultState",
+        "type": "string",
+        "default": "'default'",
+        "description": "Initial semantic state used before any hover interaction resolves.",
+        "reactive": false
+      },
+      {
+        "name": "useSemanticTags",
+        "type": "boolean",
+        "default": "true",
+        "description": "Resolve smart states from semantic HTML tags such as links and buttons.",
+        "reactive": false
+      },
+      {
+        "name": "transitionDuration",
+        "type": "number",
+        "default": "200",
+        "description": "Morph transition time in ms.",
+        "reactive": false
+      },
+      {
+        "name": "switchDelay",
+        "type": "number",
+        "default": "80",
+        "description": "Minimum ms a state must be requested before committing to the next icon.",
+        "reactive": false
+      },
+      {
         "name": "size",
         "type": "number",
         "default": "24",
@@ -328,13 +356,6 @@
         "reactive": true
       },
       {
-        "name": "anchor",
-        "type": "string",
-        "default": "'center'",
-        "description": "Alignment (center, top-left, etc).",
-        "reactive": true
-      },
-      {
         "name": "offset",
         "type": "[number, number]",
         "default": "[0, 0]",
@@ -342,11 +363,25 @@
         "reactive": false
       },
       {
-        "name": "transitionDuration",
-        "type": "number",
-        "default": "200",
-        "description": "Morph transition time in ms.",
-        "reactive": false
+        "name": "anchor",
+        "type": "string",
+        "default": "'center'",
+        "description": "Alignment (center, top-left, etc).",
+        "reactive": true
+      },
+      {
+        "name": "followStrategy",
+        "type": "'smooth' | 'raw'",
+        "default": "'smooth'",
+        "description": "Whether the icon should smoothly follow the pointer or snap to it.",
+        "reactive": true
+      },
+      {
+        "name": "rotateWithVelocity",
+        "type": "boolean",
+        "default": "false",
+        "description": "Rotate the icon based on movement velocity.",
+        "reactive": true
       }
     ],
     "version": "2.3.0",
@@ -377,6 +412,34 @@
         "reactive": true
       },
       {
+        "name": "color",
+        "type": "string",
+        "default": "'#ffffff'",
+        "description": "Border color used for the ring.",
+        "reactive": true
+      },
+      {
+        "name": "fill",
+        "type": "string",
+        "default": "'transparent'",
+        "description": "Background fill color applied to the ring.",
+        "reactive": true
+      },
+      {
+        "name": "borderWidth",
+        "type": "number",
+        "default": "2",
+        "description": "Border thickness in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "mixBlendMode",
+        "type": "string",
+        "default": "'difference'",
+        "description": "CSS mix-blend-mode applied to the ring element.",
+        "reactive": false
+      },
+      {
         "name": "enableSkew",
         "type": "boolean",
         "default": "false",
@@ -405,6 +468,13 @@
         "reactive": true
       },
       {
+        "name": "count",
+        "type": "number",
+        "default": "30",
+        "description": "Number of particles to keep in the pool.",
+        "reactive": false
+      },
+      {
         "name": "frequency",
         "type": "number",
         "default": "10",
@@ -417,6 +487,13 @@
         "default": "0.05",
         "description": "Fade rate.",
         "reactive": false
+      },
+      {
+        "name": "scatter",
+        "type": "number",
+        "default": "5",
+        "description": "Random position offset for particle spawning.",
+        "reactive": false
       }
     ],
     "version": "2.3.0",
@@ -428,8 +505,9 @@
     "id": "states",
     "name": "States",
     "package": "@supermousejs/states",
-    "description": "Logic controller that enables/disables other plugins based on hover attributes.",
+    "description": "Logic controller that enables/disables other plugins based on hover attributes. The plugin names listed in `default` and `states` must match the registered `plugin.name` values you use in your app.",
     "code": "app.use(States({ default: ['dot'], states: { 'hover': ['ring'] } }));",
+    "htmlExample": "<div data-supermouse-state=\"hover\">\n  <span class=\"dot\"></span>\n  <span class=\"ring\"></span>\n</div>",
     "icon": "context",
     "options": [
       {
@@ -497,8 +575,8 @@
     "id": "text",
     "name": "Text",
     "package": "@supermousejs/text",
-    "description": "Injects contextual text bubbles near the cursor on interaction.",
-    "code": "app.use(Text({ font: 'Mono' }));",
+    "description": "Injects contextual text bubbles near the cursor on interaction. Works like a tooltip.",
+    "code": "app.use(Text({ duration: 200 }));",
     "recipeId": "text-cursor",
     "icon": "text",
     "options": [
@@ -540,7 +618,7 @@
       {
         "name": "text",
         "type": "string",
-        "default": "'SUPERMOUSE • '",
+        "default": "'SUPERMOUSE • SUPERMOUSE • '",
         "description": "Text content.",
         "reactive": true
       },
@@ -552,11 +630,46 @@
         "reactive": true
       },
       {
+        "name": "fontSize",
+        "type": "number",
+        "default": "12",
+        "description": "Text size in pixels.",
+        "reactive": true
+      },
+      {
         "name": "speed",
         "type": "number",
         "default": "0.5",
         "description": "Rotation speed deg/frame.",
         "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'currentColor'",
+        "description": "Text color used by the SVG ring.",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "1",
+        "description": "Opacity of the rendered ring container.",
+        "reactive": true
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "default": "''",
+        "description": "Optional CSS class added to the container.",
+        "reactive": false
+      },
+      {
+        "name": "spread",
+        "type": "boolean",
+        "default": "false",
+        "description": "Stretch the text to fit around the full loop.",
+        "reactive": false
       }
     ],
     "version": "2.3.0",

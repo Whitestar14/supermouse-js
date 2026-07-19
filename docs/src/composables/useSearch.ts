@@ -65,7 +65,14 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "write",
     "builder",
     "api",
-    "custom"
+    "custom",
+    "tips",
+    "tricks",
+    "patterns",
+    "performance",
+    "optimization",
+    "cache",
+    "priority"
   ],
   "/docs/advanced/contributing": [
     "pr",
@@ -96,15 +103,6 @@ const PAGE_KEYWORDS: Record<string, string[]> = {
     "dom",
     "effects",
     "reference"
-  ],
-  "/docs/advanced/tips-and-tricks": [
-    "tips",
-    "tricks",
-    "patterns",
-    "performance",
-    "optimization",
-    "cache",
-    "priority"
   ]
 };
 

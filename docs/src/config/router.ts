@@ -23,7 +23,6 @@ const ReactIntegration = () => import("@/pages/docs/integrations/ReactIntegratio
 const Architecture = () => import("@/pages/docs/advanced/Architecture.vue");
 const Authoring = () => import("@/pages/docs/advanced/Authoring.vue");
 const Contributing = () => import("@/pages/docs/advanced/Contributing.vue");
-const TipsAndTricks = () => import("@/pages/docs/advanced/TipsAndTricks.vue");
 const ApiReference = () => import("@/pages/docs/advanced/Api.vue");
 const PluginPage = () => import("@/pages/docs/PluginPage.vue");
 
@@ -49,7 +48,7 @@ export const routes: RouteRecordRaw[] = [
       { path: "advanced/architecture", component: Architecture, name: "DOCS_ARCH" },
       { path: "advanced/authoring", component: Authoring, name: "DOCS_AUTHORING" },
       { path: "advanced/contributing", component: Contributing, name: "DOCS_CONTRIBUTING" },
-      { path: "advanced/tips-and-tricks", component: TipsAndTricks, name: "DOCS_TIPS" },
+      { path: "advanced/tips-and-tricks", redirect: "/docs/advanced/authoring" },
       { path: "reference/api", component: ApiReference, name: "DOCS_API" },
       { path: "plugins/:id", component: PluginPage, props: true, name: "DOCS_PLUGIN" }
     ]

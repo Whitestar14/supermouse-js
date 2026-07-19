@@ -1,4 +1,5 @@
-import { provideSupermouse } from "@supermousejs/vue";
+import { type Ref } from "vue";
+import { provideSupermouse, type Supermouse } from "@supermousejs/vue";
 import { SmartIcon, SmartRing } from "@supermousejs/labs";
 import { Icon } from "@supermousejs/icon";
 import { Text } from "@supermousejs/text";
@@ -49,7 +50,7 @@ const TEXT_CURSOR = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.o
 const ARROW_CURSOR =
   '<svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F8" stroke-width="2"><path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/></svg>';
 
-export function useAppCursor() {
+export function useAppCursor(): Ref<Supermouse | null> {
   return provideSupermouse(
     {
       smoothness: 0.05,
