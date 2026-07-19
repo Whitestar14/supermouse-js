@@ -14,6 +14,8 @@ export interface SmartIconOptions {
   defaultState?: string;
   useSemanticTags?: boolean;
   transitionDuration?: number;
+  /** Minimum ms a state must be requested before committing. Default 80. */
+  switchDelay?: number;
   size?: ValueOrGetter<number>;
   color?: ValueOrGetter<string>;
   offset?: [number, number];
@@ -50,6 +52,11 @@ export const SmartIcon = (options: SmartIconOptions) => {
   let isTransitioning = false;
   let transitionTimer: ReturnType<typeof setTimeout>;
 
+  // --- HYSTERESIS STATE ---
+  let pendingState: string | null = null;
+  let pendingTimer = 0;
+  const switchDelay = options.switchDelay ?? 80;
+
   let currentRotation = 0;
   let lastTargetRotation = 0;
 
@@ -62,6 +69,24 @@ export const SmartIcon = (options: SmartIconOptions) => {
   const duration = options.transitionDuration ?? 200;
   const userOffX = options.offset ? options.offset[0] : 0;
   const userOffY = options.offset ? options.offset[1] : 0;
+
+  function commitTransition(nextState: string): void {
+    targetState = nextState;
+    isTransitioning = true;
+
+    clearTimeout(transitionTimer);
+    contentWrapper.style.transform = "scale(0)";
+
+    transitionTimer = setTimeout(() => {
+      currentState = targetState;
+      contentWrapper.innerHTML = options.icons[currentState] || "";
+      contentWrapper.style.transform = "scale(1)";
+
+      transitionTimer = setTimeout(() => {
+        isTransitioning = false;
+      }, duration / 2);
+    }, duration / 2);
+  }
 
   return definePlugin<HTMLDivElement, SmartIconOptions>(
     {
@@ -107,7 +132,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
         color: "color"
       },
 
-      update: (app: Supermouse, el: HTMLDivElement) => {
+      update: (app: Supermouse, el: HTMLDivElement, dtMs: number) => {
         const icons = options.icons;
         const target = app.state.hoverTarget;
 
@@ -131,25 +156,29 @@ export const SmartIcon = (options: SmartIconOptions) => {
           cachedSemanticState = null;
         }
 
+        // --- HYSTERESIS LOGIC ---
         if (nextState !== currentState && !isTransitioning) {
-          if (icons[nextState] || nextState === (options.defaultState || "default")) {
-            targetState = nextState;
-            isTransitioning = true;
-
-            clearTimeout(transitionTimer);
-
-            contentWrapper.style.transform = "scale(0)";
-
-            transitionTimer = setTimeout(() => {
-              currentState = targetState;
-              contentWrapper.innerHTML = icons[currentState] || "";
-              contentWrapper.style.transform = "scale(1)";
-
-              transitionTimer = setTimeout(() => {
-                isTransitioning = false;
-              }, duration / 2);
-            }, duration / 2);
+          // Validate the target state exists
+          if (!icons[nextState] && nextState !== (options.defaultState || "default")) {
+            pendingState = null;
+            pendingTimer = 0;
+          } else if (nextState !== pendingState) {
+            // New pending state, reset timer
+            pendingState = nextState;
+            pendingTimer = 0;
+          } else {
+            // Same pending state, accumulate time
+            pendingTimer += dtMs;
+            if (pendingTimer >= switchDelay) {
+              commitTransition(nextState);
+              pendingState = null;
+              pendingTimer = 0;
+            }
           }
+        } else if (nextState === currentState) {
+          // Stable, clear any pending transition
+          pendingState = null;
+          pendingTimer = 0;
         }
 
         const size = getSize(app.state);
