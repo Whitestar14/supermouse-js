@@ -52,102 +52,83 @@ watch(query, () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 duration-0">
-    <!-- Backdrop -->
-    <div
-      class="absolute inset-0 bg-zinc-900/20 backdrop-blur-sm duration-0"
-      @click="emit('close')"
-    />
+  <div class="fixed inset-0 z-[100] flex flex-col md:items-center md:pt-[10.5vh]">
+    <!-- Backdrop: lighter on desktop, solid on mobile -->
+    <div class="absolute inset-0 md:bg-zinc-900/30" @click="emit('close')" />
 
-    <!-- Modal -->
+    <!-- Container: full mobile, max-width desktop, sharp, bordered -->
     <div
-      class="relative w-full max-w-2xl bg-white border border-zinc-500 shadow-2xl flex flex-col overflow-hidden rounded-none duration-0"
+      class="relative w-full md:max-w-3xl md:border md:border-zinc-200 bg-white flex flex-col h-full md:h-auto md:min-h-[30vh]"
     >
       <!-- Input -->
-      <div class="flex items-center px-6 h-16 border-b border-zinc-200 bg-white">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="3"
-          class="text-zinc-900 mr-4"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
+      <div class="flex items-center border-b border-zinc-200 h-16 md:h-20 px-4 shrink-0">
+        <span class="mono text-xs font-bold text-zinc-400">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            class="text-zinc-900 mr-4"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg
+        ></span>
         <input
           ref="searchInput"
           v-model="query"
           type="text"
-          placeholder="Search docs, plugins, and guides..."
-          class="flex-1 h-full outline-none text-lg font-medium placeholder:text-zinc-400 bg-transparent text-black"
+          placeholder="..."
+          class="flex-1 h-full outline-none text-lg font-semibold tracking-tight placeholder:text-zinc-300 bg-transparent text-black"
         />
-        <div
-          class="mono text-[10px] bg-zinc-100 px-2 py-0.5 text-zinc-500 font-bold tracking-widest uppercase border border-zinc-200"
+        <!-- Mobile close button -->
+        <button
+          class="md:hidden mono text-[10px] font-bold text-zinc-500 px-2 py-1 ml-2"
+          @click="emit('close')"
+        >
+          CLOSE
+        </button>
+        <kbd
+          class="mono text-[10px] bg-zinc-100 px-1.5 py-0.5 text-zinc-500 font-bold border border-zinc-200 hidden md:inline ml-2"
         >
           ESC
-        </div>
+        </kbd>
       </div>
 
-      <!-- Results (Lenis Prevent applied here) -->
-      <div
-        v-if="results.length > 0"
-        class="bg-zinc-50 max-h-[400px] overflow-y-auto"
-        data-lenis-prevent
-      >
+      <!-- Results -->
+      <div v-if="results.length" class="flex-1 overflow-y-auto md:max-h-[50vh]">
         <div
-          class="mono text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-6 py-3 border-b border-zinc-200 bg-zinc-100/50"
-        >
-          {{ query ? "Results" : "Quick Links" }}
-        </div>
-        <button
           v-for="(res, i) in results"
           :key="res.id"
-          class="w-full text-left px-6 py-4 flex items-start justify-between gap-4 group transition-colors duration-100 border-b border-zinc-200 last:border-0"
+          class="w-full text-left px-4 h-14 flex items-center border-b border-zinc-200 last:border-b-0 transition-colors duration-100"
           :class="
-            i === selectedIndex ? 'bg-black text-white' : 'bg-white text-black hover:bg-zinc-100'
+            i === selectedIndex ? 'bg-black text-white' : 'bg-white text-black hover:bg-zinc-50'
           "
           @click="navigate(res.path)"
+          data-supermouse-icon="pointer"
         >
-          <div class="flex-1 min-w-0 flex flex-col justify-center">
-            <span
-              class="text-sm font-bold tracking-tight block transition-colors duration-100"
-              :class="i === selectedIndex ? 'text-white' : 'text-zinc-900'"
-            >
-              {{ res.label }}
-            </span>
-            <span
-              v-if="res.description"
-              class="text-[11px] block line-clamp-1 mt-1 transition-colors duration-100"
-              :class="i === selectedIndex ? 'text-zinc-300' : 'text-zinc-500'"
-            >
-              {{ res.description }}
-            </span>
-            <span
-              class="text-[10px] font-mono block truncate mt-2 transition-colors duration-100"
-              :class="i === selectedIndex ? 'text-zinc-400' : 'text-zinc-400'"
-            >
-              {{ res.path }}
-            </span>
-          </div>
           <span
-            class="mono text-[10px] uppercase tracking-widest font-bold whitespace-nowrap flex-shrink-0 px-2 py-0.5 border transition-colors duration-100"
-            :class="[
-              i === selectedIndex
-                ? 'bg-white text-black border-white'
-                : 'bg-zinc-100 text-zinc-500 border-zinc-200'
-            ]"
+            class="text-sm font-bold tracking-tight truncate w-48 shrink-0"
+            :class="i === selectedIndex ? 'text-white' : 'text-zinc-900'"
           >
+            {{ res.label }}
+          </span>
+          <span class="mono text-[11px] truncate flex-1 px-4 text-zinc-400">
+            {{ res.path }}
+          </span>
+          <span class="mono text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 shrink-0">
             {{ res.type }}
           </span>
-        </button>
+        </div>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="query" class="p-8 text-center">
-        <p class="text-zinc-400 font-mono text-xs">No results found for "{{ query }}"</p>
+      <!-- Empty: explicit height, not flex-1 -->
+      <div
+        v-else-if="query"
+        class="flex items-center justify-center h-32 md:h-48 border-t border-zinc-200"
+      >
+        <p class="mono text-xs font-bold text-zinc-400 tracking-widest">NO RESULTS</p>
       </div>
     </div>
   </div>

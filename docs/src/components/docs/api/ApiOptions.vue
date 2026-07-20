@@ -64,7 +64,9 @@ const defaultHoverSelectors =
       <p>
         When set to true, touch events (e.g., on tablets) are processed instead of being ignored.
         This enables custom cursor effects on touch devices. Marked as experimental as performance
-        and UX may vary across devices.
+        and UX may vary across devices. Setting <code>enableTouch: true</code> without
+        <code>autoDisableOnMobile: false</code> may still result in no touch handling if the device
+        lacks a fine pointer.
       </p>
       <CodeBlock
         code="// Only enable if you explicitly need touch support&#10;const app = new Supermouse({ enableTouch: true });"

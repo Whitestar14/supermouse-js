@@ -74,7 +74,7 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
         </Text>
         <CodeBlock :code="htmlCode" title="index.html" lang="html" />
 
-        <Callout title="Warning: CSS Conflicts" variant="warning">
+        <Callout title="CSS Conflicts" variant="warning">
           <p class="mb-2">
             <strong
               >Do not define <code>cursor: pointer</code> or <code>cursor: none</code> rules in your
@@ -83,8 +83,9 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
           </p>
           <p>
             Supermouse handles native pointer visibility dynamically. Ad-hoc CSS cursor overrides
-            bypass target detection and cause double-cursor rendering or cursor flickering. Define
-            hover affordances programmatically using
+            bypass target detection and can cause double-cursor rendering or cursor flickering. If
+            you need to handle cursor appearance changes, define hover affordances programmatically
+            using
             <ApiLink to="rules"><code>rules</code></ApiLink> configurations.
           </p>
         </Callout>
@@ -94,9 +95,6 @@ const htmlCode = `<div data-supermouse-color="#00ff00">Color override</div>
           <router-link to="/docs/guide/troubleshooting" class="link">
             troubleshooting guide
           </router-link>
-          . Configure the <ApiLink to="hidecursor"><code>hideCursor</code></ApiLink> and
-          <ApiLink to="ignoreonnative"><code>ignoreOnNative</code></ApiLink> parameters for detailed
-          granularity.
         </Text>
       </StepCard>
     </div>

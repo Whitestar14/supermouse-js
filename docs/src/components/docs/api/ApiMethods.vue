@@ -62,8 +62,9 @@ const hoverTargetCode = `app.registerHoverTarget('[data-cursor="card"]');`;
 
     <ApiEntry id="disable" name="disable()" signature="disable(): void" returns="void">
       <p>
-        Pauses input processing, restores the native cursor behavior, and clears the runtime state
-        back to an off-screen position. Plugins remain registered and can be re-enabled later.
+        Pauses input processing, performs a hard reset of clearing `shape` and `interaction`,
+        restores the native cursor behavior, and clears the runtime state back to an off-screen
+        position. Plugins remain registered and can be re-enabled later.
       </p>
       <CodeBlock
         code="app.disable(); // pause input while keeping configuration intact"

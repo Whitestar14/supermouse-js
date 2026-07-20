@@ -79,8 +79,8 @@ const filteredRecipes = computed(() => {
               Plugin<br />Gallery
             </h2>
             <p class="text-lg text-zinc-600 font-medium leading-relaxed mb-8 text-pretty">
-              Explore experimental "Smart" plugins and standard tools. Enter the Studio Editor to
-              configure physics, tweak visuals, and export code.
+              Explore experimental plugins and standard tools in this interactive playground. Enter
+              the Studio Editor to configure physics, tweak visuals, and export code.
             </p>
             <div
               class="hidden lg:block mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold mb-4"
@@ -99,7 +99,7 @@ const filteredRecipes = computed(() => {
               v-for="preset in filteredRecipes"
               :key="preset.id"
               class="group bg-white p-10 text-left hover:bg-zinc-50 transition-colors flex flex-col h-[280px] outline-none relative"
-              data-supermouse-state="card-hover"
+              data-supermouse-state="playground-card"
               @click="open(preset.id)"
             >
               <div class="flex-1 mb-6 relative">
