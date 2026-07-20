@@ -50,6 +50,7 @@ const progress = computed(() => {
         background: `linear-gradient(to right, #000 ${progress}%, #e4e4e7 ${progress}%)`
       }"
       @input="emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
+      data-supermouse-icon="grab"
     />
   </div>
 </template>
@@ -63,12 +64,10 @@ const progress = computed(() => {
 /* Custom Thumb (Knob) Styling */
 .supermouse-range::-webkit-slider-thumb {
   @apply appearance-none w-3 h-3 bg-black border border-white shadow-[0_0_0_1px_black] transition-transform active:scale-125;
-  cursor: grab;
 }
 
 .supermouse-range::-moz-range-thumb {
   @apply w-3 h-3 bg-black border border-white shadow-[0_0_0_1px_black] rounded-none transition-transform active:scale-125;
-  cursor: grab;
 }
 
 /* Ensure track looks consistent in Firefox */

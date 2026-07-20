@@ -4,6 +4,9 @@ import { SmartIcon, SmartRing } from "@supermousejs/labs";
 import { Icon } from "@supermousejs/icon";
 import { Text } from "@supermousejs/text";
 import { States } from "@supermousejs/states";
+import { SpotlightReveal } from "./plugins/spotlight-reveal-plugin";
+import { GlitchCursor } from "./plugins/glitch-plugin";
+import { MotionBlur } from "./plugins/motion-blur-plugin";
 
 const LOGO_CURSOR = `
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -64,15 +67,21 @@ export function useAppCursor(): Ref<Supermouse | null> {
         icons: {
           default: LOGO_CURSOR,
           pointer: HAND_CURSOR,
-          text: TEXT_CURSOR
+          text: TEXT_CURSOR,
+          grab: TEXT_CURSOR
         },
         size: 32,
         color: "black",
         anchor: "center",
         rotateWithVelocity: false
       }),
+      SpotlightReveal({
+        selector: ".spotlight-container",
+        maxRadius: 250,
+        expandSpeed: 0.08
+      }),
       SmartRing({
-        name: "card-bg",
+        name: "playground-card-bg",
         size: 64,
         hoverSize: 64,
         fill: "black",
@@ -81,7 +90,7 @@ export function useAppCursor(): Ref<Supermouse | null> {
         mixBlendMode: "normal"
       }),
       Icon({
-        name: "card-arrow",
+        name: "playground-card-arrow",
         svg: ARROW_CURSOR,
         size: 24,
         color: "white"
@@ -89,14 +98,28 @@ export function useAppCursor(): Ref<Supermouse | null> {
       Text({
         offset: [30, 30],
         duration: 150,
-        className: "tooltip-cursor"
+        className: "supermouse-tooltip-cursor"
       }),
       States({
         default: ["default-icon", "text"],
         states: {
-          "card-hover": ["card-bg", "card-arrow"]
+          "playground-card": ["playground-card-bg", "playground-card-arrow"]
         }
       })
     ]
+    // [
+    //   GlitchCursor({
+    //     cursorSize: 15,
+    //     glitchColorB: "#00feff",
+    //     glitchColorR: "#ff4f71"
+    //   }),
+    //   MotionBlur({
+    //     cursorSize: 16,
+    //     cursorColor: "#000000",
+    //     samples: 6,
+    //     intensity: 0.4,
+    //     maxSpread: 60
+    //   })
+    // ]
   );
 }

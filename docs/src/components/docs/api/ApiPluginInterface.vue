@@ -45,7 +45,10 @@ import CodeBlock from "@components/shared/CodeBlock.vue";
     </ApiEntry>
 
     <ApiEntry id="plugin-destroy" name="destroy(app)" signature="destroy(app: Supermouse): void">
-      <p>Called when the app is destroyed. Remove DOM nodes and release references.</p>
+      <p>
+        Called when the app is destroyed. Remove DOM nodes and release references. When called, it
+        also restores the container's original cursor style.
+      </p>
       <CodeBlock
         code="destroy() {&#10;  this.el?.remove();&#10;  this.el = null;&#10;}"
         lang="typescript"
