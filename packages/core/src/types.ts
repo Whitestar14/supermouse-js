@@ -97,12 +97,32 @@ export interface SupermouseOptions {
    * Strategy for detecting when to fallback to the native cursor.
    * - `'auto'`: Checks both HTML tags and CSS cursor styles (Accurate but slower).
    * - `'tag'`: Checks only semantic tags like <input>, <textarea> (Fastest, prevents layout thrashing).
-   * - `'css'`: Checks only computed CSS cursor styles (Slow, triggers reflow).
+   * - `'css'`: Checks only computed CSS cursor styles (Slow, triggers reflow — see `cacheCursorStyle`
+   *    if this matters for your use case).
    * - `null`: Never fallback to native cursor.
    *
    * @default 'auto'
    */
   ignoreOnNative?: NativeIgnoreStrategy | null;
+  /**
+   * When `ignoreOnNative` includes a CSS check ('auto' or 'css'), cache each
+   * element's computed `cursor` value the first time it's checked instead of
+   * recomputing on every `mouseover`.
+   *
+   * Off by default: a permanent per-element cache goes silently stale the
+   * moment a node's computed cursor changes AFTER it's cached without the
+   * node itself being replaced — e.g. a `disabled`/`loading` class toggled
+   * via React/Vue state on a DOM node that reconciliation reuses rather than
+   * remounts. That's an extremely common pattern in component libraries, so
+   * defaulting this on would produce wrong native-cursor detection that's
+   * hard to trace back to this option. Turn it on if your hover targets have
+   * effectively static cursor styles for their lifetime (e.g. a mostly-static
+   * marketing site) and you've profiled `ignoreOnNative: 'css'` as an actual
+   * bottleneck — it usually isn't, since `mouseover` fires once per element
+   * entered, not per frame.
+   * @default false
+   */
+  cacheCursorStyle?: boolean;
   /**
    * Whether to hide the native cursor via scoped CSS injection on the container.
    * When enabled, the stage toggles `cursor: none` on the configured container and
@@ -150,6 +170,12 @@ export interface SupermouseOptions {
    * @default "supermouse"
    */
   dataPrefix?: string;
+  /**
+   * The `z-index` applied to the cursor stage element. Bump this if you've
+   * got modals/overlays sitting at or above 9999.
+   * @default 9999
+   */
+  zIndex?: number;
 }
 
 /**
@@ -168,6 +194,8 @@ export interface SupermousePlugin {
   priority?: number;
   /** If false, update() will not be called. */
   isEnabled?: boolean;
+  /** Reference to the plugin's root DOM element, if any. The core auto-hides this when the plugin is disabled. */
+  element?: HTMLElement;
 
   /** Called when `app.use()` is executed. */
   install?: (instance: Supermouse) => void;
