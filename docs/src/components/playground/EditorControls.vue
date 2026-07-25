@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { ControlSchema } from "./recipes";
+import type { ControlSchema } from "@playground/recipes";
 import ControlRange from "./controls/ControlRange.vue";
 import ControlColor from "./controls/ControlColor.vue";
 import ControlToggle from "./controls/ControlToggle.vue";
@@ -31,14 +31,8 @@ const localGlobal = computed({
 
 <template>
   <div class="h-full flex flex-col bg-white">
-    <!-- Header -->
-    <div class="p-8 border-b border-zinc-200 shrink-0">
-      <h3 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Configuration</h3>
-      <p class="text-sm text-zinc-900 font-bold">Tune parameters in real-time.</p>
-    </div>
-
     <!-- Controls Scroll Area -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
       <!-- Dynamic Schema Controls -->
       <div class="space-y-4">
         <template v-for="control in schema" :key="control.key">

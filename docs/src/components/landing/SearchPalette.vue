@@ -53,12 +53,10 @@ watch(query, () => {
 
 <template>
   <div class="fixed inset-0 z-[100] flex flex-col md:items-center md:pt-[10.5vh]">
-    <!-- Backdrop: lighter on desktop, solid on mobile -->
     <div class="absolute inset-0 md:bg-zinc-900/30" @click="emit('close')" />
 
-    <!-- Container: full mobile, max-width desktop, sharp, bordered -->
     <div
-      class="relative w-full md:max-w-3xl md:border md:border-zinc-200 bg-white flex flex-col h-full md:h-auto md:min-h-[30vh]"
+      class="relative w-full md:max-w-3xl md:border md:border-zinc-400 bg-white flex flex-col h-full md:h-auto md:min-h-[30vh]"
     >
       <!-- Input -->
       <div class="flex items-center border-b border-zinc-200 h-16 md:h-20 px-4 shrink-0">

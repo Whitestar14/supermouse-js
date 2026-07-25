@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, watch, ref, reactive, nextTick } from "vue";
 import { Supermouse } from "@supermousejs/core";
 import { useSupermouse } from "@supermousejs/vue";
-import type { PresetRecipe } from "./recipes";
+import type { PresetRecipe } from "@playground/recipes";
 
 const props = defineProps<{
   recipe: PresetRecipe;
@@ -14,6 +14,7 @@ const props = defineProps<{
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
+const globalCursor = useSupermouse();
 let mouse: Supermouse | null = null;
 
 // Reactive proxy that connects the recipe getters to the current props
@@ -70,28 +71,19 @@ const initCursor = () => {
   props.recipe.setup(mouse, liveConfig);
 };
 
-// --- Hover Management ---
-
-const globalMouse = useSupermouse();
-const isHovering = ref(false);
-let wasGlobalEnabled = false;
-
 const onEnter = () => {
-  isHovering.value = true;
-  wasGlobalEnabled = globalMouse.value?.isEnabled ?? false;
-  if (wasGlobalEnabled) {
-    globalMouse.value?.disable();
-  }
+  globalCursor.value?.freeze();
   mouse?.enable();
 };
 
 const onLeave = () => {
-  isHovering.value = false;
   mouse?.disable();
-  if (wasGlobalEnabled) {
-    globalMouse.value?.enable();
-  }
+  globalCursor.value?.unfreeze();
 };
+
+onUnmounted(() => {
+  mouse?.destroy();
+});
 
 watch(
   () => props.recipe.id,
@@ -126,10 +118,6 @@ watch(
 
 onMounted(() => {
   initCursor();
-});
-
-onUnmounted(() => {
-  mouse?.destroy();
 });
 </script>
 
@@ -176,7 +164,7 @@ onUnmounted(() => {
 
       <!-- Link/Text -->
       <div
-        class="flex items-center px-8 text-sm font-bold text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer"
+        class="flex items-center px-8 text-sm font-bold text-zinc-900 hover:bg-zinc-50 transition-colors"
         data-hover
         data-supermouse-text="Go to Link"
       >

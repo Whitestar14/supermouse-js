@@ -7,7 +7,6 @@ import CursorEditor from "@components/playground/CursorEditor.vue";
 import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
-
 const router = useRouter();
 useAppCursor();
 
@@ -85,6 +84,10 @@ onMounted(async () => {
   }
 });
 
+const navigateEditor = (id: string) => {
+  activeRecipeId.value = id;
+};
+
 watch(
   [isEditorOpen, isSearchOpen],
   ([editor, search]) => {
@@ -121,7 +124,12 @@ onUnmounted(() => {
       </main>
     </div>
 
-    <CursorEditor v-if="isEditorOpen" :active-recipe-id="activeRecipeId" @close="closeEditor" />
+    <CursorEditor
+      v-if="isEditorOpen"
+      :active-recipe-id="activeRecipeId"
+      @close="closeEditor"
+      @navigate="navigateEditor"
+    />
     <SearchPalette v-if="isSearchOpen" @close="isSearchOpen = false" />
   </div>
 </template>
