@@ -1,4 +1,4 @@
-import type { Supermouse } from "@supermousejs/core";
+import type { SupermouseInstance } from "@supermousejs/vue";
 
 export type ControlType = "range" | "color" | "toggle" | "text" | "select";
 
@@ -68,6 +68,6 @@ export interface PresetRecipe {
   description: string;
   icon: string;
   schema: ControlSchema[];
-  setup: (app: Supermouse, config: any) => void;
+  setup: (app: SupermouseInstance, config: any) => void;
   generateAST?: (config: any, globalConfig: any) => RecipeAST;
 }

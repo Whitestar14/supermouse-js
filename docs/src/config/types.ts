@@ -1,4 +1,4 @@
-import { Supermouse } from "@supermousejs/core";
+import { type SupermouseInstance } from "@supermousejs/core";
 
 export interface Point {
   x: number;
@@ -29,11 +29,11 @@ export interface SupermouseOptions {
 export interface SupermousePlugin {
   name: string;
   isEnabled?: boolean;
-  install?: (app: Supermouse) => void;
-  update?: (app: Supermouse, deltaTime: number) => void;
-  onEnable?: (app: Supermouse) => void;
-  onDisable?: (app: Supermouse) => void;
-  destroy?: (app: Supermouse) => void;
+  install?: (app: SupermouseInstance) => void;
+  update?: (app: SupermouseInstance, deltaTime: number) => void;
+  onEnable?: (app: SupermouseInstance) => void;
+  onDisable?: (app: SupermouseInstance) => void;
+  destroy?: (app: SupermouseInstance) => void;
 }
 
 export interface OptionSchema {

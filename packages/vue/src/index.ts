@@ -61,4 +61,5 @@ export function useSupermouse(): Ref<SupermouseInstance | null> {
   return instance;
 }
 
+export { Supermouse } from "@supermousejs/core";
 export type { SupermouseInstance, SupermouseOptions, SupermousePlugin } from "@supermousejs/core";

@@ -1,5 +1,5 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
-import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
+import { definePlugin, normalizeAll, dom, Layers } from "@supermousejs/utils";
 
 export interface RingOptions {
   name?: string;
@@ -11,19 +11,21 @@ export interface RingOptions {
   mixBlendMode?: string;
 }
 
-export const Ring = (options: RingOptions = {}) => {
-  const getSize = normalize(options.size, 20);
-  const getColor = normalize(options.color, "#ffffff");
-  const getBorder = normalize(options.borderWidth, 2);
-  const getOpacity = normalize(options.opacity, 1);
+export const Ring = (options: RingOptions = {}): SupermousePlugin => {
+  const cfg = normalizeAll(options, {
+    size: 20,
+    color: "#ffffff",
+    borderWidth: 2,
+    opacity: 1
+  });
 
   return definePlugin<HTMLDivElement>(
     {
       name: options.name || "ring",
       selector: "[data-supermouse-color]",
 
-      create: (app: Supermouse) => {
-        const el = dom.createCircle(getSize(app.state), "transparent");
+      create: (app: SupermouseInstance) => {
+        const el = dom.createCircle(cfg.size(app.state), "transparent");
         dom.css(el, {
           zIndex: Layers.FOLLOWER,
           mixBlendMode: options.mixBlendMode || "difference",
@@ -35,15 +37,15 @@ export const Ring = (options: RingOptions = {}) => {
       },
 
       update: (app, el) => {
-        const size = getSize(app.state);
-        const color = app.state.interaction.color || getColor(app.state);
+        const size = cfg.size(app.state);
+        const color = app.state.interaction.color || cfg.color(app.state);
 
         dom.css(el, {
           width: `${size}px`,
           height: `${size}px`,
           borderColor: color,
-          borderWidth: `${getBorder(app.state)}px`,
-          opacity: String(getOpacity(app.state)),
+          borderWidth: `${cfg.borderWidth(app.state)}px`,
+          opacity: String(cfg.opacity(app.state)),
           borderRadius: "50%"
         });
 

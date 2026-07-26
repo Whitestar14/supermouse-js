@@ -1,5 +1,5 @@
 import { definePlugin, dom } from "@supermousejs/utils";
-import type { Supermouse } from "@supermousejs/core";
+import type { SupermouseInstance } from "@supermousejs/core";
 
 export interface SpotlightRevealOptions {
   selector?: string;
@@ -69,7 +69,7 @@ export const SpotlightReveal = (options: SpotlightRevealOptions = {}) => {
     name: "spotlight-reveal",
     priority: 100,
 
-    update(app: Supermouse) {
+    update(app: SupermouseInstance) {
       const containers = document.querySelectorAll(selector);
 
       containers.forEach((container) => {

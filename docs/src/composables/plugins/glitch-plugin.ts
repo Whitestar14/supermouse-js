@@ -1,5 +1,5 @@
 import { definePlugin, dom, Layers } from "@supermousejs/utils";
-import type { Supermouse, SupermousePlugin } from "@supermousejs/core";
+import type { SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 
 export interface GlitchCursorOptions {
   name?: string;
@@ -47,7 +47,7 @@ export const GlitchCursor = (options: GlitchCursorOptions = {}): SupermousePlugi
         return el;
       },
 
-      update: (app: Supermouse, el: HTMLDivElement) => {
+      update: (app: SupermouseInstance, el: HTMLDivElement) => {
         const { pointer, smooth, isDown } = app.state;
 
         if (!initialized) {

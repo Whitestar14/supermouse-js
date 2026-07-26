@@ -3,6 +3,8 @@ import { onMounted, onUnmounted, watch, ref, reactive, nextTick } from "vue";
 import { useSupermouse, Supermouse, type SupermouseInstance } from "@supermousejs/vue";
 import type { PresetRecipe } from "@playground/recipes";
 
+// note to self: supermousejs/vue does not allow multiple instances per page, requiring us to import direct supermouse. Fix this.
+
 const props = defineProps<{
   recipe: PresetRecipe;
   config: Record<string, any>;
