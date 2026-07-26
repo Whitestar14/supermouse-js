@@ -22,7 +22,7 @@ export const GlitchCursor = (options: GlitchCursorOptions = {}) => {
   let moving = false;
   let moveTimeout: ReturnType<typeof setTimeout>;
 
-  return definePlugin<HTMLDivElement, GlitchCursorOptions>(
+  return definePlugin<HTMLDivElement>(
     {
       name: options.name || "glitch-cursor",
 

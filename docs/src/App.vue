@@ -7,9 +7,11 @@ import CursorEditor from "@components/playground/CursorEditor.vue";
 import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
-const router = useRouter();
-useAppCursor();
+import { doctor } from "@supermousejs/utils";
 
+const router = useRouter();
+const cursor = useAppCursor();
+onMounted(() => doctor(cursor.value));
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
 const isSearchOpen = ref(false);

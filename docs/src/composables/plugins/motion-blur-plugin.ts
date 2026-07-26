@@ -21,7 +21,7 @@ export const MotionBlur = (options: MotionBlurOptions = {}) => {
   let mainEl: HTMLDivElement;
   const trailEls: HTMLDivElement[] = [];
 
-  return definePlugin<HTMLDivElement, MotionBlurOptions>(
+  return definePlugin<HTMLDivElement>(
     {
       name: options.name || "motion-blur",
       create: (app) => {

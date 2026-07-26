@@ -141,6 +141,84 @@ update(app) {
     el.style.backgroundColor = color;
   }
 }`;
+
+const genericMultiInstanceCode = `import { definePlugin, dom } from '@supermousejs/utils';
+import type { Supermouse } from '@supermousejs/core';
+
+export const CursorHighlighter = (options = {}) => {
+  const selector = options.selector ?? '.highlight';
+  const maxRadius = options.maxRadius ?? 20;
+  const speed = options.speed ?? 0.1;
+
+  // Map<HTMLElement, { el, currentRadius, lastX, lastY }>
+  const instances = new Map();
+
+  function getOrCreate(container, rect) {
+    if (instances.has(container)) return instances.get(container);
+
+    const el = dom.createActor('div');
+    // … style the element (circle, absolute positioning, etc.)
+    container.style.position = 'relative';
+    container.appendChild(el);
+
+    const instance = {
+      el,
+      currentRadius: 0,
+      lastX: rect.width / 2,   // start centred
+      lastY: rect.height / 2,
+    };
+    instances.set(container, instance);
+    return instance;
+  }
+
+  return definePlugin({
+    name: 'cursor-highlighter',
+    priority: 100,
+
+    update(app: Supermouse) {
+      const containers = document.querySelectorAll(selector);
+
+      containers.forEach((container) => {
+        const rect = container.getBoundingClientRect();
+        const inst = getOrCreate(container, rect);
+
+        const isOver =
+          app.state.hasReceivedInput &&
+          app.state.pointer.x >= rect.left &&
+          app.state.pointer.x <= rect.right &&
+          app.state.pointer.y >= rect.top &&
+          app.state.pointer.y <= rect.bottom;
+
+        if (isOver) {
+          inst.lastX = app.state.smooth.x - rect.left;
+          inst.lastY = app.state.smooth.y - rect.top;
+        }
+
+        const targetR = isOver ? maxRadius : 0;
+        inst.currentRadius += (targetR - inst.currentRadius) * speed;
+
+        if (inst.currentRadius < 0.5) {
+          dom.setStyle(inst.el, 'opacity', '0');
+          return;
+        }
+        dom.setStyle(inst.el, 'opacity', '1');
+
+        const size = inst.currentRadius * 2;
+        // … apply size to element
+
+        // Render at the last known position, clamped to container bounds
+        const renderX = Math.max(0, Math.min(rect.width, inst.lastX));
+        const renderY = Math.max(0, Math.min(rect.height, inst.lastY));
+        dom.setTransform(inst.el, renderX, renderY);
+      });
+    },
+
+    destroy() {
+      instances.forEach(({ el }) => el.remove());
+      instances.clear();
+    }
+  });
+};`;
 </script>
 
 <template>
@@ -172,11 +250,16 @@ update(app) {
         match the registered plugin names exactly.
       </Callout>
       <CodeBlock :code="pluginNameContractCode" lang="typescript" :clean="true" class="mt-4 mb-6" />
+      <Text>
+        If a plugin throws during <code>update()</code>, it is removed from the pipeline, its
+        destroy and onDisable hooks are called, and an error is logged. A plugin that throws during
+        <code>install()</code> is rejected entirely and never added.
+      </Text>
     </SectionDivider>
 
     <!-- Scaffolding Plugins -->
     <SectionDivider size="lg" id="scaffolding">
-      <SectionHeader :level="2">Scaffolding Plugins (The CLI)</SectionHeader>
+      <SectionHeader :level="2">Scaffolding Plugins</SectionHeader>
       <Text class="mb-4">
         To streamline plugin development, this repository includes an interactive CLI manager. It
         automatically generates the correct directory structure, <code>package.json</code>, and a
@@ -192,7 +275,7 @@ update(app) {
 
     <!-- Runtime Pipeline -->
     <SectionDivider size="lg" id="pipeline">
-      <SectionHeader :level="2">Runtime Model (The Pipeline)</SectionHeader>
+      <SectionHeader :level="2">Runtime Model</SectionHeader>
       <Text class="mb-4">
         Every frame Supermouse runs a fixed pipeline. Understanding this order prevents jitter and
         “tearing”.
@@ -228,8 +311,8 @@ update(app) {
 
     <!-- Logic vs Visual -->
     <SectionDivider size="lg" id="logic-vs-visual">
-      <SectionHeader :level="2">Logic vs Visual Plugins</SectionHeader>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+      <SectionHeader :level="2">Plugin Types</SectionHeader>
+      <div class="grid grid-cols-1 gap-8 mt-6">
         <div>
           <h3 class="text-lg font-bold mb-2">Logic Plugin</h3>
           <p class="text-sm text-zinc-600 mb-3">
@@ -251,6 +334,82 @@ update(app) {
           <CodeBlock :code="visualPluginCode" lang="typescript" :clean="true" />
         </div>
       </div>
+    </SectionDivider>
+    <SectionDivider size="lg" id="multi-instance">
+      <SectionHeader :level="2"> Advanced Patterns </SectionHeader>
+
+      <Text class="mb-6">
+        Some cursor effects need to interact with several DOM elements (for example, a highlight
+        that follows the cursor inside different cards) or behave gracefully when the pointer leaves
+        the window. The approaches below are not the only way to solve these problems, but they are
+        lightweight patterns that have proven effective in real plugins.
+      </Text>
+
+      <h3 class="text-lg font-bold mb-2">Working with multiple targets</h3>
+      <Text class="mb-4">
+        If your plugin must track the cursor across several containers, you need a way to associate
+        state with each one. Three common strategies are:
+      </Text>
+      <ul class="list-disc list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong>Per‑frame querying</strong> – call <code>querySelectorAll</code> every frame and
+          use a <code>Map</code> to lazily create state for new containers. This is simple and works
+          well for a handful of elements.
+        </li>
+        <li>
+          <strong>Pre‑created pool</strong> – allocate a fixed number of elements in
+          <code>install()</code> and decide during <code>update</code> which ones to show. This
+          avoids DOM creation in the hot loop and is ideal for particle effects like the
+          <strong>Sparkles</strong> plugin, where a single pool of particles serves the entire page.
+        </li>
+        <li>
+          <strong>Static registration</strong> – collect all target elements once in
+          <code>install()</code> and reuse the same reference. This is appropriate when the DOM
+          structure is known to be stable.
+        </li>
+      </ul>
+      <Text class="mb-6">
+        The key insight is to separate <em>what</em> you’re tracking from <em>how</em> you render
+        it. The Sparkles plugin, for example, doesn’t know about individual containers at all; it
+        simply spawns particles along the pointer’s path. In contrast, a spotlight effect typically
+        needs to know which container the cursor is over so it can clamp the highlight correctly.
+        Choose the strategy that matches your data requirements.
+      </Text>
+
+      <h3 class="text-lg font-bold mb-2">Dealing with the pointer leaving the window</h3>
+      <Text class="mb-4">
+        When the pointer exits the browser window, Supermouse sets
+        <ApiLink to="hasReceivedInput"><code>hasReceivedInput</code></ApiLink> to
+        <code>false</code> and resets the smooth position to off‑screen coordinates (<code
+          >-100, -100</code
+        >). If your plugin blindly renders those coordinates, the effect will jump to the top‑left
+        corner of the screen (or container). There are three common ways to avoid that jump:
+      </Text>
+      <ul class="list-disc list-inside space-y-2 text-sm text-zinc-700 mb-6 pl-4">
+        <li>
+          <strong>Last‑known position</strong> – keep a copy of the most recent valid local
+          coordinates. When the cursor is over a container, update them; when it leaves, use that
+          stored value for rendering. This keeps the effect anchored in place as it fades or
+          shrinks.
+        </li>
+        <li>
+          <strong>Interpolation along the path</strong> – if you are generating trailing particles
+          (like Sparkles), you can stop spawning once <code>hasReceivedInput</code> is false. The
+          existing particles continue their independent fade‑out without needing a fixed anchor.
+        </li>
+        <li>
+          <strong>Instantly hide</strong> – for simple cursor‑replacement dots, it’s often
+          acceptable to set <code>opacity: 0</code> when <code>hasReceivedInput</code> is false,
+          provided you restore it on the first valid move after re‑entry.
+        </li>
+      </ul>
+      <Text class="mb-6">
+        The last‑known position approach is particularly useful for effects that expand or contract
+        based on hover state, because it allows the shrink animation to play while the effect stays
+        at the exact edge point where the cursor left. The Sparkles plugin handles the off‑screen
+        case differently: it still runs its particle lifecycle (fade and movement) even when no new
+        particles are spawned, so the trail naturally dissipates without jumping.
+      </Text>
     </SectionDivider>
 
     <!-- Native Cursor State -->
@@ -320,53 +479,6 @@ update(app) {
         <code>state.interaction</code> is completely flat, you get O(1) cached reads:
       </Text>
       <CodeBlock :code="interactionCodeDemo" lang="typescript" :clean="true" />
-    </SectionDivider>
-
-    <!-- Lifecycle -->
-    <SectionDivider size="lg" id="lifecycle">
-      <SectionHeader :level="2">Lifecycle Hooks</SectionHeader>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm border-collapse mb-6">
-          <thead>
-            <tr class="border-b border-zinc-200">
-              <th class="py-3 px-4 font-mono text-black uppercase text-xs">Hook</th>
-              <th class="py-3 px-4 text-xs text-zinc-500">When it runs</th>
-            </tr>
-          </thead>
-          <tbody class="text-zinc-700">
-            <tr class="border-b border-zinc-100">
-              <td class="py-3 px-4 font-mono"><ApiLink to="install">install(app)</ApiLink></td>
-              <td class="py-3 px-4">
-                Once, when <ApiLink to="use"><code>app.use()</code></ApiLink> is called
-              </td>
-            </tr>
-            <tr class="border-b border-zinc-100">
-              <td class="py-3 px-4 font-mono"><ApiLink to="update">update(app, dt)</ApiLink></td>
-              <td class="py-3 px-4">Every animation frame (~60–240 fps)</td>
-            </tr>
-            <tr class="border-b border-zinc-100">
-              <td class="py-3 px-4 font-mono"><ApiLink to="onenable">onEnable(app)</ApiLink></td>
-              <td class="py-3 px-4">When enabled via <code>app.enablePlugin()</code></td>
-            </tr>
-            <tr class="border-b border-zinc-100">
-              <td class="py-3 px-4 font-mono"><ApiLink to="ondisable">onDisable(app)</ApiLink></td>
-              <td class="py-3 px-4">When disabled via <code>app.disablePlugin()</code></td>
-            </tr>
-            <tr>
-              <td class="py-3 px-4 font-mono">
-                <ApiLink to="plugin-destroy">destroy(app)</ApiLink>
-              </td>
-              <td class="py-3 px-4">On app teardown</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <Callout title="Visual plugins: fade out, don't remove">
-        When disabled, visual plugins should hide elements (opacity/visibility) rather than removing
-        them from the DOM. This avoids expensive re‑creation on re‑enable. Also remember that plugin
-        instances are singletons—closures persist across enable/disable cycles, so reset visual
-        state explicitly in <code>onEnable</code>/<code>onDisable</code>.
-      </Callout>
     </SectionDivider>
 
     <!-- Writing Plugins -->

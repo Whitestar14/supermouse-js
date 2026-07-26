@@ -116,7 +116,7 @@ export function useAppCursor(): Ref<Supermouse | null> {
         states: {
           "playground-card": ["playground-card-bg", "playground-card-arrow"]
         }
-      }),
+      })
       // GlitchCursor({
       //   name: "glitch",
       //   cursorSize: 15,
