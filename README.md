@@ -123,8 +123,8 @@ mouse.isEnabled           // Returns `true` if the instance processes input
 
 mouse.enable()            // Start input processing. Hide the native cursor. Snap to the last known pointer position.
 mouse.disable()           // Stop input processing. Show the native cursor. Reset the state.
-mouse.freeze()            // Pause input and hide the stage. Do not change native cursor CSS. Use this when another instance takes control.
-mouse.unfreeze()          // Resume input and show the stage. Snap to the live pointer to prevent a sweep from a stale position.
+mouse.suspend()            // Pause input and hide the stage. Do not change native cursor CSS. Use this when another instance takes control.
+mouse.resume()          // Resume input and show the stage. Snap to the live pointer to prevent a sweep from a stale position.
 
 mouse.setNativeCursor("hide" | "show" | "auto")  // Force the native cursor state. This overrides auto-detection.
 

@@ -11,10 +11,10 @@ export interface ImageOptions {
 }
 
 export const Image = (options: ImageOptions = {}) => {
-  const className = options.className || "supermouse-image";
-  const [offX, offY] = options.offset || [0, 30];
-  const duration = options.duration || 200;
-  const smoothness = options.smoothness || 1;
+  const className = options.className ?? "supermouse-image";
+  const [offX, offY] = options.offset ?? [0, 30];
+  const duration = options.duration ?? 200;
+  const smoothness = options.smoothness ?? 1;
 
   let img: HTMLImageElement;
   let lastSrc: string | null = null;
@@ -22,9 +22,9 @@ export const Image = (options: ImageOptions = {}) => {
   let lx = 0;
   let ly = 0;
 
-  return definePlugin<HTMLDivElement, ImageOptions>(
+  return definePlugin<HTMLDivElement>(
     {
-      name: "image",
+      name: options.name ?? "image",
       selector: "[data-supermouse-img]",
 
       create: () => {
@@ -34,7 +34,7 @@ export const Image = (options: ImageOptions = {}) => {
         }
 
         img = document.createElement("img");
-        dom.applyStyles(img, {
+        dom.css(img, {
           width: "100%",
           height: "100%",
           objectFit: "cover",
@@ -42,7 +42,7 @@ export const Image = (options: ImageOptions = {}) => {
         });
         container.appendChild(img);
 
-        dom.applyStyles(container, {
+        dom.css(container, {
           zIndex: Layers.OVERLAY,
           opacity: "0",
           overflow: "hidden",
@@ -55,8 +55,7 @@ export const Image = (options: ImageOptions = {}) => {
         return container;
       },
 
-      update: (app: Supermouse, container: HTMLDivElement) => {
-        // Use parsed interaction data
+      update: (app, container) => {
         const src = app.state.interaction.img;
 
         if (app.state.isHover && src) {
@@ -65,12 +64,11 @@ export const Image = (options: ImageOptions = {}) => {
             lastSrc = src;
           }
 
-          dom.setStyle(container, "opacity", "1");
+          dom.css(container, { opacity: "1" });
 
           const targetX = app.state.pointer.x + offX;
           const targetY = app.state.pointer.y + offY;
 
-          // Reset position on first appearance to prevent flying in
           if (!isVisible) {
             lx = targetX;
             ly = targetY;
@@ -82,7 +80,7 @@ export const Image = (options: ImageOptions = {}) => {
 
           dom.setTransform(container, lx, ly);
         } else {
-          dom.setStyle(container, "opacity", "0");
+          dom.css(container, { opacity: "0" });
           isVisible = false;
         }
       }

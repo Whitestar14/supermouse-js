@@ -26,32 +26,29 @@ export const TextRing = (options: TextRingOptions = {}) => {
 
   const pathId = `supermouse-text-ring-path-${instanceCount++}`;
 
-  const defText = "SUPERMOUSE • SUPERMOUSE • ";
-  const defRadius = 60;
-  const defFontSize = 12;
-  const defSpeed = 0.5;
-  const className = options.className || "";
-  const spread = options.spread ?? false;
-
-  const getText = normalize(options.text, defText);
-  const getRadius = normalize(options.radius, defRadius);
-  const getFontSize = normalize(options.fontSize, defFontSize);
-  const getSpeed = normalize(options.speed, defSpeed);
+  const getText = normalize(options.text, "SUPERMOUSE • SUPERMOUSE • ");
+  const getRadius = normalize(options.radius, 60);
+  const getFontSize = normalize(options.fontSize, 12);
+  const getSpeed = normalize(options.speed, 0.5);
   const getOpacity = normalize(options.opacity, 1);
+  const getColor = normalize(options.color, "currentColor");
+
+  const className = options.className ?? "";
+  const spread = options.spread ?? false;
 
   let currentRotation = 0;
   let lastText = "";
   let lastRadius = 0;
   let lastFontSize = 0;
 
-  return definePlugin<HTMLDivElement, TextRingOptions>(
+  return definePlugin<HTMLDivElement>(
     {
-      name: "text-ring",
+      name: options.name ?? "text-ring",
       selector: "[data-supermouse-text-ring]",
 
-      create: (app: Supermouse) => {
+      create: (app) => {
         const container = dom.createActor("div") as HTMLDivElement;
-        dom.applyStyles(container, {
+        dom.css(container, {
           zIndex: Layers.FOLLOWER,
           transition: "opacity 0.2s ease",
           opacity: "1",
@@ -62,15 +59,19 @@ export const TextRing = (options: TextRingOptions = {}) => {
           alignItems: "center",
           justifyContent: "center"
         });
+
         if (className) {
           container.classList.add(...className.split(" ").filter(Boolean));
         }
 
         svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.style.overflow = "visible";
-        svg.style.position = "absolute";
-        svg.style.left = "0";
-        svg.style.top = "0";
+        // dom.css expects an HTMLElement; cast the SVG element to satisfy TypeScript
+        dom.css(svg, {
+          overflow: "visible",
+          position: "absolute",
+          left: "0",
+          top: "0"
+        });
 
         pathEl = document.createElementNS("http://www.w3.org/2000/svg", "path");
         pathEl.setAttribute("id", pathId);
@@ -102,22 +103,19 @@ export const TextRing = (options: TextRingOptions = {}) => {
         return container;
       },
 
-      styles: {
-        color: "color"
-      },
-
-      update: (app: Supermouse, container: HTMLDivElement) => {
+      update: (app, container) => {
         let text = getText(app.state);
         const radius = getRadius(app.state);
         const fontSize = getFontSize(app.state);
         const speed = getSpeed(app.state);
         const opacity = getOpacity(app.state);
 
-        // Force update opacity
-        dom.setStyle(container, "opacity", String(opacity));
+        dom.css(container, {
+          opacity: String(opacity),
+          color: getColor(app.state)
+        });
 
         const ia = app.state.interaction;
-        // Prefer specific "textRing" property, fallback to generic "text", then default option
         if (ia.textRing && typeof ia.textRing === "string") {
           text = ia.textRing;
         } else if (ia.text && typeof ia.text === "string") {

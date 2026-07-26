@@ -17,14 +17,14 @@ export const Ring = (options: RingOptions = {}) => {
   const getBorder = normalize(options.borderWidth, 2);
   const getOpacity = normalize(options.opacity, 1);
 
-  return definePlugin<HTMLDivElement, RingOptions>(
+  return definePlugin<HTMLDivElement>(
     {
       name: options.name || "ring",
       selector: "[data-supermouse-color]",
 
       create: (app: Supermouse) => {
         const el = dom.createCircle(getSize(app.state), "transparent");
-        dom.applyStyles(el, {
+        dom.css(el, {
           zIndex: Layers.FOLLOWER,
           mixBlendMode: options.mixBlendMode || "difference",
           borderStyle: "solid",
@@ -34,11 +34,11 @@ export const Ring = (options: RingOptions = {}) => {
         return el;
       },
 
-      update: (app: Supermouse, el: HTMLDivElement) => {
+      update: (app, el) => {
         const size = getSize(app.state);
         const color = app.state.interaction.color || getColor(app.state);
 
-        dom.applyStyles(el, {
+        dom.css(el, {
           width: `${size}px`,
           height: `${size}px`,
           borderColor: color,

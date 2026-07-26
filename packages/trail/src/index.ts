@@ -17,7 +17,7 @@ export const Trail = (options: TrailOptions = {}) => {
   const segments: HTMLDivElement[] = [];
   const history: { x: number; y: number }[] = [];
 
-  return definePlugin<HTMLDivElement, TrailOptions>(
+  return definePlugin<HTMLDivElement>(
     {
       name: options.name || "trail",
 
@@ -38,10 +38,8 @@ export const Trail = (options: TrailOptions = {}) => {
         return container;
       },
 
-      update: (app: Supermouse) => {
+      update: (app) => {
         const { x, y } = app.state.smooth;
-
-        // Shift history
         history.pop();
         history.unshift({ x, y });
 
@@ -53,9 +51,11 @@ export const Trail = (options: TrailOptions = {}) => {
           const scale = 1 - i / length;
           const size = baseSize * scale;
 
-          dom.setStyle(seg, "width", `${size}px`);
-          dom.setStyle(seg, "height", `${size}px`);
-          dom.setStyle(seg, "backgroundColor", color);
+          dom.css(seg, {
+            width: `${size}px`,
+            height: `${size}px`,
+            backgroundColor: color
+          });
 
           dom.setTransform(seg, pos.x, pos.y);
         });

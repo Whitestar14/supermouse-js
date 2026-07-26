@@ -1,5 +1,5 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
-import { definePlugin, normalize, dom, math, effects, Layers } from "@supermousejs/utils";
+import type { SupermousePlugin, ValueOrGetter } from "@supermousejs/core";
+import { definePlugin, normalizeAll, dom, math, effects, Layers } from "@supermousejs/utils";
 
 export interface SmartRingOptions {
   name?: string;
@@ -13,12 +13,14 @@ export interface SmartRingOptions {
   enableSkew?: boolean;
 }
 
-export const SmartRing = (options: SmartRingOptions = {}) => {
-  const getSize = normalize(options.size, 20);
-  const getHoverSize = normalize(options.hoverSize, 40);
-  const getColor = normalize(options.color, "#ffffff");
-  const getBorder = normalize(options.borderWidth, 2);
-  const getFill = normalize(options.fill, "transparent");
+export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
+  const cfg = normalizeAll(options, {
+    size: 20,
+    hoverSize: 40,
+    color: "#ffffff",
+    fill: "transparent",
+    borderWidth: 2
+  });
 
   let currentW = 20;
   let currentH = 20;
@@ -26,30 +28,44 @@ export const SmartRing = (options: SmartRingOptions = {}) => {
   let currentScaleX = 1;
   let currentScaleY = 1;
 
-  return definePlugin<HTMLDivElement, SmartRingOptions>(
+  return definePlugin<HTMLDivElement>(
     {
-      name: options.name || "smart-ring",
+      name: options.name ?? "smart-ring",
       selector: "[data-supermouse-color]",
 
-      create: (app: Supermouse) => {
-        const el = dom.createCircle(getSize(app.state), getFill(app.state));
-        dom.applyStyles(el, {
+      create: (app) => {
+        const el = dom.createCircle(cfg.size(app.state), cfg.fill(app.state));
+        dom.css(el, {
           zIndex: Layers.FOLLOWER,
-          mixBlendMode: options.mixBlendMode || "difference",
+          mixBlendMode: options.mixBlendMode ?? "difference",
           transition: "opacity 0.2s ease, border-radius 0.2s ease",
           borderStyle: "solid"
         });
         return el;
       },
 
-      update: (app: Supermouse, el: HTMLDivElement) => {
-        const baseSize = getSize(app.state);
+      onEnable(_app, el) {
+        const base = cfg.size(_app.state);
+        currentW = base * 0.5;
+        currentH = base * 0.5;
+        currentRot = 0;
+        currentScaleX = 1;
+        currentScaleY = 1;
+        dom.css(el, { borderRadius: "50%" });
+      },
+
+      onDisable(_app, el) {
+        dom.css(el, { borderRadius: "50%" });
+      },
+
+      update: (app, el) => {
+        const baseSize = cfg.size(app.state);
         const shape = app.state.shape;
 
         let targetW = baseSize;
         let targetH = baseSize;
         let targetRadius = "50%";
-        let color = getColor(app.state);
+        let color = cfg.color(app.state);
 
         if (shape) {
           targetW = shape.width;
@@ -57,8 +73,8 @@ export const SmartRing = (options: SmartRingOptions = {}) => {
           targetRadius = `${shape.borderRadius}px`;
         } else {
           if (app.state.isHover) {
-            targetW = getHoverSize(app.state);
-            targetH = getHoverSize(app.state);
+            targetW = cfg.hoverSize(app.state);
+            targetH = cfg.hoverSize(app.state);
           }
           if (app.state.isDown) {
             targetW *= 0.9;
@@ -71,12 +87,14 @@ export const SmartRing = (options: SmartRingOptions = {}) => {
         currentW = math.lerp(currentW, targetW, 0.2);
         currentH = math.lerp(currentH, targetH, 0.2);
 
-        dom.setStyle(el, "width", `${currentW}px`);
-        dom.setStyle(el, "height", `${currentH}px`);
-        dom.setStyle(el, "borderRadius", targetRadius);
-        dom.setStyle(el, "borderColor", color);
-        dom.setStyle(el, "backgroundColor", getFill(app.state));
-        dom.setStyle(el, "borderWidth", `${getBorder(app.state)}px`);
+        dom.css(el, {
+          width: `${currentW}px`,
+          height: `${currentH}px`,
+          borderRadius: targetRadius,
+          borderColor: color,
+          backgroundColor: cfg.fill(app.state),
+          borderWidth: `${cfg.borderWidth(app.state)}px`
+        });
 
         let targetRot = 0;
         let targetScaleX = 1;

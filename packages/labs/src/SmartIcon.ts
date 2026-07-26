@@ -1,5 +1,5 @@
 import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
-import { definePlugin, normalize, dom, math, Layers } from "@supermousejs/utils";
+import { definePlugin, normalizeAll, dom, math, Layers } from "@supermousejs/utils";
 
 export interface SmartIconMap {
   [key: string]: string;
@@ -43,8 +43,8 @@ function resolveSemanticState(target: HTMLElement, icons: SmartIconMap): string 
 export const SmartIcon = (options: SmartIconOptions) => {
   let contentWrapper: HTMLDivElement;
 
-  let currentState = options.defaultState || "default";
-  let targetState = options.defaultState || "default";
+  let currentState = options.defaultState ?? "default";
+  let targetState = options.defaultState ?? "default";
 
   let lastTarget: HTMLElement | null = null;
   let cachedSemanticState: string | null = null;
@@ -52,7 +52,6 @@ export const SmartIcon = (options: SmartIconOptions) => {
   let isTransitioning = false;
   let transitionTimer: ReturnType<typeof setTimeout>;
 
-  // --- HYSTERESIS STATE ---
   let pendingState: string | null = null;
   let pendingTimer = 0;
   const switchDelay = options.switchDelay ?? 80;
@@ -60,27 +59,29 @@ export const SmartIcon = (options: SmartIconOptions) => {
   let currentRotation = 0;
   let lastTargetRotation = 0;
 
-  const getSize = normalize(options.size, 24);
-  const getStrategy = normalize(options.followStrategy, "smooth");
-  const getAnchor = normalize(options.anchor, "center");
-  const getShouldRotate = normalize(options.rotateWithVelocity, false);
+  const cfg = normalizeAll(options, {
+    size: 24,
+    followStrategy: "smooth",
+    anchor: "center",
+    rotateWithVelocity: false
+  });
 
   const useSemanticTags = options.useSemanticTags ?? true;
   const duration = options.transitionDuration ?? 200;
-  const userOffX = options.offset ? options.offset[0] : 0;
-  const userOffY = options.offset ? options.offset[1] : 0;
+  const userOffX = options.offset?.[0] ?? 0;
+  const userOffY = options.offset?.[1] ?? 0;
 
   function commitTransition(nextState: string): void {
     targetState = nextState;
     isTransitioning = true;
 
     clearTimeout(transitionTimer);
-    contentWrapper.style.transform = "scale(0)";
+    dom.css(contentWrapper, { transform: "scale(0)" });
 
     transitionTimer = setTimeout(() => {
       currentState = targetState;
-      contentWrapper.innerHTML = options.icons[currentState] || "";
-      contentWrapper.style.transform = "scale(1)";
+      contentWrapper.innerHTML = options.icons[currentState] ?? "";
+      dom.css(contentWrapper, { transform: "scale(1)" });
 
       transitionTimer = setTimeout(() => {
         isTransitioning = false;
@@ -88,17 +89,17 @@ export const SmartIcon = (options: SmartIconOptions) => {
     }, duration / 2);
   }
 
-  return definePlugin<HTMLDivElement, SmartIconOptions>(
+  return definePlugin<HTMLDivElement>(
     {
-      name: options.name || "smart-icon",
+      name: options.name ?? "smart-icon",
       selector: "[data-supermouse-icon]",
 
       create: () => {
         const el = dom.createActor("div") as HTMLDivElement;
-        el.style.zIndex = Layers.CURSOR;
+        dom.css(el, { zIndex: Layers.CURSOR });
 
         contentWrapper = dom.createActor("div") as HTMLDivElement;
-        dom.applyStyles(contentWrapper, {
+        dom.css(contentWrapper, {
           width: "100%",
           height: "100%",
           display: "flex",
@@ -109,34 +110,30 @@ export const SmartIcon = (options: SmartIconOptions) => {
           transition: `transform ${duration / 2}ms cubic-bezier(0.16, 1, 0.3, 1)`
         });
 
-        contentWrapper.innerHTML = options.icons[currentState] || "";
+        contentWrapper.innerHTML = options.icons[currentState] ?? "";
 
         dom.injectStyles(
           "supermouse-smart-icon-styles",
           `
-        @keyframes sm {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .supermouse-spin {
-          animation: sm 1s linear infinite;
-        }
-        `
+          @keyframes sm {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .supermouse-spin {
+            animation: sm 1s linear infinite;
+          }
+          `
         );
 
         el.appendChild(contentWrapper);
         return el;
       },
 
-      styles: {
-        color: "color"
-      },
-
-      update: (app: Supermouse, el: HTMLDivElement, dtMs: number) => {
+      update: (app, el, dtMs) => {
         const icons = options.icons;
         const target = app.state.hoverTarget;
 
-        let nextState = options.defaultState || "default";
+        let nextState = options.defaultState ?? "default";
 
         if (target) {
           if (target !== lastTarget) {
@@ -144,10 +141,10 @@ export const SmartIcon = (options: SmartIconOptions) => {
             cachedSemanticState = useSemanticTags ? resolveSemanticState(target, icons) : null;
           }
 
-          const attrSmartIcon = app.state.interaction?.icon;
+          const attrIcon = app.state.interaction?.icon;
 
-          if (attrSmartIcon && icons[attrSmartIcon]) {
-            nextState = attrSmartIcon;
+          if (attrIcon && icons[attrIcon]) {
+            nextState = attrIcon;
           } else if (cachedSemanticState) {
             nextState = cachedSemanticState;
           }
@@ -156,18 +153,15 @@ export const SmartIcon = (options: SmartIconOptions) => {
           cachedSemanticState = null;
         }
 
-        // --- HYSTERESIS LOGIC ---
+        // Hysteresis
         if (nextState !== currentState && !isTransitioning) {
-          // Validate the target state exists
-          if (!icons[nextState] && nextState !== (options.defaultState || "default")) {
+          if (!icons[nextState] && nextState !== (options.defaultState ?? "default")) {
             pendingState = null;
             pendingTimer = 0;
           } else if (nextState !== pendingState) {
-            // New pending state, reset timer
             pendingState = nextState;
             pendingTimer = 0;
           } else {
-            // Same pending state, accumulate time
             pendingTimer += dtMs;
             if (pendingTimer >= switchDelay) {
               commitTransition(nextState);
@@ -176,19 +170,20 @@ export const SmartIcon = (options: SmartIconOptions) => {
             }
           }
         } else if (nextState === currentState) {
-          // Stable, clear any pending transition
           pendingState = null;
           pendingTimer = 0;
         }
 
-        const size = getSize(app.state);
-        dom.setStyle(el, "width", `${size}px`);
-        dom.setStyle(el, "height", `${size}px`);
+        const size = cfg.size(app.state);
+        dom.css(el, {
+          width: `${size}px`,
+          height: `${size}px`
+        });
 
         let anchorX = 0;
         let anchorY = 0;
         const half = size / 2;
-        const anchor = getAnchor(app.state);
+        const anchor = cfg.anchor(app.state);
 
         if (anchor !== "center") {
           if (anchor.includes("left")) anchorX = half;
@@ -199,7 +194,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
 
         const isSemanticState = currentState === "pointer" || currentState === "text";
 
-        if (getShouldRotate(app.state) && !isSemanticState && !app.state.reducedMotion) {
+        if (cfg.rotateWithVelocity(app.state) && !isSemanticState && !app.state.reducedMotion) {
           const { x: vx, y: vy } = app.state.velocity;
           const speed = math.dist(vx, vy);
 
@@ -211,7 +206,8 @@ export const SmartIcon = (options: SmartIconOptions) => {
           currentRotation = math.lerpAngle(currentRotation, 0, 0.15);
         }
 
-        const pos = getStrategy(app.state) === "raw" ? app.state.pointer : app.state.smooth;
+        const pos = cfg.followStrategy(app.state) === "raw" ? app.state.pointer : app.state.smooth;
+
         dom.setTransform(
           el,
           pos.x + userOffX + anchorX,

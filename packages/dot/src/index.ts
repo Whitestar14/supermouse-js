@@ -21,7 +21,7 @@ export const Dot = (options: DotOptions = {}) => {
   const getColor = normalize(options.color, defColor);
   const getOpacity = normalize(options.opacity, 1);
 
-  return definePlugin<HTMLDivElement, DotOptions>(
+  return definePlugin<HTMLDivElement>(
     {
       name: "dot",
       selector: "[data-supermouse-color]",
@@ -31,7 +31,7 @@ export const Dot = (options: DotOptions = {}) => {
         const color = getColor(app.state);
 
         const el = dom.createCircle(size, color);
-        dom.applyStyles(el, {
+        dom.css(el, {
           zIndex: options.zIndex || Layers.CURSOR,
           mixBlendMode: options.mixBlendMode || "difference",
           transition: "background-color 0.2s ease, opacity 0.2s ease"
@@ -39,21 +39,22 @@ export const Dot = (options: DotOptions = {}) => {
         return el;
       },
 
-      styles: {},
-
       update: (app, el) => {
         const size = getSize(app.state);
-        dom.setStyle(el, "width", `${size}px`);
-        dom.setStyle(el, "height", `${size}px`);
-        dom.setStyle(el, "backgroundColor", app.state.interaction.color || getColor(app.state));
-
+        dom.css(el, {
+          width: `${size}px`,
+          height: `${size}px`,
+          backgroundColor: app.state.interaction.color || getColor(app.state)
+        });
         let targetOpacity = getOpacity(app.state);
 
         if (hideOnShape && app.state.shape) {
           targetOpacity = 0;
         }
 
-        dom.setStyle(el, "opacity", String(targetOpacity));
+        dom.css(el, {
+          opacity: String(targetOpacity)
+        });
 
         const { x, y } = app.state.target;
         dom.setTransform(el, x, y);

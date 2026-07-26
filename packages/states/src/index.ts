@@ -1,96 +1,80 @@
-import type { Supermouse } from "@supermousejs/core";
 import { definePlugin } from "@supermousejs/utils";
 
 export interface StatesOptions {
   name?: string;
   isEnabled?: boolean;
-  /** The default state (active when nothing else is hovered). */
+  /** Plugins active when no state attribute is hovered. */
   default: string[];
-  /** Map of state names to lists of plugin names to enable. */
+  /** Map of state names to plugin names to enable. */
   states: Record<string, string[]>;
-  /** CSS selector attribute to trigger state change. Default 'data-supermouse-state'. */
+  /** Attribute that triggers a state change. */
   attribute?: string;
 }
 
+/**
+ * State machine plugin.
+ *
+ * Hovers over `[data-supermouse-state="foo"]` enable the plugin list
+ * registered for `"foo"`. Everything else falls back to `default`.
+ *
+ * Install this **after** all plugins it manages, or initialization will
+ * miss plugins that haven't been registered yet.
+ */
 export const States = (options: StatesOptions) => {
-  const attr = options.attribute || "data-supermouse-state";
+  const attr = options.attribute ?? "data-supermouse-state";
+  const defaultSet = new Set(options.default);
 
-  // Cache the relationships for fast lookups
-  const allManagedPlugins = new Set<string>(); // All plugins mentioned in 'states'
-  const defaultPlugins = new Set(options.default);
+  // Every plugin this instance ever touches
+  const managed = new Set<string>();
+  Object.values(options.states).forEach((list) => list.forEach((p) => managed.add(p)));
+  options.default.forEach((p) => managed.add(p));
 
-  // Populate the set of managed plugins (excluding defaults for now)
-  Object.values(options.states).forEach((list) => {
-    list.forEach((p) => allManagedPlugins.add(p));
-  });
-
-  let currentState = "default";
-  let hasInitialized = false;
+  let currentState = "__UNINITIALIZED__";
 
   return definePlugin(
     {
       name: "states",
-      // High priority: Run BEFORE visual plugins so they know if they are enabled/disabled this frame
       priority: -999,
 
-      install(app: Supermouse) {
-        // Register the trigger attribute
+      install(app) {
         app.registerHoverTarget(`[${attr}]`);
       },
 
-      update(app: Supermouse) {
-        // --- INITIALIZATION STEP ---
-        // We do this in the first update tick to ensure all other plugins
-        // have been registered via .use(), regardless of order.
-        if (!hasInitialized) {
-          // 1. Disable all "Special State" plugins initially
-          allManagedPlugins.forEach((name) => {
-            if (!defaultPlugins.has(name)) {
-              app.disablePlugin(name);
-            }
-          });
-
-          // 2. Ensure default plugins are enabled
-          defaultPlugins.forEach((name) => {
-            app.enablePlugin(name);
-          });
-
-          hasInitialized = true;
-        }
-
-        // --- STANDARD LOGIC ---
+      update(app) {
         const target = app.state.hoverTarget;
         let nextState = "default";
 
-        // 1. Determine Desired State
-        if (target && target.hasAttribute(attr)) {
+        if (target?.hasAttribute(attr)) {
           const val = target.getAttribute(attr);
-          if (val && options.states[val]) {
-            nextState = val;
-          }
+          if (val && options.states[val]) nextState = val;
         }
 
-        // 2. Switch State (Only if changed)
-        if (nextState !== currentState) {
-          // A. Determine which plugins should be active
-          const activePlugins =
-            nextState === "default" ? options.default : options.states[nextState];
+        if (nextState === currentState) return;
 
-          // B. Apply changes
-          // Note: We combine default + managed to ensure we cover everyone involved
-          const involved = new Set([...defaultPlugins, ...allManagedPlugins]);
+        const active = nextState === "default" ? options.default : options.states[nextState];
 
-          involved.forEach((pluginName) => {
-            const shouldBeActive = activePlugins.includes(pluginName);
+        for (const name of managed) {
+          const plugin = app.getPlugin(name);
+          if (!plugin) continue;
 
-            if (shouldBeActive) {
-              app.enablePlugin(pluginName);
-            } else {
-              app.disablePlugin(pluginName);
-            }
-          });
+          const shouldBe = active.includes(name);
+          const isEnabled = plugin.isEnabled !== false;
 
-          currentState = nextState;
+          if (shouldBe && !isEnabled) app.enablePlugin(name);
+          if (!shouldBe && isEnabled) app.disablePlugin(name);
+        }
+
+        currentState = nextState;
+      },
+
+      destroy(app) {
+        // Restore defaults on teardown so the app isn't left half-broken
+        for (const name of managed) {
+          const plugin = app.getPlugin(name);
+          if (!plugin) continue;
+          if (defaultSet.has(name) && plugin.isEnabled === false) {
+            app.enablePlugin(name);
+          }
         }
       }
     },

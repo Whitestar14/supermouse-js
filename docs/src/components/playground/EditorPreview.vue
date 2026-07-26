@@ -72,13 +72,13 @@ const initCursor = () => {
 };
 
 const onEnter = () => {
-  globalCursor.value?.freeze();
+  globalCursor.value?.suspend();
   mouse?.enable();
 };
 
 const onLeave = () => {
   mouse?.disable();
-  globalCursor.value?.unfreeze();
+  globalCursor.value?.resume();
 };
 
 onUnmounted(() => {

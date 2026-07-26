@@ -16,7 +16,7 @@ export const Text = (options: TextOptions = {}) => {
 
   let textNode: HTMLSpanElement;
 
-  return definePlugin<HTMLDivElement, TextOptions>(
+  return definePlugin<HTMLDivElement>(
     {
       name: "text",
       selector: "[data-supermouse-text]",
@@ -24,7 +24,7 @@ export const Text = (options: TextOptions = {}) => {
       create: () => {
         const el = dom.createActor("div") as HTMLDivElement;
 
-        dom.applyStyles(el, {
+        dom.css(el, {
           zIndex: Layers.OVERLAY,
           opacity: "0",
           transition: `opacity ${duration}ms ${Easings.SMOOTH}`,
@@ -43,17 +43,16 @@ export const Text = (options: TextOptions = {}) => {
         return el;
       },
 
-      update: (app: Supermouse, el: HTMLDivElement) => {
+      update: (app, el) => {
         const text = app.state.interaction.text;
 
         if (app.state.isHover && text) {
           textNode.innerText = text;
-          dom.setStyle(el, "opacity", "1");
-
+          dom.css(el, { opacity: "1" });
           const { x, y } = app.state.smooth;
           dom.setTransform(el, x + offX, y + offY);
         } else {
-          dom.setStyle(el, "opacity", "0");
+          dom.css(el, { opacity: "0" });
         }
       }
     },

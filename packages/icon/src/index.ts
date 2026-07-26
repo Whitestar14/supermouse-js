@@ -4,14 +4,14 @@ import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
 export interface IconOptions {
   name?: string;
   isEnabled?: boolean;
-  /** SVG Content String */
+  /** Raw SVG markup. */
   svg: string;
-  /** Size in pixels (default 24) */
+  /** Size in pixels. */
   size?: ValueOrGetter<number>;
-  /** CSS Color (default black) */
+  /** CSS color. */
   color?: ValueOrGetter<string>;
   opacity?: ValueOrGetter<number>;
-  /** Offset [x, y] from cursor center */
+  /** Offset [x, y] from cursor center. */
   offset?: [number, number];
 }
 
@@ -19,16 +19,16 @@ export const Icon = (options: IconOptions) => {
   const getSize = normalize(options.size, 24);
   const getOpacity = normalize(options.opacity, 1);
   const getColor = normalize(options.color, "black");
-  const [offX, offY] = options.offset || [0, 0];
+  const [offX, offY] = options.offset ?? [0, 0];
 
-  return definePlugin<HTMLDivElement, IconOptions>(
+  return definePlugin<HTMLDivElement>(
     {
-      name: options.name || "icon",
+      name: options.name ?? "icon",
 
       create: () => {
         const el = dom.createActor("div") as HTMLDivElement;
 
-        dom.applyStyles(el, {
+        dom.css(el, {
           zIndex: String(Layers.CURSOR),
           display: "flex",
           alignItems: "center",
@@ -39,23 +39,18 @@ export const Icon = (options: IconOptions) => {
         return el;
       },
 
-      styles: {
-        color: "color"
-      },
+      update: (app, el) => {
+        const size = getSize(app.state);
 
-      update: (app: Supermouse, el: HTMLDivElement) => {
-        const state = app.state;
-        const size = getSize(state);
-
-        dom.applyStyles(el, {
+        dom.css(el, {
           width: `${size}px`,
           height: `${size}px`,
-          opacity: String(getOpacity(state)),
-          color: getColor(state)
+          opacity: String(getOpacity(app.state)),
+          color: getColor(app.state)
         });
 
-        const { x, y } = state.smooth;
-        dom.setTransform(el, x + offX, y + offY, 0);
+        const { x, y } = app.state.smooth;
+        dom.setTransform(el, x + offX, y + offY);
       }
     },
     options

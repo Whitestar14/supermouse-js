@@ -6,7 +6,7 @@ This release stabilises the core after experimental work, keeping the best impro
 
 - `zIndex` option – customise the stage’s z‑index (default `9999`).
 - `cacheCursorStyle` option – opt‑in per‑element caching of computed `cursor` values, with `clearStyleCache()` to invalidate.
-- `freeze()` / `unfreeze()` – temporarily yield to another Supermouse instance without tearing down the current one.
+- `suspend()` / `resume()` – temporarily yield to another Supermouse instance without tearing down the current one.
 - `hasSeenPointer` flag – enables `enable()` to snap the cursor to the live pointer instantly, no more off‑screen sweep.
 - Nested‑instance CSS exclusion – scoped stylesheets now automatically prevent outer instance cursor rules from leaking into nested containers.
 
