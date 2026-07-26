@@ -1,4 +1,4 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
 
 export interface IconOptions {
@@ -15,7 +15,7 @@ export interface IconOptions {
   offset?: [number, number];
 }
 
-export const Icon = (options: IconOptions) => {
+export const Icon = (options: IconOptions): SupermousePlugin => {
   const getSize = normalize(options.size, 24);
   const getOpacity = normalize(options.opacity, 1);
   const getColor = normalize(options.color, "black");
@@ -39,7 +39,7 @@ export const Icon = (options: IconOptions) => {
         return el;
       },
 
-      update: (app, el) => {
+      update: (app: SupermouseInstance, el: HTMLDivElement) => {
         const size = getSize(app.state);
 
         dom.css(el, {

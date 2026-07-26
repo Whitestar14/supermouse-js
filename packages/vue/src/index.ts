@@ -7,9 +7,10 @@ import {
   type Ref,
   type InjectionKey
 } from "vue";
-import { Supermouse, type SupermouseOptions, type SupermousePlugin } from "@supermousejs/core";
+import { Supermouse } from "@supermousejs/core";
+import type { SupermouseOptions, SupermousePlugin, SupermouseInstance } from "@supermousejs/core";
 
-export const SupermouseKey: InjectionKey<Ref<Supermouse | null>> = Symbol("Supermouse");
+export const SupermouseKey: InjectionKey<Ref<SupermouseInstance | null>> = Symbol("Supermouse");
 
 /**
  * Initializes a Supermouse instance, handles its lifecycle, and provides it to the component tree.
@@ -21,8 +22,8 @@ export const SupermouseKey: InjectionKey<Ref<Supermouse | null>> = Symbol("Super
 export function provideSupermouse(
   options: SupermouseOptions = {},
   plugins: SupermousePlugin[] = []
-): Ref<Supermouse | null> {
-  const instance = shallowRef<Supermouse | null>(null);
+): Ref<SupermouseInstance | null> {
+  const instance = shallowRef<SupermouseInstance | null>(null);
 
   onMounted(() => {
     if (instance.value) return;
@@ -49,7 +50,7 @@ export function provideSupermouse(
  * @returns A Ref containing the Supermouse instance or null if not provided.
  * @warn Make sure to call provideSupermouse() in a parent component, otherwise this will return null.
  */
-export function useSupermouse(): Ref<Supermouse | null> {
+export function useSupermouse(): Ref<SupermouseInstance | null> {
   const instance = inject(SupermouseKey);
   if (!instance) {
     console.warn(
@@ -60,4 +61,4 @@ export function useSupermouse(): Ref<Supermouse | null> {
   return instance;
 }
 
-export type { Supermouse };
+export type { SupermouseInstance, SupermouseOptions, SupermousePlugin } from "@supermousejs/core";

@@ -1,4 +1,4 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 import { definePlugin, normalize, dom, math, Layers } from "@supermousejs/utils";
 
 export interface SparklesOptions {
@@ -27,7 +27,7 @@ interface Particle {
   color: string;
 }
 
-export const Sparkles = (options: SparklesOptions = {}) => {
+export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
   const poolSize = options.count ?? 30;
   const decayRate = options.decay ?? 0.05;
   const frequency = options.frequency ?? 10;
@@ -41,7 +41,7 @@ export const Sparkles = (options: SparklesOptions = {}) => {
   let hasMoved = false;
   let accumulatedDist = 0;
 
-  const activateParticle = (x: number, y: number, color: string) => {
+  const activateParticle = (x: number, y: number, color: string): void => {
     const p = pool.find((item) => !item.isActive);
     if (!p) return;
 
@@ -100,7 +100,7 @@ export const Sparkles = (options: SparklesOptions = {}) => {
         return container;
       },
 
-      update: (app) => {
+      update: (app: SupermouseInstance) => {
         const { x: cx, y: cy } = app.state.pointer;
 
         if (!hasMoved) {

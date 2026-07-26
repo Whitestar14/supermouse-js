@@ -29,7 +29,7 @@ provideSupermouse({
 const componentCode = `<script setup>
 import { useSupermouse } from '@supermousejs/vue';
 
-// Returns Ref<Supermouse | null> — null until the engine is mounted.
+// Returns Ref<SupermouseInstance | null> — null until the engine is mounted.
 const mouse = useSupermouse();
 
 const snap = () => {
@@ -84,8 +84,8 @@ const metadataItems = [
     <StepCard number="3" title="Usage in Components" divider>
       <Text size="sm">
         Use <code>useSupermouse()</code> in any child component to access the running instance. The
-        return value is a reactive <code>Ref&lt;Supermouse | null&gt;</code> — always guard with
-        <code>mouse.value</code> before accessing <ApiLink to="state" /> or calling methods.
+        return value is a reactive <code>Ref&lt;SupermouseInstance | null&gt;</code> — always guard
+        with <code>mouse.value</code> before accessing <ApiLink to="state" /> or calling methods.
       </Text>
       <CodeBlock
         :code="componentCode"

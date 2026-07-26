@@ -100,8 +100,8 @@ const metaItems = [
     <StepCard number="3" title="Usage in Components" divider>
       <Text size="sm">
         Call <code>useSupermouse()</code> in any descendant component to get the live instance. It
-        returns <code>Supermouse | null</code> — guard before accessing <ApiLink to="state" /> or
-        calling methods like <ApiLink to="destroy" />.
+        returns <code>SupermouseInstance | null</code> — guard before accessing
+        <ApiLink to="state" /> or calling methods like <ApiLink to="destroy" />.
       </Text>
       <CodeBlock
         :code="hookCode"

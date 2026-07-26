@@ -1,4 +1,4 @@
-import type { Supermouse, SupermousePlugin } from "@supermousejs/core";
+import type { SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 
 /** Options that can be passed to any plugin factory. */
 export interface BasePluginOptions {
@@ -28,7 +28,7 @@ interface CoreConfig {
    * Called once when the plugin is registered via `app.use()`.
    * The stage container is already mounted at this point.
    */
-  install?(app: Supermouse): void;
+  install?(app: SupermouseInstance): void;
 }
 
 /**
@@ -55,13 +55,13 @@ export interface LogicConfig extends CoreConfig {
    * @param app       The Supermouse instance.
    * @param deltaTime Elapsed time since last frame, in **milliseconds**.
    */
-  update?(app: Supermouse, deltaTime: number): void;
+  update?(app: SupermouseInstance, deltaTime: number): void;
   /** Called when the plugin is removed or the app is destroyed. */
-  destroy?(app: Supermouse): void;
+  destroy?(app: SupermouseInstance): void;
   /** Called when `app.enablePlugin(name)` is invoked. */
-  onEnable?(app: Supermouse): void;
+  onEnable?(app: SupermouseInstance): void;
   /** Called when `app.disablePlugin(name)` is invoked. */
-  onDisable?(app: Supermouse): void;
+  onDisable?(app: SupermouseInstance): void;
 }
 
 /**
@@ -101,31 +101,31 @@ export interface VisualConfig<E extends HTMLElement = HTMLElement> extends CoreC
    * Called once during `install()`. The returned element is automatically
    * appended to `app.container`.
    */
-  create: (app: Supermouse) => E;
+  create: (app: SupermouseInstance) => E;
 
   /**
    * Called every frame while the plugin is enabled.
    * Use `css()` from `@supermousejs/utils` for style writes,
    * and `setTransform()` for positioning.
    */
-  update?(app: Supermouse, element: E, deltaTime: number): void;
+  update?(app: SupermouseInstance, element: E, deltaTime: number): void;
 
   /** Called when the plugin is enabled. The element is already visible. */
-  onEnable?(app: Supermouse, element: E): void;
+  onEnable?(app: SupermouseInstance, element: E): void;
   /**
    * Called when the plugin is disabled.
    * The element is still in the DOM when this runs, so you can start
    * CSS transitions. The core hides it immediately after this hook.
    */
-  onDisable?(app: Supermouse, element: E): void;
+  onDisable?(app: SupermouseInstance, element: E): void;
 
   /**
    * Called during `destroy()`, before the element is removed from the DOM.
    * Use this to tear down external listeners or GSAP timelines.
    */
-  cleanup?(app: Supermouse, element: E): void;
+  cleanup?(app: SupermouseInstance, element: E): void;
   /** General teardown hook, called after cleanup and element removal. */
-  destroy?(app: Supermouse): void;
+  destroy?(app: SupermouseInstance): void;
 
   /**
    * Auto-registers this selector as a hover target on install.
@@ -222,7 +222,7 @@ export function definePlugin(
       }
 
       app.container.appendChild(root);
-      (this as SupermousePlugin).element = root;
+      this.element = root;
       isMounted = true;
 
       if (config.selector) {

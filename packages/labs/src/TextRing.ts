@@ -1,5 +1,5 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
-import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
+import { definePlugin, normalizeAll, dom, Layers } from "@supermousejs/utils";
 import { getCirclePath, getCircumference, formatLoopText } from "@supermousejs/zoetrope";
 
 export interface TextRingOptions {
@@ -17,7 +17,7 @@ export interface TextRingOptions {
 
 let instanceCount = 0;
 
-export const TextRing = (options: TextRingOptions = {}) => {
+export const TextRing = (options: TextRingOptions = {}): SupermousePlugin => {
   let svg: SVGSVGElement;
   let pathEl: SVGPathElement;
   let textPathEl: SVGTextPathElement;
@@ -26,12 +26,14 @@ export const TextRing = (options: TextRingOptions = {}) => {
 
   const pathId = `supermouse-text-ring-path-${instanceCount++}`;
 
-  const getText = normalize(options.text, "SUPERMOUSE • SUPERMOUSE • ");
-  const getRadius = normalize(options.radius, 60);
-  const getFontSize = normalize(options.fontSize, 12);
-  const getSpeed = normalize(options.speed, 0.5);
-  const getOpacity = normalize(options.opacity, 1);
-  const getColor = normalize(options.color, "currentColor");
+  const cfg = normalizeAll(options, {
+    text: "SUPERMOUSE • SUPERMOUSE • ",
+    radius: 60,
+    fontSize: 12,
+    speed: 0.5,
+    opacity: 1,
+    color: "currentColor"
+  });
 
   const className = options.className ?? "";
   const spread = options.spread ?? false;
@@ -46,7 +48,7 @@ export const TextRing = (options: TextRingOptions = {}) => {
       name: options.name ?? "text-ring",
       selector: "[data-supermouse-text-ring]",
 
-      create: (app) => {
+      create: (app: SupermouseInstance) => {
         const container = dom.createActor("div") as HTMLDivElement;
         dom.css(container, {
           zIndex: Layers.FOLLOWER,
@@ -79,7 +81,7 @@ export const TextRing = (options: TextRingOptions = {}) => {
 
         textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
 
-        const fs = getFontSize(app.state);
+        const fs = cfg.fontSize(app.state);
         textEl.setAttribute("font-size", `${fs}px`);
         lastFontSize = fs;
 
@@ -103,16 +105,17 @@ export const TextRing = (options: TextRingOptions = {}) => {
         return container;
       },
 
-      update: (app, container) => {
-        let text = getText(app.state);
-        const radius = getRadius(app.state);
-        const fontSize = getFontSize(app.state);
-        const speed = getSpeed(app.state);
-        const opacity = getOpacity(app.state);
+      update: (app: SupermouseInstance, container: HTMLDivElement) => {
+        let text = cfg.text(app.state);
+        const radius = cfg.radius(app.state);
+        const fontSize = cfg.fontSize(app.state);
+        const speed = cfg.speed(app.state);
+        const opacity = cfg.opacity(app.state);
+        const color = cfg.color(app.state);
 
         dom.css(container, {
-          opacity: String(opacity),
-          color: getColor(app.state)
+          color,
+          opacity: String(opacity)
         });
 
         const ia = app.state.interaction;

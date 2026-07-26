@@ -7,21 +7,19 @@ import CursorEditor from "@components/playground/CursorEditor.vue";
 import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
-import { doctor } from "@supermousejs/utils";
 
 const router = useRouter();
-const cursor = useAppCursor();
-onMounted(() => doctor(cursor.value));
+useAppCursor();
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
 const isSearchOpen = ref(false);
 const isRouteReady = ref(import.meta.env.SSR);
 
-const toggleSearch = () => {
+const toggleSearch = (): void => {
   isSearchOpen.value = !isSearchOpen.value;
 };
 
-const handleKeydown = (e: KeyboardEvent) => {
+const handleKeydown = (e: KeyboardEvent): void => {
   if ((e.metaKey || e.ctrlKey) && e.key === "k") {
     e.preventDefault();
     toggleSearch();
@@ -32,7 +30,7 @@ let lenis: Lenis | null = null;
 let rafId: number;
 let resizeObserver: ResizeObserver | null = null;
 
-const startLenis = () => {
+const startLenis = (): void => {
   if (lenis || typeof window === "undefined") return;
 
   lenis = new Lenis({
@@ -53,7 +51,7 @@ const startLenis = () => {
   rafId = requestAnimationFrame(raf);
 };
 
-const stopLenis = () => {
+const stopLenis = (): void => {
   if (!lenis) return;
   cancelAnimationFrame(rafId);
   lenis.destroy();
@@ -86,7 +84,7 @@ onMounted(async () => {
   }
 });
 
-const navigateEditor = (id: string) => {
+const navigateEditor = (id: string): void => {
   activeRecipeId.value = id;
 };
 

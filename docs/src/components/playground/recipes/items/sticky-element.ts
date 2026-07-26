@@ -30,7 +30,7 @@ export const stickyElementRecipe: PresetRecipe = {
     }
   ],
   setup: (app, config) => {
-    app.use(Stick({ padding: () => config.padding }));
+    app.use(Stick({ padding: Number(config.padding) }));
     app.use(
       Dot({
         size: 8,

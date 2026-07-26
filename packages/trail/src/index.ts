@@ -1,4 +1,4 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
 
 export interface TrailOptions {
@@ -9,7 +9,7 @@ export interface TrailOptions {
   color?: ValueOrGetter<string>;
 }
 
-export const Trail = (options: TrailOptions = {}) => {
+export const Trail = (options: TrailOptions = {}): SupermousePlugin => {
   const length = options.length || 10;
   const getSize = normalize(options.size, 6);
   const getColor = normalize(options.color, "#ff00ff");
@@ -38,7 +38,7 @@ export const Trail = (options: TrailOptions = {}) => {
         return container;
       },
 
-      update: (app) => {
+      update: (app: SupermouseInstance): void => {
         const { x, y } = app.state.smooth;
         history.pop();
         history.unshift({ x, y });

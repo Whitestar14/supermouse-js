@@ -27,7 +27,7 @@ provideSupermouse({ smoothness: 0.15 }, [Dot({ size: 8 })]);
 <script setup>
 import { useSupermouse } from "@supermousejs/vue";
 
-const mouse = useSupermouse(); // Returns Ref<Supermouse | null>
+const mouse = useSupermouse(); // Returns Ref<SupermouseInstance | null>
 </script>
 ```
 

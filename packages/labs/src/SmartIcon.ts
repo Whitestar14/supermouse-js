@@ -1,4 +1,4 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 import { definePlugin, normalizeAll, dom, math, Layers } from "@supermousejs/utils";
 
 export interface SmartIconMap {
@@ -40,7 +40,7 @@ function resolveSemanticState(target: HTMLElement, icons: SmartIconMap): string 
   return null;
 }
 
-export const SmartIcon = (options: SmartIconOptions) => {
+export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
   let contentWrapper: HTMLDivElement;
 
   let currentState = options.defaultState ?? "default";
@@ -129,7 +129,7 @@ export const SmartIcon = (options: SmartIconOptions) => {
         return el;
       },
 
-      update: (app, el, dtMs) => {
+      update: (app: SupermouseInstance, el: HTMLDivElement, dtMs: number) => {
         const icons = options.icons;
         const target = app.state.hoverTarget;
 

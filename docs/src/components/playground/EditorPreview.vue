@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, ref, reactive, nextTick } from "vue";
-import { Supermouse } from "@supermousejs/core";
-import { useSupermouse } from "@supermousejs/vue";
+import { useSupermouse, Supermouse, type SupermouseInstance } from "@supermousejs/vue";
 import type { PresetRecipe } from "@playground/recipes";
 
 const props = defineProps<{
@@ -15,7 +14,7 @@ const props = defineProps<{
 
 const containerRef = ref<HTMLElement | null>(null);
 const globalCursor = useSupermouse();
-let mouse: Supermouse | null = null;
+let mouse: SupermouseInstance | null = null;
 
 // Reactive proxy that connects the recipe getters to the current props
 const liveConfig = reactive<Record<string, any>>({});

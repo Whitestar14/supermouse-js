@@ -1,5 +1,5 @@
-import type { ValueOrGetter, Supermouse } from "@supermousejs/core";
-import { definePlugin, normalize, dom, math, Layers } from "@supermousejs/utils";
+import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
+import { definePlugin, normalizeAll, dom, math, Layers } from "@supermousejs/utils";
 
 export interface PointerOptions {
   name?: string;
@@ -20,16 +20,19 @@ const DEFAULT_SVG = `
 </svg>
 `;
 
-export const Pointer = (options: PointerOptions = {}) => {
+export const Pointer = (options: PointerOptions = {}): SupermousePlugin => {
   const smoothing = options.rotationSmoothing ?? 0.15;
   const svgContent = options.svg ?? DEFAULT_SVG;
 
-  const getSize = normalize(options.size, 32);
-  const getColor = normalize(options.color, "currentColor");
-  const getRestingAngle = normalize(options.restingAngle, -45);
-  const getReturnToRest = normalize(options.returnToRest, true);
-  const getRestDelay = normalize(options.restDelay, 200);
-  const getOpacity = normalize(options.opacity, 1);
+  const cfg = normalizeAll(options, {
+    size: 32,
+    color: "currentColor",
+    rotationSmoothing: 0.15,
+    restingAngle: -45,
+    returnToRest: true,
+    restDelay: 200,
+    opacity: 1
+  });
 
   let currentRotation = 0;
   let lastRotation = 0;
@@ -47,7 +50,7 @@ export const Pointer = (options: PointerOptions = {}) => {
           transformOrigin: "center center"
         });
 
-        const restAngle = getRestingAngle(app.state);
+        const restAngle = cfg.restingAngle(app.state);
         currentRotation = restAngle;
         lastRotation = restAngle;
 
@@ -55,18 +58,18 @@ export const Pointer = (options: PointerOptions = {}) => {
         return el;
       },
 
-      update: (app, el) => {
-        const size = getSize(app.state);
-        const restingAngle = getRestingAngle(app.state);
-        const returnToRest = getReturnToRest(app.state);
-        const restDelay = getRestDelay(app.state);
+      update: (app: SupermouseInstance, el: HTMLDivElement): void => {
+        const size = cfg.size(app.state);
+        const restingAngle = cfg.restingAngle(app.state);
+        const returnToRest = cfg.returnToRest(app.state);
+        const restDelay = cfg.restDelay(app.state);
         const now = performance.now();
 
         dom.css(el, {
           width: `${size}px`,
           height: `${size}px`,
-          opacity: String(getOpacity(app.state)),
-          color: getColor(app.state)
+          opacity: String(cfg.opacity(app.state)),
+          color: cfg.color(app.state)
         });
 
         const { x: vx, y: vy } = app.state.velocity;

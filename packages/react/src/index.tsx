@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Supermouse, type SupermouseOptions, type SupermousePlugin } from "@supermousejs/core";
+import {
+  Supermouse,
+  type SupermouseOptions,
+  type SupermousePlugin,
+  type SupermouseInstance
+} from "@supermousejs/core";
 
-const SupermouseContext = createContext<Supermouse | null>(null);
+const SupermouseContext = createContext<SupermouseInstance | null>(null);
 
 export interface SupermouseProviderProps {
   options?: SupermouseOptions;
@@ -14,7 +19,7 @@ export const SupermouseProvider: React.FC<SupermouseProviderProps> = ({
   options = {},
   plugins = []
 }) => {
-  const [instance, setInstance] = useState<Supermouse | null>(null);
+  const [instance, setInstance] = useState<SupermouseInstance | null>(null);
 
   useEffect(() => {
     // 1. Initialize
@@ -35,6 +40,6 @@ export const SupermouseProvider: React.FC<SupermouseProviderProps> = ({
   return <SupermouseContext.Provider value={instance}>{children}</SupermouseContext.Provider>;
 };
 
-export const useSupermouse = (): Supermouse | null => {
+export const useSupermouse = (): SupermouseInstance | null => {
   return useContext(SupermouseContext);
 };

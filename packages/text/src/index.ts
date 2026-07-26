@@ -1,4 +1,4 @@
-import type { Supermouse } from "@supermousejs/core";
+import type { SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
 import { definePlugin, dom, Layers, Easings } from "@supermousejs/utils";
 
 export interface TextOptions {
@@ -9,7 +9,7 @@ export interface TextOptions {
   duration?: number;
 }
 
-export const Text = (options: TextOptions = {}) => {
+export const Text = (options: TextOptions = {}): SupermousePlugin => {
   const className = options.className || "supermouse-text";
   const [offX, offY] = options.offset || [0, 24];
   const duration = options.duration || 200;
@@ -43,7 +43,7 @@ export const Text = (options: TextOptions = {}) => {
         return el;
       },
 
-      update: (app, el) => {
+      update: (app: SupermouseInstance, el: HTMLDivElement) => {
         const text = app.state.interaction.text;
 
         if (app.state.isHover && text) {
