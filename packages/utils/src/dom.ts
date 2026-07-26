@@ -5,7 +5,7 @@
  * @param id A unique identifier for this style block
  * @param css A string of CSS rules to inject.
  */
-export const injectStyles = (id: string, css: string) => {
+export const injectStyles = (id: string, css: string): void => {
   if (typeof document === "undefined") return;
   if (document.getElementById(id)) return;
 
@@ -15,16 +15,25 @@ export const injectStyles = (id: string, css: string) => {
   document.head.appendChild(style);
 };
 
-// WeakMap to store previous styles for elements to prevent DOM thrashing
-const styleCache = new WeakMap<HTMLElement, Record<string, string | number>>();
+// dom.ts
+const styleCache = new WeakMap<HTMLElement | SVGSVGElement, Record<string, string | number>>();
 
 /**
- * Smart Style Setter (Batch).
- * Only writes to the DOM if the value has actually changed.
- * @param el The element to style
- * @param styles An object of CSS properties and values
+ * Applies CSS properties to an element. Only touches the DOM when a value
+ * has actually changed. This is the single convention for all style writes.
+ *
+ * @example
+ * css(el, {
+ *   width: `${size}px`,
+ *   height: `${size}px`,
+ *   opacity: state.isHover ? 1 : 0,
+ *   backgroundColor: state.interaction.color || "#000",
+ * });
  */
-export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
+export function css(
+  el: HTMLElement | SVGSVGElement,
+  styles: Record<string, string | number>
+): void {
   if (typeof document === "undefined" || !el) return;
 
   let cache = styleCache.get(el);
@@ -33,8 +42,7 @@ export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration
     styleCache.set(el, cache);
   }
 
-  for (const prop in styles) {
-    const value = (styles as any)[prop];
+  for (const [prop, value] of Object.entries(styles)) {
     if (cache[prop] !== value) {
       (el.style as any)[prop] = value;
       cache[prop] = value;
@@ -43,18 +51,24 @@ export function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration
 }
 
 /**
- * Smart Style Setter (Single).
- * Proxies to applyStyles for consistency.
- * @param el The element to style
- * @param property The CSS property to set
- * @param value The value to set for the property
+ * @deprecated Use `dom.css()` instead. This function will be removed in future versions.
  */
 export function setStyle(
-  el: HTMLElement,
-  property: keyof CSSStyleDeclaration,
+  el: HTMLElement | SVGSVGElement,
+  prop: string,
   value: string | number
-) {
-  applyStyles(el, { [property]: value } as any);
+): void {
+  css(el, { [prop]: value });
+}
+
+/**
+ * @deprecated Use `dom.css()` instead. This function will be removed in future versions.
+ */
+export function applyStyles(
+  el: HTMLElement | SVGSVGElement,
+  styles: Record<string, string | number>
+): void {
+  css(el, styles);
 }
 
 /**
@@ -71,7 +85,7 @@ export function setStyle(
  * @param skewY Skew Y (deg) - Default 0
  */
 export function setTransform(
-  el: HTMLElement,
+  el: HTMLElement | SVGSVGElement,
   x: number,
   y: number,
   rotation: number = 0,
@@ -79,16 +93,19 @@ export function setTransform(
   scaleY: number = 1,
   skewX: number = 0,
   skewY: number = 0
-) {
+): void {
   const transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) rotate(${rotation}deg) skew(${skewX}deg, ${skewY}deg) scale(${scaleX}, ${scaleY})`;
 
-  setStyle(el, "transform", transform);
+  css(el, { transform });
 }
 
 /**
  * Calculates the bounding rectangle of an element relative to a container.
  */
-export function projectRect(element: HTMLElement, container: HTMLElement = document.body): DOMRect {
+export function projectRect(
+  element: HTMLElement | SVGSVGElement,
+  container: HTMLElement | SVGSVGElement = document.body
+): DOMRect {
   const rect = element.getBoundingClientRect();
 
   if (container !== document.body) {
@@ -108,9 +125,9 @@ export function projectRect(element: HTMLElement, container: HTMLElement = docum
  *
  * @param tagName The HTML tag to create (default: 'div')
  */
-export function createActor(tagName: string = "div"): HTMLElement {
+export function createActor(tagName: string = "div"): HTMLElement | SVGSVGElement {
   const el = document.createElement(tagName);
-  applyStyles(el, {
+  css(el, {
     position: "absolute",
     top: "0",
     left: "0",
@@ -127,7 +144,7 @@ export function createActor(tagName: string = "div"): HTMLElement {
  */
 export function createCircle(size: number, color: string): HTMLDivElement {
   const el = createActor("div") as HTMLDivElement;
-  applyStyles(el, {
+  css(el, {
     width: `${size}px`,
     height: `${size}px`,
     borderRadius: "50%",
