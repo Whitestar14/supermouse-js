@@ -1,7 +1,7 @@
 declare const __VERSION__: string | undefined;
 const VERSION: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0";
 
-import type { MouseState, SupermouseOptions, SupermousePlugin } from "./types";
+import type { MouseState, SupermouseInstance, SupermouseOptions, SupermousePlugin } from "./types";
 
 /** Standard linear interpolation between `start` and `end` by `factor` ∈ [0, 1]. */
 function lerp(start: number, end: number, factor: number): number {
@@ -36,17 +36,28 @@ const NATIVE_TAGS = new Set(["input", "textarea", "select"]);
  * includes a CSS check.
  */
 const SUPERMOUSE_CURSORS = new Set([
-  "default", "auto", "pointer", "none", "inherit", "grab", "grabbing"
+  "default",
+  "auto",
+  "pointer",
+  "none",
+  "inherit",
+  "grab",
+  "grabbing"
 ]);
 
 /** Default selectors that trigger `state.isHover`. Override with the `hoverSelectors` option. */
 export const DEFAULT_HOVER_SELECTORS = [
-  "a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"
+  "a",
+  "button",
+  "input",
+  "textarea",
+  "[data-hover]",
+  "[data-cursor]"
 ];
 
 /**
  * Input.ts
- * 
+ *
  * Owns all browser-event listening and is the **only** class allowed to write
  * to these `MouseState` fields: `pointer`, `isDown`, `isHover`, `isNative`,
  * `hoverTarget`, `interaction`, `reducedMotion`.
@@ -84,7 +95,7 @@ export class Input {
    */
   public hasSeenPointer: boolean = false;
 
-  /** Master enable switch. See `Supermouse.enable()` / `disable()` / `freeze()`. */
+  /** Master enable switch. See `Supermouse.enable()` / `disable()` / `suspend()`. */
   public isEnabled: boolean = true;
 
   constructor(
@@ -131,7 +142,9 @@ export class Input {
     this.state.reducedMotion = this.motionQuery.matches;
     this.motionQuery.addEventListener(
       "change",
-      (e) => { this.state.reducedMotion = e.matches; },
+      (e) => {
+        this.state.reducedMotion = e.matches;
+      },
       { signal: this.abortController.signal }
     );
   }
@@ -302,7 +315,7 @@ export class Input {
     }
   };
 
-  /** Resets all hover-derived state. Called by `freeze()` and exposed for edge cases. */
+  /** Resets all hover-derived state. Called by `suspend()` and exposed for edge cases. */
   public clearHover(): void {
     this.state.isHover = false;
     this.state.hoverTarget = null;
@@ -335,7 +348,7 @@ let stageCount = 0;
 
 /**
  * Stage.ts
- * 
+ *
  * Owns the DOM container plugins render into and manages native-cursor
  * suppression via an injected `<style>` tag.
  *
@@ -369,8 +382,13 @@ export class Stage {
    * inheritance alone, therefore these selectors get their own rules.
    */
   private selectors: Set<string> = new Set([
-    "a", "button", "input", "textarea", "select",
-    '[role="button"]', "[tabindex]"
+    "a",
+    "button",
+    "input",
+    "textarea",
+    "select",
+    '[role="button"]',
+    "[tabindex]"
   ]);
 
   constructor(
@@ -384,7 +402,7 @@ export class Stage {
     if (!container.isConnected) {
       console.warn(
         "[Supermouse] container is not attached to the document — " +
-        "stage sizing/positioning will be wrong until it is."
+          "stage sizing/positioning will be wrong until it is."
       );
     }
 
@@ -462,7 +480,9 @@ export class Stage {
 
     const exclusion = `:not(.${this.scopeClass} .supermouse-scope):not(.${this.scopeClass} .supermouse-scope *)`;
     const scopedRules = rawSelectors
-      .map((s) => `.${this.scopeClass}.${this.hideClass} ${s}${exclusion} { cursor: none !important; }`)
+      .map(
+        (s) => `.${this.scopeClass}.${this.hideClass} ${s}${exclusion} { cursor: none !important; }`
+      )
       .join("\n");
 
     this.styleTag.innerText = `
@@ -516,7 +536,7 @@ type ResolvedOptions = SupermouseOptions &
  *
  * @default
  */
-export class Supermouse {
+export class Supermouse implements SupermouseInstance {
   public static readonly version: string = VERSION;
   public readonly version: string = VERSION;
 
@@ -532,7 +552,7 @@ export class Supermouse {
   private rafId: number = 0;
   private lastTime: number = 0;
   private isRunning: boolean = false;
-  private isFrozen: boolean = false;
+  private isSuspended: boolean = false;
   private visibilityAbortController = new AbortController();
 
   private hoverSelectors: Set<string>;
@@ -586,7 +606,9 @@ export class Supermouse {
       this.state,
       this.options,
       () => Array.from(this.hoverSelectors).join(", "),
-      (enabled) => { if (!enabled) this.reset(true); }
+      (enabled) => {
+        if (!enabled) this.reset(true);
+      }
     );
 
     this.options.plugins?.forEach((p) => this.use(p));
@@ -626,8 +648,11 @@ export class Supermouse {
     const plugin = this.getPlugin(name);
     if (plugin && plugin.isEnabled !== false) {
       plugin.isEnabled = false;
-      if (plugin.element) plugin.element.style.display = "none";
-      plugin.onDisable?.(this);
+      try {
+        plugin.onDisable?.(this);
+      } finally {
+        if (plugin.element) plugin.element.style.display = "none";
+      }
     }
   }
 
@@ -701,21 +726,21 @@ export class Supermouse {
    * is unobstructed. No-op if the instance is already disabled via `disable()`, which preserves
    * the user's explicit disabled state across an enter/leave cycle.
    */
-  public freeze(): void {
+  public suspend(): void {
     if (!this.input.isEnabled) return;
-    this.isFrozen = true;
+    this.isSuspended = true;
     this.input.isEnabled = false;
     this.input.clearHover();
     this.stage.setVisibility(false);
   }
 
   /**
-   * Resumes from `freeze()`, snapping physics to the live pointer.
-   * No-op if the instance wasn't frozen to guard against mismatched calls.
+   * Resumes from `suspend()`, snapping physics to the live pointer.
+   * No-op if the instance wasn't suspended to guard against mismatched calls.
    */
-  public unfreeze(): void {
-    if (!this.isFrozen) return;
-    this.isFrozen = false;
+  public resume(): void {
+    if (!this.isSuspended) return;
+    this.isSuspended = false;
     this.input.isEnabled = true;
 
     if (this.state.hasReceivedInput) {
@@ -724,7 +749,7 @@ export class Supermouse {
       this.state.velocity.x = 0;
       this.state.velocity.y = 0;
     }
-    // Force a plugin update before revealing the stage so elements are current, not stale from the last pre-freeze frame.
+    // Force a plugin update before revealing the stage so elements are current, not stale from the last pre-suspended frame.
     for (let i = this.plugins.length - 1; i >= 0; i--) {
       this.runPluginSafe(this.plugins[i], 0);
     }
@@ -837,7 +862,7 @@ export class Supermouse {
   /** Whether the OS cursor should be visible or suppressed this frame. */
   private resolveNativeCursorState(): "none" | "auto" {
     if (this.state.forcedCursor !== null) return this.state.forcedCursor;
-    return (this.state.isNative || !this.state.hasReceivedInput) ? "auto" : "none";
+    return this.state.isNative || !this.state.hasReceivedInput ? "auto" : "none";
   }
 
   private tick = (time: number): void => {

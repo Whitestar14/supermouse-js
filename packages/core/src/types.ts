@@ -1,5 +1,3 @@
-import type { Supermouse } from "./Supermouse";
-
 export interface MousePosition {
   x: number;
   y: number;
@@ -198,14 +196,62 @@ export interface SupermousePlugin {
   element?: HTMLElement;
 
   /** Called when `app.use()` is executed. */
-  install?: (instance: Supermouse) => void;
+  install?: (instance: SupermouseInstance) => void;
   /** Called on every animation frame with the frame delta time in milliseconds. */
-  update?: (instance: Supermouse, deltaTime: number) => void;
+  update?: (instance: SupermouseInstance, deltaTime: number) => void;
   /** Called when the plugin is removed or the app is destroyed. */
-  destroy?: (instance: Supermouse) => void;
+  destroy?: (instance: SupermouseInstance) => void;
 
   /** Called when the plugin is enabled via .enablePlugin() */
-  onEnable?: (instance: Supermouse) => void;
+  onEnable?: (instance: SupermouseInstance) => void;
   /** Called when the plugin is disabled via .disablePlugin() */
-  onDisable?: (instance: Supermouse) => void;
+  onDisable?: (instance: SupermouseInstance) => void;
+}
+
+/**
+ * Interface for the Supermouse instance, exposing its public API and state.
+ */
+export interface SupermouseInstance {
+  /** Library version. */
+  readonly version: string;
+  /** Current mouse/plugin state. */
+  readonly state: MouseState;
+  /** Resolved configuration options. */
+  readonly options: SupermouseOptions;
+  /** Whether the instance is processing input. */
+  readonly isEnabled: boolean;
+  /** Stage container element. Plugins append their DOM here. */
+  readonly container: HTMLDivElement;
+
+  /** Look up a registered plugin by name. */
+  getPlugin(name: string): SupermousePlugin | undefined;
+  /** Enable a previously disabled plugin. */
+  enablePlugin(name: string): void;
+  /** Disable a plugin (hides its element if attached). */
+  disablePlugin(name: string): void;
+  /** Toggle a plugin's enabled state. */
+  togglePlugin(name: string): void;
+  /** Register a CSS selector for hover detection and native cursor suppression. */
+  registerHoverTarget(selector: string): void;
+  /**
+   * Override native cursor visibility.
+   * @param mode - `"hide"` always shows custom cursor, `"show"` always shows native, `"auto"` uses auto‑detection.
+   */
+  setNativeCursor(mode: "hide" | "show" | "auto"): void;
+  /** Enable input processing and show the custom cursor. */
+  enable(): void;
+  /** Disable input processing and restore the native cursor. */
+  disable(): void;
+  /** Temporarily yield to another instance (hides stage, disables input). */
+  suspend(): void;
+  /** Resume after `suspend()`. */
+  resume(): void;
+  /** Add a plugin to the pipeline. */
+  use(plugin: SupermousePlugin): this;
+  /** Start the animation loop if not already running. */
+  start(): void;
+  /** Manually advance a single frame. */
+  step(time: number): void;
+  /** Destroy the instance and all plugins. */
+  destroy(): void;
 }
