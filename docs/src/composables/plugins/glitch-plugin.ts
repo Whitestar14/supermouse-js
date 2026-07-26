@@ -1,5 +1,5 @@
 import { definePlugin, dom, Layers } from "@supermousejs/utils";
-import type { Supermouse } from "@supermousejs/core";
+import type { Supermouse, SupermousePlugin } from "@supermousejs/core";
 
 export interface GlitchCursorOptions {
   name?: string;
@@ -10,12 +10,11 @@ export interface GlitchCursorOptions {
   hoverSelectors?: string[];
 }
 
-export const GlitchCursor = (options: GlitchCursorOptions = {}) => {
+export const GlitchCursor = (options: GlitchCursorOptions = {}): SupermousePlugin => {
   const size = options.cursorSize ?? 25;
   const colorB = options.glitchColorB ?? "#00feff";
   const colorR = options.glitchColorR ?? "#ff4f71";
 
-  let cursorEl: HTMLDivElement;
   let previousPointerX = 0;
   let previousPointerY = 0;
   let initialized = false; // guards against first-frame spike
@@ -30,7 +29,7 @@ export const GlitchCursor = (options: GlitchCursorOptions = {}) => {
         const el = dom.createActor("div") as HTMLDivElement;
         const supportsBackdrop = CSS.supports("backdrop-filter", "invert(1)");
 
-        dom.applyStyles(el, {
+        dom.css(el, {
           position: "fixed",
           top: `${size / -2}px`,
           left: `${size / -2}px`,
@@ -45,7 +44,6 @@ export const GlitchCursor = (options: GlitchCursorOptions = {}) => {
             : { backgroundColor: "#222" })
         });
 
-        cursorEl = el;
         return el;
       },
 

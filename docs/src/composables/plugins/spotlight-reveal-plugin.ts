@@ -31,7 +31,7 @@ export const SpotlightReveal = (options: SpotlightRevealOptions = {}) => {
     if (instances.has(container)) return instances.get(container)!;
 
     const el = dom.createActor("div") as HTMLDivElement;
-    dom.applyStyles(el, {
+    dom.css(el, {
       position: "absolute",
       top: "0",
       left: "0",
@@ -42,7 +42,7 @@ export const SpotlightReveal = (options: SpotlightRevealOptions = {}) => {
     });
 
     const inner = dom.createActor("div") as HTMLDivElement;
-    dom.applyStyles(inner, {
+    dom.css(inner, {
       backgroundColor: "white",
       borderRadius: "50%",
       willChange: "transform"
@@ -103,20 +103,19 @@ export const SpotlightReveal = (options: SpotlightRevealOptions = {}) => {
         inst.currentRadius += (targetR - inst.currentRadius) * expandSpeed;
 
         if (inst.currentRadius < 0.5) {
-          dom.setStyle(inst.el, "opacity", "0");
+          dom.css(inst.el, { opacity: "0" });
           return;
         }
-        dom.setStyle(inst.el, "opacity", "1");
+        dom.css(inst.el, { opacity: "1" });
 
         const size = inst.currentRadius * 2;
-        dom.setStyle(inst.inner, "width", `${size}px`);
-        dom.setStyle(inst.inner, "height", `${size}px`);
+        dom.css(inst.inner, { width: `${size}px`, height: `${size}px` });
 
         // Render at the lagged trail position (clamped to container bounds)
         const renderX = Math.max(0, Math.min(rect.width, inst.trailX));
         const renderY = Math.max(0, Math.min(rect.height, inst.trailY));
         dom.setTransform(inst.el, renderX, renderY);
-        dom.setStyle(inst.inner, "transform", "translate(-50%, -50%)");
+        dom.css(inst.inner, { transform: "translate(-50%, -50%)" });
       });
     },
 

@@ -1,5 +1,4 @@
 import { definePlugin, dom, Layers } from "@supermousejs/utils";
-import type { Supermouse } from "@supermousejs/core";
 
 export interface MotionBlurOptions {
   name?: string;
@@ -25,16 +24,21 @@ export const MotionBlur = (options: MotionBlurOptions = {}) => {
     {
       name: options.name || "motion-blur",
       create: (app) => {
-        mainEl = dom.createCircle(cursorSize, cursorColor) as HTMLDivElement;
-        dom.setStyle(mainEl, "zIndex", Layers.CURSOR);
-        dom.setStyle(mainEl, "opacity", "0");
+        mainEl = dom.createCircle(cursorSize, cursorColor);
+
+        dom.css(mainEl, {
+          zIndex: Layers.CURSOR,
+          opacity: "0"
+        });
 
         // 2. Trail samples
         for (let i = 0; i < sampleCount; i++) {
-          const el = dom.createCircle(cursorSize, cursorColor) as HTMLDivElement;
-          dom.setStyle(el, "opacity", "0");
-          dom.setStyle(el, "pointerEvents", "none");
-          dom.setStyle(el, "zIndex", Layers.FOLLOWER);
+          const el = dom.createCircle(cursorSize, cursorColor);
+          dom.css(el, {
+            opacity: "0",
+            pointerEvents: "none",
+            zIndex: Layers.FOLLOWER
+          });
           app.container.appendChild(el);
           trailEls.push(el);
         }
@@ -47,16 +51,16 @@ export const MotionBlur = (options: MotionBlurOptions = {}) => {
         const speed = Math.hypot(velocity.x, velocity.y);
 
         if (!app.state.hasReceivedInput) {
-          dom.setStyle(mainEl, "opacity", "0");
-          trailEls.forEach((el) => dom.setStyle(el, "opacity", "0"));
+          dom.css(mainEl, { opacity: "0" });
+          trailEls.forEach((el) => dom.css(el, { opacity: "0" }));
           return;
         }
 
-        dom.setStyle(mainEl, "opacity", "1");
+        dom.css(mainEl, { opacity: "1" });
         dom.setTransform(mainEl, smooth.x, smooth.y);
 
         if (speed < 0.5) {
-          trailEls.forEach((el) => dom.setStyle(el, "opacity", "0"));
+          trailEls.forEach((el) => dom.css(el, { opacity: "0" }));
           return;
         }
 
@@ -71,7 +75,7 @@ export const MotionBlur = (options: MotionBlurOptions = {}) => {
           const weight = Math.exp(-(t * t) / 2);
           const opacity = weight * 0.6;
 
-          dom.setStyle(el, "opacity", String(opacity));
+          dom.css(el, { opacity: String(opacity) });
 
           const offsetX = dirX * t * spread;
           const offsetY = dirY * t * spread;
