@@ -4,6 +4,7 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "description": "Generates procedural particles that trail behind your motion",
   "files": [
     "dist",
     "README.md"

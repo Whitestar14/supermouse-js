@@ -1,4 +1,4 @@
-import type { SupermousePlugin, ValueOrGetter } from "@supermousejs/core";
+import type { SupermouseInstance, SupermousePlugin, ValueOrGetter } from "@supermousejs/core";
 import { definePlugin, normalizeAll, dom, math, effects, Layers } from "@supermousejs/utils";
 
 export interface SmartRingOptions {
@@ -58,7 +58,7 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
         dom.css(el, { borderRadius: "50%" });
       },
 
-      update: (app, el) => {
+      update: (app: SupermouseInstance, el: HTMLDivElement) => {
         const baseSize = cfg.size(app.state);
         const shape = app.state.shape;
 

@@ -3,6 +3,7 @@
   "version": "2.3.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
+  "description": "A minimalist precision point that follows your movements perfectly",
   "types": "dist/index.d.ts",
   "files": [
     "dist",

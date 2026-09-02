@@ -4,6 +4,7 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "description": "Attracts the cursor to interactive elements using physics-based magnetism.",
   "files": [
     "dist",
     "README.md"

@@ -3,6 +3,7 @@
   "version": "2.3.1",
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",
+  "description": "Injects contextual text bubbles near the cursor on interaction. Works like a tooltip.",
   "license": "MIT",
   "dependencies": {
     "@supermousejs/utils": "workspace:*"

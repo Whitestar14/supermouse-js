@@ -4,6 +4,7 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "description": "Morphs the cursor shape to match the bounding box of hovered elements.",
   "files": [
     "dist",
     "README.md"

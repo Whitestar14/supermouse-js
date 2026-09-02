@@ -4,6 +4,7 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "description": "A vehicle style arrow that rotates based on velocity vectors.",
   "files": [
     "dist",
     "README.md"

@@ -35,5 +35,5 @@ export function getCircumference(r: number): number {
 export function formatLoopText(text: string, spread: boolean): string {
   if (!spread) return text;
   // \u00A0 is &nbsp;
-  return text + "\u00A0";
+  return `${text}\u00A0`;
 }

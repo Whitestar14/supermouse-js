@@ -107,8 +107,8 @@ export interface SupermouseOptions {
    * element's computed `cursor` value the first time it's checked instead of
    * recomputing on every `mouseover`.
    *
-   * Off by default: a permanent per-element cache goes silently stale the
-   * moment a node's computed cursor changes AFTER it's cached without the
+   * Off by default: a permanent per-element cache goes stale the
+   * moment a node's computed cursor changes after it's cached without the
    * node itself being replaced — e.g. a `disabled`/`loading` class toggled
    * via React/Vue state on a DOM node that reconciliation reuses rather than
    * remounts. That's an extremely common pattern in component libraries, so

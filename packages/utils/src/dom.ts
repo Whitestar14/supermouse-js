@@ -20,7 +20,7 @@ const styleCache = new WeakMap<HTMLElement | SVGSVGElement, Record<string, strin
 
 /**
  * Applies CSS properties to an element. Only touches the DOM when a value
- * has actually changed. This is the single convention for all style writes.
+ * has actually changed.
  *
  * @example
  * css(el, {

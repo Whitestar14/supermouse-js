@@ -1,4 +1,4 @@
-import type { Supermouse } from "@supermousejs/core";
+import type { SupermousePlugin } from "@supermousejs/core";
 import { definePlugin, dom, math, Layers, Easings } from "@supermousejs/utils";
 
 export interface ImageOptions {
@@ -10,7 +10,7 @@ export interface ImageOptions {
   smoothness?: number;
 }
 
-export const Image = (options: ImageOptions = {}) => {
+export const Image = (options: ImageOptions = {}): SupermousePlugin => {
   const className = options.className ?? "supermouse-image";
   const [offX, offY] = options.offset ?? [0, 30];
   const duration = options.duration ?? 200;
@@ -55,7 +55,7 @@ export const Image = (options: ImageOptions = {}) => {
         return container;
       },
 
-      update: (app, container) => {
+      update: (app, container: HTMLDivElement) => {
         const src = app.state.interaction.img;
 
         if (app.state.isHover && src) {

@@ -1,4 +1,4 @@
-import type { ValueOrGetter } from "@supermousejs/core";
+import type { SupermouseInstance, SupermousePlugin, ValueOrGetter } from "@supermousejs/core";
 import { definePlugin, normalize, dom, Layers } from "@supermousejs/utils";
 
 export interface DotOptions {
@@ -12,7 +12,7 @@ export interface DotOptions {
   hideOnShape?: boolean;
 }
 
-export const Dot = (options: DotOptions = {}) => {
+export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   const defSize = 8;
   const defColor = "#750c7e";
   const hideOnShape = options.hideOnShape ?? true;
@@ -39,7 +39,7 @@ export const Dot = (options: DotOptions = {}) => {
         return el;
       },
 
-      update: (app, el) => {
+      update: (app: SupermouseInstance, el: HTMLDivElement) => {
         const size = getSize(app.state);
         dom.css(el, {
           width: `${size}px`,
