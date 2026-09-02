@@ -1,71 +1,59 @@
-# Supermouse Plugins
+# Plugins
 
-Plugins are the primary extension mechanism in Supermouse. The core coordinates them; it does not replace them.
+With supermouse, plugins are the primary extension mechanism for every non-core effect to keep the core bundle lean. Plugins can be custom cursors, wrappers or cursor effects. They can modify cursor intent, visuals, augment interations and can react to mouse state and other runtime data.
 
-> If a feature can be a plugin, it should be a plugin.
+The Supermouse `MouseState` and the `interaction` layer is [how they communicate](#plugin-communication), otherwise Supermouse ensures they are isolated, ordered, and fault-tolerant. If a plugin throws during `update()`, the core catches the error, disables the plugin, calls `onDisable()` and `destroy()`, and removes it from the update loop so other plugins continue to run normally.
 
-This document describes:
+If a plugin throws during `install()`, the core rejects it entirely and it is never added.
 
-- How the plugin system works
-- How to write plugins
-- How plugins live in the ecosystem
-- Patterns you should use
-- Patterns you must not use
+### Publishing Plugins
 
-## What Is a Plugin?
+Plugins are generally expected to be published independently so you don't need to contribute to this repo to extend supermouse. The `@supermousejs/*` scope contains core and reference plugins only, but community plugins are encouraged.
 
-A plugin is any module that participates in the cursor pipeline. A plugin can:
+## API
 
-- Modify cursor intent (logic)
-- Render cursor visuals (visual)
-- Augment interaction semantics
-- React to hover state, velocity, angle, and other runtime data
+```ts
+export interface SupermousePlugin {
+  /** Unique name for the plugin. Used for toggling/retrieval. */
+  name: string;
+  /** Execution priority. Lower numbers run first. */
+  priority?: number;
+  /** If false, update() will not be called. */
+  isEnabled?: boolean;
+  /** Reference to the plugin's root DOM element, if any. The core auto-hides this when the plugin is disabled. */
+  element?: HTMLElement;
 
-Plugins are isolated, ordered, and fault-tolerant. If a plugin throws during `update()`, the core catches the error, disables the plugin, calls `onDisable()` and `destroy()`, and removes it from the pipeline. Other plugins continue to run normally. If a plugin throws during `install()`, the core rejects it entirely and it is never added.
+  /** Called when `app.use()` is executed. */
+  install?: (instance: SupermouseInstance) => void;
+  /** Called on every animation frame with the frame delta time in milliseconds. */
+  update?: (instance: SupermouseInstance, deltaTime: number) => void;
+  /** Called when the plugin is removed or the app is destroyed. */
+  destroy?: (instance: SupermouseInstance) => void;
 
-## Publishing Plugins
+  /** Called when the plugin is enabled via .enablePlugin() */
+  onEnable?: (instance: SupermouseInstance) => void;
+  /** Called when the plugin is disabled via .disablePlugin() */
+  onDisable?: (instance: SupermouseInstance) => void;
+}
+```
 
-> You can publish a plugin independently. You do not need to submit a pull request to the core, use the `@supermousejs/*` namespace, or ask for permission.
+### Runtime Model
 
-Name your package with a descriptive name. Use `supermouse-plugin-xyz` or `@your-scope/supermouse-xyz`.
+Supermouse runs a deterministic pipeline every frame to ensure consistency across framerates using a frame independent lerp function. It's input system captures events like the native cursor, normalizes coordinates and pre-scrapes attributes, updating `state.pointer`.
 
-The `@supermousejs/*` namespace is reserved for the core runtime, utilities, reference plugins, and canonical effects. Community plugins may be promoted into this namespace later, but this is optional and rare.
+Supermouse ensures accessibility across devices that require it and auto-disables the custom cursor on mobile devices with the `autoDisableOnMobile` set to `true` by default.
 
-## Runtime Model
-
-Supermouse runs a deterministic pipeline every frame. At 60 frames per second, each frame is approximately 16 ms. Understanding this order is critical for preventing visual jitter.
-
-1. **Input System**: Captures events, normalizes coordinates, scrapes attributes. Updates `state.pointer`.
-2. **Logic Plugins** (`priority < 0`): Read `pointer`, modify `state.target`.
-3. **Core Physics**: Interpolates `state.smooth` toward `state.target` using frame-independent damping.
-4. **Visual Plugins** (`priority >= 0`): Read `state.smooth`, render to the DOM.
-
-### Off-Screen and Window Leave
-
-When the pointer leaves the browser window and `hideOnLeave` is `true`, the core sets `hasReceivedInput` to `false` and moves `pointer` and `smooth` to off-screen coordinates (`-100, -100`). Plugins must check `state.hasReceivedInput` before reading `pointer` or `smooth` to avoid rendering at invalid positions. Many effects keep a last-known valid position to animate a natural fade-out or collapse in place.
-
-### Priority and the Visual Jump Bug
-
-Logic plugins (such as `Magnetic` or `Stick`) must have negative priority (for example, `-10`).
-
-If a logic plugin has default priority (`0`), it runs mixed in with visual plugins. This causes a visual jump:
-
-- Visual plugins registered before it render the old position (frame N-1).
-- Visual plugins registered after it render the new position (frame N).
-
-The cursor dot snaps correctly while the ring trails behind for a single frame.
-
-> **Rule:** Logic plugins that affect position must have `priority: -10`.
-
-## Logic Plugins and Visual Plugins
+## Plugins Definition
 
 All plugins are essentially the same. The only distinction that sets them apart are when they run (determined by `priority`) and what they modify.
 
-### Logic Plugins
-
-Logic plugins modify where the cursor goes. They write to `app.state.target` and must not touch the DOM.
+Depending on what effect you are trying to achieve with Supermouse, such as a effect where cursors behave a certain way, or more commonly, define the appearance of the custom cursor, you would opt for logic plugins of `priority < 0` that read the `pointer` and will have to modify `state.target` to achieve the intended effect. The engine runs through them first before visual plugins. When two plugins have the same priority, Supermouse runs them in the order they are registered:
 
 ```ts
+import { Supermouse } from "@supermouse/core";
+
+const mouse = Supermouse();
+
 const Gravity = {
   name: "gravity",
   priority: -10, // Must run before physics
@@ -74,13 +62,18 @@ const Gravity = {
     app.state.target.y += 5;
   }
 };
+
+app.use(Dot());
 ```
 
-### Visual Plugins
-
-Visual plugins render at the cursor position. They read `app.state.smooth` or `app.state.pointer`, own DOM or canvas elements, and run at non-negative priority.
+While visual plugins defined with `priority >= 0` are expected to read `state.smooth`/`state.pointer` to obtain the smoothed coords or the raw ones and render their elements in the `container` stage to the DOM, and they are what you will write 95% of the time when using Supermouse:
 
 ```ts
+import { dom } from "@supermouse/utils";
+import { Supermouse } from "@supermouse/core";
+
+const mouse = Supermouse();
+
 const Dot = {
   name: "dot",
   priority: 0, // Runs after physics
@@ -90,134 +83,216 @@ const Dot = {
     dom.setTransform(el, x, y);
   }
 };
+
+app.use(Dot());
 ```
 
-## Native Cursor State
-
-Supermouse automatically detects when to show the native OS cursor (for example, over `<input>` fields or text) based on the `ignoreOnNative` configuration. This state is exposed to plugins via `app.state.isNative`.
-
-### Forcing Native Cursor on an Element
-
-To always show the system cursor on an element and its descendants, add the attribute `data-supermouse-ignore`:
-
-```html
-<div data-supermouse-ignore>This area will show the native cursor</div>
-```
-
-The custom cursor will not appear over that element, even if `hideCursor` is `true`.
-
-### Why Allow Native Fallback?
-
-Custom cursors often break usability on native controls (inputs, text selection, drag handles). `ignoreOnNative` allows the app to briefly yield control back to the OS cursor for these interactions, ensuring accessibility is not compromised for style.
-
-## Communication Between Plugins
-
-Plugins often need to coordinate. Supermouse provides specific state channels for this.
-
-### `state.shape` (Morphing)
-
-Logic plugins like **Stick** calculate geometry but do not render. Visual plugins like **Ring** render but do not calculate geometry. `state.shape` bridges them.
-
-1. **Stick** (logic) measures the hovered element and writes `{ width, height, borderRadius }` to `state.shape`.
-2. **Ring** (visual) checks `state.shape`. If present, it morphs to those dimensions. If `null`, it stays a circle.
-
-This decoupling allows you to swap the visual plugin (for example, use a `Square` cursor instead of `Ring`) without rewriting the sticky logic.
-
-### `state.interaction` (Metadata)
-
-Populated by the core input system. Plugins read this to react to specific element attributes (like `data-supermouse-color`). Attribute keys are case-insensitive: `data-supermouse-MyKey` and `data-supermouse-mykey` both become `interaction.myKey`. Empty attributes like `data-supermouse-stick` resolve to boolean `true`.
-
-## Plugin Lifecycle
-
-Every plugin runs through `install`, then `update`, then `onEnable`/`onDisable`, then `destroy`.
-
-| Hook        | When It Runs                                                                 |
-| ----------- | ---------------------------------------------------------------------------- |
-| `install`   | Once, when `app.use()` is called                                             |
-| `update`    | Every frame (~60fps)                                                         |
-| `onEnable`  | When enabled via `app.enablePlugin()`                                        |
-| `onDisable` | When disabled via `app.disablePlugin()`                                      |
-| `destroy`   | When the app is destroyed, or when the core removes the plugin after a crash |
-
-> Visual plugins are recommended to fade out, not remove DOM, on disable.
-
-### The `element` Property
-
-The `SupermousePlugin` interface includes an optional `element` property:
-
-```ts
-interface SupermousePlugin {
-  name: string;
-  element?: HTMLElement; // The core hides this when the plugin is disabled
-  // ...
-}
-```
-
-When you assign a root DOM element to `plugin.element` (which `definePlugin` does automatically), the core sets `element.style.display = "none"` when the plugin is disabled and `element.style.display = ""` when it is re-enabled. This prevents ghost cursors when the `States` plugin swaps active plugin sets.
+> NOTE: Supermouse defaults `priority` to `0` if unspecified, so if you intend to write a plugin that modifies `state.target`, you must specify the priority or supermouse will ignore it and assume a visual plugin configuration.
 
 ## Writing Plugins
 
-Supermouse plugins are simple. You do not need complex classes. Plugins can be written as plain objects or with the `definePlugin` helper. Both produce the same runtime behavior.
-
-> Write plugins as factory functions. This prevents state from leaking between instances.
-
-### The `definePlugin` Helper
-
-The `definePlugin` utility from `@supermousejs/utils` is the recommended way to build visual plugins. It accepts two shapes:
-
-If you're writing a **Logic Config**, you no `create` function since you're managing behavior.
-**Visual Config** however requires `create`, and optionally accepts `selector`, `update`, `cleanup`, `onEnable`, and `onDisable`.
+Writing Supermouse plugins is simple as plugins are mostly just functions that return objects with a `name` and `install`, `update`, `destroy` method in the simplest. You do not need complex classes, and it can be written as a plain object like this:
 
 ```ts
-import { definePlugin, css, setTransform } from "@supermousejs/utils";
+const el = document.createElement("div");
+
+const RedDot = {
+  name: "red-dot",
+  element: el,
+
+  install(app) {
+    el.style.width = "8px";
+    el.style.height = "8px";
+    el.style.borderRadius = "50%";
+    el.style.background = "red";
+    el.style.position = "fixed";
+    el.style.pointerEvents = "none";
+    app.container.appendChild(el);
+  },
+
+  update(app) {
+    if (!el) return;
+    const { x, y } = app.state.smooth;
+    el.style.transform = `translate(${x}px, ${y}px)`;
+  },
+
+  destroy() {
+    el?.remove();
+  }
+};
+
+const mouse = new Supermouse({ plugins: [RedDot] });
+```
+
+But it is advisable to write them as factory functions to prevent state from leaking between instances:
+
+```ts
+import type { SupermousePlugin } from "@supermousejs/core";
+
+export const RedDot = (): SupermousePlugin => {
+  let el: HTMLDivElement | null = null;
+
+  return {
+    name: "red-dot",
+    element: el,
+
+    install(app) {
+      el = document.createElement("div");
+      el.style.width = "8px";
+      el.style.height = "8px";
+      el.style.borderRadius = "50%";
+      el.style.background = "red";
+      el.style.position = "fixed";
+      el.style.pointerEvents = "none";
+      app.container.appendChild(el);
+    },
+
+    update(app) {
+      if (!el) return;
+      const { x, y } = app.state.smooth;
+      el.style.transform = `translate(${x}px, ${y}px)`;
+    },
+
+    destroy() {
+      el?.remove();
+    }
+  };
+};
+```
+
+### Plugin Options
+
+Options are read at plugin construction. Changing options later does not automatically update behavior unless you design for it. However, you can use the [`normalize` helper function](#plugin-reactivity) provided by `@supermouse/utils` to handle this.
+
+### Plugin Closures
+
+A plugin instance persists for the lifetime of `app.use()` and closures persist across enable/disable, so state is not reset automatically.
+
+```ts
+const MyPlugin = definePlugin({
+  install(app) {
+    this.count = 0;
+  },
+
+  update(app) {
+    if (!app.state.isEnabled) return;
+    this.count++;
+  },
+
+  onDisable(app) {
+    // `count` is not reset
+    console.log("Disabled with count =", this.count);
+  },
+
+  onEnable(app) {
+    // `count` still has its old value
+    console.log("Re-enabled with count =", this.count);
+  }
+});
+```
+
+If you need to reset visuals, do it explicitly in `onEnable`/`onDisable` hook.
+
+### Handling Off-Screen Leave
+
+// # TODO read how window leave works
+// # TODO is there no way a cursor can tell Supermouse not to use setCursor `auto` because it handles for it?
+
+When the pointer leaves the browser window and `hideOnLeave` is `true`, the core sets `hasReceivedInput` to `false` and moves `pointer` and `smooth` to off-screen coordinates (`-100, -100`). Plugins must check `state.hasReceivedInput` before reading `pointer` or `smooth` to avoid rendering at invalid positions. Many effects keep a last-known valid position to animate a natural fade-out or collapse in place.
+
+### The `definePlugin()` helper
+
+Alternatively, it can be written with the `definePlugin` helper from `@supermouse/utils`, a collection of utility functions that makes writing plugins easier and more performant, which is the recommended way to writing visual-heavy plugins. It assigns the root DOM element automatically to `plugin.element` so disabling/enabling can be handled with granularity, and is flexible enough to handle logic/visual plugins.
+
+When writing a logic config, you can omit the `create` function since you're managing behavior. The visual config however requires `create`, and optionally accepts `selector`, `update`, `cleanup`, `onEnable`, and `onDisable`.
+
+When you assign a root DOM element to optional `plugin.element` (which `definePlugin` does automatically), the core sets `element.style.display = "none"` when the plugin is disabled and `element.style.display = ""` when it is re-enabled. Doing this prevents ghost cursors when the `States` plugin swaps active plugin sets.
+
+```ts
+import { definePlugin, css, dom, setTransform } from "@supermousejs/utils";
 
 definePlugin({
   name: "my-plugin",
-  selector: "[data-my-plugin]", // Auto-registers this as a hover target
+  // Auto-registers this as a hover target
+  selector: "[data-my-plugin]",
   create: (app) => {
-    // Runs once. Return your root DOM element.
-    const el = document.createElement("div");
+    const el = dom.createActor("div");
+
+    css(el, {
+      borderRadius: "50%",
+      background: "red"
+    });
+
     return el;
   },
   update: (app, el, dt) => {
-    // Runs every frame. `el` is the element from `create`.
     const { x, y } = app.state.smooth;
     setTransform(el, x, y);
   }
 });
 ```
 
-### Reactivity with `normalize`
+Note that both produce the same runtime behavior, using `definePlugin` just makes writing it easier.
+
+> `definePlugin` is optimized best for plugins with one root element. If you need multiple elements, conditional mounting, or custom containers, a plain object might be better used.
+
+## Plugin Reactivity
 
 Most plugin options accept `ValueOrGetter<T>`, which means they can be a static value or a function that receives `MouseState`:
 
-```ts
-// consumerFile.ts
-Dot({ size: 24 }); // Static
-Dot({ size: (state) => (state.isDown ? 12 : 24) }); // Reactive
+```html
+<script>
+  Dot({ size: 24 }); // Static options
+
+  Dot({ size: (state) => (state.isDown ? 12 : 24) }); // Reactive options
+</script>
 ```
 
 The `normalize` utility converts either form into a callable function:
 
 ```ts
-// myPlugin.ts
 import { normalize } from "@supermousejs/utils";
 
 const getSize = normalize(options.size, 8); // default 8
-const size = getSize(app.state); // Always works
+const size = getSize(app.state); // Always returns reactive data
 ```
 
-Use `normalize` for any option that should react to state changes.
+Use `normalize` for any option that you want to react to state changes, and if you have multiple options that use `normalize`, use `normalizeAll` for cleaner code.
+
+```ts
+  const cfg = normalizeAll(options, {
+    size: 20,
+    color: "#ffffff",
+    borderWidth: 2,
+    opacity: 1
+  });
+
+  const size = cfg.size(app.state)
+  const color = cfg.color(app.state)
+
+  // instead of
+
+  const getSize = normalize(options.size, 8)
+  const getColor = normalize(options.color, "#ffffff")
+  const getBorderWidth = normalize(options.borderWidth, 2)
+  const getOpacity = normalize(options.opacity, 1)
+
+  const size = getSize(app.state)
+  ...
+```
+
+You can read more on how the utilities work in the [utilities documentation]().
 
 ### Styling with `css()`
 
-`css()` is the single convention for all DOM style writes. It accepts an object of properties and only touches the DOM when a value has actually changed.
+`css()` is the single convention for all DOM style writes from `@supermouse/utils`. It is a performant function that accepts an object of properties and only touches the DOM when a value has actually changed.
 
 ```ts
 import { css, setTransform } from "@supermousejs/utils";
 
 update(app, el, dt) {
   const size = getSize(app.state);
+
   css(el, {
     width: `${size}px`,
     height: `${size}px`,
@@ -232,72 +307,100 @@ update(app, el, dt) {
 
 > **Do not** use `el.style.width = ...` directly. `css()` prevents layout thrashing by batching writes and skipping unchanged values.
 
-`setStyle` and `applyStyles` are deprecated and will be removed. Use `css()` for everything.
+## Plugin Communication
 
-### Which Approach Should I Use?
+Plugins are isolated, but often times they need to coordinate with buses so as to ensure all plugins remain performant over the same shared `state`. Supermouse provides specific state channels for this.
 
-| Use Case                      | Approach                      |
-| ----------------------------- | ----------------------------- |
-| Quick experiment              | Plain object                  |
-| Learning the lifecycle        | Plain object                  |
-| npm package                   | `definePlugin`                |
-| Configurable visual plugin    | `definePlugin` + `normalize`  |
-| Multi-root or custom mounting | Plain object                  |
-| Logic-only plugin             | Plain object / `definePlugin` |
+### `state.shape`
 
-## Performance Requirements
+```bash
+pnpm add @supermouse/stick
 
-Supermouse is optimized for 60–240 frames per second on the main thread. Plugins must be disciplined.
+npm install @supermouse/stick
+```
 
-### 1. The DOM Firewall (`state.interaction`)
+```ts
+interface ShapeState {
+  width: number;
+  height: number;
+  borderRadius: number;
+}
+```
 
-**Why:** Reading DOM attributes (`getAttribute`) or layout (`getBoundingClientRect`, `getComputedStyle`) inside the loop forces the browser to synchronously recalculate layout. This is called layout thrashing and causes stutter.
+Calculating geometry (using `getBoundingClientRect`) of a target element is common with cursor effects but can be expensive when multiple overlapping effects and cursor are all making independent calculations. Installing the built in Supermouse `stick` plugin allows you (and multiple other plugins) to access the geometry of a plugin calculated once for all plugins and passes it into `state.shape` bridge where other plugins can read from it very cheaply.
 
-The solution to this is the input system scrapes interactive data once on `mouseover` and caches it in `state.interaction`. Therefore avoid writing `el.getAttribute('data-color')` inside `update()` and instead leverage the interaction bus by using `app.state.interaction.color`
+```ts
+import { Stick } from "@supermouse/stick"
 
-### 2. Frame Rate Independence (`dt`)
+...
 
-**Why:** Users have different refresh rates (60 Hz vs 144 Hz). If you move `x += 5` every frame, the cursor moves 2.4 times faster on a gaming monitor.
+const Circle = {
+  name: "effect",
+  install() => {...},
+  update(app, el) => {
+    if (app.state.shape) {
+      { width, height, radius } = app.state.shape // shape is not null
+    }
+  }
+  ...
+}
 
-Use the `deltaTime` (dt) argument or the provided math helpers (`damp`, `lerp`) to account for this. In cases where you'd write `current += (target - current) * 0.1`, do this instead: `current = damp(current, target, 10, dt)`
+app = new Supermouse({ plugins: [Stick, Circle] });
 
-### 3. Allocation Discipline
+```
 
-Creating objects (`{ x, y }`) or arrays every frame triggers garbage collection pauses.
+This decoupling allows you to swap the visual plugin (for example, use a `Square` cursor instead of `Circle`) without rewriting the sticky logic.
 
-So, Reuse vectors and objects where possible, avoid creating DOM elements in `update` and use CSS transforms (GPU) instead of `top`/`left` (CPU layout). Supermouse provides utilities that makes this easier via the `@supermouse/utils` package. Documentation on how they work can be found [here](./packages/utils/README.md)
+### `state.interaction`
 
-### 4. Handle Off-Screen State
+Reading DOM attributes (`getAttribute`) inside the loop forces the browser to synchronously recalculate layout and can cause stutter, and this can be troublesome when a cursor needs to read the `data-` attribute of HTML like the example below:
 
-When `hasReceivedInput` is `false`, coordinates are invalid (off-screen). Plugins must either hide their visuals or use a last-known position to animate a graceful exit. Rendering at `(-100, -100)` places elements in the top-left corner unexpectedly.
+```html
+<div data-supermouse-color="..."></div>
+```
 
-## Common Mistakes
+The input system solves this by scraping interactive data once on `mouseover` and caches it in `state.interaction`. Therefore avoid writing `el.getAttribute('data-color')` inside `update()` and instead leverage the interaction bus by using `app.state.interaction.color`
 
-### Plugin Instances Are Singletons
+```ts
+const Swirl = {
+  ...
+  update(app, el) {
+    backgroundColor = app.state.interaction.color
+  }
+}
+```
 
-A plugin instance persists for the lifetime of `app.use()` and closures persist across enable/disable, so state is not reset automatically. If you need to reset visuals, do it explicitly in `onEnable` or `onDisable`.
+Attribute keys are case-insensitive: `data-supermouse-MyKey` and `data-supermouse-mykey` both become `interaction.myKey`. Empty attributes like `data-supermouse-stick` resolve to boolean `true`.
 
-`definePlugin` is optimized for plugins with one root element. If you need multiple elements, conditional mounting, or custom containers, use a plain object plugin instead.
+```html
+<div data-supermouse-stick></div>
+// This will resolve to true and cursors with morphing implemented will react around it
+```
 
-### Plugin Crash Removal
+#### Reacting to hover metadata
 
-If a plugin throws during `update()`, it is removed from the pipeline and its `destroy` hook runs. Any external references to that plugin become stale. Do not rely on a plugin still being present after a crash.
+```ts
+const mouse = new Supermouse({
+  rules: {
+    "[data-magnetic]": { magnetic: true }
+  }
+});
+```
 
-### Priority Matters More Than Helpers
+```html
+<button data-supermouse-magnetic="0.4">Hover me</button>
+```
 
-- Helpers do not change execution order.
-- Logic plugins must have negative priority.
-- Visual plugins must not mutate `state.target`.
-- Misusing priority may leads to janky behavior.
+Both feed into `state.interaction`, merged (rules first, then matching
+`data-{dataPrefix}-*` attributes on the same element, which can override or
+extend the rule). Give plugin authors type safety via module augmentation:
 
-### Options Are Static
+```ts
+declare module "@supermousejs/core" {
+  interface InteractionState {
+    magnetic?: boolean | number;
+  }
+}
+```
 
-Options are read at plugin construction. Changing options later does not automatically update behavior unless you design for it. You can use the `normalize` helper function provided by `@supermouse/utils` to solve this. Read more on to handle [reactivity with the `normalize`](#reactivity-with-normalize) function.
-
-### Bad Candidates for Core
-
-- Stylistic variants
-- Personal design preferences
-- One-off site effects
-
-Those belong in user land or in a plugin.
+> Visual plugins are recommended to fade out, not remove DOM, on disable.

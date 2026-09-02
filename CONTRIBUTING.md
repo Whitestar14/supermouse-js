@@ -1,52 +1,32 @@
-# contributing to supermouse
+# Contributing
 
-supermouse is a modular cursor engine with a plugin-first architecture.
-contributions are welcome, but not required to participate in the ecosystem.
+**We accept PRs for:**
 
-this document explains **how to contribute**, **what belongs in this repo**, and **what does not**.
+- Core runtime fixes
+- Performance improvements
+- Bug fixes
+- Documentation
+- _Reference-quality_ plugins that demonstrate an essential pattern
 
-## what belongs in this repo
+**We usually do not accept PRs for:**
 
-this monorepo is intentionally conservative.
+- Niche visual effects
+- Framework-specific wrappers
+- Stylistic variants of existing plugins
+- Experimental or opinionated behavior
 
-**we accept PRs for:**
+Those should live as external plugins. see [`Writing Plugins`](./PLUGINS.md)
 
-- core runtime fixes
-- performance improvements
-- bug fixes
-- documentation
-- _reference-quality_ plugins that demonstrate an essential pattern
+> If you’re unsure, open a discussion first.
 
-**we usually do NOT accept PRs for:**
+## Contributing code
 
-- niche visual effects
-- framework-specific wrappers
-- stylistic variants of existing plugins
-- experimental or opinionated behavior
-
-those should live as **external plugins** (see [`PLUGINS.md`](./PLUGINS.md)).
-
-> if you’re unsure, open a discussion first. no pressure.
-
-## contributing code
-
-- use pnpm
-- keep changes scoped
-- avoid introducing new abstractions without a clear perf or ergonomics win
-- cursor logic is hot-path code. allocations and layout reads are scrutinized.
+- Use pnpm
+- Keep changes scoped
+- Avoid introducing new abstractions without a clear perf or ergonomics win
+- Cursor logic is hot-path code. allocations and layout reads are scrutinized.
 
 ```bash
 pnpm install
 pnpm dev
 ```
-
-## philosophy
-
-supermouse optimizes for:
-
-- predictable behavior
-- explicit data flow
-- minimal magic
-- userland extensibility over core bloat
-
-if a feature can be a plugin, it probably should be.

@@ -1,46 +1,102 @@
-Here is the full README with **How it works**, **Options**, **API**, and **Plugins** rewritten to ADS-STE100. The **State Contract** and **cacheCursorStyle** sections from the previous pass are preserved unchanged.
-
-````markdown
 # Supermouse.js
 
 [![npm version](https://img.shields.io/npm/v/@supermousejs/core.svg?style=flat-square)](https://www.npmjs.com/package/@supermousejs/core)
 [![npm downloads](https://img.shields.io/npm/dm/@supermousejs/core.svg?style=flat-square)](https://www.npmjs.com/package/@supermousejs/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-**supermouse** is a physics-based custom cursor engine for the web. Tracks the pointer, smooths
-its motion with framerate-independent damping, hides the native OS cursor,
-detects hover/native-input states, and exposes a small plugin architecture so
-you can build cursor effects (magnetism, trails, shape morphing, text labels)
-without touching the core.
+**Supermouse** is a physics-based custom cursor engine for the web that tracks the pointer, hides the native OS cursor, provides API to native controls, and exposes a small plugin architecture so
+you can build or install composable cursors and cursor effects in your code.
 
-Read the full documentation [here](https://supermouse.js.org)
+You can read the full documentation [here](https://supermouse.js.org).
 
-## Install
+## Installation
 
 ```bash
 pnpm add @supermousejs/core
-```
-````
 
-or
-
-```bash
 npm install @supermouse/core
 ```
 
-## Quick start
+Install only the plugins you want:
 
-```ts
-import { Supermouse } from "@supermousejs/core";
+```bash
+pnpm add @supermousejs/dot @supermousejs/ring
 
-const mouse = new Supermouse();
+npm install @supermousejs/dot @supermousejs/ring
 ```
 
-A smoothed custom cursor now follows the pointer, hides the
-native cursor over interactive elements, and auto-disables itself on
-touch/coarse-pointer devices.
+## Usage
 
-You can then pass plugins directly to the constructor
+Supermouse itself does not render a cursor, as it is not a component system. Nor does it render a default stub.
+
+The core is essentially a headless system that provides pointer tracking, state, physics, and a plugin
+lifecycle. Plugins automatically use the internal supermouse engine to render to the DOM, but you can write a renderer yourself like in the example below:
+
+```js
+import { Supermouse } from "@supermousejs/core";
+
+const mouse = new Supermouse({
+  smoothness: 0.15
+});
+
+const dot = document.createElement("div");
+
+Object.assign(dot.style, {
+  width: "8px",
+  height: "8px",
+  borderRadius: "50%",
+  background: "red",
+  position: "absolute",
+  transform: "translate(-50%, -50%)",
+  pointerEvents: "none"
+});
+
+mouse.container.appendChild(dot);
+
+function render() {
+  const { smooth } = mouse.state;
+
+  dot.style.transform = `translate3d(${smooth.x}px, ${smooth.y}px, 0) translate(-50%, -50%)`;
+
+  requestAnimationFrame(render);
+}
+
+render();
+```
+
+It is best to avoid writing this way though, as defining one besides the Supermouse internal `requestAnimationFrame` will leave you with two rAF loops. You would like to use Supermouse's plugin interface to avoid it.
+
+```js
+import { Supermouse } from '@supermousejs/core'
+
+const dot = document.createElement('div')
+
+Object.assign(dot.style, {...})
+
+const redDot = {
+      name: 'red-dot',
+      install(mouse) {
+        mouse.container.appendChild(dot)
+      },
+      update(mouse) {
+        const { smooth } = mouse.state
+
+        dot.style.transform =
+          `translate3d(${smooth.x}px, ${smooth.y}px, 0) translate(-50%, -50%)`
+      },
+      destroy() {
+        dot.remove()
+      }
+    }
+
+const mouse = new Supermouse({
+  plugins: [redDot]
+})
+```
+
+Now you have the native cursor automatically hidden, the input normalized, hover detection and accessibility baked in, and the red dot part of the plugin lifecycle. If your goal is a simple red dot on your webpage, then Supermouse will hardly be of any benefit and might even be overkill for your project, even though Supermouse is designed to use very little overhead. You are better off achieving the same simple effect with HTML/CSS and some Javascript.
+
+Supermouse beings to shine when you need to handle increasingly complex effects with granularity with its plugins, for example, when you decide to add a `Ring` to the cursor, you can pass plugins declaratively to the constructor:
 
 ```ts
 import { Dot } from "@supermousejs/dot";
@@ -51,188 +107,350 @@ const app = new Supermouse({
 });
 ```
 
-or you can chain them imperatively (To learn how to write plugins, see [Plugins](./PLUGINS.md).)
+And you can chain plugin instantiation imperatively with `.use`:
 
 ```ts
-app.use(Dot({ size: 8 })).use(Ring({ size: 24 }));
+app.use(Dot({ size: 8 }))
+
+if (someEffect) {
+  app.use(Effect1{...}).use(Effect2{...})
+}
 ```
+
+You can read more about plugins and how to write them [here](./PLUGINS.md).
 
 ## How it works
 
-One instance manages three internal parts:
-
-**`Input`**
-This class listens to pointer events. It listens to `pointermove`, `pointerdown`, `pointerup`, `mouseover`, and `mouseout`. It writes data to the shared `MouseState`. Only this class can write to these properties:
-
-- `pointer`
-- `isDown`
-- `isHover`
-- `isNative`
-- `hoverTarget`
-- `interaction`
-- `reducedMotion`
-
-**`Stage`**
-This class creates the DOM container that your plugin renders into. It hides the native OS cursor with a stylesheet, which is faster than writing inline styles on each element.
-
-**`Supermouse`**
-This class runs the `requestAnimationFrame` loop, reads the raw pointer position from `Input` and applies damping to produce `state.smooth`. Then it calls each plugin's `update()` once per frame.
+Supermouse internal model is a simple orchestration of three classes. The **`Input`** class listens to pointer events, and writes data to the shared `MouseState`. The **`Stage`** class simply creates the DOM container that your plugin renders into, and hides the native OS cursor with a stylesheet.
+Lastly, the **`Supermouse`** class consumes the two and runs the `requestAnimationFrame` loop, reads the raw pointer positions from `Input` class and applies the smmoth function to `state.smooth` and calls each plugin's `update()` once per frame.
 
 ## Options
 
-| Option                | Default                                                                 | Notes                                                                                                                                          |
-| --------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `smoothness`          | `0.15`                                                                  | Lower = smoother/slower follow.                                                                                                                |
-| `hoverSelectors`      | `["a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"]` | Selectors that set `state.isHover` to `true`.                                                                                                  |
-| `enableTouch`         | `false`                                                                 | Whether touch events move the cursor.                                                                                                          |
-| `autoDisableOnMobile` | `true`                                                                  | Checks if the device has a fine pointer. Independent of `enableTouch`.                                                                         |
-| `ignoreOnNative`      | `"auto"`                                                                | `"tag"` = check HTML tags only (fast). `"css"` = check computed `cursor` style (slow). `"auto"` = both. `null` = never show the native cursor. |
-| `cacheCursorStyle`    | `false`                                                                 | Caches cursor style data per element. **Off by default** — see below.                                                                          |
-| `hideCursor`          | `true`                                                                  | Whether the core hides the native cursor.                                                                                                      |
-| `hideOnLeave`         | `true`                                                                  | Hides the cursor when the pointer leaves the browser window.                                                                                   |
-| `container`           | `document.body`                                                         | The area where the instance is active. Default is the full page.                                                                               |
-| `zIndex`              | `9999`                                                                  | The stack order of the cursor stage. Increase this if overlays cover the cursor.                                                               |
-| `dataPrefix`          | `"supermouse"`                                                          | A prefix for `data-*` attributes. Prevents conflicts between instances.                                                                        |
-| `rules`               | —                                                                       | A map of selectors to interaction data. The core adds this data to `state.interaction` on hover.                                               |
-| `resolveInteraction`  | —                                                                       | A custom function to set interaction data. This bypasses `rules` and data attributes.                                                          |
-| `plugins`             | —                                                                       | Plugins to install when you create the instance.                                                                                               |
-| `autoStart`           | `true`                                                                  | Set to `false` to prevent automatic start. Call `.start()` when ready.                                                                         |
+| Option                | Default                                                                 | Description                                                                                        |
+| --------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `smoothness`          | `0.15`                                                                  | Lower values for a smoother follow                                                                 |
+| `hoverSelectors`      | `["a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"]` | Selectors that set `state.isHover` to `true`.                                                      |
+| `enableTouch`         | `false`                                                                 | Whether touch events move the cursor.                                                              |
+| `autoDisableOnMobile` | `true`                                                                  | Checks if the device has a fine pointer. Independent of `enableTouch`.                             |
+| `ignoreOnNative`      | `"auto"`                                                                | `'auto'`,`'tag'`,`'css'`,`'null'`. Strategy for determining when to fallback to the native cursor. |
+| `cacheCursorStyle`    | `false`                                                                 | Caches cursor style data per element.                                                              |
+| `hideCursor`          | `true`                                                                  | Whether the core hides the native cursor.                                                          |
+| `hideOnLeave`         | `true`                                                                  | Hides the cursor when the pointer leaves the browser window.                                       |
+| `container`           | `document.body`                                                         | The area where the instance is active.                                                             |
+| `zIndex`              | `9999`                                                                  | The stack order of the cursor stage. Increase this if overlays cover the cursor.                   |
+| `dataPrefix`          | `"supermouse"`                                                          | A prefix for `data-*` attributes. Prevents conflicts between instances.                            |
+| `rules`               | —                                                                       | A map of selectors to interaction data. The core adds this data to `state.interaction` on hover.   |
+| `resolveInteraction`  | —                                                                       | A custom function to set interaction data. This bypasses `rules` and data attributes.              |
+| `plugins`             | —                                                                       | Plugins to install when you create the instance.                                                   |
+| `autoStart`           | `true`                                                                  | Set to `false` to prevent automatic start. Call `.start()` when ready.                             |
 
-### A Note on `cacheCursorStyle`
+### Containers
 
-When `ignoreOnNative` is `"css"` or `"auto"`, the core reads the `cursor` style of each element using `getComputedStyle()`.
+By default, Supermouse appends the cursor surface where the elements live called the cursor **stage** to `document.body` and uses global event listeners, but you can choose to scope a Supermouse instance to a specific scoped container using absolute positioning relative to its container.
 
-You can make the core cache this data so the core does not read the style again when you hover the same element. This can help performance, but it is disabled by default for use in reactive frameworks like Vue/React, in which case you would **not use the cache if your application changes element styles.** because the element stays in the DOM, but its `cursor` style can change. The cache will keep the old data and Supermouse will then read the wrong `cursor` style.
+All css and cursor-hiding rules are scoped to avoid leakage outside the container, and mouse coordinates are automatically translated relative to the container:
 
-Use the cache only when:
+```ts
+const modal = document.getElementById("my-modal");
 
-- Elements do not change their `cursor` style (such as with plain HTML), or
-- You know that `"css"` or `"auto"` is slow in your application.
+const app = new Supermouse({
+  container: modal,
+  hideCursor: true
+});
+```
 
-In most cases, you do not need the cache. The core reads the style only when you hover an element. It does not read the style on each frame.
+This makes it so that you can have multiple instances of Supermouse running simultaneously without any CSS conflicts, all being completed independent and isolated from each other, while being performant as each active instance (the container the cursor currently hovers on) ignores events outside its scope.
+
+```tsx
+// Main page cursor
+const app1 = new Supermouse({
+  hideCursor: true,
+  container: document.body
+});
+app1.use(Dot({ color: "red" }));
+
+// Modal cursor
+const app2 = new Supermouse({
+  hideCursor: true,
+  container: document.getElementById("modal")
+});
+app2.use(Dot({ color: "blue" }));
+
+// Sidebar
+const app3 = new Supermouse({
+  hideCursor: true,
+  container: document.getElementById("sidebar")
+});
+app3.use(Ring({ color: "green" }));
+```
+
+And Supermouse automatically handles CSS Scoping to ensure they never conflict:
+
+```css
+// app1's css
+.supermouse-scope-0 button { cursor: none !important; }
+
+// app2's CSS
+.supermouse-scope-1 button {
+  cursor: none !important;
+}
+```
+
+> As each instance is completely indepedent of each other and are blind to events outside their own, hover targets must therefore be registered separately on each instance with `app.registerHoverTarget()`
+
+### Forcing Native Cursor on an Element
+
+Supermouse automatically detects when to show the native
+OS cursor (for example, over `<input />` fields or text) based on the `ignoreOnNative`
+configuration. This state is exposed to plugins via `app.state.isNative`. To always show the system
+cursor on an element and its descendants when hovering over a specific area/element, add the
+attribute `data-supermouse-ignore`:
+
+```html
+<div data-supermouse-ignore>This area will show the native cursor</div>
+```
+
+The custom cursor will not appear over that element, even if `hideCursor` is `true`.
+
+#### Why Allow Native Fallback?
+
+Custom cursors often break usability on native controls (inputs, text selection, drag handles). If the custom cursor has not handled for this, `ignoreOnNative` allows the app to briefly yield control back to the OS cursor for these interactions, ensuring accessibility is not compromised for style.
+
+### Data Attributes
+
+Some plugins, like dot, can be reactive to changes as defined by the HTML. Dot for example, watches for the `data-supermouse-color` attribute in HTML and will change color upon hovering over it and will return to the default color on leave.
+
+```html
+<div data-supermouse-color="#fff000">...</div>
+
+<script>
+  const app = new Supermouse({ smoothness: 0.45 });
+
+  app.use(Dot({ color: "red" }));
+</script>
+```
+
+Other plugins might offer other reactive ability with often different naming specific to those plugins that Supermouse will detect on hover and change accordingly.
+
+```html
+<div class="modal">
+  // Supermouse is disabled outside this container
+  <div data-supermouse-magnetic>...</div>
+
+  <div data-supermouse-color="orange" data-supermouse-stick="true">...</div>
+
+  <div data-supermouse-image="https://unsplash.com/..."></div>
+</div>
+
+<script>
+  const app = new Supermouse({
+    smoothness: 0.15,
+    container: ".modal",
+    plugins: [Magnetic, Dot, Stick, Image]
+  });
+</script>
+```
+
+The data-prefix is configurable via the `dataPrefix` constructor option, so `data-supermouse-{}` can be something else of your own choosing:
+
+```ts
+const app = new Supermouse({ dataPrefix: "sm" });
+```
+
+```html
+<div data-sm-stick>Sticky Zone</div>
+```
+
+Likewise, the `data-supermouse-ignore` wildcard will also follow as `data-sm-ignore`.
+
+### Rules
+
+Writing data attributes on multiple elements can often get tedious to write and can quickly populate your HTML with data attributes, and it can be unmanageable if you require a reactive effect applied to all buttons. Use the `rules` constructor in Supermouse to reduce clutter and centralize logic in one place:
+
+```html
+<button
+  data-supermouse-magnetic="true"
+  data-supermouse-magnetic-distance="200"
+  data-supermouse-color="red"
+  data-supermouse-text="Click!"
+  data-supermouse-scale="1.5"
+>
+  Complex Button
+</button>
+```
+
+Using `rules` to define semantic styling makes this cleaner:
+
+```ts
+const app = new Supermouse({
+  rules: {
+    ".primary-action": {
+      magnetic: true,
+      distance: 200,
+      color: "red",
+      text: "Click!",
+      scale: 1.5
+    }
+  }
+});
+
+<button class="primary-action">Submit</button>
+```
+
+Or make sweeping semantic styling e.g. to all buttons of a specific class:
+
+```ts
+const app = new Supermouse({
+  rules: {
+    button: {
+      magnetic: true,
+      color: "#ff0000"
+    },
+    "button .primary-button": {
+      color: "#00ff00",
+      size: 20
+    }
+  }
+});
+
+<button>This button is magnetic</button>
+
+<button class="primary-button">This button is both magnetic and data-supermouse-size set to 20</button>
+```
+
+In the event when both rules and data attributes apply to the same element, the HTML `data-supermouse-{}` attribute wins, and will often work as a wildcard in situations where you require a one-off effect on a specific element.
+
+```ts
+// Config
+rules: {
+  'button': {
+    magnetic: true,
+    color: '#ff0000'
+  }
+}
+
+// HTML
+<button
+  data-supermouse-magnetic="false"
+  data-supermouse-text="Click"
+></button>
+
+// Resolution
+{
+  magnetic: false,
+  color: '#ff0000',
+  text: 'Click'
+}
+```
+
+### `ResolveInteraction`
+
+For custom interaction resolutions involving complex custom logic, or with legacy innerHTML structures, Supermouse `rules` does not work as it does not read reactively. You can use `resolveInteraction` to completely replace the default parsing logic and takes in the `element` currently being hovered as an argument:
+
+```ts
+const app = new Supermouse({
+  resolveInteraction(element) {
+    // Full control over how metadata is extracted
+    return {
+      color: element.style.color,
+      scale: element.dataset.cursorScale,
+      magnetic: uiStore.enableAnimation
+    };
+  }
+});
+```
+
+You can also write `rules` in conjuction with your custom parser in `resolveInteraction` and the parser will work only as an override in edge cases.
+
+```ts
+const app = new Supermouse({
+  // Base rules for common cases
+  rules: {
+    button: { magnetic: true, color: "#ff0000" },
+    a: { color: "#00ff00" }
+  },
+
+  // Override with custom logic for edge cases
+  resolveInteraction(element) {
+    const base = {};
+
+    // Custom override
+    if (element.hasAttribute("data-text")) {
+      base.scale = 2.0;
+      base.text = "Click Me";
+    }
+
+    return base;
+  }
+});
+```
+
+<>tODO find the sequence of how priority is handled with this three
+
+For comprehensive details on the rest of these options, visit the [options documentation](https://supermouse.js.org/advanced/api).
 
 ## API
 
 ```ts
 const mouse = new Supermouse(options?);
 
-mouse.state              // MouseState. Read this in plugins. Do not change it outside Input or the tick loop.
-mouse.options             // All options with defaults applied
-mouse.container           // The DOM element that plugins render into
-mouse.isEnabled           // Returns `true` if the instance processes input
+// Mouse state read inside plugins
+mouse.state
+// All options with defaults applied
+mouse.options
+// The DOM element the plugins render into
+mouse.container
+// Returns `true` if the instance is currently processing input
+mouse.isEnabled
 
-mouse.enable()            // Start input processing. Hide the native cursor. Snap to the last known pointer position.
-mouse.disable()           // Stop input processing. Show the native cursor. Reset the state.
-mouse.suspend()            // Pause input and hide the stage. Do not change native cursor CSS. Use this when another instance takes control.
-mouse.resume()          // Resume input and show the stage. Snap to the live pointer to prevent a sweep from a stale position.
+// Start processing input, hide the native cursor and snap to last known pointer position.
+mouse.enable()
+// Stop processing input, show native cursor an reset state.
+mouse.disable()
+// Pause input and hide the container stage non-destructively.
+mouse.suspend()
+// Resume input and show the container stage.
+mouse.resume()
 
-mouse.setNativeCursor("hide" | "show" | "auto")  // Force the native cursor state. This overrides auto-detection.
+// Auto-detection override that forces the native cursor state.
+mouse.setNativeCursor("hide" | "show" | "auto")
 
-mouse.use(plugin)         // Install a plugin
-mouse.getPlugin(name)     // Get a plugin by name
-mouse.enablePlugin(name)  // Enable a disabled plugin
-mouse.disablePlugin(name) // Disable a plugin
-mouse.togglePlugin(name)  // Enable a plugin if it is disabled. Disable it if it is enabled.
+// Install a plugin
+mouse.use(plugin)
+// Return a plugin by name
+mouse.getPlugin(name)
+// Enable a disabled plugin
+mouse.enablePlugin(name)
+// Disable a plugin
+mouse.disablePlugin(name)
+// Toggle a plugin `.isEnabled` state
+mouse.togglePlugin(name)
 
-mouse.registerHoverTarget(selector)  // Add a selector at runtime. The core detects hover on this selector and hides the native cursor for it.
+// Add a global selector at runtime. Whenever the cursor hovers over this selector, the Supermouse kernel detects it and hides the native cursor for it
+mouse.registerHoverTarget(selector)
 
-mouse.start()             // Start the animation loop if it is stopped
-mouse.step(time)          // Advance one frame manually
-mouse.destroy()           // Remove all listeners, DOM elements, and plugins
-```
-
-## Plugins
-
-```ts
-interface SupermousePlugin {
-  name: string;
-  priority?: number;
-  isEnabled?: boolean;
-  element?: HTMLElement;
-
-  install?(instance: Supermouse): void;
-  update?(instance: Supermouse, deltaTime: number): void;
-  destroy?(instance: Supermouse): void;
-  onEnable?(instance: Supermouse): void;
-  onDisable?(instance: Supermouse): void;
-}
-```
-
-If a plugin crashes in `update()`, the core catches the error. The core disables the plugin and writes an error message. Then it calls `onDisable()` and `destroy()`. The rest of the instance continues to run.
-
-### The State Contract
-
-The core gives all plugins the same `state` object. The core does not make a copy for each plugin. This helps performance. But you must know which properties you can change.
-
-**Do not change these properties in a plugin:**
-
-- `pointer`
-- `isDown`
-- `isHover`
-- `isNative`
-- `hoverTarget`
-- `interaction`
-- `reducedMotion`
-
-Only `Input` changes these properties.
-
-**Do not change these properties unless you must:**
-
-- `target`
-- `smooth`
-- `velocity`
-- `angle`
-
-The core tick loop changes these properties. If your plugin must change them (for example, a magnet effect), set a high `priority` number. A high number makes your plugin run after the core loop. Then your changes will stay.
-
-**You can change these properties:**
-
-- `shape`
-- Properties you add to `InteractionState`
-
-If your plugin reads a property, your plugin can write to that property.
-
-### Reacting to hover metadata
-
-```ts
-const mouse = new Supermouse({
-  rules: {
-    "[data-magnetic]": { magnetic: true }
-  }
-});
-```
-
-```html
-<button data-supermouse-magnetic="0.4">Hover me</button>
-```
-
-Both feed into `state.interaction`, merged (rules first, then matching
-`data-{dataPrefix}-*` attributes on the same element, which can override or
-extend the rule). Give plugin authors type safety via module augmentation:
-
-```ts
-declare module "@supermousejs/core" {
-  interface InteractionState {
-    magnetic?: boolean | number;
-  }
-}
+// Start the animation loop if it is stopped
+mouse.start()
+// Advance one frame manually
+mouse.step(time)
+// Destroys Supermouse and plugin instance
+mouse.destroy()
 ```
 
 ## Browser support
 
-There is no IE11/legacy Edge support as Supermouse requires `PointerEvent`, `matchMedia`, `WeakMap`, `AbortController`, and
-`requestAnimationFrame`
-
-## Ecosystem & Ownership
-
-Plugins are generally expected to be published independently so you don't need to contribute to this repo to extend supermouse. The `@supermousejs/*` scope contains core and reference plugins only, but community plugins are encouraged.
+Supermouse.js is supported by all modern browsers.
 
 ## Contributing
 
-Any bug fixes, performance improvement or docs improvement are welcome. Before adding new effects or features to core, read **[CONTRIBUTING.md](./CONTRIBUTING.md)**
+Any bug fixes, performance / docs improvement are welcome. Before adding new effects or features to core, please read [how to contribute](./CONTRIBUTING.md).
+
+## Credits
+
+Supermouse.js is a project inspired heavily by the now-archived Pointer.js and the cursor copy-and-paste effects gallery, Curzr.
 
 ## License
 
 MIT
 
-maintained by [Whitestar14](https://github.com/Whitestar14)
+Built and maintained by [Whitestar14](https://github.com/Whitestar14).
