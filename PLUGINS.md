@@ -2,9 +2,9 @@
 
 With supermouse, plugins are the primary extension mechanism for every non-core effect to keep the core bundle lean. Plugins can be custom cursors, wrappers or cursor effects. They can modify cursor intent, visuals, augment interations and can react to mouse state and other runtime data.
 
-The Supermouse `MouseState` and the `interaction` layer is [how they communicate](#plugin-communication), otherwise Supermouse ensures they are isolated, ordered, and fault-tolerant. If a plugin throws during `update()`, the core catches the error, disables the plugin, calls `onDisable()` and `destroy()`, and removes it from the update loop so other plugins continue to run normally.
+The Supermouse `MouseState` and the `interaction` layer is [how they communicate](#plugin-communication), otherwise Supermouse ensures they are isolated from one another , ordered, and fault-tolerant to crashing the runtime. The core will catch the error if a plugin throws during `update()` and will disable the plugin calling the `onDisable()` and `destroy()` hooks before removing it from the update loop so other plugins continue to run normally.
 
-If a plugin throws during `install()`, the core rejects it entirely and it is never added.
+However, if a plugin throws during installation, the core rejects it entirely and it is never added.
 
 ### Publishing Plugins
 
@@ -192,11 +192,6 @@ const MyPlugin = definePlugin({
 ```
 
 If you need to reset visuals, do it explicitly in `onEnable`/`onDisable` hook.
-
-### Handling Off-Screen Leave
-
-// # TODO read how window leave works
-// # TODO is there no way a cursor can tell Supermouse not to use setCursor `auto` because it handles for it?
 
 When the pointer leaves the browser window and `hideOnLeave` is `true`, the core sets `hasReceivedInput` to `false` and moves `pointer` and `smooth` to off-screen coordinates (`-100, -100`). Plugins must check `state.hasReceivedInput` before reading `pointer` or `smooth` to avoid rendering at invalid positions. Many effects keep a last-known valid position to animate a natural fade-out or collapse in place.
 

@@ -1,13 +1,17 @@
-# Supermouse.js
+# Supermouse.js - Typescript cursor engine
 
 [![npm version](https://img.shields.io/npm/v/@supermousejs/core.svg?style=flat-square)](https://www.npmjs.com/package/@supermousejs/core)
 [![npm downloads](https://img.shields.io/npm/dm/@supermousejs/core.svg?style=flat-square)](https://www.npmjs.com/package/@supermousejs/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+![npm bundle size](https://img.shields.io/bundlephobia/minzip/%40supermousejs%2Fcore?label=minzip)
 
-**Supermouse** is a physics-based custom cursor engine for the web that tracks the pointer, hides the native OS cursor, provides API to native controls, and exposes a small plugin architecture so
-you can build or install composable cursors and cursor effects in your code.
+<div align="center">
+    <img src="./docs/public/favicon.svg" width="180" height="180">
+</div>
 
-You can read the full documentation [here](https://supermouse.js.org).
+Supermouse.js is a physics-based custom cursor engine written in Typescript for the web that allows you toinstall composable cursors and cursor effects, or write them yourself, in your code. It is highly performant, written in Typescript from scratch, has zero dependencies and uses a plugin-system as an extension so the core remains lean.
+
+[Documentation](https://supermouse.js.org) | [Examples](https://supermouse.js.org/docs/guide/cookbook) | [License](#license)
 
 ## Installation
 
@@ -94,9 +98,9 @@ const mouse = new Supermouse({
 })
 ```
 
-Now you have the native cursor automatically hidden, the input normalized, hover detection and accessibility baked in, and the red dot part of the plugin lifecycle. If your goal is a simple red dot on your webpage, then Supermouse will hardly be of any benefit and might even be overkill for your project, even though Supermouse is designed to use very little overhead. You are better off achieving the same simple effect with HTML/CSS and some Javascript.
+Now your dot has all the capabilities of Supermouse (the native cursor automatically hidden, the input normalized, hover detection and accessibility baked in, and the red dot part of the plugin lifecycle). However, if your goal is a simple red dot on your webpage, then Supermouse will hardly be of any benefit and might even be overkill for your project, even though Supermouse is designed to use very little overhead. You are better off achieving the same simple effect with HTML/CSS and some Javascript.
 
-Supermouse beings to shine when you need to handle increasingly complex effects with granularity with its plugins, for example, when you decide to add a `Ring` to the cursor, you can pass plugins declaratively to the constructor:
+Supermouse's advantages are much more serving when you need to handle increasingly complex effects with granularity with its plugins, for example, when you decide to add a `Ring` to the cursor, you can pass plugins declaratively to the constructor:
 
 ```ts
 import { Dot } from "@supermousejs/dot";
@@ -118,11 +122,6 @@ if (someEffect) {
 ```
 
 You can read more about plugins and how to write them [here](./PLUGINS.md).
-
-## How it works
-
-Supermouse internal model is a simple orchestration of three classes. The **`Input`** class listens to pointer events, and writes data to the shared `MouseState`. The **`Stage`** class simply creates the DOM container that your plugin renders into, and hides the native OS cursor with a stylesheet.
-Lastly, the **`Supermouse`** class consumes the two and runs the `requestAnimationFrame` loop, reads the raw pointer positions from `Input` class and applies the smmoth function to `state.smooth` and calls each plugin's `update()` once per frame.
 
 ## Options
 
