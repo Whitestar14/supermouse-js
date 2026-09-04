@@ -221,8 +221,7 @@ export function definePlugin(
         return;
       }
 
-      app.container.appendChild(root);
-      this.element = root;
+      this.element = app.stage.appendChild(root);
       isMounted = true;
 
       if (config.selector) {

@@ -1,18 +1,19 @@
 declare const __VERSION__: string | undefined;
 const VERSION: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0";
 
-import type { MouseState, SupermouseInstance, SupermouseOptions, SupermousePlugin } from "./types";
+import type { MouseState, SupermouseOptions, SupermousePlugin } from "./types";
 
-/** Standard linear interpolation between `start` and `end` by `factor` ∈ [0, 1]. */
+/** Standard linear interpolation */
 function lerp(start: number, end: number, factor: number): number {
   return start + (end - start) * factor;
 }
 
 /**
- * Framerate-independent exponential smoothing (Freya Holmér's "damp").
+ * Framerate-independent exponential smoothing by Freya Holmér.
+ * @param lambda  Response rate.
+ * @param dt Delta time in seconds.
  *
- * @param lambda  Response rate. Higher = snappier. ~10 is "instant", ~2 is "floaty".
- * @param dt      Delta time in **seconds** (cap to ~0.1 before passing in).
+ * https://www.youtube.com/watch?v=LSNQuFEDOyQ
  */
 function damp(a: number, b: number, lambda: number, dt: number): number {
   return lerp(a, b, 1 - Math.exp(-lambda * dt));
@@ -20,9 +21,7 @@ function damp(a: number, b: number, lambda: number, dt: number): number {
 
 /**
  * Off-screen park position used before any input arrives, and after the
- * pointer leaves the viewport with `hideOnLeave` enabled. (-100, -100) rather
- * than (0, 0) so elements pinned to the top-left corner don't get a spurious
- * hover on first load.
+ * pointer leaves the viewport with `hideOnLeave` enabled.
  */
 const OFFSCREEN = { x: -100, y: -100 } as const;
 
@@ -207,9 +206,7 @@ export class Input {
   }
 
   /**
-   * Tracks raw pointer coordinates **even while disabled** so `enable()` can
-   * snap immediately. Only `hasReceivedInput` and the initial snap are gated
-   * on `isEnabled`.
+   * Tracks raw pointer coordinates.
    */
   private handleMove = (e: PointerEvent): void => {
     if (this.options.autoDisableOnMobile && e.pointerType === "touch" && !this.options.enableTouch)
@@ -443,8 +440,6 @@ export class Stage {
 
   /**
    * Adds a new CSS selector to the `selectors` set.
-   * Called by `Supermouse` and subsequently plugins during install to ensure
-   * the native cursor is hidden on their specific interactive targets.
    */
   public addSelector(selector: string): void {
     this.selectors.add(selector);
@@ -531,12 +526,13 @@ type ResolvedOptions = SupermouseOptions &
  * Supermouse Runtime Loop
  *
  * This class orchestrates the application state, manages the animation loop,
- * and coordinates data flow between the internal systems, and the plugins. Read
- * the [docs](https://supermouse.js.org/docs/api/) to find more on the plugin state contract
+ * and coordinates data flow between the internal systems, and the plugins.
+ *
+ * https://supermouse.js.org/docs/
  *
  * @default
  */
-export class Supermouse implements SupermouseInstance {
+export class Supermouse {
   public static readonly version: string = VERSION;
   public readonly version: string = VERSION;
 
@@ -546,7 +542,7 @@ export class Supermouse implements SupermouseInstance {
   options: ResolvedOptions;
 
   private plugins: SupermousePlugin[] = [];
-  private stage: Stage;
+  private _stage: Stage;
   private input: Input;
 
   private rafId: number = 0;
@@ -561,8 +557,7 @@ export class Supermouse implements SupermouseInstance {
   /**
    * Creates a new Supermouse instance.
    *
-   * @param options - Global configuration options.
-   * @throws Will throw if running in a non-browser environment (window/document undefined).
+   * @param options - Global configuration options. See [options documentation](https://supermouse.js.org/docs/reference/api).
    */
   constructor(options: SupermouseOptions = {}) {
     this.options = {
@@ -599,8 +594,8 @@ export class Supermouse implements SupermouseInstance {
 
     this.hoverSelectors = new Set(this.options.hoverSelectors ?? DEFAULT_HOVER_SELECTORS);
 
-    this.stage = new Stage(this.options.container, !!this.options.hideCursor, this.options.zIndex);
-    this.hoverSelectors.forEach((s) => this.stage.addSelector(s));
+    this._stage = new Stage(this.options.container, !!this.options.hideCursor, this.options.zIndex);
+    this.hoverSelectors.forEach((s) => this._stage.addSelector(s));
 
     this.input = new Input(
       this.state,
@@ -616,13 +611,12 @@ export class Supermouse implements SupermouseInstance {
     this.init();
   }
 
-  /** Look up a registered plugin by name.
-   * Returns `undefined` if not found. */
+  /** Look up a registered plugin by name. */
   public getPlugin(name: string): SupermousePlugin | undefined {
     return this.plugins.find((p) => p.name === name);
   }
 
-  /** Whether the instance is not disabled/frozen and is processing input. */
+  /** Whether the instance is not disabled/suspended and is processing input. */
   public get isEnabled(): boolean {
     return this.input.isEnabled;
   }
@@ -671,13 +665,18 @@ export class Supermouse implements SupermouseInstance {
   public registerHoverTarget(selector: string): void {
     if (!this.hoverSelectors.has(selector)) {
       this.hoverSelectors.add(selector);
-      this.stage.addSelector(selector);
+      this._stage.addSelector(selector);
     }
   }
 
-  /** The DOM container plugins should append their visual elements into. */
-  public get container(): HTMLDivElement {
-    return this.stage.element;
+  /** The DOM element the instance is scoped to. */
+  public get container(): HTMLElement {
+    return this.options.container;
+  }
+
+  /** The stage element that plugins append their visuals into. */
+  public get stage(): HTMLDivElement {
+    return this._stage.element;
   }
 
   /**
@@ -695,14 +694,12 @@ export class Supermouse implements SupermouseInstance {
   }
 
   /**
-   * Re-enables input processing. Snaps physics to the current pointer
-   * position if it's been seen before (no sweep from off-screen).
-   * Respects any active `forcedCursor` set via `setNativeCursor()`.
+   * Re-enables input processing. It respects any active `forcedCursor` set via `setNativeCursor()`.
    */
   public enable(): void {
     this.input.isEnabled = true;
     if (this.options.hideCursor) {
-      this.stage.setNativeCursor(this.resolveNativeCursorState());
+      this._stage.setNativeCursor(this.resolveNativeCursorState());
     }
     if (this.input.hasSeenPointer) {
       this.state.target.x = this.state.smooth.x = this.state.pointer.x;
@@ -716,7 +713,7 @@ export class Supermouse implements SupermouseInstance {
   /** Disables input processing, restores the native cursor, and hard-resets physics. */
   public disable(): void {
     this.input.isEnabled = false;
-    if (this.options.hideCursor) this.stage.setNativeCursor("auto");
+    if (this.options.hideCursor) this._stage.setNativeCursor("auto");
     this.reset(true);
   }
 
@@ -731,12 +728,11 @@ export class Supermouse implements SupermouseInstance {
     this.isSuspended = true;
     this.input.isEnabled = false;
     this.input.clearHover();
-    this.stage.setVisibility(false);
+    this._stage.setVisibility(false);
   }
 
   /**
    * Resumes from `suspend()`, snapping physics to the live pointer.
-   * No-op if the instance wasn't suspended to guard against mismatched calls.
    */
   public resume(): void {
     if (!this.isSuspended) return;
@@ -753,13 +749,13 @@ export class Supermouse implements SupermouseInstance {
     for (let i = this.plugins.length - 1; i >= 0; i--) {
       this.runPluginSafe(this.plugins[i], 0);
     }
-    this.stage.setVisibility(true);
+    this._stage.setVisibility(true);
   }
 
   /**
    * Registers a new plugin.
    *
-   * @param plugin - The plugin object to install.
+   * @param plugin The plugin object to install.
    */
   public use(plugin: SupermousePlugin): this {
     if (this.plugins.some((p) => p.name === plugin.name)) {
@@ -783,7 +779,7 @@ export class Supermouse implements SupermouseInstance {
    * `state.pointer` as it must keep track of the live coordinate even while
    * disabled so `enable()` can snap without waiting for the next move event.
    *
-   * @param hard  Also clears `hasReceivedInput`, `shape`, and `interaction`.
+   * @param hard
    */
   private reset(hard = false): void {
     this.state.target = { ...OFFSCREEN };
@@ -807,7 +803,6 @@ export class Supermouse implements SupermouseInstance {
 
   /**
    * Starts the animation loop. This is automatically called if `autoStart` is true.
-   * Plugins can call this method to resume the loop if it has been stopped.
    */
   public start(): void {
     this.startLoop();
@@ -833,10 +828,6 @@ export class Supermouse implements SupermouseInstance {
     }
   }
 
-  /**
-   * Removes plugins that threw during `update()` this frame. Lifecycle order
-   * pauses first (`onDisable`), tears down (`destroy`), then DOM cleanup (`element.remove()`).
-   */
   private cleanupCrashedPlugins(): void {
     if (this.crashedPlugins.length === 0) return;
     for (const plugin of this.crashedPlugins) {
@@ -874,9 +865,9 @@ export class Supermouse implements SupermouseInstance {
       this.input.clearHover();
     }
 
-    this.stage.setVisibility(this.resolveStageVisibility());
+    this._stage.setVisibility(this.resolveStageVisibility());
     if (this.input.isEnabled && this.options.hideCursor) {
-      this.stage.setNativeCursor(this.resolveNativeCursorState());
+      this._stage.setNativeCursor(this.resolveNativeCursorState());
     }
 
     if (this.input.isEnabled && this.state.hasReceivedInput) {
@@ -932,8 +923,10 @@ export class Supermouse implements SupermouseInstance {
     cancelAnimationFrame(this.rafId);
     this.visibilityAbortController.abort();
     this.input.destroy();
-    this.stage.destroy();
+    this._stage.destroy();
     this.plugins.forEach((p) => p.destroy?.(this));
     this.plugins = [];
   }
 }
+
+export type SupermouseInstance = Supermouse;
