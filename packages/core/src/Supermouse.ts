@@ -122,7 +122,7 @@ export class Input {
     const container = this.options.container;
     if (!container || container === document.body) return;
 
-    const updateRect = () => {
+    const updateRect = (): void => {
       this.containerRect = container.getBoundingClientRect();
     };
     updateRect();
@@ -704,14 +704,16 @@ export class Supermouse {
    */
   public enable(): void {
     this.input.isEnabled = true;
-    if (this.options.hideCursor) {
-      this._stage.setNativeCursor(this.resolveNativeCursorState());
-    }
+
     if (this.input.hasSeenPointer) {
       this.state.target.x = this.state.smooth.x = this.state.pointer.x;
       this.state.target.y = this.state.smooth.y = this.state.pointer.y;
       this.resetMotion();
       this.state.hasReceivedInput = true;
+    }
+
+    if (this.options.hideCursor) {
+      this._stage.setNativeCursor(this.resolveNativeCursorState());
     }
   }
 
