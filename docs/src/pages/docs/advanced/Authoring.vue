@@ -28,7 +28,7 @@ export const RedDot = (): SupermousePlugin => {
       el.style.background = 'red';
       el.style.position = 'fixed';
       el.style.pointerEvents = 'none';
-      app.container.appendChild(el);
+      app.stage.appendChild(el);
     },
 
     update(app) {

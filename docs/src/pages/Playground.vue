@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { usePageHead } from "@/composables/usePageHead";
 import { usePlayground } from "@composables/usePlayground";
 import { RECIPES } from "@/components/playground/recipes";
 
@@ -17,6 +18,12 @@ const filteredRecipes = computed(() => {
       r.description.toLowerCase().includes(q) ||
       r.id.toLowerCase().includes(q)
   );
+});
+
+usePageHead({
+  title: "Labs",
+  description:
+    "A modular, high-performance cursor engine for building dynamic, beautiful cursors for the web."
 });
 </script>
 

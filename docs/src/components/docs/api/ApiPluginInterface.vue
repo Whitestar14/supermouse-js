@@ -17,7 +17,7 @@ import CodeBlock from "@components/shared/CodeBlock.vue";
     <ApiEntry id="install" name="install(app)" signature="install(app: Supermouse): void">
       <p>Called once when the plugin is registered. Create and mount DOM elements here.</p>
       <CodeBlock
-        code="install(app) {&#10;  const el = dom.createCircle(8, 'white');&#10;  app.container.appendChild(el);&#10;  this.el = el;&#10;}"
+        code="install(app) {&#10;  const el = dom.createCircle(8, 'white');&#10;  app.stage.appendChild(el);&#10;  this.el = el;&#10;}"
         lang="typescript"
         :clean="true"
         title="Example"
