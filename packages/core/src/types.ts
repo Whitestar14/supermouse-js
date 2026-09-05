@@ -12,14 +12,12 @@ export interface ShapeState {
 }
 
 export type RuleValue = string | boolean | number;
-
 export type RuleSet = Record<string, RuleValue | ((el: HTMLElement) => RuleValue)>;
-
 export type RuleDefinition = RuleSet | ((el: HTMLElement) => RuleSet);
 
 /**
- * The Interface for interaction state.
- * Plugins should use Module Augmentation to add their specific properties to this interface.
+ * Interaction state consumed by plugins.
+ * Extend via module augmentation for type safety.
  *
  * @example
  * declare module '@supermousejs/core' {
@@ -30,56 +28,44 @@ export type RuleDefinition = RuleSet | ((el: HTMLElement) => RuleSet);
  * }
  */
 export interface InteractionState {
-  /**
-   * Allow arbitrary keys for rapid prototyping.
-   * For type safety, use module augmentation to define expected keys.
-   */
+  /** Arbitrary keys allowed for quick prototyping. */
   [key: string]: any;
 }
 
 export interface MouseState {
-  /** The raw position from the latest pointer event, before smoothing is applied. */
+  /** Raw pointer position from the latest event (before smoothing). */
   pointer: MousePosition;
-  /** The current goal position that the core loop is driving toward. */
+  /** Goal position the core loop drives toward. */
   target: MousePosition;
-  /** The smoothed/interpolated position used for rendering. */
+  /** Smoothed position used for rendering. */
   smooth: MousePosition;
-  /** The current movement vector derived from the smoothed state. */
+  /** Movement vector derived from smoothed state. */
   velocity: MousePosition;
-  /** The remaining positional error displacement to target */
+  /** Remaining distance to target. */
   displacement: MousePosition;
-  /** The current movement angle in degrees, derived from velocity. */
+  /** Movement angle in degrees. */
   angle: number;
-  /** Whether the pointer is currently pressed down. */
+  /** Pointer is pressed down. */
   isDown: boolean;
-  /** Whether the pointer is currently hovering over a registered interactive element. */
+  /** Hovering over a registered interactive element. */
   isHover: boolean;
-  /** Whether the runtime has temporarily restored the native cursor due to native-input heuristics. */
+  /** Native cursor temporarily restored due to native-input heuristics. */
   isNative: boolean;
-  /**
-   * If set, this overrides all auto-detection logic.
-   * 'auto' = Force Native Cursor (Show)
-   * 'none' = Force Custom Cursor (Hide Native)
-   * null = Let the Core decide based on isNative/isHover
-   */
-  forcedCursor: "auto" | "none" | null;
-  /** The DOM element currently being hovered, if any. */
+  /** Current cursor mode: auto, native, or custom. */
+  cursorMode: "auto" | "native" | "custom";
+  /** Currently hovered DOM element, if any. */
   hoverTarget: HTMLElement | null;
-  /** Whether the user has `prefers-reduced-motion` enabled. */
+  /** User has `prefers-reduced-motion` enabled. */
   reducedMotion: boolean;
-  /** Whether the system has received valid input coordinates at least once. */
+  /** At least one valid input coordinate received. */
   hasReceivedInput: boolean;
-  /** Defines a specific geometric shape the cursor should conform to. */
+  /** Geometric shape the cursor should conform to. */
   shape: ShapeState | null;
-  /** Centralized store for hover metadata from data attributes. */
+  /** Centralized store for hover metadata from data attributes and rules. */
   interaction: InteractionState;
 }
 
-export type NativeIgnoreStrategy = "auto" | "tag" | "css";
-
-/**
- * Configuration options passed to the Supermouse constructor.
- */
+/** Configuration options for the Supermouse constructor. */
 export interface SupermouseOptions {
   /**
    * The interpolation factor (0 to 1). Lower is smoother/slower.
@@ -102,25 +88,20 @@ export interface SupermouseOptions {
    */
   autoDisableOnMobile?: boolean;
   /**
-   * Strategy for detecting when to fallback to the native cursor.
-   * - `'auto'`: Checks both HTML tags and CSS cursor styles (Accurate but slower).
-   * - `'tag'`: Checks only semantic tags like <input>, <textarea> (Fastest, prevents layout thrashing).
-   * - `'css'`: Checks only computed CSS cursor styles. Computed styles are read fresh on each mouseover.
-   * - `null`: Never fallback to native cursor.
-   *
-   * @default 'auto'
+   * Overall cursor mode.
+   * - `"auto"`: use built-in heuristic to decide per element.
+   * - `"native"`: always show native cursor, hide custom.
+   * - `"custom"`: always show custom cursor, hide native.
+   * @default "auto"
    */
-  ignoreOnNative?: NativeIgnoreStrategy | null;
+  cursor?: "auto" | "native" | "custom";
   /**
    * Whether to hide the native cursor via scoped CSS injection on the container.
-   * When enabled, the stage toggles `cursor: none` on the configured container and
-   * on registered hover targets.
    * @default true
    */
   hideCursor?: boolean;
   /**
    * Whether to hide the custom cursor when the pointer leaves the browser viewport.
-   * When enabled the runtime clears the cursor back to an off-screen position to avoid stale hover state.
    * @default true
    */
   hideOnLeave?: boolean;
@@ -141,53 +122,44 @@ export interface SupermouseOptions {
   /**
    * Semantic rules mapping CSS selectors to interaction state.
    * Rules are evaluated against hovered elements and merged into `state.interaction`.
-   * Matching data attributes on the same element are also read and can override or enrich the final object.
    * @example { 'button': { icon: 'pointer' } }
    */
   rules?: Record<string, RuleDefinition>;
   /**
    * The prefix used for data attributes to store hover metadata.
-   * For example, if dataPrefix is "supermouse", then the attribute would be "data-supermouse-*".
-   * This allows for multiple instances of Supermouse to coexist without conflicting data attributes.
    * @default "supermouse"
    */
   dataPrefix?: string;
   /**
-   * The `z-index` applied to the cursor stage element. Bump this if you've
-   * got modals/overlays sitting at or above 9999.
+   * The `z-index` applied to the cursor stage element.
    * @default 9999
    */
   zIndex?: number;
 }
 
-/**
- * Allows a property to be a static value or a function that returns the value based on state.
- * This is primarily useful for plugin option definitions that should react to the current runtime state.
- */
+/** Static value or function that returns a value based on state. */
 export type ValueOrGetter<T> = T | ((state: MouseState) => T);
 
-/**
- * Interface for defining a Supermouse Plugin.
- */
+/** Interface for defining a Supermouse plugin. */
 export interface SupermousePlugin {
-  /** Unique name for the plugin. Used for toggling/retrieval. */
+  /** Unique plugin name. */
   name: string;
-  /** Execution priority. Lower numbers run first. */
+  /** Execution priority; lower runs first. */
   priority?: number;
-  /** If false, update() will not be called. */
+  /** If false, `update()` will not be called. */
   isEnabled?: boolean;
-  /** Reference to the plugin's root DOM element, if any. The core auto-hides this when the plugin is disabled. */
+  /** Root DOM element, if any. Hidden when plugin disabled. */
   element?: HTMLElement | SVGElement;
 
   /** Called when `app.use()` is executed. */
   install?: (instance: SupermouseInstance) => void;
-  /** Called on every animation frame with the frame delta time in milliseconds. */
+  /** Called every animation frame with delta time in ms. */
   update?: (instance: SupermouseInstance, deltaTime: number) => void;
-  /** Called when the plugin is removed or the app is destroyed. */
+  /** Called when plugin removed or instance destroyed. */
   destroy?: (instance: SupermouseInstance) => void;
 
-  /** Called when the plugin is enabled via .enablePlugin() */
+  /** Called when plugin enabled via `.enablePlugin()`. */
   onEnable?: (instance: SupermouseInstance) => void;
-  /** Called when the plugin is disabled via .disablePlugin() */
+  /** Called when plugin disabled via `.disablePlugin()`. */
   onDisable?: (instance: SupermouseInstance) => void;
 }

@@ -7,7 +7,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "vite build",
-    "test": "vitest"
+    "test": "vitest",
+    "test:watch": "vitest --watch"
   },
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",

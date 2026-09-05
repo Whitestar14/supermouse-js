@@ -1,7 +1,7 @@
 declare const __VERSION__: string | undefined;
 const VERSION: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0";
 
-import type { MouseState, SupermouseOptions, SupermousePlugin } from "./types";
+import type { MouseState, SupermouseOptions, SupermousePlugin, RuleDefinition } from "./types";
 
 /** Standard linear interpolation */
 function lerp(start: number, end: number, factor: number): number {
@@ -19,20 +19,15 @@ function damp(a: number, b: number, lambda: number, dt: number): number {
   return lerp(a, b, 1 - Math.exp(-lambda * dt));
 }
 
-/**
- * Off-screen park position used before any input arrives, and after the
- * pointer leaves the viewport with `hideOnLeave` enabled.
- */
+/** Off-screen park position before input arrives or after pointer leaves viewport. */
 const OFFSCREEN = { x: -100, y: -100 } as const;
 
-/** HTML tags that always warrant native cursor fallback regardless of computed styles. */
+/** HTML tags that always warrant native cursor fallback. */
 const NATIVE_TAGS = new Set(["input", "textarea", "select"]);
 
 /**
  * Computed `cursor` values treated as "author didn't explicitly choose one."
- * Anything outside this set (e.g. `text`, `not-allowed`, `zoom-in`, `url(...)`)
- * is read as intentional and wins over the custom cursor when `ignoreOnNative`
- * includes a CSS check.
+ * Anything else wins over custom cursor.
  */
 const SUPERMOUSE_CURSORS = new Set([
   "default",
@@ -44,7 +39,7 @@ const SUPERMOUSE_CURSORS = new Set([
   "grabbing"
 ]);
 
-/** Default selectors that trigger `state.isHover`. Override with the `hoverSelectors` option. */
+/** Default selectors that trigger `state.isHover`. Override with `hoverSelectors`. */
 export const DEFAULT_HOVER_SELECTORS = [
   "a",
   "button",
@@ -55,9 +50,11 @@ export const DEFAULT_HOVER_SELECTORS = [
 ];
 
 /**
- * Input.ts
+ * Owns all browser-event listening and is the only class allowed to write
+ * to these `MouseState` fields: `pointer`, `isDown`, `isHover`, `isNative`,
+ * `hoverTarget`, `interaction`, `reducedMotion`.
  *
- * @internal Instantiated by `Supermouse.
+ * @internal Instantiated by `Supermouse`.
  */
 export class Input {
   private mediaQueryList?: MediaQueryList;
@@ -72,6 +69,10 @@ export class Input {
 
   private containerRect: DOMRect | null = null;
   private resizeObserver?: ResizeObserver;
+
+  /** Cached matched rules for the current hover target. */
+  private matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
+  private lastHoverTarget: HTMLElement | null = null;
 
   constructor(
     private state: MouseState,
@@ -114,10 +115,7 @@ export class Input {
     this.onEnableChange(enabled);
   }
 
-  /**
-   * Caches the container's bounding rect and updates it only when the
-   * container's size or position may have changed.
-   */
+  /** Caches container rect; updates on resize/scroll/ResizeObserver. */
   private setupContainerRectTracking(): void {
     const container = this.options.container;
     if (!container || container === document.body) return;
@@ -141,27 +139,33 @@ export class Input {
 
   /**
    * Evaluates rules against the hovered element.
-   * Called once on mouseover, then re-invoked every frame by Supermouse.tick
-   * while the element remains hovered. Function values are executed fresh each
-   * frame, so external store changes are picked up automatically.
+   * Selector matching is cached per hover target; only function values re-evaluated each frame.
    */
   public parseDOMInteraction(element: HTMLElement): void {
-    const data: Record<string, string | boolean | number> = {};
+    if (element !== this.lastHoverTarget) {
+      this.lastHoverTarget = element;
+      this.matchedRules = [];
 
-    if (this.options.rules) {
-      for (const [sel, rules] of Object.entries(this.options.rules)) {
-        if (!this.matchesSelector(element, sel)) continue;
-
-        try {
-          const resolved = typeof rules === "function" ? rules(element) : rules;
-          if (!resolved || typeof resolved !== "object") continue;
-
-          for (const [key, val] of Object.entries(resolved)) {
-            data[key] = typeof val === "function" ? val(element) : val;
+      if (this.options.rules) {
+        for (const [selector, rules] of Object.entries(this.options.rules)) {
+          if (this.matchesSelector(element, selector)) {
+            this.matchedRules.push({ selector, rules });
           }
-        } catch (e) {
-          console.error(`[Supermouse] Rule "${sel}" threw:`, e);
         }
+      }
+    }
+
+    const data: Record<string, string | boolean | number> = {};
+    for (const { rules } of this.matchedRules) {
+      try {
+        const resolved = typeof rules === "function" ? rules(element) : rules;
+        if (!resolved || typeof resolved !== "object") continue;
+
+        for (const [key, val] of Object.entries(resolved)) {
+          data[key] = typeof val === "function" ? val(element) : val;
+        }
+      } catch (e) {
+        console.error(`[Supermouse] Rule threw during evaluation:`, e);
       }
     }
 
@@ -260,22 +264,12 @@ export class Input {
       this.parseDOMInteraction(this.state.hoverTarget);
     }
 
-    const strategy = this.options.ignoreOnNative;
-    if (strategy) {
-      const checkTags = strategy === "auto" || strategy === "tag";
-      const checkCSS = strategy === "auto" || strategy === "css";
-      let isNative = false;
-
-      if (checkTags && (NATIVE_TAGS.has(target.localName) || target.isContentEditable)) {
-        isNative = true;
-      }
-      if (!isNative && checkCSS && !SUPERMOUSE_CURSORS.has(this.resolveComputedCursor(target))) {
-        isNative = true;
-      }
-      if (isNative) {
-        this.state.isNative = true;
-        this.nativeTarget = target;
-      }
+    // Built-in native detection: tags + CSS
+    const checkTags = NATIVE_TAGS.has(target.localName) || target.isContentEditable;
+    const checkCSS = !SUPERMOUSE_CURSORS.has(this.resolveComputedCursor(target));
+    if (checkTags || checkCSS) {
+      this.state.isNative = true;
+      this.nativeTarget = target;
     }
   };
 
@@ -291,6 +285,8 @@ export class Input {
         this.state.isHover = false;
         this.state.hoverTarget = null;
         this.state.interaction = {};
+        this.lastHoverTarget = null;
+        this.matchedRules = [];
       }
     }
 
@@ -315,6 +311,8 @@ export class Input {
     this.state.isNative = false;
     this.nativeTarget = null;
     this.state.interaction = {};
+    this.lastHoverTarget = null;
+    this.matchedRules = [];
   }
 
   private bindEvents(): void {
@@ -339,22 +337,10 @@ export class Input {
 let stageCount = 0;
 
 /**
- * Stage.ts
+ * Owns the stage container and manages native-cursor suppression via injected styles.
+ * The stylesheet is rebuilt only when selectors change, not per frame.
  *
- * Owns the DOM container plugins render into and manages native-cursor
- * suppression via an injected `<style>` tag.
- *
- * The stylesheet is rebuilt only when `selectors` changes (at plugin install
- * time, not per frame). Toggling cursor visibility is a cheap `classList.toggle`
- * on the container rather than a string rewrite.
- *
- * The `:not(.scopeClass .supermouse-scope):not(.scopeClass .supermouse-scope *)`
- * exclusion in each rule stops the outer instance's `cursor: none !important`
- * from leaking into a nested instance's container. Any element that lives
- * inside a nested `.supermouse-scope` is excluded from the outer rule; the
- * inner instance's own stylesheet picks up from there.
- *
- * @internal Instantiated by `Supermouse`. Not part of the public API.
+ * @internal Instantiated by `Supermouse`.
  */
 export class Stage {
   public readonly element: HTMLDivElement;
@@ -367,12 +353,7 @@ export class Stage {
   private originalContainerPosition: string = "";
   private originalContainerCursor: string = "";
 
-  /**
-   * Selectors needing an explicit `cursor: none !important` rule. A
-   * container-level `cursor: none` can't override UA-stylesheet values
-   * (e.g. `cursor: pointer` on `<a>`, `cursor: text` on inputs) via
-   * inheritance alone, therefore these selectors get their own rules.
-   */
+  /** Selectors that need explicit `cursor: none !important` to override UA styles. */
   private selectors: Set<string> = new Set([
     "a",
     "button",
@@ -433,10 +414,7 @@ export class Stage {
     if (this.hideNativeCursor) this.setNativeCursor("none");
   }
 
-  /**
-   * Adds multiple CSS selectors to the `selectors` set and rebuilds the
-   * stylesheet only once.
-   */
+  /** Batch add selectors and rebuild stylesheet once. */
   public addSelectors(selectors: Iterable<string>): void {
     for (const selector of selectors) {
       this.selectors.add(selector);
@@ -444,9 +422,7 @@ export class Stage {
     this.updateCursorCSS();
   }
 
-  /**
-   * Adds a new CSS selector to the `selectors` set.
-   */
+  /** Add a single selector and rebuild stylesheet. */
   public addSelector(selector: string): void {
     this.selectors.add(selector);
     this.updateCursorCSS();
@@ -456,23 +432,16 @@ export class Stage {
     this.element.style.opacity = visible ? "1" : "0";
   }
 
-  /**
-   * Toggles the visibility of the native cursor.
-   * @param type 'none' to hide, 'auto' to show.
-   */
+  /** Toggle native cursor visibility. */
   public setNativeCursor(type: "none" | "auto"): void {
     if (!this.hideNativeCursor && type === "none") return;
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
     this.container.classList.toggle(this.hideClass, type === "none");
-
     this.container.style.cursor = type === "none" ? "none" : this.originalContainerCursor;
   }
 
-  /**
-   * Rebuilds the injected stylesheet from the current `selectors` set.
-   * Called only when `selectors` changes, never per frame.
-   */
+  /** Rebuild injected stylesheet from current selectors. */
   private updateCursorCSS(): void {
     const rawSelectors = Array.from(this.selectors);
     if (rawSelectors.length === 0) {
@@ -518,7 +487,7 @@ type ResolvedOptions = SupermouseOptions &
       | "smoothness"
       | "enableTouch"
       | "autoDisableOnMobile"
-      | "ignoreOnNative"
+      | "cursor"
       | "hideCursor"
       | "hideOnLeave"
       | "autoStart"
@@ -529,14 +498,7 @@ type ResolvedOptions = SupermouseOptions &
   >;
 
 /**
- * Supermouse Runtime Loop
- *
- * This class orchestrates the application state, manages the animation loop,
- * and coordinates data flow between the internal systems, and the plugins.
- *
- * https://supermouse.js.org/docs/
- *
- * @default
+ * Orchestrates state, animation loop, and plugin lifecycle.
  */
 export class Supermouse {
   public static readonly version: string = VERSION;
@@ -560,17 +522,12 @@ export class Supermouse {
   private hoverSelectors: Set<string>;
   private crashedPlugins: SupermousePlugin[] = [];
 
-  /**
-   * Creates a new Supermouse instance.
-   *
-   * @param options - Global configuration options. See [options documentation](https://supermouse.js.org/docs/reference/api).
-   */
   constructor(options: SupermouseOptions = {}) {
     this.options = {
       smoothness: 0.15,
       enableTouch: false,
       autoDisableOnMobile: true,
-      ignoreOnNative: "auto",
+      cursor: "auto",
       hideCursor: true,
       hideOnLeave: true,
       autoStart: true,
@@ -590,7 +547,7 @@ export class Supermouse {
       isDown: false,
       isHover: false,
       isNative: false,
-      forcedCursor: null,
+      cursorMode: this.options.cursor,
       hoverTarget: null,
       reducedMotion: false,
       hasReceivedInput: false,
@@ -627,10 +584,7 @@ export class Supermouse {
     return this.input.isEnabled;
   }
 
-  /**
-   * Enables a specific plugin by name.
-   * Triggers the `onEnable` lifecycle hook of the plugin.
-   */
+  /** Enable a plugin by name. */
   public enablePlugin(name: string): void {
     const plugin = this.getPlugin(name);
     if (plugin && plugin.isEnabled === false) {
@@ -640,10 +594,7 @@ export class Supermouse {
     }
   }
 
-  /**
-   * Disables a specific plugin by name and hides the element.
-   * Triggers the `onDisable` lifecycle hook.
-   */
+  /** Disable a plugin by name and hide its element. */
   public disablePlugin(name: string): void {
     const plugin = this.getPlugin(name);
     if (plugin && plugin.isEnabled !== false) {
@@ -664,10 +615,7 @@ export class Supermouse {
     else this.disablePlugin(name);
   }
 
-  /**
-   * Adds a selector to hover-detection and the Stage's cursor-suppression
-   * stylesheet. Triggers a CSS rebuild that calls during setup, not per frame.
-   */
+  /** Add a selector to hover detection and cursor suppression. */
   public registerHoverTarget(selector: string): void {
     if (!this.hoverSelectors.has(selector)) {
       this.hoverSelectors.add(selector);
@@ -685,23 +633,16 @@ export class Supermouse {
     return this._stage.element;
   }
 
-  /**
-   * Overrides the auto-detected native cursor state.
-   * - `"hide"` - always show the custom cursor.
-   * - `"show"` - always show the native cursor (hides the custom stage).
-   * - `"auto"` - let the engine decide based on `isNative` / `hasReceivedInput`.
-   */
-  public setNativeCursor(mode: "hide" | "show" | "auto"): void {
-    this.state.forcedCursor = mode === "auto" ? null : mode === "hide" ? "none" : "auto";
+  /** Set the current cursor mode. */
+  public setCursor(mode: "auto" | "native" | "custom"): void {
+    this.state.cursorMode = mode;
   }
 
   private init(): void {
     if (this.options.autoStart) this.startLoop();
   }
 
-  /**
-   * Re-enables input processing. It respects any active `forcedCursor` set via `setNativeCursor()`.
-   */
+  /** Re‑enable input processing and re‑apply cursor state. */
   public enable(): void {
     this.input.isEnabled = true;
 
@@ -713,23 +654,18 @@ export class Supermouse {
     }
 
     if (this.options.hideCursor) {
-      this._stage.setNativeCursor(this.resolveNativeCursorState());
+      this._stage.setNativeCursor(this.resolveCursorState());
     }
   }
 
-  /** Disables input processing, restores the native cursor, and hard-resets physics. */
+  /** Disable input processing and restore native cursor. */
   public disable(): void {
     this.input.isEnabled = false;
     if (this.options.hideCursor) this._stage.setNativeCursor("auto");
     this.reset(true);
   }
 
-  /**
-   * Temporarily yields to a scoped instance. Hides this stage and fully
-   * releases the native cursor so the inner instance's `ignoreOnNative` logic
-   * is unobstructed. No-op if the instance is already disabled via `disable()`, which preserves
-   * the user's explicit disabled state across an enter/leave cycle.
-   */
+  /** Temporarily yield to a scoped instance. */
   public suspend(): void {
     if (!this.input.isEnabled) return;
     this.isSuspended = true;
@@ -738,9 +674,7 @@ export class Supermouse {
     this._stage.setVisibility(false);
   }
 
-  /**
-   * Resumes from `suspend()`, snapping physics to the live pointer.
-   */
+  /** Resume from `suspend()`. */
   public resume(): void {
     if (!this.isSuspended) return;
     this.isSuspended = false;
@@ -751,18 +685,14 @@ export class Supermouse {
       this.state.target.y = this.state.smooth.y = this.state.pointer.y;
       this.resetMotion();
     }
-    // Force a plugin update before revealing the stage so elements are current, not stale from the last pre-suspended frame.
+    // Update plugins before showing stage to avoid stale visuals.
     for (let i = this.plugins.length - 1; i >= 0; i--) {
       this.runPluginSafe(this.plugins[i], 0);
     }
     this._stage.setVisibility(true);
   }
 
-  /**
-   * Registers a new plugin.
-   *
-   * @param plugin The plugin object to install.
-   */
+  /** Register a new plugin. */
   public use(plugin: SupermousePlugin): this {
     if (this.plugins.some((p) => p.name === plugin.name)) {
       console.warn(`[Supermouse] Plugin "${plugin.name}" already installed.`);
@@ -780,13 +710,7 @@ export class Supermouse {
     return this;
   }
 
-  /**
-   * Resets physics vectors to the off-screen park position. Does not reset
-   * `state.pointer` as it must keep track of the live coordinate even while
-   * disabled so `enable()` can snap without waiting for the next move event.
-   *
-   * @param hard
-   */
+  /** Reset physics; optionally clear all input state. */
   private reset(hard = false): void {
     this.state.target = { ...OFFSCREEN };
     this.state.smooth = { ...OFFSCREEN };
@@ -802,23 +726,17 @@ export class Supermouse {
   private startLoop(): void {
     if (this.isRunning) return;
     this.isRunning = true;
-    if (document.hidden) return; // bindVisibilityHandling() resumes on tab focus
+    if (document.hidden) return;
     this.lastTime = performance.now();
-    this.rafId = requestAnimationFrame(this.tick); // schedule first frame
+    this.rafId = requestAnimationFrame(this.tick);
   }
 
-  /**
-   * Starts the animation loop. This is automatically called if `autoStart` is true.
-   */
+  /** Start the animation loop. */
   public start(): void {
     this.startLoop();
   }
 
-  /**
-   * Manually steps the animation loop.
-   *
-   * @param time Current timestamp in milliseconds.
-   */
+  /** Manually step the animation loop. */
   public step(time: number): void {
     this.update(time);
   }
@@ -850,15 +768,16 @@ export class Supermouse {
     this.crashedPlugins = [];
   }
 
-  /** Whether the custom cursor stage should be visible this frame. */
   private resolveStageVisibility(): boolean {
-    if (this.state.forcedCursor === "auto") return false;
+    if (this.state.cursorMode === "native") return false;
+    if (this.state.cursorMode === "custom")
+      return this.input.isEnabled && this.state.hasReceivedInput;
     return this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
   }
 
-  /** Whether the OS cursor should be visible or suppressed this frame. */
-  private resolveNativeCursorState(): "none" | "auto" {
-    if (this.state.forcedCursor !== null) return this.state.forcedCursor;
+  private resolveCursorState(): "none" | "auto" {
+    if (this.state.cursorMode === "native") return "auto";
+    if (this.state.cursorMode === "custom") return "none";
     return this.state.isNative || !this.state.hasReceivedInput ? "auto" : "none";
   }
 
@@ -880,7 +799,7 @@ export class Supermouse {
 
     this._stage.setVisibility(this.resolveStageVisibility());
     if (this.input.isEnabled && this.options.hideCursor) {
-      this._stage.setNativeCursor(this.resolveNativeCursorState());
+      this._stage.setNativeCursor(this.resolveCursorState());
     }
 
     if (this.input.isEnabled && this.state.hasReceivedInput) {
@@ -927,9 +846,7 @@ export class Supermouse {
     }
   };
 
-  /**
-   * Pauses the rAF loop while the tab is hidden, resumes on focus.
-   */
+  /** Pause rAF loop when tab hidden; resume on visible. */
   private bindVisibilityHandling(): void {
     document.addEventListener(
       "visibilitychange",
@@ -946,9 +863,7 @@ export class Supermouse {
     );
   }
 
-  /**
-   * Destroys the instance.
-   */
+  /** Destroy the instance, freeing all resources. */
   public destroy(): void {
     this.isRunning = false;
     cancelAnimationFrame(this.rafId);
