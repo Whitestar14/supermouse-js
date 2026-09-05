@@ -11,6 +11,12 @@ export interface ShapeState {
   borderRadius: number;
 }
 
+export type RuleValue = string | boolean | number;
+
+export type RuleSet = Record<string, RuleValue | ((el: HTMLElement) => RuleValue)>;
+
+export type RuleDefinition = RuleSet | ((el: HTMLElement) => RuleSet);
+
 /**
  * The Interface for interaction state.
  * Plugins should use Module Augmentation to add their specific properties to this interface.
@@ -99,32 +105,12 @@ export interface SupermouseOptions {
    * Strategy for detecting when to fallback to the native cursor.
    * - `'auto'`: Checks both HTML tags and CSS cursor styles (Accurate but slower).
    * - `'tag'`: Checks only semantic tags like <input>, <textarea> (Fastest, prevents layout thrashing).
-   * - `'css'`: Checks only computed CSS cursor styles (Slow, triggers reflow — see `cacheCursorStyle`
-   *    if this matters for your use case).
+   * - `'css'`: Checks only computed CSS cursor styles. Computed styles are read fresh on each mouseover.
    * - `null`: Never fallback to native cursor.
    *
    * @default 'auto'
    */
   ignoreOnNative?: NativeIgnoreStrategy | null;
-  /**
-   * When `ignoreOnNative` includes a CSS check ('auto' or 'css'), cache each
-   * element's computed `cursor` value the first time it's checked instead of
-   * recomputing on every `mouseover`.
-   *
-   * Off by default: a permanent per-element cache goes stale the
-   * moment a node's computed cursor changes after it's cached without the
-   * node itself being replaced — e.g. a `disabled`/`loading` class toggled
-   * via React/Vue state on a DOM node that reconciliation reuses rather than
-   * remounts. That's an extremely common pattern in component libraries, so
-   * defaulting this on would produce wrong native-cursor detection that's
-   * hard to trace back to this option. Turn it on if your hover targets have
-   * effectively static cursor styles for their lifetime (e.g. a mostly-static
-   * marketing site) and you've profiled `ignoreOnNative: 'css'` as an actual
-   * bottleneck — it usually isn't, since `mouseover` fires once per element
-   * entered, not per frame.
-   * @default false
-   */
-  cacheCursorStyle?: boolean;
   /**
    * Whether to hide the native cursor via scoped CSS injection on the container.
    * When enabled, the stage toggles `cursor: none` on the configured container and
@@ -158,13 +144,7 @@ export interface SupermouseOptions {
    * Matching data attributes on the same element are also read and can override or enrich the final object.
    * @example { 'button': { icon: 'pointer' } }
    */
-  rules?: Record<string, InteractionState>;
-  /**
-   * Custom strategy to resolve interaction state from a hovered element.
-   * When provided, this callback bypasses the default `rules` + `data-[prefix]-*` scraping and
-   * returns the interaction payload directly for the current hover target.
-   */
-  resolveInteraction?: (target: HTMLElement) => InteractionState;
+  rules?: Record<string, RuleDefinition>;
   /**
    * The prefix used for data attributes to store hover metadata.
    * For example, if dataPrefix is "supermouse", then the attribute would be "data-supermouse-*".

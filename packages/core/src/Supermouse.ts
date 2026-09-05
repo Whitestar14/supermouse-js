@@ -57,11 +57,7 @@ export const DEFAULT_HOVER_SELECTORS = [
 /**
  * Input.ts
  *
- * Owns all browser-event listening and is the **only** class allowed to write
- * to these `MouseState` fields: `pointer`, `isDown`, `isHover`, `isNative`,
- * `hoverTarget`, `interaction`, `reducedMotion`.
- *
- * @internal Instantiated by `Supermouse`. Not part of the public API.
+ * @internal Instantiated by `Supermouse.
  */
 export class Input {
   private mediaQueryList?: MediaQueryList;
@@ -70,32 +66,12 @@ export class Input {
   private normalizedDataPrefix: string;
   private ignoreAttribute: string;
   private abortController = new AbortController();
-
-  /**
-   * Opt-in per-element cache of computed `cursor` values.
-   * Off by default: a permanent cache goes silently stale when a framework
-   * (React/Vue) reuses the same DOM node across renders while toggling a
-   * class that changes its cursor. Enable with `cacheCursorStyle: true` only
-   * on mostly-static markup. Call `clearStyleCache()` to invalidate manually.
-   */
-  private cursorStyleCache = new WeakMap<Element, string>();
-
-  /**
-   * The element that most recently caused `isNative = true`. Compared against
-   * `relatedTarget` in `handleMouseOut` so `isNative` only clears once the
-   * pointer actually exits this element — not on every internal bubble.
-   */
   private nativeTarget: HTMLElement | null = null;
-
-  /**
-   * Flips to `true` on the first real `pointermove`, and is **never** reset
-   * by `disable()` or `reset()`. Lets `enable()` snap the cursor to the
-   * current position immediately rather than waiting for the next move event.
-   */
   public hasSeenPointer: boolean = false;
-
-  /** Master enable switch. See `Supermouse.enable()` / `disable()` / `suspend()`. */
   public isEnabled: boolean = true;
+
+  private containerRect: DOMRect | null = null;
+  private resizeObserver?: ResizeObserver;
 
   constructor(
     private state: MouseState,
@@ -106,23 +82,12 @@ export class Input {
     this.dataPrefix = this.options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
     this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
-
     this.checkDeviceCapability();
     this.checkMotionPreference();
+    this.setupContainerRectTracking();
     this.bindEvents();
   }
 
-  /** Invalidates the computed-cursor cache. Only useful when `cacheCursorStyle` is enabled. */
-  public clearStyleCache(): void {
-    this.cursorStyleCache = new WeakMap();
-  }
-
-  /**
-   * Static device capability check via `(pointer: fine)`.
-   * This is the coarse/device-level gate; individual touch events are still
-   * filtered per-event in `handleMove` via `pointerType`. The two are
-   * intentionally independent so hybrid devices (touchscreen laptops) work correctly.
-   */
   private checkDeviceCapability(): void {
     if (!this.options.autoDisableOnMobile) return;
     this.mediaQueryList = window.matchMedia("(pointer: fine)");
@@ -132,10 +97,6 @@ export class Input {
     });
   }
 
-  /**
-   * Checks for `prefers-reduced-motion`.
-   * If true, the core physics engine will switch to instant snapping (high damping) to avoid motion sickness.
-   */
   private checkMotionPreference(): void {
     this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     this.state.reducedMotion = this.motionQuery.matches;
@@ -154,21 +115,56 @@ export class Input {
   }
 
   /**
-   * Populates `state.interaction` from `options.rules` (selector to object map)
-   * merged with `data-{prefix}-*` attributes on the element (attributes win).
-   *
+   * Caches the container's bounding rect and updates it only when the
+   * container's size or position may have changed.
    */
-  private parseDOMInteraction(element: HTMLElement): void {
-    if (this.options.resolveInteraction) {
-      this.state.interaction = this.options.resolveInteraction(element) || {};
-      return;
+  private setupContainerRectTracking(): void {
+    const container = this.options.container;
+    if (!container || container === document.body) return;
+
+    const updateRect = () => {
+      this.containerRect = container.getBoundingClientRect();
+    };
+    updateRect();
+
+    window.addEventListener("resize", updateRect, { signal: this.abortController.signal });
+    window.addEventListener("scroll", updateRect, {
+      passive: true,
+      signal: this.abortController.signal
+    });
+
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(updateRect);
+      this.resizeObserver.observe(container);
     }
-    const data: Record<string, string | boolean> = {};
+  }
+
+  /**
+   * Evaluates rules against the hovered element.
+   * Called once on mouseover, then re-invoked every frame by Supermouse.tick
+   * while the element remains hovered. Function values are executed fresh each
+   * frame, so external store changes are picked up automatically.
+   */
+  public parseDOMInteraction(element: HTMLElement): void {
+    const data: Record<string, string | boolean | number> = {};
+
     if (this.options.rules) {
       for (const [sel, rules] of Object.entries(this.options.rules)) {
-        if (element.matches(sel)) Object.assign(data, rules);
+        if (!this.matchesSelector(element, sel)) continue;
+
+        try {
+          const resolved = typeof rules === "function" ? rules(element) : rules;
+          if (!resolved || typeof resolved !== "object") continue;
+
+          for (const [key, val] of Object.entries(resolved)) {
+            data[key] = typeof val === "function" ? val(element) : val;
+          }
+        } catch (e) {
+          console.error(`[Supermouse] Rule "${sel}" threw:`, e);
+        }
       }
     }
+
     const pre = this.normalizedDataPrefix;
     for (const key in element.dataset) {
       if (!key.toLowerCase().startsWith(pre)) continue;
@@ -177,37 +173,40 @@ export class Input {
       const val = element.dataset[key];
       data[prop[0].toLowerCase() + prop.slice(1)] = val === "" ? true : val!;
     }
+
     this.state.interaction = data;
   }
 
-  /**
-   * Returns true when `target` is outside this instance's scoped container.
-   * Body-scoped instances never ignore anything while cross-instance territory
-   * is handled in `handleMouseOver` via the `.supermouse-scope` class check.
-   */
+  private matchesSelector(element: HTMLElement, selector: string): boolean {
+    try {
+      if (element.matches(selector)) return true;
+    } catch {
+      return false;
+    }
+
+    const parts = selector.trim().split(/\s+/);
+    if (parts.length < 2) return false;
+
+    const self = parts.pop()!;
+    const ancestor = parts.join(" ");
+    if (!self || !ancestor) return false;
+
+    try {
+      return element.matches(self) && !!element.closest(ancestor);
+    } catch {
+      return false;
+    }
+  }
+
   private isOutsideContainer(target: Node): boolean {
     const { container } = this.options;
     return !!container && container !== document.body && !container.contains(target);
   }
 
-  /**
-   * Reads computed `cursor` style, optionally through the opt-in per-element cache.
-   */
   private resolveComputedCursor(target: HTMLElement): string {
-    if (!this.options.cacheCursorStyle) {
-      return window.getComputedStyle(target).cursor;
-    }
-    let cursorStyle = this.cursorStyleCache.get(target);
-    if (cursorStyle === undefined) {
-      cursorStyle = window.getComputedStyle(target).cursor;
-      this.cursorStyleCache.set(target, cursorStyle);
-    }
-    return cursorStyle;
+    return window.getComputedStyle(target).cursor;
   }
 
-  /**
-   * Tracks raw pointer coordinates.
-   */
   private handleMove = (e: PointerEvent): void => {
     if (this.options.autoDisableOnMobile && e.pointerType === "touch" && !this.options.enableTouch)
       return;
@@ -215,10 +214,10 @@ export class Input {
     let x = e.clientX;
     let y = e.clientY;
 
-    if (this.options.container && this.options.container !== document.body) {
-      const rect = this.options.container.getBoundingClientRect();
-      x -= rect.left;
-      y -= rect.top;
+    const container = this.options.container;
+    if (container && this.containerRect && container !== document.body) {
+      x -= this.containerRect.left;
+      y -= this.containerRect.top;
     }
 
     this.state.pointer.x = x;
@@ -295,8 +294,6 @@ export class Input {
       }
     }
 
-    // Only clear isNative once we've genuinely left the element that set it,
-    // not on every child-boundary bubble during internal mouse movement.
     if (this.nativeTarget && (target === this.nativeTarget || target.contains(this.nativeTarget))) {
       if (!related || !this.nativeTarget.contains(related)) {
         this.state.isNative = false;
@@ -312,7 +309,6 @@ export class Input {
     }
   };
 
-  /** Resets all hover-derived state. Called by `suspend()` and exposed for edge cases. */
   public clearHover(): void {
     this.state.isHover = false;
     this.state.hoverTarget = null;
@@ -323,12 +319,10 @@ export class Input {
 
   private bindEvents(): void {
     const { signal } = this.abortController;
-    // Pointer events on `window` — coordinates must be tracked globally.
     window.addEventListener("pointermove", this.handleMove, { passive: true, signal });
     window.addEventListener("pointerdown", this.handleDown, { passive: true, signal });
     window.addEventListener("pointerup", this.handleUp, { signal });
 
-    // Hover events scoped to the container (document for body-scoped instances).
     const isBody = !this.options.container || this.options.container === document.body;
     const hoverRoot = isBody ? document : this.options.container!;
     hoverRoot.addEventListener("mouseover", this.handleMouseOver, { signal });
@@ -338,6 +332,7 @@ export class Input {
 
   public destroy(): void {
     this.abortController.abort();
+    this.resizeObserver?.disconnect();
   }
 }
 
@@ -439,6 +434,17 @@ export class Stage {
   }
 
   /**
+   * Adds multiple CSS selectors to the `selectors` set and rebuilds the
+   * stylesheet only once.
+   */
+  public addSelectors(selectors: Iterable<string>): void {
+    for (const selector of selectors) {
+      this.selectors.add(selector);
+    }
+    this.updateCursorCSS();
+  }
+
+  /**
    * Adds a new CSS selector to the `selectors` set.
    */
   public addSelector(selector: string): void {
@@ -459,7 +465,8 @@ export class Stage {
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
     this.container.classList.toggle(this.hideClass, type === "none");
-    this.container.style.cursor = type === "none" ? "none" : "";
+
+    this.container.style.cursor = type === "none" ? "none" : this.originalContainerCursor;
   }
 
   /**
@@ -518,7 +525,6 @@ type ResolvedOptions = SupermouseOptions &
       | "container"
       | "dataPrefix"
       | "zIndex"
-      | "cacheCursorStyle"
     >
   >;
 
@@ -571,7 +577,6 @@ export class Supermouse {
       container: document.body,
       dataPrefix: "supermouse",
       zIndex: 9999,
-      cacheCursorStyle: false,
       ...options
     } as ResolvedOptions;
 
@@ -596,7 +601,7 @@ export class Supermouse {
     this.hoverSelectors = new Set(this.options.hoverSelectors ?? DEFAULT_HOVER_SELECTORS);
 
     this._stage = new Stage(this.options.container, !!this.options.hideCursor, this.options.zIndex);
-    this.hoverSelectors.forEach((s) => this._stage.addSelector(s));
+    this._stage.addSelectors(this.hoverSelectors);
 
     this.input = new Input(
       this.state,
@@ -797,7 +802,7 @@ export class Supermouse {
     this.isRunning = true;
     if (document.hidden) return; // bindVisibilityHandling() resumes on tab focus
     this.lastTime = performance.now();
-    this.tick(this.lastTime);
+    this.rafId = requestAnimationFrame(this.tick); // schedule first frame
   }
 
   /**
@@ -813,7 +818,7 @@ export class Supermouse {
    * @param time Current timestamp in milliseconds.
    */
   public step(time: number): void {
-    this.tick(time);
+    this.update(time);
   }
 
   private runPluginSafe(plugin: SupermousePlugin, deltaTime: number): void {
@@ -860,13 +865,15 @@ export class Supermouse {
     this.state.displacement = { x: 0, y: 0 };
   }
 
-  private tick = (time: number): void => {
+  private update(time: number): void {
     const dtMs = time - this.lastTime;
     const dt = Math.min(dtMs / 1000, 0.1);
     this.lastTime = time;
 
     if (this.state.hoverTarget && !this.state.hoverTarget.isConnected) {
       this.input.clearHover();
+    } else if (this.state.hoverTarget) {
+      this.input.parseDOMInteraction(this.state.hoverTarget);
     }
 
     this._stage.setVisibility(this.resolveStageVisibility());
@@ -905,13 +912,17 @@ export class Supermouse {
       }
 
       const { x: vx, y: vy } = this.state.velocity;
-
       if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
         this.state.angle = Math.atan2(vy, vx) * (180 / Math.PI);
       }
     }
+  }
 
-    if (this.isRunning) this.rafId = requestAnimationFrame(this.tick);
+  private tick = (time: number): void => {
+    this.update(time);
+    if (this.isRunning) {
+      this.rafId = requestAnimationFrame(this.tick);
+    }
   };
 
   /**
