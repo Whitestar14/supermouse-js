@@ -40,6 +40,8 @@ export interface MouseState {
   smooth: MousePosition;
   /** The current movement vector derived from the smoothed state. */
   velocity: MousePosition;
+  /** The remaining positional error displacement to target */
+  displacement: MousePosition;
   /** The current movement angle in degrees, derived from velocity. */
   angle: number;
   /** Whether the pointer is currently pressed down. */
@@ -195,7 +197,7 @@ export interface SupermousePlugin {
   /** If false, update() will not be called. */
   isEnabled?: boolean;
   /** Reference to the plugin's root DOM element, if any. The core auto-hides this when the plugin is disabled. */
-  element?: HTMLElement;
+  element?: HTMLElement | SVGElement;
 
   /** Called when `app.use()` is executed. */
   install?: (instance: SupermouseInstance) => void;

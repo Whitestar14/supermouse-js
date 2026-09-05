@@ -580,6 +580,7 @@ export class Supermouse {
       target: { ...OFFSCREEN },
       smooth: { ...OFFSCREEN },
       velocity: { x: 0, y: 0 },
+      displacement: { x: 0, y: 0 },
       angle: 0,
       isDown: false,
       isHover: false,
@@ -704,8 +705,7 @@ export class Supermouse {
     if (this.input.hasSeenPointer) {
       this.state.target.x = this.state.smooth.x = this.state.pointer.x;
       this.state.target.y = this.state.smooth.y = this.state.pointer.y;
-      this.state.velocity.x = 0;
-      this.state.velocity.y = 0;
+      this.resetMotion();
       this.state.hasReceivedInput = true;
     }
   }
@@ -742,8 +742,7 @@ export class Supermouse {
     if (this.state.hasReceivedInput) {
       this.state.target.x = this.state.smooth.x = this.state.pointer.x;
       this.state.target.y = this.state.smooth.y = this.state.pointer.y;
-      this.state.velocity.x = 0;
-      this.state.velocity.y = 0;
+      this.resetMotion();
     }
     // Force a plugin update before revealing the stage so elements are current, not stale from the last pre-suspended frame.
     for (let i = this.plugins.length - 1; i >= 0; i--) {
@@ -784,7 +783,7 @@ export class Supermouse {
   private reset(hard = false): void {
     this.state.target = { ...OFFSCREEN };
     this.state.smooth = { ...OFFSCREEN };
-    this.state.velocity = { x: 0, y: 0 };
+    this.resetMotion();
     this.state.angle = 0;
     if (hard) {
       this.state.hasReceivedInput = false;
@@ -856,6 +855,11 @@ export class Supermouse {
     return this.state.isNative || !this.state.hasReceivedInput ? "auto" : "none";
   }
 
+  private resetMotion(): void {
+    this.state.velocity = { x: 0, y: 0 };
+    this.state.displacement = { x: 0, y: 0 };
+  }
+
   private tick = (time: number): void => {
     const dtMs = time - this.lastTime;
     const dt = Math.min(dtMs / 1000, 0.1);
@@ -882,12 +886,26 @@ export class Supermouse {
 
     if (this.input.isEnabled) {
       const factor = this.state.reducedMotion ? 1000 : (1 / this.options.smoothness) * 2;
+
+      const previousX = this.state.smooth.x;
+      const previousY = this.state.smooth.y;
+
       this.state.smooth.x = damp(this.state.smooth.x, this.state.target.x, factor, dt);
       this.state.smooth.y = damp(this.state.smooth.y, this.state.target.y, factor, dt);
 
-      this.state.velocity.x = this.state.target.x - this.state.smooth.x;
-      this.state.velocity.y = this.state.target.y - this.state.smooth.y;
+      this.state.displacement.x = this.state.target.x - this.state.smooth.x;
+      this.state.displacement.y = this.state.target.y - this.state.smooth.y;
+
+      if (dt > 0) {
+        this.state.velocity.x = (this.state.smooth.x - previousX) / dt;
+        this.state.velocity.y = (this.state.smooth.y - previousY) / dt;
+      } else {
+        this.state.velocity.x = 0;
+        this.state.velocity.y = 0;
+      }
+
       const { x: vx, y: vy } = this.state.velocity;
+
       if (Math.abs(vx) > 0.1 || Math.abs(vy) > 0.1) {
         this.state.angle = Math.atan2(vy, vx) * (180 / Math.PI);
       }
