@@ -1,5 +1,23 @@
 # @supermousejs/magnetic
 
+## 2.4.0
+
+### Patch Changes
+
+- 36d5366: Added proper description messages to package meta
+- Updated dependencies [faf6e9c]
+- Updated dependencies [53b7276]
+- Updated dependencies [36d5366]
+- Updated dependencies [9681b6c]
+- Updated dependencies [c43a720]
+- Updated dependencies [baa6cff]
+- Updated dependencies [4fc5aed]
+- Updated dependencies [dea1e57]
+- Updated dependencies [0cd6a04]
+- Updated dependencies [ab3cad2]
+  - @supermousejs/utils@2.4.0
+  - @supermousejs/core@2.4.0
+
 ## 2.3.1
 
 ### Patch Changes

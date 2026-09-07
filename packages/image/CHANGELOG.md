@@ -1,5 +1,31 @@
 # @supermousejs/image
 
+## 2.4.0
+
+### Minor Changes
+
+- baa6cff: - Updated SmartRing, Sparkles, TextRing, Pointer, Ring, Stick, and other plugins to use `normalizeAll` for better option management where possible.
+  - Enhanced the `doctor` utility to provide detailed diagnostics for plugin configurations and potential issues.
+  - Removed the deprecated layers utility and integrated layer constants directly into the CSS utility.
+  - Improved code readability and consistency across various plugins by standardizing the use of `dom.css` for style application.
+
+### Patch Changes
+
+- 36d5366: Added proper description messages to package meta
+- 06669e1: Update READMEs with cleaner descriptions
+- Updated dependencies [faf6e9c]
+- Updated dependencies [53b7276]
+- Updated dependencies [36d5366]
+- Updated dependencies [9681b6c]
+- Updated dependencies [c43a720]
+- Updated dependencies [baa6cff]
+- Updated dependencies [4fc5aed]
+- Updated dependencies [dea1e57]
+- Updated dependencies [0cd6a04]
+- Updated dependencies [ab3cad2]
+  - @supermousejs/utils@2.4.0
+  - @supermousejs/core@2.4.0
+
 ## 2.3.1
 
 ### Patch Changes

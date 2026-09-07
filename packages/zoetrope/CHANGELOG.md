@@ -1,5 +1,18 @@
 # @supermousejs/zoetrope
 
+## 2.4.0
+
+### Patch Changes
+
+- 36d5366: Added proper description messages to package meta
+- ccd8e11: Deprecation notice: Package is now deprecated. Please visit https://supermouse.js.org/ for migration guides
+- Updated dependencies [53b7276]
+- Updated dependencies [36d5366]
+- Updated dependencies [4fc5aed]
+- Updated dependencies [0cd6a04]
+- Updated dependencies [ab3cad2]
+  - @supermousejs/core@2.4.0
+
 ## 2.3.1
 
 ### Patch Changes

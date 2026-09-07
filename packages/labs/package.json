@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/labs",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "description": "Experimentental state machines and effects for supermouse",

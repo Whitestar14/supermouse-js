@@ -1,5 +1,21 @@
 # @supermousejs/vue
 
+## 2.4.0
+
+### Minor Changes
+
+- 8ceadaf: Exposed reactive cursor enabled state in adapters
+
+### Patch Changes
+
+- 36d5366: Added proper description messages to package meta
+- Updated dependencies [53b7276]
+- Updated dependencies [36d5366]
+- Updated dependencies [4fc5aed]
+- Updated dependencies [0cd6a04]
+- Updated dependencies [ab3cad2]
+  - @supermousejs/core@2.4.0
+
 ## 2.3.1
 
 ### Patch Changes

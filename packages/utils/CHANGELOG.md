@@ -1,5 +1,31 @@
 # @supermousejs/utils
 
+## 2.4.0
+
+### Minor Changes
+
+- faf6e9c: Added svg helpers and restructured the utility to be completely tree-shakeable
+- baa6cff: - Updated SmartRing, Sparkles, TextRing, Pointer, Ring, Stick, and other plugins to use `normalizeAll` for better option management where possible.
+  - Enhanced the `doctor` utility to provide detailed diagnostics for plugin configurations and potential issues.
+  - Removed the deprecated layers utility and integrated layer constants directly into the CSS utility.
+  - Improved code readability and consistency across various plugins by standardizing the use of `dom.css` for style application.
+- dea1e57: Made enhancements and many improvements to `options.ts`:
+  - **Removed `styles` map compilation** in `definePlugin` — no more per-plugin style setter arrays and `normalize` calls for properties that were never used
+  - **Collapsed `setStyle`/`applyStyles` into `css()`** — single WeakMap cache instead of scattered helpers, fewer function allocations
+  - **Slimmed `definePlugin` itself** — dropped the `defaults` parameter and `O` type parameter, less generic instantiation overhead
+
+### Patch Changes
+
+- 36d5366: Added proper description messages to package meta
+- 9681b6c: Enhanced @supermouse/utils with `circumference` in math and `circlePath` in svg
+- c43a720: Added `beforeDisable` lifecycle hook for plugins that want to run hooks/animation before core runs the `onDisable()` hook
+- Updated dependencies [53b7276]
+- Updated dependencies [36d5366]
+- Updated dependencies [4fc5aed]
+- Updated dependencies [0cd6a04]
+- Updated dependencies [ab3cad2]
+  - @supermousejs/core@2.4.0
+
 ## 2.3.1
 
 ### Patch Changes
