@@ -23,6 +23,7 @@
     "build": "pnpm generate-docs && pnpm -r run build",
     "build:docs": "pnpm generate-docs && pnpm --filter supermouse-docs build",
     "test": "pnpm -r run test",
+    "test:watch": "pnpm -r run test --watch --reporter=verbose",
     "generate-docs": "node scripts/cli.js generate",
     "check:size": "node scripts/cli.js check",
     "manage": "node scripts/cli.js manage",

@@ -486,7 +486,7 @@ export class Stage {
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
     this.container.classList.toggle(this.hideClass, type === "none");
-    this.container.style.cursor = this.originalContainerCursor;
+    this.container.style.cursor = type === "none" ? "none" : this.originalContainerCursor;
   }
 
   private updateCursorCSS(): void {
