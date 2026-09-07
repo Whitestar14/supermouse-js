@@ -99,3 +99,21 @@ export function merge(nodes: SVGFEMergeNodeElement[] = []): SVGFEMergeElement {
   nodes.forEach((node) => el.appendChild(node));
   return el;
 }
+
+/**
+ * Calculates the SVG Path data for a perfect circle starting at the top center (12 o'clock).
+ *
+ * Path moves to (0, -r), then draws two semi-circles.
+ * @param r Radius in pixels
+ */
+export function circlePath(r: number): string {
+  const rClean = Math.round(r * 100) / 100;
+
+  return `
+    M 0, -${rClean}
+    A ${rClean},${rClean} 0 1,1 0,${rClean}
+    A ${rClean},${rClean} 0 1,1 0,-${rClean}
+  `
+    .replace(/\s+/g, " ")
+    .trim();
+}

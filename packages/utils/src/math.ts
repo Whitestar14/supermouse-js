@@ -58,3 +58,7 @@ export function dist(x1: number, y1: number, x2: number = 0, y2: number = 0): nu
 export function angle(x: number, y: number): number {
   return Math.atan2(y, x) * (180 / Math.PI);
 }
+
+export function circumference(r: number): number {
+  return 2 * Math.PI * r;
+}
