@@ -51,7 +51,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/dot",
     "importSnippet": "import { Dot } from '@supermousejs/dot'",
     "hasDetailedDocs": true
@@ -100,7 +100,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/icon",
     "importSnippet": "import { Icon } from '@supermousejs/icon'",
     "hasDetailedDocs": true
@@ -142,7 +142,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/image",
     "importSnippet": "import { Image } from '@supermousejs/image'",
     "hasDetailedDocs": true
@@ -171,7 +171,7 @@
         "reactive": true
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/magnetic",
     "importSnippet": "import { Magnetic } from '@supermousejs/magnetic'",
     "hasDetailedDocs": true
@@ -242,7 +242,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/pointer",
     "importSnippet": "import { Pointer } from '@supermousejs/pointer'",
     "hasDetailedDocs": true
@@ -292,7 +292,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/ring",
     "importSnippet": "import { Ring } from '@supermousejs/ring'",
     "hasDetailedDocs": true
@@ -384,7 +384,7 @@
         "reactive": true
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { SmartIcon } from '@supermousejs/labs'",
     "hasDetailedDocs": true
@@ -447,7 +447,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { SmartRing } from '@supermousejs/labs'",
     "hasDetailedDocs": true
@@ -496,7 +496,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { Sparkles } from '@supermousejs/labs'",
     "hasDetailedDocs": true
@@ -532,7 +532,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/states",
     "importSnippet": "import { States } from '@supermousejs/states'",
     "hasDetailedDocs": true
@@ -554,7 +554,7 @@
         "reactive": true
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/stick",
     "importSnippet": "import { Stick } from '@supermousejs/stick'",
     "hasDetailedDocs": true
@@ -568,7 +568,7 @@
     "icon": "dot",
     "deprecated": true,
     "deprecationNotice": "This package is deprecated. Supermouse has moved to a fully modular architecture. Use @supermousejs/core, @supermousejs/dot, and @supermousejs/ring instead. See migration guide: https://supermouse.js.org",
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install supermousejs",
     "importSnippet": "import { Supermouse JS (Standard) } from 'supermousejs'",
     "hasDetailedDocs": true
@@ -604,7 +604,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/text",
     "importSnippet": "import { Text } from '@supermousejs/text'",
     "hasDetailedDocs": true
@@ -674,7 +674,7 @@
         "reactive": false
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { TextRing } from '@supermousejs/labs'",
     "hasDetailedDocs": true
@@ -710,7 +710,7 @@
         "reactive": true
       }
     ],
-    "version": "2.3.1",
+    "version": "2.4.0",
     "installCommand": "pnpm install @supermousejs/trail",
     "importSnippet": "import { Trail } from '@supermousejs/trail'",
     "hasDetailedDocs": true

@@ -20,13 +20,14 @@
   "scripts": {
     "dev:play": "pnpm --filter supermouse-playground dev",
     "dev:docs": "pnpm generate-docs && pnpm --filter supermouse-docs dev",
-    "build": "pnpm generate-docs && pnpm -r run build",
-    "build:docs": "pnpm generate-docs && pnpm --filter supermouse-docs build",
+    "build:packages": "pnpm --filter \"./packages/*\" run build",
+    "build:docs": "pnpm --filter supermouse-docs build",
+    "build:play": "pnpm --filter supermouse-playground build",
     "test": "pnpm -r run test",
     "test:watch": "pnpm -r run test --watch --reporter=verbose",
     "generate-docs": "node scripts/cli.js generate",
-    "check:size": "node scripts/cli.js check",
     "manage": "node scripts/cli.js manage",
+    "check:size": "node scripts/cli.js check",
     "create:plugin": "node scripts/cli.js create",
     "remove:plugin": "node scripts/cli.js remove",
     "sync": "node scripts/cli.js sync",
@@ -34,7 +35,7 @@
     "format": "prettier --write . --ignore-path .prettierignore",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm install && pnpm build && changeset publish"
+    "release": "pnpm install && pnpm build:packages && changeset publish && pnpm build:docs && pnpm build:play"
   },
   "keywords": [
     "cursor",
