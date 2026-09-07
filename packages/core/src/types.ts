@@ -158,4 +158,8 @@ export interface SupermousePlugin {
   onEnable?: (instance: SupermouseInstance) => void;
   /** Called when plugin disabled via `.disablePlugin()`. */
   onDisable?: (instance: SupermouseInstance) => void;
+  /**
+   * Called before the plugin is disabled.
+   */
+  onBeforeDisable?(instance: SupermouseInstance): void | Promise<void>;
 }

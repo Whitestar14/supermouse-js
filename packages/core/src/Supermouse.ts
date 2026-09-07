@@ -650,10 +650,22 @@ export class Supermouse {
     const plugin = this.getPlugin(name);
     if (plugin && plugin.isEnabled !== false) {
       plugin.isEnabled = false;
-      try {
-        plugin.onDisable?.(this);
-      } finally {
+
+      const finishDisable = () => {
         if (plugin.element) plugin.element.style.display = "none";
+        plugin.onDisable?.(this);
+      };
+
+      const result = plugin.onBeforeDisable?.(this);
+      if (result && typeof result.then === "function") {
+        void Promise.resolve(result)
+          .then(finishDisable)
+          .catch((err) => {
+            console.error(`[Supermouse] Plugin '${plugin.name}' onBeforeDisable threw:`, err);
+            finishDisable();
+          });
+      } else {
+        finishDisable();
       }
     }
   }
