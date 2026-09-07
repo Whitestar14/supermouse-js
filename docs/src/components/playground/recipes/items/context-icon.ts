@@ -31,7 +31,7 @@ export const contextIconRecipe: PresetRecipe = {
     }
   ],
   setup: (app, config) => {
-    app.options.ignoreOnNative = null;
+    app.options.cursor = "custom";
     app.options.rules = {
       "a, button": { icon: "hand" },
       input: { icon: "text" }
