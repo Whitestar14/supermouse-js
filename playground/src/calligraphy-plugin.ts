@@ -1,4 +1,4 @@
-import { dom } from "@supermousejs/utils";
+import { createActor, css } from "@supermousejs/utils";
 
 /** credits to Ksenia Kondrashova for the original inspiration:
  * https://codepen.io/ksenia-k/pen/rNoBgbV
@@ -8,10 +8,16 @@ export const CalligraphyPlugin = (options: any = {}) => {
   let ctx: CanvasRenderingContext2D | null = null;
   let trail: { x: number; y: number; dx: number; dy: number }[] = [];
   let active = false;
+  let resizeObserver: ResizeObserver | null = null;
+
+  // Last valid pointer position (for offscreen and ignored areas)
+  let lastPointerX = window.innerWidth / 2;
+  let lastPointerY = window.innerHeight / 2;
+  let mouseMoved = false;
 
   const params = {
-    points: options.points || 25,
-    width: options.width || 0.4,
+    points: options.points || 40,
+    widthFactor: options.widthFactor || 0.3,
     spring: options.spring || 0.4,
     friction: options.friction || 0.5,
     color: options.color || "#f59e0b"
@@ -19,8 +25,8 @@ export const CalligraphyPlugin = (options: any = {}) => {
 
   const resize = () => {
     if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
+    canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
   };
 
   return {
@@ -28,26 +34,38 @@ export const CalligraphyPlugin = (options: any = {}) => {
     priority: 10,
 
     install(app: any) {
-      canvas = dom.createActor("canvas") as HTMLCanvasElement;
+      canvas = createActor("canvas") as HTMLCanvasElement;
       ctx = canvas.getContext("2d");
 
-      // Pre-allocate trail objects to avoid GC thrashing in update loop
+      // Append to container, NOT stage, so it persists independently of stage visibility
+      css(canvas, {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        zIndex: 99
+      });
+
       for (let i = 0; i < params.points; i++) {
-        trail.push({
-          x: app.state.smooth.x,
-          y: app.state.smooth.y,
-          dx: 0,
-          dy: 0
-        });
+        trail.push({ x: lastPointerX, y: lastPointerY, dx: 0, dy: 0 });
       }
 
       app.container.appendChild(canvas);
       resize();
-      window.addEventListener("resize", resize);
+
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(resize);
+        resizeObserver.observe(app.container);
+      } else {
+        window.addEventListener("resize", resize);
+      }
+
       active = true;
+      mouseMoved = false;
     },
 
-    // Handle visibility toggling without destroying the element
     onEnable() {
       active = true;
       if (canvas) canvas.style.display = "block";
@@ -59,28 +77,38 @@ export const CalligraphyPlugin = (options: any = {}) => {
     },
 
     update(app: any) {
-      if (!active || !ctx || !canvas) return;
+      if (!active || !ctx || !canvas || !app.isEnabled) return;
 
-      // Clear frame
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!app.state.isNative && app.state.hasReceivedInput) {
+        lastPointerX = app.state.smooth.x;
+        lastPointerY = app.state.smooth.y;
+        mouseMoved = true;
+      }
 
-      const target = app.state.smooth;
+      if (!mouseMoved) {
+        const t = performance.now();
+        const w = canvas.width;
+        const h = canvas.height;
+        lastPointerX = (0.5 + 0.3 * Math.cos(0.002 * t) * Math.sin(0.005 * t)) * w;
+        lastPointerY = (0.5 + 0.2 * Math.cos(0.005 * t) + 0.1 * Math.cos(0.01 * t)) * h;
+      }
 
-      // Physics Update
+      const pointer = { x: lastPointerX, y: lastPointerY };
+
+      // Physics update
       for (let i = 0; i < trail.length; i++) {
         const p = trail[i];
-        const prev = i === 0 ? target : trail[i - 1];
-        const springForce = i === 0 ? 0.4 * params.spring : params.spring;
-
-        p.dx += (prev.x - p.x) * springForce;
-        p.dy += (prev.y - p.y) * springForce;
+        const prev = i === 0 ? pointer : trail[i - 1];
+        const spring = i === 0 ? 0.4 * params.spring : params.spring;
+        p.dx += (prev.x - p.x) * spring;
+        p.dy += (prev.y - p.y) * spring;
         p.dx *= params.friction;
         p.dy *= params.friction;
         p.x += p.dx;
         p.y += p.dy;
       }
 
-      // Render Trail
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.lineCap = "round";
       ctx.strokeStyle = params.color;
       ctx.beginPath();
@@ -90,11 +118,8 @@ export const CalligraphyPlugin = (options: any = {}) => {
         const xc = 0.5 * (trail[i].x + trail[i + 1].x);
         const yc = 0.5 * (trail[i].y + trail[i + 1].y);
         ctx.quadraticCurveTo(trail[i].x, trail[i].y, xc, yc);
-
-        // Batch strokes by segments or update width
-        ctx.lineWidth = params.width * (params.points - i);
+        ctx.lineWidth = params.widthFactor * (params.points - i);
         ctx.stroke();
-        // Start next segment
         ctx.beginPath();
         ctx.moveTo(xc, yc);
       }
@@ -104,7 +129,8 @@ export const CalligraphyPlugin = (options: any = {}) => {
     },
 
     destroy() {
-      window.removeEventListener("resize", resize);
+      if (resizeObserver) resizeObserver.disconnect();
+      else window.removeEventListener("resize", resize);
       canvas?.remove();
       canvas = null;
       ctx = null;

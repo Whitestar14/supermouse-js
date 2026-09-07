@@ -23,7 +23,6 @@ export default defineConfig({
       "@supermousejs/utils": path.resolve(__dirname, "../packages/utils/src/index.ts"),
       "@supermousejs/trail": path.resolve(__dirname, "../packages/trail/src/index.ts"),
       "@supermousejs/labs": path.resolve(__dirname, "../packages/labs/src/index.ts"),
-      "@supermousejs/zoetrope": path.resolve(__dirname, "../packages/zoetrope/src/index.ts"),
 
       "@supermousejs/core": path.resolve(__dirname, "../packages/core/src/index.ts"),
       "@supermousejs/dot": path.resolve(__dirname, "../packages/dot/src/index.ts"),

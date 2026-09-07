@@ -40,12 +40,11 @@ const pluginsState = reactive<Record<string, boolean>>({
 const mouse = provideSupermouse(
   {
     smoothness: 0.15,
-    hideCursor: true,
-    ignoreOnNative: "auto",
+    cursor: "auto",
     rules: { "a, button": { icon: "hand" } }
   },
   [
-    Dot({ name: "dot", size: 6, color: "#f59e0b", isEnabled: true }),
+    Dot({ name: "dot", size: 6, color: "#e0b", isEnabled: true }),
     SmartRing({
       name: "ring",
       size: 30,
@@ -55,9 +54,9 @@ const mouse = provideSupermouse(
     }),
     CalligraphyPlugin({
       name: "calligraphy",
-      color: "#f59e0b",
+      color: "#f59",
       points: 35,
-      width: 0.5
+      widthFactor: 0.5
     }),
     Trail({ name: "trail", color: "#f59e0b", isEnabled: false }),
     Sparkles({ name: "sparkles", color: "#f59e0b", isEnabled: false }),
@@ -84,9 +83,9 @@ const mouse = provideSupermouse(
 
 const togglePlugin = (name: string) => {
   pluginsState[name] = !pluginsState[name];
-  if (mouse.value) {
-    if (pluginsState[name]) mouse.value.enablePlugin(name);
-    else mouse.value.disablePlugin(name);
+  if (mouse.instance.value) {
+    if (pluginsState[name]) mouse.instance.value.enablePlugin(name);
+    else mouse.instance.value.disablePlugin(name);
   }
 };
 
@@ -274,7 +273,10 @@ onMounted(() => {
         </p>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 space-y-px bg-zinc-900 custom-scrollbar">
+      <div
+        class="flex-1 overflow-y-auto p-4 space-y-px bg-zinc-900 custom-scrollbar"
+        data-supermouse-ignore
+      >
         <div
           v-for="(enabled, name) in pluginsState"
           :key="name"
