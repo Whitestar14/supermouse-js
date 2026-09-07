@@ -243,19 +243,6 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/supermousejs:
-    dependencies:
-      '@supermousejs/dot':
-        specifier: workspace:*
-        version: link:../dot
-      '@supermousejs/ring':
-        specifier: workspace:*
-        version: link:../ring
-    devDependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
-
   packages/text:
     dependencies:
       '@supermousejs/utils':
@@ -290,12 +277,6 @@ importers:
       vue:
         specifier: ^3.2.0
         version: 3.5.31(typescript@5.9.3)
-
-  packages/zoetrope:
-    devDependencies:
-      '@supermousejs/core':
-        specifier: workspace:*
-        version: link:../core
 
   playground:
     dependencies:
