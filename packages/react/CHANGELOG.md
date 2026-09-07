@@ -1,5 +1,14 @@
 # @supermousejs/react
 
+## 2.4.1
+
+### Patch Changes
+
+- 1048a35: Fixed repository metadata pointing to @supermousejs/core instead of their respective directory in package.json
+- Updated dependencies [1048a35]
+- Updated dependencies [be2d65d]
+  - @supermousejs/core@2.4.1
+
 ## 2.4.0
 
 ### Minor Changes
