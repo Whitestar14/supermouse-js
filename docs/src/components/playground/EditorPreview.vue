@@ -3,8 +3,6 @@ import { onMounted, onUnmounted, watch, ref, reactive, nextTick } from "vue";
 import { useSupermouse, Supermouse, type SupermouseInstance } from "@supermousejs/vue";
 import type { PresetRecipe } from "@playground/recipes";
 
-// note to self: supermousejs/vue does not allow multiple instances per page, requiring us to import direct supermouse. Fix this.
-
 const props = defineProps<{
   recipe: PresetRecipe;
   config: Record<string, any>;
@@ -15,13 +13,11 @@ const props = defineProps<{
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
-const globalCursor = useSupermouse();
+const { instance: globalCursor, isEnabled: globalEnabled } = useSupermouse();
 let mouse: SupermouseInstance | null = null;
 
-// Reactive proxy that connects the recipe getters to the current props
 const liveConfig = reactive<Record<string, any>>({});
 
-// Interaction State
 const isBouncing = ref(false);
 const triggerBounce = () => {
   isBouncing.value = true;
@@ -32,7 +28,6 @@ const triggerBounce = () => {
 
 const cleanupAttributes = () => {
   if (!containerRef.value) return;
-  // Remove temporary attributes injected by previous recipes
   const targets = containerRef.value.querySelectorAll(
     "[data-supermouse-magnetic], [data-supermouse-stick]"
   );
@@ -45,29 +40,24 @@ const cleanupAttributes = () => {
 const initCursor = () => {
   if (!containerRef.value) return;
 
-  // Cleanup previous instance
   if (mouse) {
     mouse.destroy();
     mouse = null;
   }
 
-  // Cleanup DOM
   cleanupAttributes();
-
-  // Sync initial config
   Object.assign(liveConfig, props.config);
 
   mouse = new Supermouse({
     container: containerRef.value,
-    smoothness: props.globalConfig.smoothness,
-    hideCursor: true
+    smoothness: props.globalConfig.smoothness
   });
 
-  if (props.globalConfig.showNative) {
-    mouse.setNativeCursor("show");
-  }
+  mouse.setCursor(props.globalConfig.showNative ? "both" : "auto");
 
-  mouse.disable();
+  if (!globalEnabled.value) {
+    mouse.disable();
+  }
 
   props.recipe.setup(mouse, liveConfig);
 };
@@ -102,24 +92,20 @@ watch(
 );
 
 watch(
-  () => props.globalConfig,
-  (newVal) => {
-    if (mouse) {
-      mouse.options.smoothness = newVal.smoothness;
-
-      if (newVal.showNative) {
-        mouse.setNativeCursor("show");
-      } else {
-        mouse.setNativeCursor("auto");
-      }
-    }
-  },
-  { deep: true }
+  () => props.globalConfig.smoothness,
+  (smooth) => {
+    if (mouse) mouse.options.smoothness = smooth;
+  }
 );
 
-onMounted(() => {
-  initCursor();
-});
+watch(
+  () => props.globalConfig.showNative,
+  (show) => {
+    if (mouse) mouse.setCursor(show ? "both" : "auto");
+  }
+);
+
+onMounted(initCursor);
 </script>
 
 <template>
@@ -155,7 +141,7 @@ onMounted(() => {
         Button
       </button>
 
-      <!-- Circular Button (Test Sticky Shape) -->
+      <!-- Circular Button -->
       <div class="flex items-center justify-center w-16">
         <button
           class="w-8 h-8 rounded-full border border-zinc-300 bg-zinc-100 hover:bg-black hover:border-black transition-colors"

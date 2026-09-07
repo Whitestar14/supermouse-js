@@ -17,15 +17,21 @@ const props = defineProps<{
 
 const emit = defineEmits(["update:config", "update:globalConfig"]);
 
-// Proxy wrappers
+// Config proxy (same as before)
 const localConfig = computed({
   get: () => props.config,
   set: (val) => emit("update:config", val)
 });
 
-const localGlobal = computed({
-  get: () => props.globalConfig,
-  set: (val) => emit("update:globalConfig", val)
+// Separate writable computeds for globalConfig fields to ensure proper emission
+const smoothness = computed({
+  get: () => props.globalConfig.smoothness,
+  set: (val: number) => emit("update:globalConfig", { ...props.globalConfig, smoothness: val })
+});
+
+const showNative = computed({
+  get: () => props.globalConfig.showNative,
+  set: (val: boolean) => emit("update:globalConfig", { ...props.globalConfig, showNative: val })
 });
 </script>
 
@@ -87,14 +93,14 @@ const localGlobal = computed({
 
         <div class="space-y-4">
           <ControlRange
-            v-model="localGlobal.smoothness"
+            v-model="smoothness"
             label="Smoothing (Lag)"
             :min="0.01"
             :max="0.5"
             :step="0.01"
             unit=""
           />
-          <ControlToggle v-model="localGlobal.showNative" label="Show Native Cursor" />
+          <ControlToggle v-model="showNative" label="Show Native Cursor" />
         </div>
       </div>
     </div>

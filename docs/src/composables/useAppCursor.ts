@@ -1,12 +1,11 @@
-import { type Ref } from "vue";
-import { provideSupermouse, type SupermouseInstance } from "@supermousejs/vue";
+import { provideSupermouse, type SupermouseContext } from "@supermousejs/vue";
 import { SmartIcon, SmartRing } from "@supermousejs/labs";
 import { Icon } from "@supermousejs/icon";
 import { Text } from "@supermousejs/text";
 import { States } from "@supermousejs/states";
 import { SpotlightReveal } from "./plugins/spotlight-reveal-plugin";
-// import { GlitchCursor } from "./plugins/glitch-plugin";
-// import { MotionBlur } from "./plugins/motion-blur-plugin";
+import { GlitchCursor } from "./plugins/glitch-plugin";
+import { MotionBlur } from "./plugins/motion-blur-plugin";
 
 const LOGO_CURSOR = `
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -64,13 +63,11 @@ const TEXT_CURSOR = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.o
 const ARROW_CURSOR =
   '<svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F8" stroke-width="2"><path stroke-linecap="square" stroke-linejoin="miter" d="M5 12h14M12 5l7 7-7 7"/></svg>';
 
-export function useAppCursor(): Ref<SupermouseInstance | null> {
+export function useAppCursor(): SupermouseContext {
   return provideSupermouse(
     {
       smoothness: 0.05,
-      enableTouch: false,
-      hideCursor: true,
-      ignoreOnNative: null
+      enableTouch: false
     },
     [
       SmartIcon({
@@ -122,12 +119,11 @@ export function useAppCursor(): Ref<SupermouseInstance | null> {
       //   cursorSize: 15,
       //   glitchColorB: "#00feff",
       //   glitchColorR: "#ff4f71"
-      // }),
+      // })
       // MotionBlur({
       //   name: "motion-blur",
       //   cursorSize: 16,
       //   cursorColor: "#000000",
-      //   samples: 6,
       //   intensity: 0.4,
       //   maxSpread: 60
       // })

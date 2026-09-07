@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm format && vite",
+    "dev": "vite",
     "build": "vue-tsc --noEmit && pnpm format && vite-ssg build",
     "preview": "vite preview",
     "lint": "eslint . --fix",

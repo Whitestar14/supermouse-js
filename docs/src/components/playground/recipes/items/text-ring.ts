@@ -23,7 +23,7 @@ export const textRingRecipe: PresetRecipe = {
       key: "spread",
       label: "Auto-Fit (Spread)",
       type: "toggle",
-      defaultValue: true,
+      defaultValue: false,
       description: "Evenly distributes text along the circle."
     },
     {

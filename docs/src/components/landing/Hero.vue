@@ -52,7 +52,7 @@ app.use(Dot({
               class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[1.05]"
             >
               Cursor Engine <br />
-              for Modern Tooling.
+              for Modern Browsers.
             </h1>
 
             <!-- Subtext -->

@@ -3,20 +3,18 @@ import { ref, computed } from "vue";
 import { GITHUB_URL, APP_VERSION } from "@config/constants";
 import { useSupermouse } from "@supermousejs/vue";
 
-const emit = defineEmits(["openSearch"]);
+defineEmits(["openSearch"]);
 
 const mobileMenuOpen = ref(false);
 const isSpinning = ref(false);
 const showVersionMenu = ref(false);
 const isDev = import.meta.env.DEV;
 
-// Get Docs Supermouse Instance
-const mouse = useSupermouse();
+const { instance: mouse, isEnabled: cursorEnabled } = useSupermouse();
 
-// Dynamic text for the cursor based on enabled state
 const logoCursorText = computed(() => {
   if (!mouse.value) return "Loading...";
-  return mouse.value.isEnabled ? "Switch to Native" : "Switch to Supermouse";
+  return cursorEnabled.value ? "Switch to Native" : "Switch to Supermouse";
 });
 
 const toggleMenu = () => {
@@ -31,7 +29,7 @@ const triggerSpin = () => {
   setTimeout(() => {
     isSpinning.value = false;
     if (mouse.value) {
-      if (mouse.value.isEnabled) {
+      if (cursorEnabled.value) {
         mouse.value.disable();
       } else {
         mouse.value.enable();
@@ -42,6 +40,7 @@ const triggerSpin = () => {
 </script>
 
 <template>
+  <!-- Same template as before, unchanged -->
   <nav class="relative w-full border-b border-zinc-200 bg-white z-[50]">
     <div class="flex items-stretch h-16 md:h-20 bg-white relative z-50">
       <!-- 1. Logo Column (Fixed Width, Border Right) -->

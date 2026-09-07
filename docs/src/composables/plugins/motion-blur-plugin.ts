@@ -1,11 +1,10 @@
-import { definePlugin, dom, Layers } from "@supermousejs/utils";
+import { definePlugin, dom, svg, Layers } from "@supermousejs/utils";
 
 export interface MotionBlurOptions {
   name?: string;
   isEnabled?: boolean;
   cursorSize?: number;
   cursorColor?: string;
-  samples?: number;
   intensity?: number;
   maxSpread?: number;
 }
@@ -13,79 +12,97 @@ export interface MotionBlurOptions {
 export const MotionBlur = (options: MotionBlurOptions = {}) => {
   const cursorSize = options.cursorSize ?? 8;
   const cursorColor = options.cursorColor ?? "#ffffff";
-  const sampleCount = options.samples ?? 12;
-  const intensity = options.intensity ?? 0.4;
-  const maxSpread = options.maxSpread ?? 80;
+  const intensity = options.intensity ?? 0.5;
+  const maxSpread = options.maxSpread ?? 40;
 
-  let mainEl: HTMLDivElement;
-  const trailEls: HTMLDivElement[] = [];
+  let svgEl: SVGSVGElement;
+  let groupEl: SVGGElement;
+  let blurEl: SVGFEGaussianBlurElement;
 
-  return definePlugin<HTMLDivElement>(
+  return definePlugin<SVGSVGElement>(
     {
       name: options.name || "motion-blur",
-      create: (app) => {
-        mainEl = dom.createCircle(cursorSize, cursorColor);
 
-        dom.css(mainEl, {
-          zIndex: Layers.CURSOR,
-          opacity: "0"
+      create: () => {
+        svgEl = svg.createSVGElement("svg", {
+          width: cursorSize * 4,
+          height: cursorSize * 4,
+          viewBox: `0 0 ${cursorSize * 4} ${cursorSize * 4}`
         });
 
-        // 2. Trail samples
-        for (let i = 0; i < sampleCount; i++) {
-          const el = dom.createCircle(cursorSize, cursorColor);
-          dom.css(el, {
-            opacity: "0",
-            pointerEvents: "none",
-            zIndex: Layers.FOLLOWER
-          });
-          app.container.appendChild(el);
-          trailEls.push(el);
-        }
+        dom.css(svgEl, {
+          position: "absolute",
+          top: "0",
+          left: "0",
+          width: `${cursorSize * 4}px`,
+          height: `${cursorSize * 4}px`,
+          pointerEvents: "none",
+          overflow: "visible",
+          zIndex: String(Layers.CURSOR)
+        });
 
-        return mainEl;
+        const filterId = `supermouse-motion-blur-${Math.random().toString(36).slice(2)}`;
+        blurEl = svg.gaussianBlur("0 0");
+        const filterEl = svg.filter(
+          filterId,
+          {
+            x: "-100%",
+            y: "-100%",
+            width: "400%",
+            height: "400%"
+          },
+          [blurEl]
+        );
+
+        svgEl.appendChild(filterEl);
+
+        groupEl = svg.group();
+        svgEl.appendChild(groupEl);
+
+        const center = cursorSize * 2;
+        const circleEl = svg.circle({
+          cx: center,
+          cy: center,
+          r: cursorSize / 2,
+          fill: cursorColor,
+          filter: `url(#${filterId})`
+        });
+        groupEl.appendChild(circleEl);
+
+        return svgEl;
       },
 
       update: (app) => {
-        const { smooth, velocity } = app.state;
-        const speed = Math.hypot(velocity.x, velocity.y);
+        const { velocity, displacement, smooth, isDown } = app.state;
 
         if (!app.state.hasReceivedInput) {
-          dom.css(mainEl, { opacity: "0" });
-          trailEls.forEach((el) => dom.css(el, { opacity: "0" }));
+          svgEl.style.opacity = "0";
           return;
         }
 
-        dom.css(mainEl, { opacity: "1" });
-        dom.setTransform(mainEl, smooth.x, smooth.y);
+        svgEl.style.opacity = "1";
 
-        if (speed < 0.5) {
-          trailEls.forEach((el) => dom.css(el, { opacity: "0" }));
-          return;
+        const speed = Math.hypot(velocity.x, velocity.y);
+        const distance = Math.hypot(displacement.x, displacement.y);
+        const center = cursorSize * 2;
+        const scale = isDown ? 0.75 : 1;
+
+        if (speed > 0.1) {
+          const angle = (Math.atan2(velocity.y, velocity.x) * 180) / Math.PI;
+          const spread = Math.min(distance * intensity, maxSpread);
+
+          blurEl.setAttribute("stdDeviation", `${spread} 0`);
+          groupEl.setAttribute("transform", `rotate(${angle} ${center} ${center})`);
+        } else {
+          blurEl.setAttribute("stdDeviation", "0 0");
+          groupEl.setAttribute("transform", "");
         }
 
-        const spread = Math.min(speed * intensity, maxSpread);
-        const dirX = velocity.x / speed;
-        const dirY = velocity.y / speed;
-
-        for (let i = 0; i < sampleCount; i++) {
-          const el = trailEls[i];
-          const t = (i - (sampleCount - 1) / 2) * (3 / (sampleCount - 1)); // roughly -1.5…+1.5
-
-          const weight = Math.exp(-(t * t) / 2);
-          const opacity = weight * 0.6;
-
-          dom.css(el, { opacity: String(opacity) });
-
-          const offsetX = dirX * t * spread;
-          const offsetY = dirY * t * spread;
-          dom.setTransform(el, smooth.x + offsetX, smooth.y + offsetY);
-        }
+        dom.setTransform(svgEl, smooth.x, smooth.y, 0, scale, scale);
       },
 
       cleanup: () => {
-        trailEls.forEach((el) => el.remove());
-        trailEls.length = 0;
+        svgEl?.remove();
       }
     },
     options

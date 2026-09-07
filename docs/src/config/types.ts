@@ -1,39 +1,13 @@
-import { type SupermouseInstance } from "@supermousejs/core";
+import type {
+  SupermouseInstance,
+  SupermousePlugin,
+  SupermouseOptions,
+  MouseState
+} from "@supermousejs/core";
 
 export interface Point {
   x: number;
   y: number;
-}
-
-export interface MouseState {
-  pointer: Point;
-  target: Point;
-  smooth: Point;
-  velocity: Point;
-  isDown: boolean;
-  isHover: boolean;
-  isNative: boolean;
-  forcedCursor: string | null;
-  hoverTarget: HTMLElement | null;
-  reducedMotion: boolean;
-}
-
-export interface SupermouseOptions {
-  smoothness?: number;
-  enableTouch?: boolean;
-  autoDisableOnMobile?: boolean;
-  ignoreOnNative?: string | null;
-  hideCursor?: boolean;
-}
-
-export interface SupermousePlugin {
-  name: string;
-  isEnabled?: boolean;
-  install?: (app: SupermouseInstance) => void;
-  update?: (app: SupermouseInstance, deltaTime: number) => void;
-  onEnable?: (app: SupermouseInstance) => void;
-  onDisable?: (app: SupermouseInstance) => void;
-  destroy?: (app: SupermouseInstance) => void;
 }
 
 export interface OptionSchema {
@@ -58,3 +32,5 @@ export interface PluginMeta {
   importSnippet: string;
   hasDetailedDocs: boolean;
 }
+
+export type { SupermouseInstance, SupermousePlugin, SupermouseOptions, MouseState };

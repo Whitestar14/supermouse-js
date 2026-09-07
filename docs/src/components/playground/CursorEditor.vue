@@ -88,8 +88,8 @@ watch(
   { immediate: true }
 );
 
-const copyCode = () => {
-  navigator.clipboard.writeText(generatedCode.value);
+const copyCode = async (): Promise<void> => {
+  await navigator.clipboard.writeText(generatedCode.value);
   isCopied.value = true;
   setTimeout(() => (isCopied.value = false), 2000);
 };
