@@ -37,6 +37,12 @@ export interface LogicConfig extends CoreConfig {
   onEnable?(app: SupermouseInstance): void;
   /** Called when `app.disablePlugin(name)` is invoked. */
   onDisable?(app: SupermouseInstance): void;
+  /**
+   * Called before the plugin is disabled. Can return a Promise to delay
+   * hiding until an exit animation finishes. This is the declarative
+   * equivalent of `SupermousePlugin.onBeforeDisable`.
+   */
+  beforeDisable?(app: SupermouseInstance): void | Promise<void>;
 }
 
 /**
@@ -45,7 +51,6 @@ export interface LogicConfig extends CoreConfig {
  * @typeParam E - The specific element subtype returned by `create`.
  *   Can be an `HTMLElement` (e.g. `HTMLDivElement`) or an `SVGElement`
  *   (e.g. `SVGSVGElement`).
- *
  */
 export interface VisualConfig<
   E extends HTMLElement | SVGElement = HTMLElement | SVGElement
@@ -69,7 +74,8 @@ export interface VisualConfig<
   /**
    * Called when the plugin is disabled.
    * The element is still in the DOM when this runs, so you can start
-   * CSS transitions. The core hides it immediately after this hook.
+   * CSS transitions. If `beforeDisable` is defined and returns a Promise,
+   * the core will wait for it to resolve before hiding the element.
    */
   onDisable?(app: SupermouseInstance, element: E): void;
 
@@ -86,6 +92,13 @@ export interface VisualConfig<
    * Equivalent to `app.registerHoverTarget(selector)` inside `install()`.
    */
   selector?: string;
+
+  /**
+   * Called before the plugin is disabled. Can return a Promise to delay
+   * hiding until an exit animation finishes.
+   * Receives the element as the second argument.
+   */
+  beforeDisable?(app: SupermouseInstance, element: E): void | Promise<void>;
 }
 
 function isVisual<E extends HTMLElement | SVGElement>(
@@ -136,6 +149,11 @@ export function definePlugin(
   let root: HTMLElement | SVGElement | null = null;
   let isMounted = false;
 
+  const beforeDisable = (app: SupermouseInstance): void | Promise<void> => {
+    if (!root) return;
+    return config.beforeDisable?.(app, root);
+  };
+
   return {
     name: resolvedName,
     isEnabled: resolvedEnabled,
@@ -143,25 +161,20 @@ export function definePlugin(
 
     install(app) {
       root = config.create(app);
-
       if (!(root instanceof HTMLElement) && !(root instanceof SVGElement)) {
         console.warn(
           `[supermouse] Plugin "${resolvedName}" create() did not return an HTMLElement or SVGElement.`
         );
         return;
       }
-
       this.element = app.stage.appendChild(root);
       isMounted = true;
-
       if (config.selector) {
         app.registerHoverTarget(config.selector);
       }
-
       if (!resolvedEnabled) {
         root.style.display = "none";
       }
-
       config.install?.(app);
     },
 
@@ -174,6 +187,10 @@ export function definePlugin(
       if (!root) return;
       root.style.display = "";
       config.onEnable?.(app, root);
+    },
+
+    async onBeforeDisable(app) {
+      await beforeDisable(app);
     },
 
     onDisable(app) {

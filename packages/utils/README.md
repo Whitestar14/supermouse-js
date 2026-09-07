@@ -420,7 +420,7 @@ Creates a Supermouse plugin from a declarative configuration.
 
 **Two overloads:**
 
-- **Visual Plugin:** The config includes `create()` and optionally `update`, `selector`, etc. The helper mounts the returned element to the **stage** and toggles visibility automatically.
+- **Visual Plugin:** The config includes `create()` and optionally `update`, `selector`, `beforeDisable`, etc. The helper mounts the returned element to the **stage** and toggles visibility automatically.
 - **Logic Plugin:** The config omits `create`; all lifecycle hooks are passed through directly.
 
 #### Visual Plugin Example
@@ -468,7 +468,20 @@ const Gravity = definePlugin({
 - `LogicConfig` – Lifecycle hooks for logic plugins.
 - `VisualConfig<E>` – Factory and lifecycle for visual plugins.
 
----
+**Exit Animations with `beforeDisable`**
+
+Both `LogicConfig` and `VisualConfig` accept a `beforeDisable` hook. This hook runs before the plugin is disabled and can return a `Promise`. The core will wait for the promise to resolve before hiding the element and calling `onDisable`.
+
+```ts
+beforeDisable(app, el) {
+  el.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+  el.style.opacity = "0";
+  el.style.transform = "scale(0.5)";
+  return new Promise(resolve => setTimeout(resolve, 200));
+}
+```
+
+For logic plugins, `beforeDisable` receives only `app`.
 
 ## SVG Utilities
 
