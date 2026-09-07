@@ -51,8 +51,8 @@ export interface MouseState {
   isHover: boolean;
   /** Native cursor temporarily restored due to native-input heuristics. */
   isNative: boolean;
-  /** Current cursor mode: auto, native, or custom. */
-  cursorMode: "auto" | "native" | "custom";
+  /** Current cursor mode: auto, custom, native, or both. */
+  cursorMode: "auto" | "custom" | "native" | "both";
   /** Currently hovered DOM element, if any. */
   hoverTarget: HTMLElement | null;
   /** User has `prefers-reduced-motion` enabled. */
@@ -90,16 +90,12 @@ export interface SupermouseOptions {
   /**
    * Overall cursor mode.
    * - `"auto"`: use built-in heuristic to decide per element.
-   * - `"native"`: always show native cursor, hide custom.
    * - `"custom"`: always show custom cursor, hide native.
+   * - `"native"`: always show native cursor, hide custom.
+   * - `"both"`: always show custom cursor **and** native cursor together (no suppression).
    * @default "auto"
    */
-  cursor?: "auto" | "native" | "custom";
-  /**
-   * Whether to hide the native cursor via scoped CSS injection on the container.
-   * @default true
-   */
-  hideCursor?: boolean;
+  cursor?: "auto" | "custom" | "native" | "both";
   /**
    * Whether to hide the custom cursor when the pointer leaves the browser viewport.
    * @default true

@@ -70,9 +70,15 @@ export class Input {
   private containerRect: DOMRect | null = null;
   private resizeObserver?: ResizeObserver;
 
-  /** Cached matched rules for the current hover target. */
+  /** Cached matched rules for the current interaction element. */
   private matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
-  private lastHoverTarget: HTMLElement | null = null;
+  private lastParsedTarget: HTMLElement | null = null;
+
+  /** Precomputed list of rule entries for faster iteration. */
+  private ruleEntries: Array<[string, RuleDefinition]>;
+
+  /** The actual element currently under the pointer (regardless of hover selectors). */
+  private currentTarget: HTMLElement | null = null;
 
   constructor(
     private state: MouseState,
@@ -83,6 +89,9 @@ export class Input {
     this.dataPrefix = this.options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
     this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
+
+    this.ruleEntries = this.options.rules ? Object.entries(this.options.rules) : [];
+
     this.checkDeviceCapability();
     this.checkMotionPreference();
     this.setupContainerRectTracking();
@@ -138,19 +147,17 @@ export class Input {
   }
 
   /**
-   * Evaluates rules against the hovered element.
-   * Selector matching is cached per hover target; only function values re-evaluated each frame.
+   * Evaluates rules against the given element.
+   * Selector matching is cached per element; only function values re-evaluated each frame.
    */
   public parseDOMInteraction(element: HTMLElement): void {
-    if (element !== this.lastHoverTarget) {
-      this.lastHoverTarget = element;
+    if (element !== this.lastParsedTarget) {
+      this.lastParsedTarget = element;
       this.matchedRules = [];
 
-      if (this.options.rules) {
-        for (const [selector, rules] of Object.entries(this.options.rules)) {
-          if (this.matchesSelector(element, selector)) {
-            this.matchedRules.push({ selector, rules });
-          }
+      for (const [selector, rules] of this.ruleEntries) {
+        if (this.matchesSelector(element, selector)) {
+          this.matchedRules.push({ selector, rules });
         }
       }
     }
@@ -181,11 +188,19 @@ export class Input {
     this.state.interaction = data;
   }
 
+  /**
+   * Optimized selector matching:
+   * - For simple selectors (no spaces), just call `element.matches`.
+   * - For complex selectors with descendant combinators, fallback to splitting.
+   */
   private matchesSelector(element: HTMLElement, selector: string): boolean {
     try {
-      if (element.matches(selector)) return true;
+      // Fast path: simple selector
+      if (!/\s/.test(selector.trim())) {
+        return element.matches(selector);
+      }
     } catch {
-      return false;
+      // If matches fails, fall through to ancestor-based matching
     }
 
     const parts = selector.trim().split(/\s+/);
@@ -251,9 +266,31 @@ export class Input {
 
     if (this.isOutsideContainer(target)) return;
 
-    if (target.closest(`[${this.ignoreAttribute}]`)) {
+    if (this.state.cursorMode === "auto" && target.closest(`[${this.ignoreAttribute}]`)) {
+      this.state.isHover = false;
+      this.state.hoverTarget = null;
+      this.state.interaction = {};
+      this.currentTarget = null;
+      this.lastParsedTarget = null;
+      this.matchedRules = [];
+
       this.state.isNative = true;
       this.nativeTarget = target;
+      return;
+    }
+
+    this.state.isNative = false;
+    this.nativeTarget = null;
+
+    this.currentTarget = target;
+    this.parseDOMInteraction(target);
+
+    if (this.state.cursorMode !== "auto") {
+      const hoverable = target.closest(this.getHoverSelector());
+      if (hoverable) {
+        this.state.isHover = true;
+        this.state.hoverTarget = hoverable as HTMLElement;
+      }
       return;
     }
 
@@ -261,7 +298,6 @@ export class Input {
     if (hoverable) {
       this.state.isHover = true;
       this.state.hoverTarget = hoverable as HTMLElement;
-      this.parseDOMInteraction(this.state.hoverTarget);
     }
 
     // Built-in native detection: tags + CSS
@@ -284,9 +320,6 @@ export class Input {
       if (!related || !this.state.hoverTarget?.contains(related)) {
         this.state.isHover = false;
         this.state.hoverTarget = null;
-        this.state.interaction = {};
-        this.lastHoverTarget = null;
-        this.matchedRules = [];
       }
     }
 
@@ -295,6 +328,13 @@ export class Input {
         this.state.isNative = false;
         this.nativeTarget = null;
       }
+    }
+
+    // Clear current target when pointer leaves it
+    if (target === this.currentTarget) {
+      this.currentTarget = null;
+      this.lastParsedTarget = null;
+      this.matchedRules = [];
     }
   };
 
@@ -311,8 +351,14 @@ export class Input {
     this.state.isNative = false;
     this.nativeTarget = null;
     this.state.interaction = {};
-    this.lastHoverTarget = null;
+    this.currentTarget = null;
+    this.lastParsedTarget = null;
     this.matchedRules = [];
+  }
+
+  /** Returns the raw element currently under the pointer. */
+  public getCurrentTarget(): HTMLElement | null {
+    return this.currentTarget;
   }
 
   private bindEvents(): void {
@@ -366,7 +412,6 @@ export class Stage {
 
   constructor(
     private container: HTMLElement = document.body,
-    private hideNativeCursor: boolean,
     private zIndex: number = 9999
   ) {
     if (!container || !(container instanceof HTMLElement)) {
@@ -410,22 +455,26 @@ export class Stage {
 
     this.container.classList.add("supermouse-scope", this.scopeClass);
     this.updateCursorCSS();
-
-    if (this.hideNativeCursor) this.setNativeCursor("none");
   }
 
-  /** Batch add selectors and rebuild stylesheet once. */
+  /** Batch add selectors. Comma‑separated groups are split and scoped individually. */
   public addSelectors(selectors: Iterable<string>): void {
+    let changed = false;
     for (const selector of selectors) {
-      this.selectors.add(selector);
+      selector.split(",").forEach((s) => {
+        const trimmed = s.trim();
+        if (trimmed && !this.selectors.has(trimmed)) {
+          this.selectors.add(trimmed);
+          changed = true;
+        }
+      });
     }
-    this.updateCursorCSS();
+    if (changed) this.updateCursorCSS();
   }
 
-  /** Add a single selector and rebuild stylesheet. */
+  /** Add a single selector (or comma‑separated group). */
   public addSelector(selector: string): void {
-    this.selectors.add(selector);
-    this.updateCursorCSS();
+    this.addSelectors([selector]);
   }
 
   public setVisibility(visible: boolean): void {
@@ -434,14 +483,12 @@ export class Stage {
 
   /** Toggle native cursor visibility. */
   public setNativeCursor(type: "none" | "auto"): void {
-    if (!this.hideNativeCursor && type === "none") return;
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
     this.container.classList.toggle(this.hideClass, type === "none");
-    this.container.style.cursor = type === "none" ? "none" : this.originalContainerCursor;
+    this.container.style.cursor = this.originalContainerCursor;
   }
 
-  /** Rebuild injected stylesheet from current selectors. */
   private updateCursorCSS(): void {
     const rawSelectors = Array.from(this.selectors);
     if (rawSelectors.length === 0) {
@@ -450,19 +497,23 @@ export class Stage {
     }
 
     const exclusion = `:not(.${this.scopeClass} .supermouse-scope):not(.${this.scopeClass} .supermouse-scope *)`;
-    const scopedRules = rawSelectors
-      .map(
-        (s) => `.${this.scopeClass}.${this.hideClass} ${s}${exclusion} { cursor: none !important; }`
-      )
-      .join("\n");
+    const scopeRule = (s: string) =>
+      `.${this.scopeClass}.${this.hideClass} ${s}${exclusion} { cursor: none !important; }`;
+
+    const scopedRules = rawSelectors.map(scopeRule).join("\n");
+
+    const broadRule = `.${this.scopeClass}.${this.hideClass} *${exclusion} { cursor: none !important; }`;
+    const containerRule = `.${this.scopeClass}.${this.hideClass} { cursor: none !important; }`;
 
     this.styleTag.innerText = `
-      ${scopedRules}
-      .${this.scopeClass}.${this.hideClass} label${exclusion}                                     { cursor: none !important; }
-      .${this.scopeClass}.${this.hideClass} select${exclusion}                                    { cursor: none !important; }
-      .${this.scopeClass}.${this.hideClass} input[type="range"]${exclusion}::-webkit-slider-thumb { cursor: none !important; }
-      .${this.scopeClass}.${this.hideClass} input[type="range"]${exclusion}::-moz-range-thumb     { cursor: none !important; }
-    `;
+    ${containerRule}
+    ${broadRule}
+    ${scopedRules}
+    ${scopeRule("label")}
+    ${scopeRule("select")}
+    ${scopeRule('input[type="range"]::-webkit-slider-thumb')}
+    ${scopeRule('input[type="range"]::-moz-range-thumb')}
+  `;
   }
 
   public destroy(): void {
@@ -488,7 +539,6 @@ type ResolvedOptions = SupermouseOptions &
       | "enableTouch"
       | "autoDisableOnMobile"
       | "cursor"
-      | "hideCursor"
       | "hideOnLeave"
       | "autoStart"
       | "container"
@@ -520,6 +570,7 @@ export class Supermouse {
   private visibilityAbortController = new AbortController();
 
   private hoverSelectors: Set<string>;
+  private hoverSelectorString: string;
   private crashedPlugins: SupermousePlugin[] = [];
 
   constructor(options: SupermouseOptions = {}) {
@@ -528,7 +579,6 @@ export class Supermouse {
       enableTouch: false,
       autoDisableOnMobile: true,
       cursor: "auto",
-      hideCursor: true,
       hideOnLeave: true,
       autoStart: true,
       container: document.body,
@@ -556,14 +606,15 @@ export class Supermouse {
     };
 
     this.hoverSelectors = new Set(this.options.hoverSelectors ?? DEFAULT_HOVER_SELECTORS);
+    this.hoverSelectorString = Array.from(this.hoverSelectors).join(", ");
 
-    this._stage = new Stage(this.options.container, !!this.options.hideCursor, this.options.zIndex);
+    this._stage = new Stage(this.options.container, this.options.zIndex);
     this._stage.addSelectors(this.hoverSelectors);
 
     this.input = new Input(
       this.state,
       this.options,
-      () => Array.from(this.hoverSelectors).join(", "),
+      () => this.hoverSelectorString,
       (enabled) => {
         if (!enabled) this.reset(true);
       }
@@ -619,6 +670,7 @@ export class Supermouse {
   public registerHoverTarget(selector: string): void {
     if (!this.hoverSelectors.has(selector)) {
       this.hoverSelectors.add(selector);
+      this.hoverSelectorString = Array.from(this.hoverSelectors).join(", ");
       this._stage.addSelector(selector);
     }
   }
@@ -634,7 +686,7 @@ export class Supermouse {
   }
 
   /** Set the current cursor mode. */
-  public setCursor(mode: "auto" | "native" | "custom"): void {
+  public setCursor(mode: "auto" | "custom" | "native" | "both"): void {
     this.state.cursorMode = mode;
   }
 
@@ -653,15 +705,14 @@ export class Supermouse {
       this.state.hasReceivedInput = true;
     }
 
-    if (this.options.hideCursor) {
-      this._stage.setNativeCursor(this.resolveCursorState());
-    }
+    this._stage.setNativeCursor(this.resolveCursorState());
   }
 
   /** Disable input processing and restore native cursor. */
   public disable(): void {
     this.input.isEnabled = false;
-    if (this.options.hideCursor) this._stage.setNativeCursor("auto");
+    this._stage.setNativeCursor("auto");
+    this._stage.setVisibility(false);
     this.reset(true);
   }
 
@@ -671,6 +722,11 @@ export class Supermouse {
     this.isSuspended = true;
     this.input.isEnabled = false;
     this.input.clearHover();
+    /** Current limitations with multi-scoped containers identified.
+     * setting native cursor here suppresses cursor css so aggressively
+     * that cursor: "both" will not work on scoped instances.
+     * proposed fix by v2.5+ */
+    // this._stage.setNativeCursor("auto");
     this._stage.setVisibility(false);
   }
 
@@ -770,12 +826,18 @@ export class Supermouse {
 
   private resolveStageVisibility(): boolean {
     if (this.state.cursorMode === "native") return false;
+    if (this.state.cursorMode === "both")
+      return this.input.isEnabled && this.state.hasReceivedInput;
     if (this.state.cursorMode === "custom")
       return this.input.isEnabled && this.state.hasReceivedInput;
+
     return this.input.isEnabled && !this.state.isNative && this.state.hasReceivedInput;
   }
 
   private resolveCursorState(): "none" | "auto" {
+    if (!this.input.isEnabled) return "auto";
+
+    if (this.state.cursorMode === "both") return "auto";
     if (this.state.cursorMode === "native") return "auto";
     if (this.state.cursorMode === "custom") return "none";
     return this.state.isNative || !this.state.hasReceivedInput ? "auto" : "none";
@@ -791,14 +853,15 @@ export class Supermouse {
     const dt = Math.min(dtMs / 1000, 0.1);
     this.lastTime = time;
 
-    if (this.state.hoverTarget && !this.state.hoverTarget.isConnected) {
+    const currentTarget = this.input.getCurrentTarget();
+    if (currentTarget && !currentTarget.isConnected) {
       this.input.clearHover();
-    } else if (this.state.hoverTarget) {
-      this.input.parseDOMInteraction(this.state.hoverTarget);
+    } else if (currentTarget) {
+      this.input.parseDOMInteraction(currentTarget);
     }
 
     this._stage.setVisibility(this.resolveStageVisibility());
-    if (this.input.isEnabled && this.options.hideCursor) {
+    if (this.input.isEnabled) {
       this._stage.setNativeCursor(this.resolveCursorState());
     }
 
