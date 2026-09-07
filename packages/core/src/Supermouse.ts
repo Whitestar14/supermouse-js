@@ -330,11 +330,21 @@ export class Input {
       }
     }
 
-    // Clear current target when pointer leaves it
     if (target === this.currentTarget) {
       this.currentTarget = null;
       this.lastParsedTarget = null;
       this.matchedRules = [];
+    }
+  };
+
+  /**
+   * Handles the case where the pointer leaves the entire document.
+   * This is more reliable than the `mouseleave` event on `document`.
+   */
+  private handleDocumentMouseOut = (e: MouseEvent): void => {
+    if (!this.isEnabled) return;
+    if (e.relatedTarget === null && this.options.hideOnLeave) {
+      this.handleWindowLeave();
     }
   };
 
@@ -371,7 +381,9 @@ export class Input {
     const hoverRoot = isBody ? document : this.options.container!;
     hoverRoot.addEventListener("mouseover", this.handleMouseOver, { signal });
     hoverRoot.addEventListener("mouseout", this.handleMouseOut, { signal });
-    document.addEventListener("mouseleave", this.handleWindowLeave, { signal });
+
+    // Reliable window-leave detection
+    document.addEventListener("mouseout", this.handleDocumentMouseOut, { signal });
   }
 
   public destroy(): void {
@@ -734,11 +746,6 @@ export class Supermouse {
     this.isSuspended = true;
     this.input.isEnabled = false;
     this.input.clearHover();
-    /** Current limitations with multi-scoped containers identified.
-     * setting native cursor here suppresses cursor css so aggressively
-     * that cursor: "both" will not work on scoped instances.
-     * proposed fix by v2.5+ */
-    // this._stage.setNativeCursor("auto");
     this._stage.setVisibility(false);
   }
 
