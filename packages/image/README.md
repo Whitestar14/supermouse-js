@@ -1,6 +1,6 @@
 # @supermousejs/image
 
-Displays a custom image or thumbnail as the cursor hover state using a hover target's `data-supermouse-img` attribute.
+Displays a custom image or thumbnail as the cursor hover state
 
 ## Installation
 

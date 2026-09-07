@@ -1,6 +1,6 @@
 # @supermousejs/trail
 
-Generates procedural particles that trail behind your motion.
+Generates procedural particles that trail behind your motion
 
 ## Installation
 

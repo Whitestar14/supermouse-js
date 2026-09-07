@@ -1,6 +1,6 @@
 # @supermousejs/ring
 
-Adds a lagging outer ring. Simple and performant.
+Adds a lagging outer ring
 
 ## Installation
 

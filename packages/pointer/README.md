@@ -1,6 +1,6 @@
 # @supermousejs/pointer
 
-A 'Vehicle' style arrow that rotates based on velocity vectors.
+A vehicle style arrow that rotates based on velocity vectors.
 
 ## Installation
 
