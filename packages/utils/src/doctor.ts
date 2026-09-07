@@ -1,5 +1,3 @@
-// ─── Types ───
-
 export interface DoctorIssue {
   severity: "error" | "warn" | "info";
   code: string;
@@ -11,48 +9,42 @@ interface PluginLike {
   readonly name?: string;
   readonly priority?: number;
   readonly element?: HTMLElement;
+  readonly update?: (...args: any[]) => void;
   readonly [key: string]: unknown;
 }
 
 interface AppLike {
   readonly plugins?: readonly PluginLike[];
   readonly options?: Readonly<Record<string, unknown>>;
+  readonly state?: {
+    readonly cursorMode?: "auto" | "custom" | "native" | "both";
+    readonly hasReceivedInput?: boolean;
+  };
+  readonly input?: {
+    readonly isEnabled?: boolean;
+  };
 }
-
-// ─── Constants ───
 
 const BRAND = "[supermouse] doctor";
 
 const S = {
-  brand: "color: #42b883; font-weight: 600;",
-  error: "color: #f43f5e; font-weight: 600;",
-  warn: "color: #f59e0b; font-weight: 600;",
-  info: "color: #3b82f6; font-weight: 600;",
+  brand:
+    "color: #ffffff; background: #42b883; padding: 2px 4px; border-radius: 2px; font-weight: 700;",
+  error:
+    "color: #ffffff; background: #f43f5e; padding: 2px 4px; border-radius: 2px; font-weight: 700;",
+  warn: "color: #1f2937; background: #f59e0b; padding: 2px 4px; border-radius: 2px; font-weight: 700;",
+  info: "color: #ffffff; background: #3b82f6; padding: 2px 4px; border-radius: 2px; font-weight: 700;",
   dim: "color: #6b7280;",
   code: "color: #a1a1aa; font-weight: 500;",
-  hint: "color: #10b981;"
+  hint: "color: #10b981; font-weight: 600;"
 } as const;
 
-const LOGIC_RE = /magnetic|stick|gravity|attract|snap|pull|repel|states/i;
-const VISUAL_RE = /dot|ring|trail|cursor|icon|text|image|sparkle|glow|blob|spotlight/i;
-
-// ─── Public API ───
-
-/**
- * Supermouse diagnostic tool.
- *
- * Run `doctor(app)` to check priority ordering, plugin hygiene,
- * multi-instance coordination, and common misconfigurations.
- * Call `doctor()` without arguments for a lightweight DOM scan.
- */
-export function doctor(app?: AppLike): void {
+export function doctor(app?: any): void {
   const issues = app ? audit(app) : scanDom();
   printReport(issues);
 }
 
-// ─── Auditor ───
-
-function audit(app: AppLike): readonly DoctorIssue[] {
+function audit(app: any): readonly DoctorIssue[] {
   const plugins = app.plugins ?? [];
   const opts = app.options ?? {};
 
@@ -62,9 +54,21 @@ function audit(app: AppLike): readonly DoctorIssue[] {
     ...checkGhostElements(plugins),
     ...checkMultiInstance(opts),
     ...checkContainerPosition(opts),
-    ...checkCursorPerformance(opts),
-    ...scanDom()
+    ...checkCursorMode(opts, app.state),
+    ...scanDom(app)
   ];
+}
+
+function isVisualPlugin(plugin: PluginLike): boolean {
+  if (plugin.element !== undefined) return true;
+  if (typeof plugin.update === "function" && plugin.update.length >= 3) return true;
+  return false;
+}
+
+function isLogicPlugin(plugin: PluginLike): boolean {
+  if (plugin.element !== undefined) return false;
+  if (typeof plugin.update === "function" && plugin.update.length === 2) return true;
+  return false;
 }
 
 function checkPluginPriorities(plugins: readonly PluginLike[]): readonly DoctorIssue[] {
@@ -74,21 +78,21 @@ function checkPluginPriorities(plugins: readonly PluginLike[]): readonly DoctorI
     const name = p.name ?? "unknown";
     const pri = p.priority ?? 0;
 
-    if (LOGIC_RE.test(name) && pri >= 0) {
+    if (isLogicPlugin(p) && pri >= 0) {
       out.push({
         severity: "warn",
         code: "PRIORITY_LOGIC",
         message: `Plugin "${name}" has priority ${pri} but appears to be a logic plugin (should run before physics).`,
-        hint: `Set priority: -10 on "${name}"`
+        hint: `Set priority to a negative value (e.g. -10) on "${name}"`
       });
     }
 
-    if (VISUAL_RE.test(name) && pri < 0) {
+    if (isVisualPlugin(p) && pri < 0) {
       out.push({
         severity: "warn",
         code: "PRIORITY_VISUAL",
         message: `Plugin "${name}" has priority ${pri} but appears to be a visual plugin (should run after physics).`,
-        hint: `Remove priority or use a positive value`
+        hint: "Remove priority or use a positive value"
       });
     }
   }
@@ -120,7 +124,7 @@ function checkGhostElements(plugins: readonly PluginLike[]): readonly DoctorIssu
 
   for (const p of plugins) {
     const name = p.name ?? "unknown";
-    if (VISUAL_RE.test(name) && !p.element) {
+    if (isVisualPlugin(p) && !p.element) {
       out.push({
         severity: "warn",
         code: "MISSING_ELEMENT",
@@ -165,24 +169,41 @@ function checkContainerPosition(opts: Readonly<Record<string, unknown>>): readon
   ];
 }
 
-function checkCursorPerformance(opts: Readonly<Record<string, unknown>>): readonly DoctorIssue[] {
-  if (opts.ignoreOnNative !== "css") return [];
-  if (opts.cacheCursorStyle === true) return [];
+function checkCursorMode(
+  opts: Readonly<Record<string, unknown>>,
+  state?: AppLike["state"]
+): readonly DoctorIssue[] {
+  const cursor = opts.cursor;
+  if (cursor === undefined) return [];
 
-  return [
-    {
-      severity: "info",
-      code: "CURSOR_PERF",
-      message:
-        'ignoreOnNative is "css" and cacheCursorStyle is false. Every hover triggers getComputedStyle().',
-      hint: "Enable cacheCursorStyle: true if elements rarely change cursor"
-    }
-  ];
+  const validModes = ["auto", "custom", "native", "both"];
+  if (typeof cursor === "string" && !validModes.includes(cursor)) {
+    return [
+      {
+        severity: "error",
+        code: "INVALID_CURSOR_MODE",
+        message: `Invalid cursor mode "${cursor}". Expected one of: ${validModes.join(", ")}.`,
+        hint: `Set cursor to one of: ${validModes.join(", ")}`
+      }
+    ];
+  }
+
+  if (cursor === "both" && opts.container !== document.body && state?.cursorMode === "both") {
+    return [
+      {
+        severity: "warn",
+        code: "NESTED_BOTH_MODE",
+        message:
+          "Scoped instance uses cursor: 'both'. In nested scopes, the native cursor may be hidden by the outer instance's cursor suppression.",
+        hint: "Offset the custom cursor when cursorMode === 'both' or consider a single-instance scope architecture"
+      }
+    ];
+  }
+
+  return [];
 }
 
-// ─── DOM scan ───
-
-function scanDom(): readonly DoctorIssue[] {
+function scanDom(app?: AppLike): readonly DoctorIssue[] {
   const out: DoctorIssue[] = [];
 
   const isInitialized = Array.from(document.querySelectorAll("style")).some((s) =>
@@ -213,22 +234,26 @@ function scanDom(): readonly DoctorIssue[] {
     });
   });
 
-  if (document.body.style.cursor !== "none") {
-    const hasBodyInstance = !!document.querySelector(".supermouse-scope-0");
-    if (hasBodyInstance) {
+  const bodyInstance = document.querySelector(".supermouse-scope-0");
+  if (bodyInstance) {
+    const hasHideClass = bodyInstance.classList.contains("supermouse-hide-0");
+    const cursorMode = app?.state?.cursorMode ?? "auto";
+    const hasReceivedInput = app?.state?.hasReceivedInput ?? true;
+    const inputEnabled = app?.input?.isEnabled ?? true;
+
+    if (cursorMode === "custom" && inputEnabled && hasReceivedInput && !hasHideClass) {
       out.push({
         severity: "warn",
         code: "BODY_CURSOR_LEAK",
-        message: 'document.body.style.cursor is not "none". The native cursor may show through.',
-        hint: "Ensure hideCursor: true on the body-level instance"
+        message:
+          "Body instance has cursor: 'custom' but native cursor suppression class is not applied.",
+        hint: "Check that the animation loop is running and setCursor('custom') was called"
       });
     }
   }
 
   return out;
 }
-
-// ─── Reporter ───
 
 function printReport(issues: readonly DoctorIssue[]): void {
   if (issues.length === 0) {

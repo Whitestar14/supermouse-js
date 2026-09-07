@@ -15,8 +15,17 @@ export const injectStyles = (id: string, css: string): void => {
   document.head.appendChild(style);
 };
 
-// dom.ts
-const styleCache = new WeakMap<HTMLElement | SVGSVGElement, Record<string, string | number>>();
+const styleCache = new WeakMap<HTMLElement | SVGElement, Record<string, string | number>>();
+
+type CSSProperties = {
+  [K in keyof CSSStyleDeclaration as CSSStyleDeclaration[K] extends (...args: any) => any
+    ? never
+    : K]?: string | number;
+};
+
+function camelToKebab(str: string): string {
+  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+}
 
 /**
  * Applies CSS properties to an element. Only touches the DOM when a value
@@ -30,10 +39,7 @@ const styleCache = new WeakMap<HTMLElement | SVGSVGElement, Record<string, strin
  *   backgroundColor: state.interaction.color || "#000",
  * });
  */
-export function css(
-  el: HTMLElement | SVGSVGElement,
-  styles: Record<string, string | number>
-): void {
+export function css(el: HTMLElement | SVGElement, styles: CSSProperties): void {
   if (typeof document === "undefined" || !el) return;
 
   let cache = styleCache.get(el);
@@ -43,9 +49,12 @@ export function css(
   }
 
   for (const [prop, value] of Object.entries(styles)) {
-    if (cache[prop] !== value) {
-      (el.style as any)[prop] = value;
-      cache[prop] = value;
+    if (value === undefined) continue;
+    const stringValue = String(value);
+    const kebabProp = camelToKebab(prop);
+    if (cache[kebabProp] !== stringValue) {
+      el.style.setProperty(kebabProp, stringValue);
+      cache[kebabProp] = stringValue;
     }
   }
 }
@@ -53,11 +62,7 @@ export function css(
 /**
  * @deprecated Use `dom.css()` instead. This function will be removed in future versions.
  */
-export function setStyle(
-  el: HTMLElement | SVGSVGElement,
-  prop: string,
-  value: string | number
-): void {
+export function setStyle(el: HTMLElement | SVGElement, prop: string, value: string | number): void {
   css(el, { [prop]: value });
 }
 
@@ -65,7 +70,7 @@ export function setStyle(
  * @deprecated Use `dom.css()` instead. This function will be removed in future versions.
  */
 export function applyStyles(
-  el: HTMLElement | SVGSVGElement,
+  el: HTMLElement | SVGElement,
   styles: Record<string, string | number>
 ): void {
   css(el, styles);
@@ -85,7 +90,7 @@ export function applyStyles(
  * @param skewY Skew Y (deg) - Default 0
  */
 export function setTransform(
-  el: HTMLElement | SVGSVGElement,
+  el: HTMLElement | SVGElement,
   x: number,
   y: number,
   rotation: number = 0,

@@ -8,52 +8,27 @@ export interface BasePluginOptions {
   isEnabled?: boolean;
 }
 
-// ─── Config types ───
-
 interface CoreConfig {
   /** Unique identifier. Used by `getPlugin()`, `enablePlugin()`, etc. */
   name: string;
-  /**
-   * Execution order in the frame loop. Lower = earlier.
-   *
-   * - **Logic plugins** (mutate `state.target`) should use negative values,
-   *   typically `-10` or lower.
-   * - **Visual plugins** (read `state.smooth`, touch the DOM) should use
-   *   `0` or positive values.
-   */
+  /** Execution order in the frame loop. Lower values are executed earlier */
   priority?: number;
   /** Whether the plugin starts enabled. Defaults to `true`. */
   isEnabled?: boolean;
-  /**
-   * Called once when the plugin is registered via `app.use()`.
-   * The stage container is already mounted at this point.
-   */
+  /** Called once when the plugin is registered via `app.use()`. */
   install?(app: SupermouseInstance): void;
 }
 
 /**
- * Declarative config for a **logic** plugin.
+ * Declarative config for a logic plugin.
  *
  * Logic plugins modify cursor intent (e.g. magnetism, snapping, gravity).
- * They must **not** touch the DOM.
- *
- * @example
- * ```ts
- * const Gravity = definePlugin({
- *   name: "gravity",
- *   priority: -10,
- *   update(app, dt) {
- *     if (!app.state.hasReceivedInput) return;
- *     app.state.target.y += 5;
- *   },
- * });
- * ```
  */
 export interface LogicConfig extends CoreConfig {
   /**
    * Called every frame while the plugin is enabled.
    * @param app       The Supermouse instance.
-   * @param deltaTime Elapsed time since last frame, in **milliseconds**.
+   * @param deltaTime Elapsed time since last frame, in milliseconds.
    */
   update?(app: SupermouseInstance, deltaTime: number): void;
   /** Called when the plugin is removed or the app is destroyed. */
@@ -65,41 +40,20 @@ export interface LogicConfig extends CoreConfig {
 }
 
 /**
- * Declarative config for a **visual** plugin.
+ * Declarative config for a visual plugin.
  *
- * Visual plugins render DOM elements and read `state.smooth`.
- * `definePlugin` handles mounting and show/hide for you.
- * Use `css()` from `@supermousejs/utils` inside `update()` for all style writes.
+ * @typeParam E - The specific element subtype returned by `create`.
+ *   Can be an `HTMLElement` (e.g. `HTMLDivElement`) or an `SVGElement`
+ *   (e.g. `SVGSVGElement`).
  *
- * @typeParam E - The specific HTMLElement subtype returned by `create`.
- *
- * @example
- * ```ts
- * const Dot = (options: Partial<DotOptions> = {}) =>
- *   definePlugin(
- *     {
- *       name: "dot",
- *       create: () => document.createElement("div"),
- *       update(app, el, dt) {
- *         const size = getSize(app.state);
- *         css(el, {
- *           width: `${size}px`,
- *           height: `${size}px`,
- *           backgroundColor: getColor(app.state),
- *         });
- *         const { x, y } = app.state.smooth;
- *         setTransform(el, x, y);
- *       },
- *     },
- *     options
- *   );
- * ```
  */
-export interface VisualConfig<E extends HTMLElement = HTMLElement> extends CoreConfig {
+export interface VisualConfig<
+  E extends HTMLElement | SVGElement = HTMLElement | SVGElement
+> extends CoreConfig {
   /**
    * Factory that creates the plugin's root DOM element.
    * Called once during `install()`. The returned element is automatically
-   * appended to `app.container`.
+   * appended to the **stage** (not `app.container`).
    */
   create: (app: SupermouseInstance) => E;
 
@@ -134,15 +88,11 @@ export interface VisualConfig<E extends HTMLElement = HTMLElement> extends CoreC
   selector?: string;
 }
 
-// ─── Type guard ───
-
-function isVisual<E extends HTMLElement>(
+function isVisual<E extends HTMLElement | SVGElement>(
   config: LogicConfig | VisualConfig<E>
 ): config is VisualConfig<E> {
   return typeof (config as VisualConfig).create === "function";
 }
-
-// ─── Overloads ───
 
 /**
  * Creates a visual plugin with automatic DOM mounting and lifecycle management.
@@ -151,7 +101,7 @@ function isVisual<E extends HTMLElement>(
  * @param userOptions   Optional overrides for `name` and `isEnabled`.
  * @returns A `SupermousePlugin` whose `element` property is typed as `E`.
  */
-export function definePlugin<E extends HTMLElement>(
+export function definePlugin<E extends HTMLElement | SVGElement>(
   config: VisualConfig<E>,
   userOptions?: BasePluginOptions
 ): SupermousePlugin & { element?: E };
@@ -168,24 +118,6 @@ export function definePlugin(
   userOptions?: BasePluginOptions
 ): SupermousePlugin;
 
-// ─── Implementation ───
-
-/**
- * Creates a Supermouse plugin from a declarative configuration.
- *
- * **Visual plugins** receive automatic DOM mounting and enable/disable
- * lifecycle management. The core appends the element returned by `create()`
- * to `app.container`, then shows/hides it via `display` when enabled.
- *
- * Style writes are your responsibility inside `update()`. Use `css()` from
- * `@supermousejs/utils` — it batches writes and skips unchanged values.
- *
- * **Logic plugins** are passed through with minimal wrapping — only
- * `name` and `isEnabled` are resolved from `userOptions`.
- *
- * @see {@link VisualConfig}
- * @see {@link LogicConfig}
- */
 export function definePlugin(
   config: LogicConfig | VisualConfig,
   userOptions: BasePluginOptions = {}
@@ -193,7 +125,6 @@ export function definePlugin(
   const resolvedName = userOptions.name ?? config.name;
   const resolvedEnabled = userOptions.isEnabled ?? true;
 
-  // ── Logic path ──
   if (!isVisual(config)) {
     return {
       ...config,
@@ -202,8 +133,7 @@ export function definePlugin(
     };
   }
 
-  // ── Visual path ──
-  let root: HTMLElement | null = null;
+  let root: HTMLElement | SVGElement | null = null;
   let isMounted = false;
 
   return {
@@ -214,9 +144,9 @@ export function definePlugin(
     install(app) {
       root = config.create(app);
 
-      if (!(root instanceof HTMLElement)) {
+      if (!(root instanceof HTMLElement) && !(root instanceof SVGElement)) {
         console.warn(
-          `[supermouse] Plugin "${resolvedName}" create() did not return an HTMLElement.`
+          `[supermouse] Plugin "${resolvedName}" create() did not return an HTMLElement or SVGElement.`
         );
         return;
       }
