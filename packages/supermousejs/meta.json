@@ -2,7 +2,9 @@
   "id": "supermousejs",
   "name": "Supermouse JS (Standard)",
   "package": "supermousejs",
-  "description": "The official unscoped bundle for v2. Quickest way to get started with the standard Dot & Ring setup.",
-  "code": "import Supermouse, { Dot, Ring } from 'supermousejs';\n\nconst app = new Supermouse();\napp.use(Dot()).use(Ring());",
-  "icon": "dot"
+  "description": "Deprecated: Use scoped packages @supermousejs/core, @supermousejs/dot, @supermousejs/ring instead.",
+  "code": "// Deprecated\nimport Supermouse, { Dot, Ring } from 'supermousejs';\n\n// Recommended\nimport { Supermouse } from '@supermousejs/core';\nimport { Dot } from '@supermousejs/dot';\nimport { Ring } from '@supermousejs/ring';\n\nconst app = new Supermouse();\napp.use(Dot()).use(Ring());",
+  "icon": "dot",
+  "deprecated": true,
+  "deprecationNotice": "This package is deprecated. Supermouse has moved to a fully modular architecture. Use @supermousejs/core, @supermousejs/dot, and @supermousejs/ring instead. See migration guide: https://supermouse.js.org"
 }

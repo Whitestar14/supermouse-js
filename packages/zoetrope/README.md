@@ -1,7 +1,7 @@
-# @supermousejs/zoetrope
+# @supermousejs/zoetrope (deprecated)
 
-Internal SVG path math library used by `@supermousejs/labs` (TextRing).
-Calculates circular paths and circumferences.
+This package has been merged into @supermousejs/labs and @supermousejs/utils as internal utilities for SmartRing.
+Please import the utilities from there instead.
 
 ## Documentation
 

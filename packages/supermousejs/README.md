@@ -30,16 +30,31 @@ mouse.use(Dot()).use(Ring());
 
 ## Installation
 
-If you still need this package for legacy compatibility:
-
 ```bash
 pnpm add supermousejs
 ```
 
-But **strongly prefer** the scoped packages for new projects.
+## Supermouse JS (Standard)
+
+Deprecated: Use scoped packages @supermousejs/core, @supermousejs/dot, @supermousejs/ring instead.
+
+### Usage
+
+```ts
+import Supermouse, { Dot, Ring } from 'supermousejs';
+import { Supermouse } from '@supermousejs/core';
+import { Dot } from '@supermousejs/dot';
+import { Ring } from '@supermousejs/ring';
+import { Supermouse JS (Standard) } from "supermousejs";
+// Deprecated
+// Recommended
+app.use(Dot()).use(Ring());
+```
+
+### Options
+
+No explicit options are documented for this plugin.
 
 ## Documentation
 
-Full documentation and interactive playground: [supermouse.js.org](https://supermouse.js.org)
-<br/>
-Repository: [github.com/Whitestar14/supermouse-js](https://github.com/Whitestar14/supermouse-js)
+Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
