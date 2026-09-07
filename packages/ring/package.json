@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/ring",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -27,7 +27,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitestar14/supermouse-js.git",
-    "directory": "packages/core"
+    "directory": "packages/ring"
   },
   "bugs": {
     "url": "https://github.com/Whitestar14/supermouse-js/issues"

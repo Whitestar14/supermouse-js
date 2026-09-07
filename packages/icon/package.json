@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/icon",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "description": "Renders a static SVG icon at the cursor position.",
@@ -27,7 +27,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitestar14/supermouse-js.git",
-    "directory": "packages/core"
+    "directory": "packages/icon"
   },
   "bugs": {
     "url": "https://github.com/Whitestar14/supermouse-js/issues"

@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/dot",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "description": "A minimalist precision point that follows your movements perfectly",
@@ -27,7 +27,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitestar14/supermouse-js.git",
-    "directory": "packages/core"
+    "directory": "packages/dot"
   },
   "bugs": {
     "url": "https://github.com/Whitestar14/supermouse-js/issues"

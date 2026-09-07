@@ -178,7 +178,7 @@ describe("Supermouse input handling", () => {
     dispatchPointerMove(100, 100);
     expect(app.state.pointer).toEqual({ x: 100, y: 100 });
 
-    const leaveEvent = new MouseEvent("mouseleave", { bubbles: false });
+    const leaveEvent = new MouseEvent("mouseout", { relatedTarget: null });
     document.dispatchEvent(leaveEvent);
 
     expect(app.state.hasReceivedInput).toBe(false);
@@ -190,7 +190,7 @@ describe("Supermouse input handling", () => {
     app = new Supermouse({ container, autoStart: false, hideOnLeave: false });
 
     dispatchPointerMove(100, 100);
-    const leaveEvent = new MouseEvent("mouseleave", { bubbles: false });
+    const leaveEvent = new MouseEvent("mouseout", { relatedTarget: null });
     document.dispatchEvent(leaveEvent);
 
     expect(app.state.hasReceivedInput).toBe(true);

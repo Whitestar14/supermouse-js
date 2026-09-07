@@ -230,7 +230,7 @@ describe("Supermouse core", () => {
     );
     expect(app.state.hasReceivedInput).toBe(true);
 
-    document.dispatchEvent(new MouseEvent("mouseleave"));
+    document.dispatchEvent(new MouseEvent("mouseout", { relatedTarget: null }));
     expect(app.state.hasReceivedInput).toBe(false);
     expect(app.state.pointer).toEqual({ x: -100, y: -100 });
   });

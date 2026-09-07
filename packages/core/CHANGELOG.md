@@ -1,5 +1,12 @@
 # @supermousejs/core
 
+## 2.4.1
+
+### Patch Changes
+
+- 1048a35: Fixed repository metadata pointing to @supermousejs/core instead of their respective directory in package.json
+- be2d65d: Fix `hideOnLeave` bug where stage didn't fade out on window leave in gecko-based browsers
+
 ## 2.4.0
 
 ### Minor Changes
