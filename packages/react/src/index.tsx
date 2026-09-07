@@ -6,7 +6,15 @@ import {
   type SupermouseInstance
 } from "@supermousejs/core";
 
-const SupermouseContext = createContext<SupermouseInstance | null>(null);
+export interface SupermouseContextValue {
+  instance: SupermouseInstance | null;
+  isEnabled: boolean;
+}
+
+const SupermouseContext = createContext<SupermouseContextValue>({
+  instance: null,
+  isEnabled: true
+});
 
 export interface SupermouseProviderProps {
   options?: SupermouseOptions;
@@ -20,26 +28,41 @@ export const SupermouseProvider: React.FC<SupermouseProviderProps> = ({
   plugins = []
 }) => {
   const [instance, setInstance] = useState<SupermouseInstance | null>(null);
+  const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
-    // 1. Initialize
     const mouse = new Supermouse(options);
-
-    // 2. Register Plugins
     plugins.forEach((p) => mouse.use(p));
 
-    setInstance(mouse);
+    const origEnable = mouse.enable.bind(mouse);
+    const origDisable = mouse.disable.bind(mouse);
 
-    // 3. Cleanup
+    mouse.enable = () => {
+      origEnable();
+      setIsEnabled(true);
+    };
+    mouse.disable = () => {
+      origDisable();
+      setIsEnabled(false);
+    };
+
+    setInstance(mouse);
+    setIsEnabled(mouse.isEnabled);
+
     return () => {
       mouse.destroy();
       setInstance(null);
+      setIsEnabled(true);
     };
-  }, []); // Run once on mount
+  }, []);
 
-  return <SupermouseContext.Provider value={instance}>{children}</SupermouseContext.Provider>;
+  return (
+    <SupermouseContext.Provider value={{ instance, isEnabled }}>
+      {children}
+    </SupermouseContext.Provider>
+  );
 };
 
-export const useSupermouse = (): SupermouseInstance | null => {
+export const useSupermouse = (): SupermouseContextValue => {
   return useContext(SupermouseContext);
 };

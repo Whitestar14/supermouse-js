@@ -1,6 +1,6 @@
 # @supermousejs/react
 
-React integration for Supermouse. Handles strict mode and cleanup automatically.
+React integration for Supermouse.
 
 ## Installation
 
@@ -10,7 +10,7 @@ pnpm add @supermousejs/react @supermousejs/core
 
 ## Usage
 
-**In `App.tsx`:**
+In `App.tsx`/root file:
 
 ```tsx
 import { SupermouseProvider } from "@supermousejs/react";
@@ -25,17 +25,29 @@ export default function App() {
 }
 ```
 
-**In Components:**
+In your components:
 
 ```tsx
 import { useSupermouse } from "@supermousejs/react";
 
 const MyComponent = () => {
-  const mouse = useSupermouse(); // Returns Supermouse instance or null
-  return <div />;
+  const { instance, isEnabled } = useSupermouse();
+
+  return (
+    <div>
+      <p>Cursor enabled: {isEnabled ? "Yes" : "No"}</p>
+      <button onClick={() => instance?.disable()}>Disable</button>
+    </div>
+  );
 };
 ```
 
+`useSupermouse()` returns:
+
+- `instance`: The `Supermouse` instance, or `null` before initialization.
+- `isEnabled`: A React state boolean that stays in sync with `enable()` / `disable()`.
+
 ## Documentation
 
-Full documentation and interactive playground available at [supermouse](https://supermouse.js.org) or [check out the repo](https://github.com/Whitestar14/supermouse-js).
+Full documentation and interactive playground: [supermouse.js.org](https://supermouse.js.org)
+Repository: [github.com/Whitestar14/supermouse-js](https://github.com/Whitestar14/supermouse-js)

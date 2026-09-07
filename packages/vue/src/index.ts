@@ -4,17 +4,23 @@ import {
   provide,
   inject,
   shallowRef,
+  ref,
   type Ref,
   type InjectionKey
 } from "vue";
 import { Supermouse } from "@supermousejs/core";
 import type { SupermouseOptions, SupermousePlugin, SupermouseInstance } from "@supermousejs/core";
 
-export const SupermouseKey: InjectionKey<Ref<SupermouseInstance | null>> = Symbol("Supermouse");
+export interface SupermouseContext {
+  instance: Ref<SupermouseInstance | null>;
+  isEnabled: Ref<boolean>;
+}
+
+export const SupermouseKey: InjectionKey<SupermouseContext> = Symbol("Supermouse");
 
 /**
  * Initializes a Supermouse instance, handles its lifecycle, and provides it to the component tree.
- * Use this in your root component (e.g., App.vue).
+ * Also exposes a reactive `isEnabled` ref that stays in sync with the instance's enable/disable state.
  *
  * @param options Core configuration options
  * @param plugins Array of plugins to install immediately
@@ -22,14 +28,30 @@ export const SupermouseKey: InjectionKey<Ref<SupermouseInstance | null>> = Symbo
 export function provideSupermouse(
   options: SupermouseOptions = {},
   plugins: SupermousePlugin[] = []
-): Ref<SupermouseInstance | null> {
+): SupermouseContext {
   const instance = shallowRef<SupermouseInstance | null>(null);
+  const isEnabled = ref(true);
 
   onMounted(() => {
     if (instance.value) return;
 
     const mouse = new Supermouse(options);
     plugins.forEach((p) => mouse.use(p));
+
+    // Patch enable/disable to keep isEnabled reactive
+    const origEnable = mouse.enable.bind(mouse);
+    const origDisable = mouse.disable.bind(mouse);
+
+    mouse.enable = () => {
+      origEnable();
+      isEnabled.value = true;
+    };
+
+    mouse.disable = () => {
+      origDisable();
+      isEnabled.value = false;
+    };
+
     instance.value = mouse;
   });
 
@@ -37,28 +59,31 @@ export function provideSupermouse(
     if (instance.value) {
       instance.value.destroy();
       instance.value = null;
+      isEnabled.value = true;
     }
   });
 
-  provide(SupermouseKey, instance);
-
-  return instance;
+  const ctx: SupermouseContext = { instance, isEnabled };
+  provide(SupermouseKey, ctx);
+  return ctx;
 }
 
 /**
- * Injects the global Supermouse instance from a parent component.
- * @returns A Ref containing the Supermouse instance or null if not provided.
- * @warn Make sure to call provideSupermouse() in a parent component, otherwise this will return null.
+ * Injects the global Supermouse context (instance + reactive isEnabled).
+ * @returns The context, or a default empty context if not provided.
  */
-export function useSupermouse(): Ref<SupermouseInstance | null> {
-  const instance = inject(SupermouseKey);
-  if (!instance) {
+export function useSupermouse(): SupermouseContext {
+  const ctx = inject(SupermouseKey);
+  if (!ctx) {
     console.warn(
       "[Supermouse] No instance provided. Ensure provideSupermouse() is called in a parent component."
     );
-    return shallowRef(null);
+    return {
+      instance: shallowRef(null),
+      isEnabled: ref(true)
+    };
   }
-  return instance;
+  return ctx;
 }
 
 export { Supermouse } from "@supermousejs/core";
