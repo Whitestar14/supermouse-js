@@ -1,5 +1,14 @@
 import type { ValueOrGetter, SupermouseInstance, SupermousePlugin } from "@supermousejs/core";
-import { definePlugin, normalize, dom, math, Layers } from "@supermousejs/utils";
+import {
+  definePlugin,
+  normalize,
+  css,
+  setTransform,
+  createActor,
+  createCircle,
+  math,
+  Layers
+} from "@supermousejs/utils";
 
 export interface SparklesOptions {
   name?: string;
@@ -7,7 +16,7 @@ export interface SparklesOptions {
   color?: ValueOrGetter<string>;
   /** Number of particles in the pool. Default 30. */
   count?: number;
-  /** How fast particles fade out (0.01–0.1). Default 0.05. */
+  /** How fast particles fade out (0–1 per second). Default 2.5 (matches old 0.05 per frame at 50fps). */
   decay?: number;
   /** Pixels of movement required to spawn a particle. Lower = denser trail. Default 10. */
   frequency?: number;
@@ -29,7 +38,7 @@ interface Particle {
 
 export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
   const poolSize = options.count ?? 30;
-  const decayRate = options.decay ?? 0.05;
+  const decayPerSecond = options.decay ?? 2.5;
   const frequency = options.frequency ?? 10;
   const scatter = options.scatter ?? 5;
   const getColor = normalize(options.color, "#ff00ff");
@@ -58,14 +67,14 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
     p.color = color;
 
     const size = math.random(2, 5);
-    dom.css(p.el, {
+    css(p.el, {
       width: `${size}px`,
       height: `${size}px`,
       backgroundColor: color,
       opacity: "1"
     });
 
-    dom.setTransform(p.el, p.x, p.y, 0, p.scale, p.scale);
+    setTransform(p.el, p.x, p.y, 0, p.scale, p.scale);
   };
 
   return definePlugin<HTMLDivElement>(
@@ -73,12 +82,12 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
       name: options.name ?? "sparkles",
 
       create: () => {
-        const container = dom.createActor("div") as HTMLDivElement;
-        dom.css(container, { zIndex: Layers.TRACE });
+        const container = createActor("div") as HTMLDivElement;
+        css(container, { zIndex: Layers.TRACE });
 
         for (let i = 0; i < poolSize; i++) {
-          const el = dom.createCircle(0, "transparent");
-          dom.css(el, {
+          const el = createCircle(0, "transparent");
+          css(el, {
             opacity: "0",
             willChange: "transform, opacity"
           });
@@ -100,7 +109,8 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
         return container;
       },
 
-      update: (app: SupermouseInstance) => {
+      update: (app: SupermouseInstance, _, dtMs: number) => {
+        const dt = dtMs / 1000;
         const { x: cx, y: cy } = app.state.pointer;
 
         if (!hasMoved) {
@@ -133,17 +143,17 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
           const p = pool[i];
           if (!p.isActive) continue;
 
-          p.x += p.vx;
-          p.y += p.vy;
-          p.life -= decayRate;
+          p.x += p.vx * dt * 60;
+          p.y += p.vy * dt * 60;
+          p.life -= decayPerSecond * dt;
 
           if (p.life <= 0) {
             p.isActive = false;
-            dom.css(p.el, { opacity: "0" });
+            css(p.el, { opacity: "0" });
           } else {
             const currentScale = p.scale * p.life;
-            dom.css(p.el, { opacity: String(p.life) });
-            dom.setTransform(p.el, p.x, p.y, 0, currentScale, currentScale);
+            css(p.el, { opacity: String(p.life) });
+            setTransform(p.el, p.x, p.y, 0, currentScale, currentScale);
           }
         }
       },

@@ -1,5 +1,15 @@
-import type { SupermouseInstance, SupermousePlugin, ValueOrGetter } from "@supermousejs/core";
-import { definePlugin, normalizeAll, dom, math, effects, Layers } from "@supermousejs/utils";
+import type { SupermousePlugin, ValueOrGetter } from "@supermousejs/core";
+import {
+  definePlugin,
+  normalizeAll,
+  css,
+  createCircle,
+  setTransform,
+  effects,
+  damp,
+  lerpAngle,
+  Layers
+} from "@supermousejs/utils";
 
 export interface SmartRingOptions {
   name?: string;
@@ -27,6 +37,8 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
   let currentRot = 0;
   let currentScaleX = 1;
   let currentScaleY = 1;
+  const exitDuration = 150;
+  let exitTimeout: ReturnType<typeof setTimeout> | null = null;
 
   return definePlugin<HTMLDivElement>(
     {
@@ -34,12 +46,13 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
       selector: "[data-supermouse-color]",
 
       create: (app) => {
-        const el = dom.createCircle(cfg.size(app.state), cfg.fill(app.state));
-        dom.css(el, {
+        const el = createCircle(cfg.size(app.state), cfg.fill(app.state));
+        css(el, {
           zIndex: Layers.FOLLOWER,
           mixBlendMode: options.mixBlendMode ?? "difference",
-          transition: "opacity 0.2s ease, border-radius 0.2s ease",
-          borderStyle: "solid"
+          transition: "border-radius 0.2s ease",
+          borderStyle: "solid",
+          opacity: "0"
         });
         return el;
       },
@@ -51,14 +64,31 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
         currentRot = 0;
         currentScaleX = 1;
         currentScaleY = 1;
-        dom.css(el, { borderRadius: "50%" });
+
+        clearTimeout(exitTimeout ?? undefined);
+        el.style.display = "block";
+        el.style.opacity = "1";
+        el.style.transition = "border-radius 0.2s ease";
       },
 
-      onDisable(_app, el) {
-        dom.css(el, { borderRadius: "50%" });
+      beforeDisable(app, el) {
+        const { x, y } = app.state.smooth;
+        el.style.transition = `opacity ${exitDuration}ms ease, transform ${exitDuration}ms ease`;
+        el.style.opacity = "0";
+        setTransform(el, x, y, 0, 0.2, 0.2);
+
+        return new Promise<void>((resolve) => {
+          exitTimeout = setTimeout(() => {
+            el.style.transition = "border-radius 0.2s ease";
+            resolve();
+          }, exitDuration);
+        });
       },
 
-      update: (app: SupermouseInstance, el: HTMLDivElement) => {
+      update: (app, el, dtMs) => {
+        if (el.style.display === "none") return;
+
+        const dt = dtMs / 1000;
         const baseSize = cfg.size(app.state);
         const shape = app.state.shape;
 
@@ -84,16 +114,17 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
 
         if (app.state.interaction.color) color = app.state.interaction.color;
 
-        currentW = math.lerp(currentW, targetW, 0.2);
-        currentH = math.lerp(currentH, targetH, 0.2);
+        currentW = damp(currentW, targetW, 20, dt);
+        currentH = damp(currentH, targetH, 20, dt);
 
-        dom.css(el, {
+        css(el, {
           width: `${currentW}px`,
           height: `${currentH}px`,
           borderRadius: targetRadius,
           borderColor: color,
           backgroundColor: cfg.fill(app.state),
-          borderWidth: `${cfg.borderWidth(app.state)}px`
+          borderWidth: `${cfg.borderWidth(app.state)}px`,
+          opacity: "1"
         });
 
         let targetRot = 0;
@@ -101,21 +132,23 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
         let targetScaleY = 1;
 
         if (!shape && options.enableSkew && !app.state.reducedMotion) {
-          const { velocity } = app.state;
-          const dist = effects.getVelocityDistortion(velocity.x, velocity.y);
+          const { displacement } = app.state;
+          const dist = effects.getVelocityDistortion(displacement.x, displacement.y);
           targetRot = dist.rotation;
           targetScaleX = dist.scaleX;
           targetScaleY = dist.scaleY;
-          currentRot = math.lerpAngle(currentRot, targetRot, 0.15);
+
+          const angleFactor = 1 - Math.exp(-20 * dt);
+          currentRot = lerpAngle(currentRot, targetRot, angleFactor);
         } else {
           currentRot = 0;
         }
 
-        currentScaleX = math.lerp(currentScaleX, targetScaleX, 0.15);
-        currentScaleY = math.lerp(currentScaleY, targetScaleY, 0.15);
+        currentScaleX = damp(currentScaleX, targetScaleX, 20, dt);
+        currentScaleY = damp(currentScaleY, targetScaleY, 20, dt);
 
         const { x, y } = app.state.smooth;
-        dom.setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
+        setTransform(el, x, y, currentRot, currentScaleX, currentScaleY);
       }
     },
     options

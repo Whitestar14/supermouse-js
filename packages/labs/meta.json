@@ -53,29 +53,29 @@
       {
         "name": "color",
         "type": "string",
-        "default": "'black'",
-        "description": "Icon fill color (currentColor).",
+        "default": "'currentColor'",
+        "description": "Color applied to the icon container. SVGs that use `currentColor` will inherit it. If empty, the icon keeps its original fill.",
         "reactive": true
       },
       {
         "name": "offset",
         "type": "[number, number]",
         "default": "[0, 0]",
-        "description": "Fixed offset.",
+        "description": "Fixed offset from the pointer position.",
         "reactive": false
       },
       {
         "name": "anchor",
         "type": "string",
         "default": "'center'",
-        "description": "Alignment (center, top-left, etc).",
+        "description": "Alignment (center, top-left, top-right, bottom-left, bottom-right).",
         "reactive": true
       },
       {
         "name": "followStrategy",
         "type": "'smooth' | 'raw'",
         "default": "'smooth'",
-        "description": "Whether the icon should smoothly follow the pointer or snap to it.",
+        "description": "Whether the icon smoothly follows the pointer or snaps to it.",
         "reactive": true
       },
       {
@@ -106,21 +106,21 @@
         "name": "hoverSize",
         "type": "number",
         "default": "40",
-        "description": "Diameter on hover.",
+        "description": "Diameter when hovering interactive elements.",
         "reactive": true
       },
       {
         "name": "color",
         "type": "string",
         "default": "'#ffffff'",
-        "description": "Border color used for the ring.",
+        "description": "Border color.",
         "reactive": true
       },
       {
         "name": "fill",
         "type": "string",
         "default": "'transparent'",
-        "description": "Background fill color applied to the ring.",
+        "description": "Background fill color.",
         "reactive": true
       },
       {
@@ -141,7 +141,7 @@
         "name": "enableSkew",
         "type": "boolean",
         "default": "false",
-        "description": "Distort shape based on velocity.",
+        "description": "Distort the ring based on velocity (stretch and rotate).",
         "reactive": false
       }
     ]
@@ -165,21 +165,21 @@
         "name": "count",
         "type": "number",
         "default": "30",
-        "description": "Number of particles to keep in the pool.",
+        "description": "Number of particles in the pool.",
         "reactive": false
       },
       {
         "name": "frequency",
         "type": "number",
         "default": "10",
-        "description": "Pixels per spawn.",
+        "description": "Pixels of movement required to spawn a particle. Lower values for a denser trail.",
         "reactive": false
       },
       {
         "name": "decay",
         "type": "number",
-        "default": "0.05",
-        "description": "Fade rate.",
+        "default": "2.5",
+        "description": "Fade rate (0-1 per second). Higher values make for faster fading.",
         "reactive": false
       },
       {
@@ -210,7 +210,7 @@
         "name": "radius",
         "type": "number",
         "default": "60",
-        "description": "Ring radius.",
+        "description": "Ring radius in pixels.",
         "reactive": true
       },
       {
@@ -223,15 +223,15 @@
       {
         "name": "speed",
         "type": "number",
-        "default": "0.5",
-        "description": "Rotation speed deg/frame.",
+        "default": "30",
+        "description": "Rotation speed in degrees per second.",
         "reactive": true
       },
       {
         "name": "color",
         "type": "string",
         "default": "'currentColor'",
-        "description": "Text color used by the SVG ring.",
+        "description": "Text color.",
         "reactive": true
       },
       {
@@ -251,8 +251,8 @@
       {
         "name": "spread",
         "type": "boolean",
-        "default": "false",
-        "description": "Stretch the text to fit around the full loop.",
+        "default": "true",
+        "description": "Stretch the text to fit the entire circle using cross-browser letter-spacing.",
         "reactive": false
       }
     ]

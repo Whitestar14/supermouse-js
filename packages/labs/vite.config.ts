@@ -10,12 +10,11 @@ export default defineConfig({
       fileName: (format) => (format === "es" ? "index.mjs" : "index.umd.js")
     },
     rollupOptions: {
-      external: ["@supermousejs/core", "@supermousejs/utils", "@supermousejs/zoetrope"],
+      external: ["@supermousejs/core", "@supermousejs/utils"],
       output: {
         globals: {
           "@supermousejs/core": "SupermouseCore",
           "@supermousejs/utils": "SupermouseUtils",
-          "@supermousejs/zoetrope": "SupermouseZoetrope"
         }
       }
     }
