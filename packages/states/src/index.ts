@@ -44,9 +44,12 @@ export const States = (options: StatesOptions) => {
         const target = app.state.hoverTarget;
         let nextState = "default";
 
-        if (target?.hasAttribute(attr)) {
-          const val = target.getAttribute(attr);
-          if (val && options.states[val]) nextState = val;
+        if (target) {
+          const stateEl = target.closest(`[${attr}]`);
+          if (stateEl) {
+            const val = stateEl.getAttribute(attr);
+            if (val && options.states[val]) nextState = val;
+          }
         }
 
         if (nextState === currentState) return;

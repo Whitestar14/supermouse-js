@@ -1,6 +1,6 @@
 # @supermousejs/states
 
-Logic controller that enables/disables other plugins based on hover attributes. The plugin names listed in `default` and `states` must match the registered `plugin.name` values you use in your app.
+Logic controller that enables/disables other plugins based on hover attributes
 
 ## Installation
 
