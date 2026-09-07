@@ -4,8 +4,8 @@ import { Icon } from "@supermousejs/icon";
 import { Text } from "@supermousejs/text";
 import { States } from "@supermousejs/states";
 import { SpotlightReveal } from "./plugins/spotlight-reveal-plugin";
-import { GlitchCursor } from "./plugins/glitch-plugin";
-import { MotionBlur } from "./plugins/motion-blur-plugin";
+// import { GlitchCursor } from "./plugins/glitch-plugin";
+// import { MotionBlur } from "./plugins/motion-blur-plugin";
 
 const LOGO_CURSOR = `
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
