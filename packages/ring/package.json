@@ -7,7 +7,8 @@
   "description": "Adds a lagging outer ring",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",

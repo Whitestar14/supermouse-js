@@ -7,7 +7,8 @@
   "description": "Attracts the cursor to interactive elements using physics-based magnetism.",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",

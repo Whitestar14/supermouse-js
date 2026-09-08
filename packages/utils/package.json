@@ -9,6 +9,10 @@
   "url": "https://github.com/Whitestar14/supermouse-js",
   "sideEffects": false,
   "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "vite build"
   },

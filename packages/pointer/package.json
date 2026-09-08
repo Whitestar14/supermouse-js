@@ -7,7 +7,8 @@
   "description": "A vehicle style arrow that rotates based on velocity vectors.",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",
