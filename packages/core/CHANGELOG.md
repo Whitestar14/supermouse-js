@@ -1,5 +1,11 @@
 # @supermousejs/core
 
+## 2.4.3
+
+### Patch Changes
+
+- 16a387f: Updated README with npm-sensible quick start section
+
 ## 2.4.2
 
 ### Patch Changes

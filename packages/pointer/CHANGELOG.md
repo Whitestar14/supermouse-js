@@ -1,5 +1,13 @@
 # @supermousejs/pointer
 
+## 2.4.3
+
+### Patch Changes
+
+- Updated dependencies [16a387f]
+  - @supermousejs/core@2.4.3
+  - @supermousejs/utils@2.4.3
+
 ## 2.4.2
 
 ### Patch Changes
