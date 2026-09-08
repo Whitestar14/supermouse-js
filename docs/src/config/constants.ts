@@ -3,10 +3,11 @@
  * Source of truth for versioning and stats.
  */
 
-export const APP_VERSION = `v${__SUPERMOUSE_VERSION__}`;
+// export const APP_VERSION = `v${__SUPERMOUSE_VERSION__}`;
+export const APP_VERSION = `v2.3.0`;
 export const APP_NAME = "Supermouse.js";
 export const LAST_UPDATED = "June 22, 2026";
-export const BUNDLE_SIZE = "3.4kb";
+export const BUNDLE_SIZE = "4.8kb";
 export const LICENSE = "MIT";
 export const AUTHOR = "Stud.io Inc.";
 export const YEAR = "2024-2026";
