@@ -1,5 +1,11 @@
 # @supermousejs/core
 
+## 2.4.2
+
+### Patch Changes
+
+- 291b5c1: Updated package.json to export only necessary files, skipping out src artifacts
+
 ## 2.4.1
 
 ### Patch Changes

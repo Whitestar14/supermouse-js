@@ -1,5 +1,13 @@
 # @supermousejs/vue
 
+## 2.4.2
+
+### Patch Changes
+
+- 291b5c1: Updated package.json to export only necessary files, skipping out src artifacts
+- Updated dependencies [291b5c1]
+  - @supermousejs/core@2.4.2
+
 ## 2.4.1
 
 ### Patch Changes
