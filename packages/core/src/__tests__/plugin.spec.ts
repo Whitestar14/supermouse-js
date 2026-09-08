@@ -33,10 +33,10 @@ describe("Supermouse plugin system", () => {
     app.use(plugin);
     app.use(plugin);
     expect(warn).toHaveBeenCalled();
-    expect(app.plugins?.length).toBe(1); // private, but accessible in test
+    expect((app as any).plugins.length).toBe(1);
   });
 
-  it("sorts plugins by priority (lower runs first)", async () => {
+  it("sorts plugins by priority (lower runs first)", () => {
     app = new Supermouse({ autoStart: false });
     const order: number[] = [];
     app.use({
@@ -50,10 +50,9 @@ describe("Supermouse plugin system", () => {
       update: () => order.push(1)
     });
 
-    // Manually step once (simulate a frame)
     app.start();
     app.step(performance.now() + 16);
-    app.destroy(); // stop the loop
+    app.destroy();
 
     expect(order).toEqual([1, 10]);
   });

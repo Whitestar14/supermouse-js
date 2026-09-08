@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { Stage } from "../Supermouse";
+import { Stage } from "../internal/Stage";
 
 describe("Supermouse Stage", () => {
   let container: HTMLElement;
@@ -106,8 +106,10 @@ describe("Supermouse Stage", () => {
 
       stage.addSelector("p, span, h1, h2");
 
-      const styleTag = document.querySelector("style[id^='supermouse-style-']")!;
-      const styleText = styleTag.innerText;
+      const styleTag = document.querySelector(
+        "style[id^='supermouse-style-']"
+      ) as HTMLStyleElement | null;
+      const styleText = styleTag!.innerText;
 
       const scopeClass = Array.from(container.classList).find((c) =>
         c.startsWith("supermouse-scope-")

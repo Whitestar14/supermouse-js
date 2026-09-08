@@ -60,8 +60,8 @@ describe("Supermouse lifecycle", () => {
 
     app.disable();
 
-    expect(app.input.isEnabled).toBe(false);
-    expect(container.style.cursor).toBe(""); // original (empty)
+    expect(app.isEnabled).toBe(false);
+    expect(container.style.cursor).toBe("");
     expect(app.state.target).toEqual({ x: -100, y: -100 });
     expect(app.state.smooth).toEqual({ x: -100, y: -100 });
     expect(app.state.velocity).toEqual({ x: 0, y: 0 });
@@ -76,7 +76,7 @@ describe("Supermouse lifecycle", () => {
     app.disable();
     app.enable();
 
-    expect(app.input.isEnabled).toBe(true);
+    expect(app.isEnabled).toBe(true);
     expect(app.state.hasReceivedInput).toBe(true);
     expect(app.state.target).toEqual({ x: 200, y: 250 });
     expect(app.state.smooth).toEqual({ x: 200, y: 250 });
@@ -87,7 +87,6 @@ describe("Supermouse lifecycle", () => {
 
   it("suspend() disables input, clears hover, hides stage", () => {
     app = new Supermouse({ autoStart: false, container });
-    // Simulate hovering an element
     const link = document.createElement("a");
     container.appendChild(link);
     link.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
@@ -96,7 +95,7 @@ describe("Supermouse lifecycle", () => {
     app.start();
     app.suspend();
 
-    expect(app.input.isEnabled).toBe(false);
+    expect(app.isEnabled).toBe(false);
     expect(app.state.isHover).toBe(false);
     expect(app.state.hoverTarget).toBeNull();
     expect(app.state.interaction).toEqual({});
@@ -113,7 +112,7 @@ describe("Supermouse lifecycle", () => {
     app.use({ name: "test", update: updateSpy });
     app.resume();
 
-    expect(app.input.isEnabled).toBe(true);
+    expect(app.isEnabled).toBe(true);
     expect(app.state.target).toEqual({ x: 300, y: 400 });
     expect(app.state.smooth).toEqual({ x: 300, y: 400 });
     expect(app.stage.style.opacity).toBe("1");
@@ -122,7 +121,7 @@ describe("Supermouse lifecycle", () => {
 
   it("manual step advances physics and updates velocity/displacement", () => {
     app = new Supermouse({ autoStart: false, container });
-    app.input.isEnabled = true;
+    (app as any).input.isEnabled = true;
     app.state.hasReceivedInput = true;
     app.state.pointer = { x: 100, y: 100 };
     app.state.target = { x: 100, y: 100 };
@@ -155,20 +154,20 @@ describe("Supermouse lifecycle", () => {
     Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
     document.dispatchEvent(new Event("visibilitychange"));
 
-    expect(rafSpy).toHaveBeenCalledTimes(2); // initial + resume
+    expect(rafSpy).toHaveBeenCalledTimes(2);
   });
 
   it("destroy() stops loop, removes event listeners, stage, and plugins", () => {
     const destroyPluginSpy = vi.fn();
-
     app = new Supermouse({ autoStart: false, container });
     const stageEl = app.stage;
     const styleTag = document.querySelector('style[id^="supermouse-style-"]');
     app.use({ name: "plugin", destroy: destroyPluginSpy });
 
+    const cancelSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
     app.destroy();
 
-    expect(app.isRunning).toBe(false);
+    expect(cancelSpy).toHaveBeenCalled();
     expect(document.body.contains(stageEl)).toBe(false);
     expect(document.head.contains(styleTag)).toBe(false);
     expect(destroyPluginSpy).toHaveBeenCalled();
@@ -178,7 +177,6 @@ describe("Supermouse lifecycle", () => {
 
   it("disable() hides the custom cursor stage", () => {
     app = new Supermouse({ autoStart: false });
-    // Simulate pointer presence
     window.dispatchEvent(
       new PointerEvent("pointermove", { clientX: 100, clientY: 100, pointerType: "mouse" })
     );
