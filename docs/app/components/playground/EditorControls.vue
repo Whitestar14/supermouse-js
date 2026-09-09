@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ControlSchema } from "@playground/recipes";
-import ControlRange from "./controls/ControlRange.vue";
-import ControlColor from "./controls/ControlColor.vue";
-import ControlToggle from "./controls/ControlToggle.vue";
-import ControlSelect from "./controls/ControlSelect.vue";
+import UiRange from "@components/ui/UiRange.vue";
+import UiColor from "@components/ui/UiColor.vue";
+import UiToggle from "@components/ui/UiToggle.vue";
+import UiSelect from "@components/ui/UiSelect.vue";
 
 const props = defineProps<{
   schema: ControlSchema[];
@@ -42,7 +42,7 @@ const showNative = computed({
       <!-- Dynamic Schema Controls -->
       <div class="space-y-4">
         <template v-for="control in schema" :key="control.key">
-          <ControlRange
+          <UiRange
             v-if="control.type === 'range'"
             v-model="localConfig[control.key]"
             :label="control.label"
@@ -53,20 +53,20 @@ const showNative = computed({
             :description="control.description"
           />
 
-          <ControlColor
+          <UiColor
             v-else-if="control.type === 'color'"
             v-model="localConfig[control.key]"
             :label="control.label"
           />
 
-          <ControlToggle
+          <UiToggle
             v-else-if="control.type === 'toggle'"
             v-model="localConfig[control.key]"
             :label="control.label"
             :description="control.description"
           />
 
-          <ControlSelect
+          <UiSelect
             v-else-if="control.type === 'select'"
             v-model="localConfig[control.key]"
             :label="control.label"
@@ -92,7 +92,7 @@ const showNative = computed({
         </h4>
 
         <div class="space-y-4">
-          <ControlRange
+          <UiRange
             v-model="smoothness"
             label="Smoothing (Lag)"
             :min="0.01"
@@ -100,7 +100,7 @@ const showNative = computed({
             :step="0.01"
             unit=""
           />
-          <ControlToggle v-model="showNative" label="Show Native Cursor" />
+          <UiToggle v-model="showNative" label="Show Native Cursor" />
         </div>
       </div>
     </div>

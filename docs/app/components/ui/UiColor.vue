@@ -4,7 +4,9 @@ defineProps<{
   label: string;
 }>();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+  (e: "update:modelValue", value: string): void;
+}>();
 
 const updateHex = (e: Event) => {
   const val = (e.target as HTMLInputElement).value;
@@ -20,7 +22,7 @@ const updateHex = (e: Event) => {
     <div
       class="relative flex h-10 border border-zinc-200 items-center pl-3 gap-2 group hover:border-zinc-400 transition-colors bg-white"
     >
-      <span class="mono text-zinc-400 text-xs select-none">#</span>
+      <span class="font-mono text-zinc-400 text-xs select-none">#</span>
       <input
         type="text"
         :value="modelValue.replace('#', '')"

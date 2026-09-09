@@ -106,16 +106,35 @@ watch(query, () => {
           @click="navigate(res.path)"
           data-supermouse-icon="pointer"
         >
+          <div class="flex flex-col truncate w-56 shrink-0">
+            <span
+              class="text-sm font-bold tracking-tight truncate"
+              :class="i === selectedIndex ? 'text-white' : 'text-zinc-900'"
+            >
+              {{ res.label }}
+            </span>
+            <span
+              v-if="res.heading && res.heading !== res.label"
+              class="text-[10px] font-mono truncate"
+              :class="i === selectedIndex ? 'text-zinc-300' : 'text-zinc-500'"
+            >
+              {{ res.heading }}
+            </span>
+          </div>
           <span
-            class="text-sm font-bold tracking-tight truncate w-48 shrink-0"
-            :class="i === selectedIndex ? 'text-white' : 'text-zinc-900'"
+            class="text-xs truncate flex-1 px-4"
+            :class="i === selectedIndex ? 'text-zinc-300' : 'text-zinc-500'"
           >
-            {{ res.label }}
+            {{ res.description || res.path }}
           </span>
-          <span class="mono text-[11px] truncate flex-1 px-4 text-zinc-400">
-            {{ res.path }}
-          </span>
-          <span class="mono text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 shrink-0">
+          <span
+            class="mono text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 shrink-0 border"
+            :class="
+              i === selectedIndex
+                ? 'border-zinc-700 text-zinc-300'
+                : 'border-zinc-200 text-zinc-600 bg-zinc-50'
+            "
+          >
             {{ res.type }}
           </span>
         </div>

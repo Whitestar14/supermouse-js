@@ -11,10 +11,12 @@ const props = defineProps<{
   description?: string;
 }>();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+  (e: "update:modelValue", value: number): void;
+}>();
 
-// Calculate the percentage fill for the track
 const progress = computed(() => {
+  if (props.max === props.min) return 0;
   return ((props.modelValue - props.min) / (props.max - props.min)) * 100;
 });
 </script>
@@ -56,13 +58,13 @@ const progress = computed(() => {
 </template>
 
 <style scoped>
-@reference '../../../assets/css/index.css'
+@reference '../../../assets/css/index.css';
+
 .supermouse-range {
   @apply w-full h-1 appearance-none cursor-pointer transition-all;
   outline: none;
 }
 
-/* Custom Thumb (Knob) Styling */
 .supermouse-range::-webkit-slider-thumb {
   @apply appearance-none w-3 h-3 bg-black border border-white shadow-[0_0_0_1px_black] transition-transform active:scale-125;
 }
@@ -71,7 +73,6 @@ const progress = computed(() => {
   @apply w-3 h-3 bg-black border border-white shadow-[0_0_0_1px_black] rounded-none transition-transform active:scale-125;
 }
 
-/* Ensure track looks consistent in Firefox */
 .supermouse-range::-moz-range-track {
   @apply h-1 bg-transparent;
 }

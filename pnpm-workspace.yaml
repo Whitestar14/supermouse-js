@@ -4,6 +4,7 @@ packages:
   - docs
 
 allowBuilds:
+  better-sqlite3: true
   esbuild: true
 
 # Pin vue to a version whose @vue/runtime-dom metadata is already cached locally

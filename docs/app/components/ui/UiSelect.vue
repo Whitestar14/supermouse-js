@@ -6,7 +6,9 @@ defineProps<{
   description?: string;
 }>();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+  (e: "update:modelValue", value: string): void;
+}>();
 </script>
 
 <template>
@@ -22,7 +24,8 @@ const emit = defineEmits(["update:modelValue"]);
       <button
         v-for="opt in options"
         :key="opt"
-        class="px-3 py-2 text-xs font-bold transition-all capitalize text-center"
+        type="button"
+        class="px-3 py-2 text-xs font-bold transition-all capitalize text-center cursor-pointer"
         :class="
           modelValue === opt
             ? 'bg-black text-white'

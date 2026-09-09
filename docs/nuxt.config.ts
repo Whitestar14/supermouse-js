@@ -41,6 +41,8 @@ export default defineNuxtConfig({
   compatibilityDate: "2026-09-08",
   ssr: true,
 
+  modules: ["@nuxt/content"],
+
   css: ["~/assets/css/index.css"],
 
   app: {
