@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist
 copied_packages/
 demo/
 demo
@@ -93,6 +94,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
+.output
 dist
 
 # Gatsby files

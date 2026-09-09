@@ -1,0 +1,99 @@
+the core never renders a cursor itself.
+
+the stage belongs to the core.
+
+plugins own visual rendering.
+
+state.pointer represents raw input.
+
+state.smooth represents the physics output.
+
+plugins must not be able to corrupt the core lifecycle.
+
+container semantics differ between body and arbitrary elements.
+
+native cursor state is controlled by core.
+
+plugin failures are isolated.
+
+## things to note
+
+the current system lambda might not be intuitive as one might expect higher snappiness when you have lesser values (higher lambdas) and smoothness with lower lambdas
+
+plugins recieve update before core calculates the new smooth position for that frame
+
+deprecate css.ts
+
+
+Below are the updated `plugin.ts` with comprehensive JSDoc comments, and the corresponding updates to the README’s Plugin Helper section.
+
+
+```markdown
+### `definePlugin(config, userOptions?)`
+
+Creates a Supermouse plugin from a declarative configuration.
+
+**Two overloads:**
+
+- **Visual Plugin:** The config includes `create()` and optionally `update`, `selector`, `beforeDisable`, etc. The helper mounts the returned element to the **stage** and toggles visibility automatically.
+- **Logic Plugin:** The config omits `create`; all lifecycle hooks are passed through directly.
+
+#### Visual Plugin Example
+
+```ts
+import { definePlugin, css, setTransform } from "@supermousejs/utils";
+
+export const Dot = (options = {}) =>
+  definePlugin(
+    {
+      name: "dot",
+      create: () => document.createElement("div"),
+      update(app, el, dt) {
+        const size = getSize(app.state);
+        css(el, {
+          width: `${size}px`,
+          height: `${size}px`,
+          backgroundColor: getColor(app.state)
+        });
+        const { x, y } = app.state.smooth;
+        setTransform(el, x, y);
+      }
+    },
+    options
+  );
+```
+
+#### Logic Plugin Example
+
+```ts
+import { definePlugin } from "@supermousejs/utils";
+
+const Gravity = definePlugin({
+  name: "gravity",
+  priority: -10,
+  update(app, dt) {
+    app.state.target.y += 5;
+  }
+});
+```
+
+**Configuration Interfaces**
+
+- `BasePluginOptions` – Common options for all plugins (`name`, `isEnabled`).
+- `LogicConfig` – Lifecycle hooks for logic plugins.
+- `VisualConfig<E>` – Factory and lifecycle for visual plugins.
+
+**New: Exit Animations with `beforeDisable`**
+
+Both `LogicConfig` and `VisualConfig` accept a `beforeDisable` hook. This hook runs **before** the plugin is disabled and can return a `Promise`. The core will wait for the promise to resolve before hiding the element and calling `onDisable`.
+
+```ts
+beforeDisable(app, el) {
+  el.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+  el.style.opacity = "0";
+  el.style.transform = "scale(0.5)";
+  return new Promise(resolve => setTimeout(resolve, 200));
+}
+```
+
+For logic plugins, `beforeDisable` receives only `app`.

@@ -5,3 +5,8 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+# Pin vue to a version whose @vue/runtime-dom metadata is already cached locally
+# (nuxt@4.5.2 wants vue@3.5.42; drop this pin once the cache refreshes)
+overrides:
+  vue: 3.5.40

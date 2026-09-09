@@ -10,6 +10,8 @@ export default defineConfig(
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",
+      "**/.nuxt/**",
+      "**/.output/**",
       "**/.cache/**",
       "**/.env*",
       "**/generated-plugins.json",

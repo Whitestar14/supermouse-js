@@ -8,6 +8,8 @@ yarn.lock
 dist
 build
 .cache
+.nuxt
+.output
 
 # Environment
 .env

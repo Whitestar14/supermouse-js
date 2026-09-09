@@ -10,7 +10,7 @@ export async function handle({ verbose, dryRun, autoYes, args }, rootDir, logger
   logger.header("Generate Documentation Data");
 
   const packagesDir = path.join(rootDir, "packages");
-  const outputFile = path.join(rootDir, "docs", "src", "data", "generated-plugins.json");
+  const outputFile = path.join(rootDir, "docs", "app", "data", "generated-plugins.json");
 
   logger.section("Scanning Packages");
 
