@@ -2,18 +2,24 @@ import type { SupermouseInstance } from "@supermousejs/vue";
 
 export type ControlType = "range" | "color" | "toggle" | "text" | "select";
 
-export interface ControlSchema {
+interface ControlBase {
   key: string;
   label: string;
-  type: ControlType;
   defaultValue: any;
-  min?: number;
-  max?: number;
-  step?: number;
-  options?: string[]; // for select
-  unit?: string; // e.g. 'px', 'ms', 'deg'
   description?: string;
 }
+
+/**
+ * Discriminated union so the editor can render each control without non-null
+ * assertions: a `range` control is guaranteed to carry `min`/`max`, a `select`
+ * is guaranteed to carry `options`, and so on.
+ */
+export type ControlSchema =
+  | (ControlBase & { type: "range"; min: number; max: number; step?: number; unit?: string })
+  | (ControlBase & { type: "color" })
+  | (ControlBase & { type: "toggle" })
+  | (ControlBase & { type: "select"; options: string[] })
+  | (ControlBase & { type: "text" });
 
 export type ASTValue = string | number | boolean | ASTNode | undefined;
 

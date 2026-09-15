@@ -262,6 +262,7 @@ function generatePluginData(packagesDir, packages, logger) {
       return metaArray.map((metaData) => ({
         ...metaData,
         version: metaData.version || pkgJson.version || "2.1.1",
+        license: pkgJson.license || "MIT",
         installCommand: `pnpm install ${pkgJson.name}`,
         importSnippet: `import { ${metaData.name} } from '${pkgJson.name}'`,
         hasDetailedDocs: true

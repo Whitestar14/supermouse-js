@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { APP_VERSION } from "@config/constants";
-import CodeBlock from "@shared/CodeBlock.vue";
+import CodeBlock from "@components/content/CodeBlock.vue";
 
 const copied = ref(false);
 const version: string = APP_VERSION || "2.2.0";
@@ -188,3 +188,4 @@ app.use(Dot({
     </div>
   </div>
 </template>
+

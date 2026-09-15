@@ -75,7 +75,7 @@ export const generateCode = (
 
   const coreOptions: Record<string, any> = {};
   if (globalConfig?.smoothness !== 0.15) coreOptions.smoothness = globalConfig?.smoothness;
-  if (globalConfig && !globalConfig.showNative) coreOptions.hideCursor = true;
+  if (globalConfig && !globalConfig.showNative) coreOptions.cursor = "custom";
 
   if (!targetRecipe || !targetRecipe.generateAST) {
     const coreSerialized =

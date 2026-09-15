@@ -165,7 +165,7 @@ onUnmounted(() => {
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
               <NuxtLink
-                to="/docs/advanced/authoring"
+                to="/docs/architecture/authoring"
                 class="inline-flex h-12 items-center justify-center px-6 bg-zinc-900 text-white font-bold text-sm hover:bg-zinc-800 transition-colors"
               >
                 Write a Plugin

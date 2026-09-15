@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { APP_NAME, SITE_URL } from "@config/constants";
+import { APP_NAME, GITHUB_URL, SITE_URL } from "@config/constants";
 import Footer from "@components/landing/Footer.vue";
-import { useDocsSidebar } from "@composables/useDocsSidebar";
 import { usePageHead } from "@composables/usePageHead";
-import { DOCS_NAVIGATION } from "@config/navigation";
+import { useDocsNavigation } from "@config/navigation";
+import { formatDate } from "@utils/date";
+import { useTocSections, useTocActiveSection } from "@composables/useToc";
 
 const route = useRoute();
-const { clearRightSidebar, rightSidebarConfig } = useDocsSidebar();
+// Published by the docs page during its setup, so the rail renders server-side.
+const tocSections = useTocSections();
+const activeSection = useTocActiveSection();
+// Derived from content frontmatter + generated plugin metadata — never edited by hand.
+const DOCS_NAVIGATION = useDocsNavigation();
 
 const activeGroup = ref<string | null>(null);
 const mobileMenuOpen = ref(false);
@@ -87,7 +92,7 @@ watch(
   () => route.path,
   () => {
     syncSidebar();
-    clearRightSidebar();
+    tocSections.value = [];
     mobileMenuOpen.value = false;
 
     if (typeof window !== "undefined") {
@@ -106,6 +111,18 @@ const flatNav = computed(() => {
     group.items.map((item) => ({ ...item, group: group.title }))
   );
 });
+
+/**
+ * Provenance footer for hand-written pages. Plugin pages are generated from
+ * package metadata, so they get no edit link or date.
+ */
+const currentDoc = computed(() => flatNav.value.find((item) => item.path === route.path));
+const lastUpdated = computed(() => formatDate(currentDoc.value?.updated));
+const editUrl = computed(() =>
+  currentDoc.value?.updated
+    ? `${GITHUB_URL}/edit/master/docs/content${route.path}.md`
+    : null
+);
 
 const currentIndex = computed(() => {
   return flatNav.value.findIndex((item) => item.path === route.path);
@@ -391,22 +408,51 @@ const nextPage = computed(() => {
               </div>
             </NuxtLink>
           </div>
+
+          <!-- Page provenance -->
+          <div
+            v-if="lastUpdated || editUrl"
+            class="mt-10 pt-6 border-t border-zinc-200 flex flex-wrap items-center justify-between gap-3"
+          >
+            <span
+              class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold"
+            >
+              {{ lastUpdated ? `Last updated ${lastUpdated}` : "Generated page" }}
+            </span>
+            <a
+              v-if="editUrl"
+              :href="editUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group inline-flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-black transition-colors"
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+              Edit this page on GitHub
+            </a>
+          </div>
         </div>
       </div>
 
-      <!-- Right Sidebar (Slottable for TOC and other components) -->
+      <!-- Right Sidebar: TOC -->
       <aside
-        v-if="rightSidebarConfig"
+        v-if="tocSections.length"
         class="hidden xl:block w-[240px] shrink-0 border-l border-zinc-100 bg-white"
       >
         <div
           class="sticky top-28 h-fit max-h-[calc(100vh-7rem)] overflow-y-auto px-6 py-12 scrollbar-thin"
         >
-          <component
-            :is="rightSidebarConfig.component"
-            v-bind="rightSidebarConfig.props"
-            v-on="rightSidebarConfig.on"
-          />
+          <TableOfContents :sections="tocSections" :active-section="activeSection" />
         </div>
       </aside>
     </div>

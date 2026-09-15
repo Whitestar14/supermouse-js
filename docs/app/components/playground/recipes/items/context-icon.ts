@@ -52,7 +52,6 @@ export const contextIconRecipe: PresetRecipe = {
       "@supermousejs/labs": ["SmartIcon"]
     },
     coreOptions: {
-      ignoreOnNative: null,
       rules: obj({
         "a, button": obj({ icon: "hand" }),
         input: obj({ icon: "text" })

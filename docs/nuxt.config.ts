@@ -4,16 +4,28 @@ import { readFileSync } from "fs";
 import tailwindcss from "@tailwindcss/vite";
 import type { NuxtConfig } from "nuxt/config";
 import { SITE_URL, STATIC_SITEMAP_ROUTES, ROBOTS_DISALLOW } from "./app/config/seo";
+import { readDocsContent } from "./app/config/content-nav";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Plugin routes for prerender + sitemap (replaces vite-plugin-sitemap dynamicRoutes)
+/**
+ * Every markdown file under `content/` is a page. Routes, prerendering and the
+ * sidebar navigation are all derived from its frontmatter, so the sitemap can
+ * never drift from the files on disk.
+ */
+const { routes: contentRoutes, navigation: docsNavigation } = readDocsContent(
+  path.resolve(__dirname, "content")
+);
+
+// Plugin pages are generated from package metadata, not markdown.
 const pluginsData: Array<{ id: string }> = JSON.parse(
   readFileSync(path.resolve(__dirname, "app/data/generated-plugins.json"), "utf-8")
 );
 const pluginRoutes = pluginsData.map((p) => `/docs/plugins/${p.id}`);
 
-const sitemapRoutes = [...STATIC_SITEMAP_ROUTES, ...pluginRoutes];
+const sitemapRoutes = Array.from(
+  new Set([...STATIC_SITEMAP_ROUTES, ...contentRoutes, ...pluginRoutes])
+).sort();
 
 // Workspace packages are aliased straight to their TS sources (as in vite.config.ts)
 const supermouseAliases = Object.fromEntries(
@@ -34,7 +46,10 @@ const supermouseAliases = Object.fromEntries(
     "states",
     "stick",
     "vue"
-  ].map((pkg) => [`@supermousejs/${pkg}`, path.resolve(__dirname, `../packages/${pkg}/src/index.ts`)])
+  ].map((pkg) => [
+    `@supermousejs/${pkg}`,
+    path.resolve(__dirname, `../packages/${pkg}/src/index.ts`)
+  ])
 );
 
 export default defineNuxtConfig({
@@ -42,6 +57,25 @@ export default defineNuxtConfig({
   ssr: true,
 
   modules: ["@nuxt/content"],
+
+  components: [
+    {
+      path: "~/components",
+      pathPrefix: false,
+      global: true
+    }
+  ],
+
+  // Markdown code fences are highlighted by our own `ProsePre.vue` so they
+  // match `CodeBlock.vue` exactly. Disabling Shiki here stops @nuxtjs/mdc from
+  // injecting `shiki` classes/styles that override that component.
+  content: {
+    build: {
+      markdown: {
+        highlight: false
+      }
+    }
+  },
 
   css: ["~/assets/css/index.css"],
 
@@ -59,7 +93,10 @@ export default defineNuxtConfig({
         },
         { property: "og:image", content: `${SITE_URL}/social-banner.png` },
         { property: "og:type", content: "website" },
-        { name: "google-site-verification", content: "uZ6MsSjY_clcMoUs6D2HywTCmrdyZW0UUNGsP-EO8YY" },
+        {
+          name: "google-site-verification",
+          content: "uZ6MsSjY_clcMoUs6D2HywTCmrdyZW0UUNGsP-EO8YY"
+        },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: `${SITE_URL}/social-banner.png` }
       ],
@@ -75,21 +112,26 @@ export default defineNuxtConfig({
     }
   },
 
+  devtools: { enabled: false },
+
   // Static prerendering & Vercel deployment: prerender all routes, flat 404.html.
   nitro: {
     prerender: {
       routes: [...sitemapRoutes, "/404.html"],
-      crawlLinks: true,
+      crawlLinks: false,
+      concurrency: 4,
       failOnError: false
     }
   },
 
   // Read by the sitemap.xml / robots.txt server routes (see app/server/routes)
+  // and by the docs sidebar/search, which both derive from content frontmatter.
   runtimeConfig: {
     public: {
       siteUrl: SITE_URL,
       sitemapRoutes,
-      robotsDisallow: ROBOTS_DISALLOW
+      robotsDisallow: ROBOTS_DISALLOW,
+      docsNavigation
     }
   },
 
@@ -102,7 +144,6 @@ export default defineNuxtConfig({
     "@components": path.resolve(__dirname, "app/components"),
     "@composables": path.resolve(__dirname, "app/composables"),
     "@playground": path.resolve(__dirname, "app/components/playground"),
-    "@shared": path.resolve(__dirname, "app/components/shared"),
     "@utils": path.resolve(__dirname, "app/utils")
   },
 
@@ -114,5 +155,5 @@ export default defineNuxtConfig({
           .version
       )
     }
-  },
+  }
 }) satisfies NuxtConfig;

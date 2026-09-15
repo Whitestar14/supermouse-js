@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { ControlSchema } from "@playground/recipes";
-import UiRange from "@components/ui/UiRange.vue";
-import UiColor from "@components/ui/UiColor.vue";
-import UiToggle from "@components/ui/UiToggle.vue";
-import UiSelect from "@components/ui/UiSelect.vue";
+import UiRange from "@components/content/UiRange.vue";
+import UiColor from "@components/content/UiColor.vue";
+import UiToggle from "@components/content/UiToggle.vue";
+import UiSelect from "@components/content/UiSelect.vue";
 
 const props = defineProps<{
   schema: ControlSchema[];
@@ -46,9 +46,9 @@ const showNative = computed({
             v-if="control.type === 'range'"
             v-model="localConfig[control.key]"
             :label="control.label"
-            :min="control.min!"
-            :max="control.max!"
-            :step="control.step || 1"
+            :min="control.min"
+            :max="control.max"
+            :step="control.step ?? 1"
             :unit="control.unit"
             :description="control.description"
           />
@@ -70,7 +70,7 @@ const showNative = computed({
             v-else-if="control.type === 'select'"
             v-model="localConfig[control.key]"
             :label="control.label"
-            :options="control.options!"
+            :options="control.options"
             :description="control.description"
           />
 

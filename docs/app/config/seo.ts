@@ -5,22 +5,12 @@
 
 export const SITE_URL = "https://supermouse.js.org";
 
-/** Static routes included in the sitemap. Plugin routes are appended at build time. */
-export const STATIC_SITEMAP_ROUTES = [
-  "/",
-  "/docs/guide/introduction",
-  "/docs/guide/installation",
-  "/docs/guide/usage",
-  "/docs/guide/troubleshooting",
-  "/docs/guide/cookbook",
-  "/docs/integrations/vue",
-  "/docs/integrations/react",
-  "/docs/advanced/architecture",
-  "/docs/advanced/authoring",
-  "/docs/advanced/contributing",
-  "/docs/advanced/tips-and-tricks",
-  "/docs/reference/api"
-];
+/**
+ * Routes that are neither markdown pages nor generated plugin pages.
+ * Everything else is discovered from `content/**` and plugin metadata at
+ * build time (see nuxt.config.ts), so this list stays tiny on purpose.
+ */
+export const STATIC_SITEMAP_ROUTES = ["/", "/labs"];
 
-/** Paths excluded from indexing (mirrors the old vite-plugin-sitemap robots config). */
+/** Paths excluded from indexing. */
 export const ROBOTS_DISALLOW = ["/404", "/404.html", "/labs"];

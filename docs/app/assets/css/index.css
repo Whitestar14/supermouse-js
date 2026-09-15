@@ -112,4 +112,18 @@
   .link {
     @apply text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all;
   }
+
+  /* Kill typography-plugin underlines inside markdown doc headings */
+  .docs-content h1 a,
+  .docs-content h2 a,
+  .docs-content h3 a,
+  .docs-content h4 a {
+    text-decoration: none !important;
+    color: inherit;
+  }
+
+  /* Ensure strong stays inline in list items */
+  .docs-content li strong {
+    display: inline !important;
+  }
 }

@@ -14,5 +14,6 @@
       "@utils/*": ["./app/utils/*"],
       "@supermousejs/*": ["../packages/*/src/index.ts"]
     }
-  }
+  },
+  "exclude": ["app/legacy-docs"]
 }

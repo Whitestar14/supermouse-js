@@ -4,9 +4,9 @@ definePageMeta({
 });
 
 import { computed } from "vue";
-import CodeBlock from "@components/shared/CodeBlock.vue";
-import MetadataStrip from "@/components/shared/MetadataStrip.vue";
-import Table from "@/components/shared/Table.vue";
+import CodeBlock from "@components/content/CodeBlock.vue";
+import MetadataStrip from "@/components/content/MetadataStrip.vue";
+import Table from "@/components/content/Table.vue";
 import { usePageHead } from "@composables/usePageHead";
 import { PLUGINS } from "@data/plugin-data";
 
@@ -16,15 +16,14 @@ const plugin = computed(() => {
   return PLUGINS.find((p) => p.id === route.params.id);
 });
 
-const installCode = computed(() => {
-  // Dynamic: Uses the explicit package name from metadata
-  return `pnpm add ${plugin.value?.package}`;
-});
+const installCode = computed(
+  () => plugin.value?.installCommand ?? `pnpm add ${plugin.value?.package}`
+);
 
 const metaItems = computed(() => [
   { label: "VERSION", content: plugin.value?.version || "Latest" },
-  { label: "LICENSE", content: "MIT" },
-  { label: "CONFIG", content: `${plugin.value?.options?.length || 0} Options` }
+  { label: "LICENSE", content: plugin.value?.license || "MIT" },
+  { label: "PACKAGE", content: plugin.value?.package || plugin.value?.id || "" }
 ]);
 
 const optionColumns = [
@@ -38,6 +37,15 @@ usePageHead({
   title: computed(() => plugin.value?.name ?? "Plugin"),
   description: computed(() => plugin.value?.description ?? "Supermouse plugin documentation.")
 });
+
+const showConfigTable = computed(() => (plugin.value?.options?.length ?? 0) > 0);
+
+const docsStatus = computed(() => {
+  if (!plugin.value) return null;
+  return plugin.value.hasDetailedDocs
+    ? { label: "Full Docs", class: "text-emerald-600" }
+    : { label: "Overview Only", class: "text-zinc-500" };
+});
 </script>
 
 <template>
@@ -49,7 +57,7 @@ usePageHead({
           to="/docs"
           class="mono text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
         >
-          Ecosystem
+          Plugins
         </NuxtLink>
         <span class="text-zinc-300">/</span>
         <span class="mono text-xs font-bold uppercase tracking-widest text-zinc-900">
@@ -112,49 +120,53 @@ usePageHead({
         <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-zinc-900">
           Configuration
         </h3>
-        <span v-if="plugin.options?.some((o) => o.reactive)" class="text-xs text-zinc-500">
-          <span class="font-bold text-zinc-900">*</span> Reactive Property
-        </span>
+        <div class="flex items-center gap-3">
+          <span v-if="docsStatus" class="text-xs font-mono uppercase tracking-widest">
+            <span :class="docsStatus.class">{{ docsStatus.label }}</span>
+          </span>
+          <span v-if="plugin.options?.some((o) => o.reactive)" class="text-xs text-zinc-500">
+            <span class="font-bold text-zinc-900">*</span> Reactive Property
+          </span>
+        </div>
       </div>
 
       <!-- Options Table -->
-      <div v-if="plugin.options && plugin.options.length > 0">
-        <Table
-          :columns="optionColumns"
-          :rows="plugin.options"
-          wrapper-class="border border-zinc-200 bg-white overflow-hidden shadow-sm"
-        >
-          <template #cell-name="{ row }">
-            <span class="font-mono text-zinc-900 font-bold relative">
-              {{ row.name }}
-              <span
-                v-if="row.reactive"
-                class="absolute top-4 left-2 text-amber-500 text-xs select-none"
-                >*</span
-              >
-            </span>
-          </template>
+      <Table
+        :columns="optionColumns"
+        :rows="plugin.options ?? []"
+        v-if="showConfigTable"
+        wrapper-class="border border-zinc-200 bg-white overflow-hidden shadow-sm"
+      >
+        <template #cell-name="{ row }">
+          <span class="font-mono text-zinc-900 font-bold relative">
+            {{ row.name }}
+            <span
+              v-if="row.reactive"
+              class="absolute top-4 left-2 text-amber-500 text-xs select-none"
+              >*</span
+            >
+          </span>
+        </template>
 
-          <template #cell-type="{ row }">
-            <span class="font-mono text-amber-600 text-xs">{{ row.type }}</span>
-          </template>
+        <template #cell-type="{ row }">
+          <span class="font-mono text-amber-600 text-xs">{{ row.type }}</span>
+        </template>
 
-          <template #cell-default="{ row }">
-            <span class="font-mono text-zinc-400 text-xs">{{ row.default || "-" }}</span>
-          </template>
+        <template #cell-default="{ row }">
+          <span class="font-mono text-zinc-400 text-xs">{{ row.default || "-" }}</span>
+        </template>
 
-          <template #cell-description="{ row }">
-            <span class="text-zinc-600 leading-relaxed">{{ row.description }}</span>
-          </template>
-        </Table>
-      </div>
+        <template #cell-description="{ row }">
+          <span class="text-zinc-600 leading-relaxed">{{ row.description }}</span>
+        </template>
+      </Table>
 
       <div
-        v-if="!plugin.options || plugin.options.length === 0"
+        v-else
         class="p-12 border border-zinc-200 bg-zinc-50 text-center"
       >
         <p class="font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">
-          No configuration options available
+          {{ plugin?.hasDetailedDocs ? 'No configuration options' : 'Configuration docs coming soon' }}
         </p>
       </div>
     </div>
@@ -186,7 +198,7 @@ usePageHead({
       to="/docs"
       class="mt-8 px-6 py-3 bg-black text-white font-mono text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
     >
-      Return to Ecosystem
+      Return to Plugins
     </NuxtLink>
   </div>
 </template>

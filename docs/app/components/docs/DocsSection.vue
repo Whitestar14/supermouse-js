@@ -1,17 +1,3 @@
-<script setup lang="ts">
-import { useToc } from "@composables/useToc";
-
-import type { TOCSection } from "@composables/useApiReference";
-
-const props = defineProps<{
-  label: string;
-  title: string;
-  sections?: TOCSection[];
-}>();
-
-useToc(props.sections);
-</script>
-
 <template>
   <section class="mb-24">
     <!-- Standard Header -->
@@ -28,9 +14,16 @@ useToc(props.sections);
     </div>
 
     <div
-      class="docs-content prose prose-zinc max-w-none prose-headings:font-bold prose-headings:tracking-tighter prose-headings:text-zinc-900 prose-p:text-zinc-600 prose-code:text-zinc-900 prose-code:bg-zinc-100 prose-code:px-1 prose-code:rounded-sm prose-code:before:content-[''] prose-code:after:content-['']"
+      class="docs-content prose prose-zinc max-w-none prose-headings:font-bold prose-headings:tracking-tighter prose-headings:text-zinc-900 prose-headings:no-underline prose-headings:border-none prose-a:no-underline prose-p:text-zinc-600 prose-strong:text-zinc-900 prose-strong:font-bold prose-li:my-1 prose-code:text-zinc-900 prose-code:bg-zinc-100 prose-code:px-1 prose-code:rounded-sm prose-code:before:content-[''] prose-code:after:content-['']"
     >
       <slot />
     </div>
   </section>
 </template>
+
+<script setup lang="ts">
+defineProps<{
+  label: string;
+  title: string;
+}>();
+</script>

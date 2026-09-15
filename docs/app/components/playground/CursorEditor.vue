@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import EditorControls from "./EditorControls.vue";
 import EditorPreview from "./EditorPreview.vue";
-import CodeBlock from "@shared/CodeBlock.vue";
+import CodeBlock from "@components/content/CodeBlock.vue";
 import { RECIPES } from "@playground/recipes";
 import { generateCode } from "@utils/code-generator";
 
@@ -283,3 +283,4 @@ const copyCode = async (): Promise<void> => {
     </div>
   </Teleport>
 </template>
+

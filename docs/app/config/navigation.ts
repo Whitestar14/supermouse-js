@@ -1,50 +1,53 @@
 import { PLUGINS } from "@data/plugin-data";
 
-const LABS_IDS = ["smart-icon", "smart-ring", "sparkles", "text-ring"];
+export interface NavItem {
+  label: string;
+  path: string;
+  /** ISO `YYYY-MM-DD` — only written pages have one; plugin pages are generated. */
+  updated?: string;
+}
 
-const standardPlugins = PLUGINS.filter((p) => !LABS_IDS.includes(p.id)).map((p) => ({
-  label: p.name,
-  path: `/docs/plugins/${p.id}`
-}));
+export interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
 
-const labPlugins = PLUGINS.filter((p) => LABS_IDS.includes(p.id)).map((p) => ({
-  label: p.name,
-  path: `/docs/plugins/${p.id}`
-}));
+/** Plugins shipped from the labs package are surfaced separately as experimental. */
+const LABS_PACKAGE = "@supermousejs/labs";
 
-export const DOCS_NAVIGATION = [
-  {
-    title: "Guide",
-    items: [
-      { label: "Introduction", path: "/docs/guide/introduction" },
-      { label: "Installation", path: "/docs/guide/installation" },
-      { label: "Usage", path: "/docs/guide/usage" },
-      { label: "Cookbook", path: "/docs/guide/cookbook" },
-      { label: "Troubleshooting", path: "/docs/guide/troubleshooting" }
-    ]
-  },
-  {
-    title: "Integrations",
-    items: [
-      { label: "Vue.js", path: "/docs/integrations/vue" },
-      { label: "React", path: "/docs/integrations/react" }
-    ]
-  },
-  {
-    title: "Standard Plugins",
-    items: standardPlugins
-  },
-  {
-    title: "Labs",
-    items: labPlugins
-  },
-  {
-    title: "Advanced",
-    items: [
-      { label: "Core Concepts", path: "/docs/advanced/architecture" },
-      { label: "Plugin Authoring", path: "/docs/advanced/authoring" },
-      { label: "Contributing", path: "/docs/advanced/contributing" },
-      { label: "API Reference", path: "/docs/reference/api" }
-    ]
-  }
-];
+function toNavItems(plugins: typeof PLUGINS): NavItem[] {
+  return plugins.map((plugin) => ({
+    label: plugin.name,
+    path: `/docs/plugins/${plugin.id}`
+  }));
+}
+
+/**
+ * The docs sidebar, prev/next pager and search index all read from this.
+ *
+ * Written pages come from `content/**` frontmatter (resolved at build time in
+ * nuxt.config.ts) and plugin pages come from generated package metadata, so
+ * there is no hand-maintained route list to keep in sync.
+ */
+export function useDocsNavigation(): NavGroup[] {
+  const { docsNavigation } = useRuntimeConfig().public;
+
+  return [
+    ...(docsNavigation as NavGroup[]),
+    {
+      title: "Standard Plugins",
+      items: toNavItems(PLUGINS.filter((plugin) => plugin.package !== LABS_PACKAGE))
+    },
+    {
+      title: "Experimental",
+      items: toNavItems(PLUGINS.filter((plugin) => plugin.package === LABS_PACKAGE))
+    }
+  ];
+}
+
+/** Flattened nav items, in sidebar order — used for the prev/next pager. */
+export function useDocsFlatNavigation(): Array<NavItem & { group: string }> {
+  return useDocsNavigation().flatMap((group) =>
+    group.items.map((item) => ({ ...item, group: group.title }))
+  );
+}
