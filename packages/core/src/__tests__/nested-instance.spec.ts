@@ -1,58 +1,53 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { Supermouse } from "../Supermouse";
 
-describe("Nested instances cursor inheritance", () => {
-  let globalApp: Supermouse;
-  let previewApp: Supermouse;
-  let body: HTMLElement;
-  let previewContainer: HTMLElement;
+describe("Nested scope handling", () => {
+  let app: Supermouse;
 
   afterEach(() => {
-    globalApp?.destroy();
-    previewApp?.destroy();
+    app?.destroy();
     document.body.innerHTML = "";
     document.head.innerHTML = "";
   });
 
-  it.fails(
-    "preview container should set inline cursor to auto when in 'both' mode to override inherited none",
-    () => {
-      body = document.body;
-      globalApp = new Supermouse({ container: body, cursor: "auto", autoStart: false });
-
-      // Force global instance to hide native cursor
-      globalApp.setCursor("custom");
-      globalApp.step(performance.now() + 16);
-      expect(body.style.cursor).toBe("none");
-
-      previewContainer = document.createElement("div");
-      body.appendChild(previewContainer);
-
-      previewApp = new Supermouse({
-        container: previewContainer,
-        cursor: "both",
-        autoStart: false
-      });
-      previewApp.step(performance.now() + 16);
-
-      // The preview container should have its own inline cursor set to 'auto'
-      // to override the inherited 'none' from body.
-      expect(previewContainer.style.cursor).toBe("auto");
-    }
-  );
-
-  it.fails("nested both mode should show native cursor", () => {
-    const global = new Supermouse({ container: document.body, cursor: "auto", autoStart: false });
-    global.setCursor("custom");
-    global.step(performance.now() + 16);
-    expect(document.body.style.cursor).toBe("none");
+  it("nested scope with cursor 'both' shows native cursor over its container", () => {
+    app = new Supermouse({ container: document.body, cursor: "auto", autoStart: false });
 
     const preview = document.createElement("div");
     document.body.appendChild(preview);
-    const local = new Supermouse({ container: preview, cursor: "both", autoStart: false });
-    local.step(performance.now() + 16);
 
-    // The preview container should have inline cursor 'auto', showing native cursor
+    app.addScope({ name: "preview", container: preview, cursor: "both" });
+
+    // Force the outer scope to hide the native cursor.
+    app.setCursor("custom");
+    app.step(performance.now() + 16);
+    expect(document.body.style.cursor).toBe("none");
+
+    // Enter preview scope.
+    preview.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    app.step(performance.now() + 16);
+
+    // Preview scope in "both" mode sets its own cursor to "auto",
+    // overriding the inherited "none".
     expect(preview.style.cursor).toBe("auto");
+    expect(app.state.cursorMode).toBe("both");
+  });
+
+  it("removing a scope restores the primary scope as active", () => {
+    app = new Supermouse({ container: document.body, cursor: "auto", autoStart: false });
+
+    const panel = document.createElement("div");
+    document.body.appendChild(panel);
+
+    const handle = app.addScope({ name: "panel", container: panel, cursor: "native" });
+
+    panel.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    app.step(performance.now() + 16);
+    expect(app.state.cursorMode).toBe("native");
+
+    handle.remove();
+    panel.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    app.step(performance.now() + 16);
+    expect(app.state.cursorMode).toBe("auto");
   });
 });

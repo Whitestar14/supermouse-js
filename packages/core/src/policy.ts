@@ -33,9 +33,6 @@ export type CursorPolicyInput =
       hide?: string[];
     };
 
-/** Tag + attribute checks that don't need a selector match. */
-export const NATIVE_ATTRIBUTE_SELECTOR = "[contenteditable]";
-
 export const DEFAULT_CURSOR_POLICY: CursorPolicy = {
   rules: [
     { selector: "input", native: true, hide: true },

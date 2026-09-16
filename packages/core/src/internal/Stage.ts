@@ -11,7 +11,7 @@ export class Stage {
 
   constructor(
     private container: HTMLElement,
-    private zIndex: number
+    zIndex: number
   ) {
     if (!container || !(container instanceof HTMLElement)) {
       throw new Error(`[Supermouse] Invalid container: ${container}. Must be an HTMLElement.`);
@@ -67,11 +67,18 @@ export class Stage {
     this.element.style.opacity = visible ? "1" : "0";
   }
 
-  setNativeCursor(type: "none" | "auto"): void {
+  public setNativeCursor(type: "none" | "auto"): void {
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
     this.container.classList.toggle(this.hideClass, type === "none");
-    this.container.style.cursor = type === "none" ? "none" : this.originalContainerCursor;
+
+    if (type === "none") {
+      this.container.style.cursor = "none";
+    } else if (this.container === document.body) {
+      this.container.style.cursor = this.originalContainerCursor;
+    } else {
+      this.container.style.cursor = this.originalContainerCursor || "auto";
+    }
   }
 
   destroy(): void {

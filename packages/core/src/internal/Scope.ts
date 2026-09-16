@@ -1,26 +1,8 @@
-import type { SupermousePlugin } from "../types";
-import {
-  compilePolicy,
-  DEFAULT_CURSOR_POLICY,
-  normalizePolicy,
-  type CursorPolicy,
-  type CursorPolicyInput
-} from "../policy";
+import type { SupermousePlugin, ScopeConfig, CursorMode } from "../types";
+import { compilePolicy, normalizePolicy, type CursorPolicy } from "../policy";
 import { Stage } from "./Stage";
-import { DEFAULT_HOVER_SELECTORS } from "../constants";
 
-export type CursorMode = "auto" | "custom" | "native" | "both";
-
-export interface ScopeConfig {
-  name?: string;
-  container: HTMLElement;
-  cursor?: CursorMode;
-  hoverSelectors?: string[];
-  cursorPolicy?: CursorPolicyInput;
-  plugins?: SupermousePlugin[];
-  inheritDataAttributes?: boolean;
-  zIndex?: number;
-}
+export type { ScopeConfig, CursorMode } from "../types";
 
 export interface InheritedScopeOptions {
   cursor: CursorMode;
@@ -33,7 +15,6 @@ export interface InheritedScopeOptions {
 export class Scope {
   public readonly stage: Stage;
   public readonly hoverSelectors: Set<string>;
-  public readonly hoverSelectorString: string;
   public readonly plugins: SupermousePlugin[] = [];
   public readonly nativeSelectors: string[];
   public readonly hideSelectors: string[];
@@ -48,7 +29,6 @@ export class Scope {
     this.name = config.name;
     this.cursorMode = config.cursor ?? inherited.cursor;
     this.hoverSelectors = new Set(config.hoverSelectors ?? inherited.hoverSelectors);
-    this.hoverSelectorString = Array.from(this.hoverSelectors).join(", ");
     this.inheritDataAttributes = config.inheritDataAttributes ?? inherited.inheritDataAttributes;
 
     const policy = config.cursorPolicy
@@ -59,10 +39,6 @@ export class Scope {
     this.hideSelectors = compiled.hide;
 
     this.stage = new Stage(config.container, config.zIndex ?? inherited.zIndex);
-
-    if (config.plugins) {
-      for (const plugin of config.plugins) this.plugins.push(plugin);
-    }
   }
 
   contains(node: Node): boolean {
@@ -72,6 +48,14 @@ export class Scope {
   get container(): HTMLElement {
     return this.stage.containerElement;
   }
+
+  public get hoverSelectorString(): string {
+  return Array.from(this.hoverSelectors).join(", ");
+}
+
+ public get nativeSelectorString(): string {
+    return this.nativeSelectors.join(", ");
+ }
 
   /** Build the CSS rules this scope contributes to the shared stylesheet. */
   buildRules(): string[] {

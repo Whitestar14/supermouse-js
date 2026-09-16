@@ -1,0 +1,22 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@supermousejs/core": "2.4.3",
+    "@supermousejs/dot": "2.4.3",
+    "@supermousejs/icon": "2.4.3",
+    "@supermousejs/image": "2.4.3",
+    "@supermousejs/labs": "2.4.3",
+    "@supermousejs/magnetic": "2.4.3",
+    "@supermousejs/pointer": "2.4.3",
+    "@supermousejs/react": "2.4.3",
+    "@supermousejs/ring": "2.4.3",
+    "@supermousejs/states": "2.4.3",
+    "@supermousejs/stick": "2.4.3",
+    "@supermousejs/text": "2.4.3",
+    "@supermousejs/trail": "2.4.3",
+    "@supermousejs/utils": "2.4.3",
+    "@supermousejs/vue": "2.4.3"
+  },
+  "changesets": []
+}

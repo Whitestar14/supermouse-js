@@ -1,12 +1,12 @@
 declare const __VERSION__: string | undefined;
 const VERSION: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0";
 
-import type { MouseState, SupermouseOptions, SupermousePlugin } from "./types";
-import { OFFSCREEN } from "./constants";
+import type { MouseState, SupermouseOptions, SupermousePlugin, CursorMode, ScopeConfig } from "./types";
+import { Scope } from "./internal/Scope";
+import { OFFSCREEN, DEFAULT_HOVER_SELECTORS } from "./constants";
 import { Input } from "./internal/Input";
-import { Scope, type CursorMode, type ScopeConfig } from "./internal/Scope";
 import { setRules, destroy as destroyStylesheet } from "./internal/Stylesheet";
-import { DEFAULT_CURSOR_POLICY, type CursorPolicyInput } from "./policy";
+import { DEFAULT_CURSOR_POLICY, normalizePolicy } from "./policy";
 
 function lerp(a: number, b: number, factor: number): number {
   return a + (b - a) * factor;
@@ -63,7 +63,6 @@ export class Supermouse {
 
   private rafId = 0;
   private lastTime = 0;
-  private isRunning = false;
   private visibilityAbortController = new AbortController();
   private crashedPlugins: SupermousePlugin[] = [];
 
@@ -129,7 +128,7 @@ export class Supermouse {
 
     this.rebuildStylesheet();
     this.bindVisibilityHandling();
-    if (this.options.autoStart) this.start();
+    if (this.options.autoStart) this.startLoop();
   }
 
   // ─── Public API ───
@@ -241,13 +240,7 @@ export class Supermouse {
     this.state.interaction = {};
   }
 
-  public start(): void {
-    if (this.isRunning) return;
-    this._running = true;
-    if (document.hidden) return;
-    this.lastTime = performance.now();
-    this.rafId = requestAnimationFrame(this.tick);
-  }
+  public start(): void { this.startLoop(); }
 
   public step(time: number): void {
     this.update(time);
@@ -283,17 +276,10 @@ export class Supermouse {
   private createScope(config: ScopeConfig): Scope {
     const scope = new Scope(config, {
       cursor: this.options.cursor,
-      hoverSelectors: this.options.hoverSelectors ?? [
-        "a",
-        "button",
-        "input",
-        "textarea",
-        "[data-hover]",
-        "[data-cursor]"
-      ],
+      hoverSelectors: this.options.hoverSelectors ?? DEFAULT_HOVER_SELECTORS,
       cursorPolicy: this.options.cursorPolicy
-        ? normalizePolicyLocal(this.options.cursorPolicy)
-        : DEFAULT_CURSOR_POLICY,
+      ? normalizePolicy(this.options.cursorPolicy)
+      : DEFAULT_CURSOR_POLICY,
       zIndex: this.options.zIndex,
       inheritDataAttributes: this.options.inheritDataAttributes
     });
@@ -391,13 +377,13 @@ export class Supermouse {
     if (plugin.isEnabled === false) return;
     plugin.isEnabled = false;
 
-    const finish = () => {
+    const finish = (): void => {
       if (plugin.element) plugin.element.style.display = "none";
       plugin.onDisable?.(this);
     };
 
     const result = plugin.onBeforeDisable?.(this);
-    if (result && typeof (result as Promise<void>).then === "function") {
+    if (result && typeof result.then === "function") {
       void Promise.resolve(result)
         .then(finish)
         .catch((err) => {
@@ -543,20 +529,47 @@ export class Supermouse {
       { signal: this.visibilityAbortController.signal }
     );
   }
-}
 
-function normalizePolicyLocal(input: CursorPolicyInput) {
-  if ("rules" in input) return input;
-  const native = new Set(input.native ?? []);
-  const hide = new Set(input.hide ?? []);
-  const selectors = new Set([...native, ...hide]);
-  return {
-    rules: Array.from(selectors).map((selector) => ({
-      selector,
-      native: native.has(selector),
-      hide: hide.has(selector)
-    }))
-  };
+  private startLoop(): void {
+    if (this._running) return;
+    this._running = true;
+    if (document.hidden) return;
+    this.lastTime = performance.now();
+    this.rafId = requestAnimationFrame(this.tick);
+  }
+
+  /**
+   * @deprecated Prefer setting `hoverSelectors` at scope creation, or use
+   * `definePlugin`'s `selector` option. This method is kept for raw-object
+   * plugins and runtime extension; it mutates the active scope's selector set.
+   */
+  public registerHoverTarget(selector: string): void {
+    const scope = this._installingScope ?? this._activeScope ?? this._scopes[0];
+    if (!scope) return;
+    for (const s of selector.split(",")) {
+      const trimmed = s.trim();
+      if (trimmed) scope.hoverSelectors.add(trimmed);
+    }
+  }
+
+  /**
+   * @deprecated Read from the active scope instead. Exposed for tests and
+   * debugging only.
+   */
+  public get hoverSelectors(): Set<string> {
+    const scope = this._activeScope ?? this._scopes[0];
+    return scope ? scope.hoverSelectors : new Set();
+  }
+
+  /**
+   * @deprecated Read from the active scope instead. Exposed for tests and
+   * debugging only.
+   */
+  public get plugins(): SupermousePlugin[] {
+    const scope = this._activeScope ?? this._scopes[0];
+    return scope ? scope.plugins : [];
+  }
 }
 
 export type SupermouseInstance = Supermouse;
+export { DEFAULT_HOVER_SELECTORS };

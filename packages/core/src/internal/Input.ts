@@ -12,14 +12,12 @@ export class Input {
   private normalizedDataPrefix: string;
   private ignoreAttribute: string;
 
-  private scopes: Scope[] = [];
   private activeScope: Scope | null = null;
   private scopeByContainer = new Map<HTMLElement, Scope>();
 
   private nativeTarget: HTMLElement | null = null;
   private currentTarget: HTMLElement | null = null;
   private lastParsedTarget: HTMLElement | null = null;
-  private matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
   private ruleEntries: Array<[string, RuleDefinition]>;
   private releaseViewport: (() => void) | null = null;
 
@@ -28,6 +26,12 @@ export class Input {
 
   private viewportX = 0;
   private viewportY = 0;
+
+  /** Cached matched rules per ancestor. Recomputed only when the hover target changes. */
+  private cachedChain: Array<{
+    element: HTMLElement;
+    matchedRules: Array<{ selector: string; rules: RuleDefinition }>;
+  }> = [];
 
   constructor(
     private state: MouseState,
@@ -46,7 +50,6 @@ export class Input {
   }
 
   setScopes(scopes: Scope[]): void {
-    this.scopes = scopes;
     this.scopeByContainer.clear();
     for (const scope of scopes) this.scopeByContainer.set(scope.container, scope);
   }
@@ -59,11 +62,11 @@ export class Input {
     this.releaseViewport =
       scope && scope.container !== document.body ? observe(scope.container) : null;
 
-    this.applyPointerToState();
-
-    // Snap physics to the new coordinate frame without animation.
-    this.state.target.x = this.state.smooth.x = this.state.pointer.x;
-    this.state.target.y = this.state.smooth.y = this.state.pointer.y;
+    if (this.hasSeenPointer) {
+      this.applyPointerToState();
+      this.state.target.x = this.state.smooth.x = this.state.pointer.x;
+      this.state.target.y = this.state.smooth.y = this.state.pointer.y;
+    }
 
     this.onActiveScopeChange(scope);
   }
@@ -112,36 +115,60 @@ export class Input {
   }
 
   public parseDOMInteraction(element: HTMLElement): void {
+    const root = this.activeScope?.container ?? document.body;
+    const inheritData = this.activeScope?.inheritDataAttributes ?? true;
+    const pre = this.normalizedDataPrefix;
+
     if (element !== this.lastParsedTarget) {
       this.lastParsedTarget = element;
-      this.matchedRules = [];
-      for (const [selector, rules] of this.ruleEntries) {
-        if (this.matchesSelector(element, selector)) {
-          this.matchedRules.push({ selector, rules });
+      this.cachedChain = [];
+
+      let cur: HTMLElement | null = element;
+      while (cur) {
+        const matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
+        for (const [selector, rules] of this.ruleEntries) {
+          if (this.matchesSelector(cur, selector)) {
+            matchedRules.push({ selector, rules });
+          }
         }
+        this.cachedChain.push({ element: cur, matchedRules });
+
+        if (!inheritData || cur === root) break;
+        const parent: HTMLElement | null = cur.parentElement;
+        if (!parent || !root.contains(parent)) break;
+        cur = parent;
       }
     }
 
     const data: Record<string, string | boolean | number> = {};
-    for (const { rules } of this.matchedRules) {
-      try {
-        const resolved = typeof rules === "function" ? rules(element) : rules;
-        if (!resolved || typeof resolved !== "object") continue;
-        for (const [key, val] of Object.entries(resolved)) {
-          data[key] = typeof val === "function" ? val(element) : val;
-        }
-      } catch (e) {
-        console.error(`[Supermouse] Rule threw during evaluation:`, e);
-      }
-    }
+    for (const { element: el, matchedRules } of this.cachedChain) {
+      const level: Record<string, string | boolean | number> = {};
 
-    const pre = this.normalizedDataPrefix;
-    for (const key in element.dataset) {
-      if (!key.toLowerCase().startsWith(pre)) continue;
-      const prop = key.slice(pre.length);
-      if (!prop) continue;
-      const val = element.dataset[key];
-      data[prop[0].toLowerCase() + prop.slice(1)] = val === "" ? true : val!;
+      for (const { rules } of matchedRules) {
+        try {
+          const resolved = typeof rules === "function" ? rules(el) : rules;
+          if (!resolved || typeof resolved !== "object") continue;
+          for (const [key, val] of Object.entries(resolved)) {
+            level[key] = typeof val === "function" ? val(el) : val;
+          }
+        } catch (e) {
+          console.error(`[Supermouse] Rule threw during evaluation:`, e);
+        }
+      }
+
+      for (const key in el.dataset) {
+        if (!key.toLowerCase().startsWith(pre)) continue;
+        const prop = key.slice(pre.length);
+        if (!prop) continue;
+        const camelProp = prop[0].toLowerCase() + prop.slice(1);
+        const val = el.dataset[key];
+        level[camelProp] = val == null || val === "" ? true : val;
+      }
+
+      for (const [key, val] of Object.entries(level)) {
+        if (key in data) continue;
+        data[key] = val;
+      }
     }
 
     this.state.interaction = data;
@@ -149,18 +176,9 @@ export class Input {
 
   private matchesSelector(element: HTMLElement, selector: string): boolean {
     try {
-      if (!/\s/.test(selector.trim())) return element.matches(selector);
+      return element.matches(selector);
     } catch {
-      return false;
-    }
-    const parts = selector.trim().split(/\s+/);
-    if (parts.length < 2) return false;
-    const self = parts.pop()!;
-    const ancestor = parts.join(" ");
-    if (!self || !ancestor) return false;
-    try {
-      return element.matches(self) && !!element.closest(ancestor);
-    } catch {
+      // Invalid selector in a rule or cursor policy; ignore it.
       return false;
     }
   }
@@ -226,14 +244,10 @@ export class Input {
 
     if (this.state.cursorMode !== "auto") return;
 
-    for (const sel of this.activeScope.nativeSelectors) {
-      try {
-        if (target.matches(sel)) {
-          this.state.isNative = true;
-          this.nativeTarget = target;
-          return;
-        }
-      } catch {}
+    if (this.matchesSelector(target, this.activeScope.nativeSelectorString)) {
+      this.state.isNative = true;
+      this.nativeTarget = target;
+      return;
     }
 
     if (target.isContentEditable || !SUPERMOUSE_CURSORS.has(this.resolveComputedCursor(target))) {
@@ -264,13 +278,12 @@ export class Input {
     if (target === this.currentTarget) {
       this.currentTarget = null;
       this.lastParsedTarget = null;
-      this.matchedRules = [];
+      this.cachedChain = [];
     }
-  };
 
-  private handleDocumentMouseOut = (e: MouseEvent): void => {
-    if (!this.isEnabled) return;
-    if (e.relatedTarget === null && this.options.hideOnLeave) {
+    // Pointer left the window entirely and it uses mouseout and relatedTarget null rather than mouseleave;
+    // the latter does not fire reliably on firefox.
+    if (!related && this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
       this.state.pointer = { ...OFFSCREEN };
     }
@@ -284,7 +297,7 @@ export class Input {
     this.state.interaction = {};
     this.currentTarget = null;
     this.lastParsedTarget = null;
-    this.matchedRules = [];
+    this.cachedChain = [];
   }
 
   public getCurrentTarget(): HTMLElement | null {
@@ -298,11 +311,11 @@ export class Input {
     window.addEventListener("pointerup", this.handleUp, { signal });
     document.addEventListener("mouseover", this.handleMouseOver, { signal });
     document.addEventListener("mouseout", this.handleMouseOut, { signal });
-    document.addEventListener("mouseout", this.handleDocumentMouseOut, { signal });
   }
 
   public destroy(): void {
     this.abortController.abort();
     this.releaseViewport?.();
+    this.cachedChain = [];
   }
 }
