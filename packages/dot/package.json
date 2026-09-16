@@ -1,13 +1,14 @@
 {
   "name": "@supermousejs/dot",
-  "version": "2.4.1",
+  "version": "2.4.4-beta.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "description": "A minimalist precision point that follows your movements perfectly",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "author": "O.S David",
   "url": "https://github.com/Whitestar14/supermouse-js",

@@ -54,7 +54,7 @@
   "url": "https://github.com/Whitestar14/supermouse-js",
   "license": "MIT",
   "devDependencies": {
-    "@changesets/cli": "^2.29.8",
+    "@changesets/cli": "^2.31.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^20.19.37",
     "eslint": "^9.39.4",

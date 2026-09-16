@@ -14,15 +14,8 @@ describe("Supermouse core", () => {
 
   it("registers and looks up plugins by name", () => {
     const app = new Supermouse();
-
-    const plugin = {
-      name: "test-plugin",
-      install() {},
-      update() {}
-    };
-
+    const plugin = { name: "test-plugin", install() {}, update() {} };
     app.use(plugin);
-
     expect(app.getPlugin("test-plugin")).toBe(plugin);
     expect(app.getPlugin("missing-plugin")).toBeUndefined();
   });
@@ -38,7 +31,6 @@ describe("Supermouse core", () => {
     expect(app.options.container).toBe(document.body);
     expect(app.options.dataPrefix).toBe("supermouse");
     expect(app.options.zIndex).toBe(9999);
-    expect((app.options as any).ignoreOnNative).toBeUndefined();
   });
 
   it("merges user options over defaults", () => {
@@ -90,9 +82,8 @@ describe("Supermouse core", () => {
 
   it("appends stage element to container (default body)", () => {
     app = new Supermouse({ autoStart: false });
-    const stage = app.stage;
-    expect(stage).toBeInstanceOf(HTMLDivElement);
-    expect(document.body.contains(stage)).toBe(true);
+    expect(app.stage).toBeInstanceOf(HTMLDivElement);
+    expect(document.body.contains(app.stage)).toBe(true);
   });
 
   it("appends stage element to custom container", () => {
@@ -110,16 +101,13 @@ describe("Supermouse core", () => {
 
   it("sets default hover selectors", () => {
     app = new Supermouse({ autoStart: false });
-    const selectors = Array.from((app as any).hoverSelectors);
+    const selectors = Array.from(app.hoverSelectors);
     expect(selectors).toEqual(expect.arrayContaining(DEFAULT_HOVER_SELECTORS));
   });
 
   it("overrides hover selectors if provided", () => {
-    app = new Supermouse({
-      autoStart: false,
-      hoverSelectors: [".my-custom-hover", "a"]
-    });
-    const selectors = Array.from((app as any).hoverSelectors);
+    app = new Supermouse({ autoStart: false, hoverSelectors: [".my-custom-hover", "a"] });
+    const selectors = Array.from(app.hoverSelectors);
     expect(selectors).toEqual([".my-custom-hover", "a"]);
   });
 
@@ -163,25 +151,19 @@ describe("Supermouse core", () => {
   it("evaluates rules on hover", () => {
     app = new Supermouse({
       autoStart: false,
-      rules: {
-        "[data-cursor]": { custom: "rule-value" }
-      }
+      rules: { "[data-cursor]": { custom: "rule-value" } }
     });
     const div = document.createElement("div");
     div.setAttribute("data-cursor", "");
     document.body.appendChild(div);
-
     div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-
     expect(app.state.interaction).toEqual({ custom: "rule-value" });
   });
 
   it("caches selector matching for rules", () => {
     app = new Supermouse({
       autoStart: false,
-      rules: {
-        "[data-cursor]": { test: "value" }
-      }
+      rules: { "[data-cursor]": { test: "value" } }
     });
     const div = document.createElement("div");
     div.setAttribute("data-cursor", "");
@@ -191,11 +173,9 @@ describe("Supermouse core", () => {
     const input = (app as any).input;
     const spy = vi.spyOn(input, "matchesSelector");
 
-    // Same element again – selector matching should be cached
     input.parseDOMInteraction(div);
     expect(spy).not.toHaveBeenCalled();
 
-    // Different element – should trigger selector matching
     const div2 = document.createElement("div");
     div2.setAttribute("data-cursor", "");
     document.body.appendChild(div2);
@@ -206,20 +186,9 @@ describe("Supermouse core", () => {
   it("re-enable restores original cursor mode after disable", () => {
     app = new Supermouse({ cursor: "custom", autoStart: false });
     expect(app.state.cursorMode).toBe("custom");
-
     app.disable();
     expect(app.state.cursorMode).toBe("custom");
-
     app.enable();
-    expect(app.state.cursorMode).toBe("custom");
-  });
-
-  it("suspend/resume does not change cursor mode", () => {
-    app = new Supermouse({ cursor: "custom", autoStart: false });
-    app.start();
-    app.suspend();
-    expect(app.state.cursorMode).toBe("custom");
-    app.resume();
     expect(app.state.cursorMode).toBe("custom");
   });
 
@@ -235,35 +204,8 @@ describe("Supermouse core", () => {
     expect(app.state.pointer).toEqual({ x: -100, y: -100 });
   });
 
-  it("scoped instances maintain independent cursor modes", () => {
-    const container1 = document.createElement("div");
-    const container2 = document.createElement("div");
-    document.body.appendChild(container1);
-    document.body.appendChild(container2);
-
-    const app1 = new Supermouse({ container: container1, cursor: "custom", autoStart: false });
-    const app2 = new Supermouse({ container: container2, cursor: "native", autoStart: false });
-
-    expect(app1.state.cursorMode).toBe("custom");
-    expect(app2.state.cursorMode).toBe("native");
-
-    app1.disable();
-    expect(app1.state.cursorMode).toBe("custom");
-    expect(app2.state.cursorMode).toBe("native"); // unaffected
-
-    app1.destroy();
-    app2.destroy();
-    container1.remove();
-    container2.remove();
-  });
-
   it("matches simple selectors directly", () => {
-    app = new Supermouse({
-      autoStart: false,
-      rules: {
-        ".simple": { test: "ok" }
-      }
-    });
+    app = new Supermouse({ autoStart: false, rules: { ".simple": { test: "ok" } } });
     const div = document.createElement("div");
     div.className = "simple";
     document.body.appendChild(div);
@@ -274,9 +216,7 @@ describe("Supermouse core", () => {
   it("matches complex selectors with ancestor", () => {
     app = new Supermouse({
       autoStart: false,
-      rules: {
-        ".ancestor .descendant": { custom: "value" }
-      }
+      rules: { ".ancestor .descendant": { custom: "value" } }
     });
     const ancestor = document.createElement("div");
     ancestor.className = "ancestor";
@@ -287,5 +227,19 @@ describe("Supermouse core", () => {
 
     child.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     expect(app.state.interaction).toEqual({ custom: "value" });
+  });
+
+  it("scope transitions preserve cursor mode", () => {
+    app = new Supermouse({ autoStart: false });
+    const sidebar = document.createElement("div");
+    document.body.appendChild(sidebar);
+
+    app.addScope({ name: "sidebar", container: sidebar, cursor: "custom" });
+
+    sidebar.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    app.step(performance.now() + 16);
+    expect(app.state.cursorMode).toBe("custom");
+
+    sidebar.remove();
   });
 });

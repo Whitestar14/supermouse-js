@@ -28,5 +28,9 @@ export default defineConfig({
       }
     }
   },
+  esbuild: {
+  legalComments: "none",
+  drop: ["console", "debugger"]
+},
   plugins: [dts({ rollupTypes: true })]
 });

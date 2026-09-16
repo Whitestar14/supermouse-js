@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { Stage } from "../Supermouse";
+import { Stage } from "../internal/Stage";
 
 describe("Supermouse Stage", () => {
   let container: HTMLElement;
@@ -16,9 +16,6 @@ describe("Supermouse Stage", () => {
     document.head.innerHTML = "";
     vi.restoreAllMocks();
   });
-
-  const getStyleTag = () =>
-    document.querySelector('style[id^="supermouse-style-"]') as HTMLStyleElement | null;
 
   const hasClassPrefix = (el: HTMLElement, prefix: string) =>
     Array.from(el.classList).some((c) => c.startsWith(prefix));
@@ -56,74 +53,11 @@ describe("Supermouse Stage", () => {
         expect.stringContaining("container is not attached to the document")
       );
     });
-  });
-
-  describe("Stylesheet & selectors", () => {
-    it("injects style tag with cursor suppression rules on creation", () => {
-      stage = new Stage(container, 9999);
-      const styleTag = getStyleTag();
-      expect(styleTag).toBeInstanceOf(HTMLStyleElement);
-      expect(styleTag!.parentNode).toBe(document.head);
-      expect(styleTag!.innerText).toContain("cursor: none !important");
-    });
 
     it("adds supermouse scope classes to container", () => {
       stage = new Stage(container, 9999);
       expect(container.classList.contains("supermouse-scope")).toBe(true);
       expect(hasClassPrefix(container, "supermouse-scope-")).toBe(true);
-    });
-
-    it("addSelector updates the stylesheet", () => {
-      stage = new Stage(container, 9999);
-      const styleTag = getStyleTag()!;
-      const before = styleTag.innerText;
-
-      stage.addSelector(".my-selector");
-      const after = styleTag.innerText;
-
-      expect(before).not.toBe(after);
-      expect(after).toContain(".my-selector");
-    });
-
-    it("addSelectors batch updates stylesheet only once", () => {
-      stage = new Stage(container, 9999);
-      const styleTag = getStyleTag()!;
-      const originalInnerText = styleTag.innerText;
-
-      stage.addSelectors([".a", ".b", ".c"]);
-      const finalInnerText = styleTag.innerText;
-
-      expect(originalInnerText).not.toBe(finalInnerText);
-      expect(finalInnerText).toContain(".a");
-      expect(finalInnerText).toContain(".b");
-      expect(finalInnerText).toContain(".c");
-    });
-
-    it("scopes all hover selectors correctly, splitting comma groups", () => {
-      const container = document.createElement("div");
-      document.body.appendChild(container);
-      const stage = new Stage(container, 9999);
-
-      stage.addSelector("p, span, h1, h2");
-
-      const styleTag = document.querySelector("style[id^='supermouse-style-']")!;
-      const styleText = styleTag.innerText;
-
-      const scopeClass = Array.from(container.classList).find((c) =>
-        c.startsWith("supermouse-scope-")
-      );
-      const hideClass = `supermouse-hide-${scopeClass!.split("-").pop()}`;
-
-      expect(styleText).toContain(`.${scopeClass}.${hideClass} p`);
-      expect(styleText).toContain(`.${scopeClass}.${hideClass} span`);
-      expect(styleText).toContain(`.${scopeClass}.${hideClass} h1`);
-      expect(styleText).toContain(`.${scopeClass}.${hideClass} h2`);
-
-      expect(styleText).not.toMatch(/(^|,)\s*span\s*{/);
-      expect(styleText).not.toMatch(/(^|,)\s*h1\s*{/);
-
-      stage.destroy();
-      container.remove();
     });
   });
 
@@ -135,7 +69,7 @@ describe("Supermouse Stage", () => {
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(true);
 
       stage.setNativeCursor("auto");
-      expect(container.style.cursor).toBe("");
+      expect(container.style.cursor).toBe("auto");
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
     });
 
@@ -143,19 +77,25 @@ describe("Supermouse Stage", () => {
       container.style.cursor = "pointer";
       stage = new Stage(container, 9999);
       stage.setNativeCursor("none");
-      expect(container.style.cursor).toBe("none"); // suppressed
+      expect(container.style.cursor).toBe("none");
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(true);
 
       stage.setNativeCursor("auto");
-      expect(container.style.cursor).toBe("pointer"); // restored
+      expect(container.style.cursor).toBe("pointer");
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
     });
 
-    it("keeps original container cursor even if empty", () => {
+    it("falls back to 'auto' on non-body containers with empty original cursor", () => {
       container.style.cursor = "";
       stage = new Stage(container, 9999);
       stage.setNativeCursor("auto");
-      expect(container.style.cursor).toBe("");
+      expect(container.style.cursor).toBe("auto");
+    });
+
+    it("does not set 'auto' on body containers", () => {
+      stage = new Stage(document.body, 9999);
+      stage.setNativeCursor("auto");
+      expect(document.body.style.cursor).toBe("");
     });
   });
 
@@ -192,17 +132,14 @@ describe("Supermouse Stage", () => {
   });
 
   describe("Cleanup", () => {
-    it("destroy removes stage element, style tag, and classes", () => {
+    it("destroy removes stage element and classes", () => {
       stage = new Stage(container, 9999);
       const el = stage.element;
-      const styleTag = getStyleTag()!;
       expect(document.body.contains(el)).toBe(true);
-      expect(document.head.contains(styleTag)).toBe(true);
 
       stage.destroy();
 
       expect(document.body.contains(el)).toBe(false);
-      expect(document.head.contains(styleTag)).toBe(false);
       expect(container.classList.contains("supermouse-scope")).toBe(false);
       expect(hasClassPrefix(container, "supermouse-scope-")).toBe(false);
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
@@ -216,16 +153,14 @@ describe("Supermouse Stage", () => {
       expect(container.style.cursor).toBe("crosshair");
     });
 
-    it("creates unique style IDs for multiple instances", () => {
+    it("creates unique scope classes for multiple instances", () => {
       const stage1 = new Stage(container, 9999);
       const stage2Container = document.createElement("div");
       document.body.appendChild(stage2Container);
       const stage2 = new Stage(stage2Container, 9999);
 
-      const styleTags = document.querySelectorAll('style[id^="supermouse-style-"]');
-      expect(styleTags.length).toBe(2);
-      const ids = Array.from(styleTags).map((tag) => tag.id);
-      expect(ids[0]).not.toBe(ids[1]);
+      expect(stage1.scopeClass).not.toBe(stage2.scopeClass);
+      expect(stage1.hideClass).not.toBe(stage2.hideClass);
 
       stage1.destroy();
       stage2.destroy();

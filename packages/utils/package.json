@@ -1,6 +1,6 @@
 {
   "name": "@supermousejs/utils",
-  "version": "2.4.1",
+  "version": "2.4.4-beta.1",
   "main": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -9,6 +9,10 @@
   "url": "https://github.com/Whitestar14/supermouse-js",
   "sideEffects": false,
   "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "vite build"
   },
