@@ -2,28 +2,16 @@ let stageCount = 0;
 
 export class Stage {
   public readonly element: HTMLDivElement;
-  private styleTag: HTMLStyleElement;
-  private readonly id: string;
-  private readonly scopeClass: string;
-  private readonly hideClass: string;
+  public readonly scopeClass: string;
+  public readonly hideClass: string;
 
   private currentCursorState: "none" | "auto" | null = null;
-  private originalContainerPosition: string = "";
-  private originalContainerCursor: string = "";
-
-  private selectors: Set<string> = new Set([
-    "a",
-    "button",
-    "input",
-    "textarea",
-    "select",
-    '[role="button"]',
-    "[tabindex]"
-  ]);
+  private originalContainerPosition = "";
+  private originalContainerCursor = "";
 
   constructor(
-    private container: HTMLElement = document.body,
-    private zIndex: number = 9999
+    private container: HTMLElement,
+    private zIndex: number
   ) {
     if (!container || !(container instanceof HTMLElement)) {
       throw new Error(`[Supermouse] Invalid container: ${container}. Must be an HTMLElement.`);
@@ -35,10 +23,9 @@ export class Stage {
       );
     }
 
-    const instanceId = stageCount++;
-    this.id = `supermouse-style-${instanceId}`;
-    this.scopeClass = `supermouse-scope-${instanceId}`;
-    this.hideClass = `supermouse-hide-${instanceId}`;
+    const id = stageCount++;
+    this.scopeClass = `supermouse-scope-${id}`;
+    this.hideClass = `supermouse-hide-${id}`;
 
     const isBody = container === document.body;
     this.element = document.createElement("div");
@@ -46,7 +33,7 @@ export class Stage {
       position: isBody ? "fixed" : "absolute",
       inset: "0px",
       pointerEvents: "none",
-      zIndex: String(this.zIndex),
+      zIndex: String(zIndex),
       opacity: "1",
       transition: "opacity 0.15s ease"
     });
@@ -59,73 +46,36 @@ export class Stage {
 
     this.originalContainerCursor = container.style.cursor;
     container.appendChild(this.element);
-
-    this.styleTag = document.createElement("style");
-    this.styleTag.id = this.id;
-    document.head.appendChild(this.styleTag);
-
-    this.container.classList.add("supermouse-scope", this.scopeClass);
-    this.updateCursorCSS();
+    container.classList.add("supermouse-scope", this.scopeClass);
   }
 
-  public addSelectors(selectors: Iterable<string>): void {
-    let changed = false;
-    for (const selector of selectors) {
-      selector.split(",").forEach((s) => {
-        const trimmed = s.trim();
-        if (trimmed && !this.selectors.has(trimmed)) {
-          this.selectors.add(trimmed);
-          changed = true;
-        }
-      });
-    }
-    if (changed) this.updateCursorCSS();
+  get containerElement(): HTMLElement {
+    return this.container;
   }
 
-  public addSelector(selector: string): void {
-    this.addSelectors([selector]);
+  /** Full selector prefix: `.supermouse-scope-N.supermouse-hide-N`. */
+  getRulePrefix(): string {
+    return `.${this.scopeClass}.${this.hideClass}`;
   }
 
-  public setVisibility(visible: boolean): void {
+  /** CSS `:not()` chain that prevents the rules from leaking into nested scopes. */
+  getExclusion(): string {
+    return `:not(.${this.scopeClass} .supermouse-scope):not(.${this.scopeClass} .supermouse-scope *)`;
+  }
+
+  setVisibility(visible: boolean): void {
     this.element.style.opacity = visible ? "1" : "0";
   }
 
-  public setNativeCursor(type: "none" | "auto"): void {
+  setNativeCursor(type: "none" | "auto"): void {
     if (type === this.currentCursorState) return;
     this.currentCursorState = type;
     this.container.classList.toggle(this.hideClass, type === "none");
     this.container.style.cursor = type === "none" ? "none" : this.originalContainerCursor;
   }
 
-  private updateCursorCSS(): void {
-    const rawSelectors = Array.from(this.selectors);
-    if (rawSelectors.length === 0) {
-      this.styleTag.innerText = "";
-      return;
-    }
-
-    const exclusion = `:not(.${this.scopeClass} .supermouse-scope):not(.${this.scopeClass} .supermouse-scope *)`;
-    const scopeRule = (s: string) =>
-      `.${this.scopeClass}.${this.hideClass} ${s}${exclusion} { cursor: none !important; }`;
-
-    const scopedRules = rawSelectors.map(scopeRule).join("\n");
-    const broadRule = `.${this.scopeClass}.${this.hideClass} *${exclusion} { cursor: none !important; }`;
-    const containerRule = `.${this.scopeClass}.${this.hideClass} { cursor: none !important; }`;
-
-    this.styleTag.innerText = `
-    ${containerRule}
-    ${broadRule}
-    ${scopedRules}
-    ${scopeRule("label")}
-    ${scopeRule("select")}
-    ${scopeRule('input[type="range"]::-webkit-slider-thumb')}
-    ${scopeRule('input[type="range"]::-moz-range-thumb')}
-  `;
-  }
-
-  public destroy(): void {
+  destroy(): void {
     this.element.remove();
-    this.styleTag.remove();
     this.container.style.cursor = this.originalContainerCursor;
     this.container.classList.remove("supermouse-scope", this.scopeClass, this.hideClass);
     if (this.container !== document.body && this.originalContainerPosition === "static") {

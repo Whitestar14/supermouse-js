@@ -1,46 +1,88 @@
 import type { MouseState, SupermouseOptions, RuleDefinition } from "../types";
-import { OFFSCREEN, NATIVE_TAGS, SUPERMOUSE_CURSORS } from "../constants";
+import { OFFSCREEN, SUPERMOUSE_CURSORS } from "../constants";
+import { observe, toLocal } from "./ViewportManager";
+import type { Scope } from "./Scope";
 
 export class Input {
+  private abortController = new AbortController();
   private mediaQueryList?: MediaQueryList;
   private motionQuery?: MediaQueryList;
+
   private dataPrefix: string;
   private normalizedDataPrefix: string;
   private ignoreAttribute: string;
-  private abortController = new AbortController();
+
+  private scopes: Scope[] = [];
+  private activeScope: Scope | null = null;
+  private scopeByContainer = new Map<HTMLElement, Scope>();
+
   private nativeTarget: HTMLElement | null = null;
-  public hasSeenPointer: boolean = false;
-  public isEnabled: boolean = true;
-
-  private containerRect: DOMRect | null = null;
-  private resizeObserver?: ResizeObserver;
-
-  /** Cached matched rules for the current interaction element. */
-  private matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
-  private lastParsedTarget: HTMLElement | null = null;
-
-  /** Precomputed list of rule entries for faster iteration. */
-  private ruleEntries: Array<[string, RuleDefinition]>;
-
-  /** The actual element currently under the pointer (regardless of hover selectors). */
   private currentTarget: HTMLElement | null = null;
+  private lastParsedTarget: HTMLElement | null = null;
+  private matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
+  private ruleEntries: Array<[string, RuleDefinition]>;
+  private releaseViewport: (() => void) | null = null;
+
+  public hasSeenPointer = false;
+  public isEnabled = true;
+
+  private viewportX = 0;
+  private viewportY = 0;
 
   constructor(
     private state: MouseState,
     private options: SupermouseOptions,
-    private getHoverSelector: () => string,
-    private onEnableChange: (enabled: boolean) => void
+    private onEnableChange: (enabled: boolean) => void,
+    private onActiveScopeChange: (scope: Scope | null) => void
   ) {
-    this.dataPrefix = this.options.dataPrefix ?? "supermouse";
+    this.dataPrefix = options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
     this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
-
-    this.ruleEntries = this.options.rules ? Object.entries(this.options.rules) : [];
+    this.ruleEntries = options.rules ? Object.entries(options.rules) : [];
 
     this.checkDeviceCapability();
     this.checkMotionPreference();
-    this.setupContainerRectTracking();
     this.bindEvents();
+  }
+
+  setScopes(scopes: Scope[]): void {
+    this.scopes = scopes;
+    this.scopeByContainer.clear();
+    for (const scope of scopes) this.scopeByContainer.set(scope.container, scope);
+  }
+
+  setActiveScope(scope: Scope | null): void {
+    if (scope === this.activeScope) return;
+    this.activeScope = scope;
+
+    this.releaseViewport?.();
+    this.releaseViewport =
+      scope && scope.container !== document.body ? observe(scope.container) : null;
+
+    this.applyPointerToState();
+
+    // Snap physics to the new coordinate frame without animation.
+    this.state.target.x = this.state.smooth.x = this.state.pointer.x;
+    this.state.target.y = this.state.smooth.y = this.state.pointer.y;
+
+    this.onActiveScopeChange(scope);
+  }
+
+  private findScope(target: Node): Scope | null {
+    let cur = target as HTMLElement | null;
+    while (cur) {
+      const scope = this.scopeByContainer.get(cur);
+      if (scope) return scope;
+      cur = cur.parentElement;
+    }
+    return null;
+  }
+
+  private applyPointerToState(): void {
+    const container = this.activeScope?.container ?? document.body;
+    const local = toLocal(container, this.viewportX, this.viewportY);
+    this.state.pointer.x = local.x;
+    this.state.pointer.y = local.y;
   }
 
   private checkDeviceCapability(): void {
@@ -69,33 +111,10 @@ export class Input {
     this.onEnableChange(enabled);
   }
 
-  /** Caches container rect; updates on resize/scroll/ResizeObserver. */
-  private setupContainerRectTracking(): void {
-    const container = this.options.container;
-    if (!container || container === document.body) return;
-
-    const updateRect = (): void => {
-      this.containerRect = container.getBoundingClientRect();
-    };
-    updateRect();
-
-    window.addEventListener("resize", updateRect, { signal: this.abortController.signal });
-    window.addEventListener("scroll", updateRect, {
-      passive: true,
-      signal: this.abortController.signal
-    });
-
-    if (typeof ResizeObserver !== "undefined") {
-      this.resizeObserver = new ResizeObserver(updateRect);
-      this.resizeObserver.observe(container);
-    }
-  }
-
   public parseDOMInteraction(element: HTMLElement): void {
     if (element !== this.lastParsedTarget) {
       this.lastParsedTarget = element;
       this.matchedRules = [];
-
       for (const [selector, rules] of this.ruleEntries) {
         if (this.matchesSelector(element, selector)) {
           this.matchedRules.push({ selector, rules });
@@ -108,7 +127,6 @@ export class Input {
       try {
         const resolved = typeof rules === "function" ? rules(element) : rules;
         if (!resolved || typeof resolved !== "object") continue;
-
         for (const [key, val] of Object.entries(resolved)) {
           data[key] = typeof val === "function" ? val(element) : val;
         }
@@ -131,30 +149,20 @@ export class Input {
 
   private matchesSelector(element: HTMLElement, selector: string): boolean {
     try {
-      if (!/\s/.test(selector.trim())) {
-        return element.matches(selector);
-      }
+      if (!/\s/.test(selector.trim())) return element.matches(selector);
     } catch {
       return false;
     }
-
     const parts = selector.trim().split(/\s+/);
     if (parts.length < 2) return false;
-
     const self = parts.pop()!;
     const ancestor = parts.join(" ");
     if (!self || !ancestor) return false;
-
     try {
       return element.matches(self) && !!element.closest(ancestor);
     } catch {
       return false;
     }
-  }
-
-  private isOutsideContainer(target: Node): boolean {
-    const { container } = this.options;
-    return !!container && container !== document.body && !container.contains(target);
   }
 
   private resolveComputedCursor(target: HTMLElement): string {
@@ -165,25 +173,17 @@ export class Input {
     if (this.options.autoDisableOnMobile && e.pointerType === "touch" && !this.options.enableTouch)
       return;
 
-    let x = e.clientX;
-    let y = e.clientY;
-
-    const container = this.options.container;
-    if (container && this.containerRect && container !== document.body) {
-      x -= this.containerRect.left;
-      y -= this.containerRect.top;
-    }
-
-    this.state.pointer.x = x;
-    this.state.pointer.y = y;
+    this.viewportX = e.clientX;
+    this.viewportY = e.clientY;
     this.hasSeenPointer = true;
+    this.applyPointerToState();
 
     if (!this.isEnabled) return;
 
     if (!this.state.hasReceivedInput) {
       this.state.hasReceivedInput = true;
-      this.state.target.x = this.state.smooth.x = x;
-      this.state.target.y = this.state.smooth.y = y;
+      this.state.target.x = this.state.smooth.x = this.state.pointer.x;
+      this.state.target.y = this.state.smooth.y = this.state.pointer.y;
     }
   };
 
@@ -198,17 +198,16 @@ export class Input {
   private handleMouseOver = (e: Event): void => {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
+    const scope = this.findScope(target);
 
-    if (this.isOutsideContainer(target)) return;
+    if (scope && scope !== this.activeScope) {
+      this.setActiveScope(scope);
+    }
+
+    if (!this.activeScope) return;
 
     if (this.state.cursorMode === "auto" && target.closest(`[${this.ignoreAttribute}]`)) {
-      this.state.isHover = false;
-      this.state.hoverTarget = null;
-      this.state.interaction = {};
-      this.currentTarget = null;
-      this.lastParsedTarget = null;
-      this.matchedRules = [];
-
+      this.clearHover();
       this.state.isNative = true;
       this.nativeTarget = target;
       return;
@@ -216,28 +215,28 @@ export class Input {
 
     this.state.isNative = false;
     this.nativeTarget = null;
-
     this.currentTarget = target;
     this.parseDOMInteraction(target);
 
-    if (this.state.cursorMode !== "auto") {
-      const hoverable = target.closest(this.getHoverSelector());
-      if (hoverable) {
-        this.state.isHover = true;
-        this.state.hoverTarget = hoverable as HTMLElement;
-      }
-      return;
-    }
-
-    const hoverable = target.closest(this.getHoverSelector());
+    const hoverable = target.closest(this.activeScope.hoverSelectorString);
     if (hoverable) {
       this.state.isHover = true;
       this.state.hoverTarget = hoverable as HTMLElement;
     }
 
-    const checkTags = NATIVE_TAGS.has(target.localName) || target.isContentEditable;
-    const checkCSS = !SUPERMOUSE_CURSORS.has(this.resolveComputedCursor(target));
-    if (checkTags || checkCSS) {
+    if (this.state.cursorMode !== "auto") return;
+
+    for (const sel of this.activeScope.nativeSelectors) {
+      try {
+        if (target.matches(sel)) {
+          this.state.isNative = true;
+          this.nativeTarget = target;
+          return;
+        }
+      } catch {}
+    }
+
+    if (target.isContentEditable || !SUPERMOUSE_CURSORS.has(this.resolveComputedCursor(target))) {
       this.state.isNative = true;
       this.nativeTarget = target;
     }
@@ -247,8 +246,6 @@ export class Input {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
     const related = (e as MouseEvent).relatedTarget as Node | null;
-
-    if (this.isOutsideContainer(target)) return;
 
     if (target === this.state.hoverTarget || target.contains(this.state.hoverTarget)) {
       if (!related || !this.state.hoverTarget?.contains(related)) {
@@ -274,12 +271,6 @@ export class Input {
   private handleDocumentMouseOut = (e: MouseEvent): void => {
     if (!this.isEnabled) return;
     if (e.relatedTarget === null && this.options.hideOnLeave) {
-      this.handleWindowLeave();
-    }
-  };
-
-  private handleWindowLeave = (): void => {
-    if (this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
       this.state.pointer = { ...OFFSCREEN };
     }
@@ -305,17 +296,13 @@ export class Input {
     window.addEventListener("pointermove", this.handleMove, { passive: true, signal });
     window.addEventListener("pointerdown", this.handleDown, { passive: true, signal });
     window.addEventListener("pointerup", this.handleUp, { signal });
-
-    const isBody = !this.options.container || this.options.container === document.body;
-    const hoverRoot = isBody ? document : this.options.container!;
-    hoverRoot.addEventListener("mouseover", this.handleMouseOver, { signal });
-    hoverRoot.addEventListener("mouseout", this.handleMouseOut, { signal });
-
+    document.addEventListener("mouseover", this.handleMouseOver, { signal });
+    document.addEventListener("mouseout", this.handleMouseOut, { signal });
     document.addEventListener("mouseout", this.handleDocumentMouseOut, { signal });
   }
 
   public destroy(): void {
     this.abortController.abort();
-    this.resizeObserver?.disconnect();
+    this.releaseViewport?.();
   }
 }
