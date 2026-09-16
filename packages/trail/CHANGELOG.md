@@ -1,5 +1,14 @@
 # @supermousejs/trail
 
+## 2.4.4-beta.0
+
+### Patch Changes
+
+- Updated dependencies [1325a9c]
+- Updated dependencies [0af4732]
+  - @supermousejs/core@2.5.0-beta.0
+  - @supermousejs/utils@2.4.4-beta.0
+
 ## 2.4.3
 
 ### Patch Changes

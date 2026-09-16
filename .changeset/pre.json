@@ -18,5 +18,8 @@
     "@supermousejs/utils": "2.4.3",
     "@supermousejs/vue": "2.4.3"
   },
-  "changesets": []
+  "changesets": [
+    "heavy-balloons-judge",
+    "ready-emus-begin"
+  ]
 }
