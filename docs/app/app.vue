@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from "vue";
 import Lenis from "lenis";
 import Navbar from "@components/landing/Navbar.vue";
-import CursorEditor from "@components/playground/CursorEditor.vue";
-import SearchPalette from "@components/landing/SearchPalette.vue";
 import { useAppCursor } from "@composables/useAppCursor";
 import { usePlayground } from "@composables/usePlayground";
-import { doctor } from "@supermousejs/utils";
+import { useScrollLock } from "@composables/useScrollLock";
 
-const route = useRoute();
+const CursorEditor = defineAsyncComponent(() => import("@components/playground/CursorEditor.vue"));
+const SearchPalette = defineAsyncComponent(() => import("@components/landing/SearchPalette.vue"));
+
 const { instance } = useAppCursor();
 const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
@@ -76,41 +77,17 @@ onMounted(() => {
   }
 });
 
-// Reset Lenis scroll on route change (SSR-safe, mirrors the old route-pending
-// + router.isReady() behavior from the vite-ssg entry)
-watch(
-  () => route.path,
-  () => {
-    if (typeof window === "undefined" || !lenis) return;
-    lenis.scrollTo(0, { immediate: true });
-  }
-);
+useScrollLock(computed(() => isEditorOpen.value || isSearchOpen.value));
 
 const navigateEditor = (id: string): void => {
   activeRecipeId.value = id;
 };
 
 watch(
-  [isEditorOpen, isSearchOpen],
-  ([editor, search]) => {
-    if (typeof window === "undefined" || !lenis) return;
-
-    if (editor || search) {
-      lenis.stop();
-    } else {
-      lenis.start();
-    }
-  },
-  { flush: "post" }
-);
-
-watch(
   instance,
   (app) => {
-    if (app) {
-      if (import.meta.dev) {
-        doctor(app);
-      }
+    if (app && import.meta.dev) {
+      void import("@supermousejs/utils").then(({ doctor }) => doctor(app));
     }
   },
   { immediate: true }
@@ -123,7 +100,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-white flex flex-col">
+  <div class="relative min-h-screen bg-surface flex flex-col">
     <Navbar @open-search="isSearchOpen = true" />
 
     <main class="flex-1 flex flex-col min-h-0 relative z-10">

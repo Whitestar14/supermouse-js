@@ -36,7 +36,7 @@ const showNative = computed({
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-white">
+  <div class="h-full flex flex-col bg-surface">
     <!-- Controls Scroll Area -->
     <div class="flex-1 overflow-y-auto p-4 space-y-4">
       <!-- Dynamic Schema Controls -->
@@ -76,18 +76,18 @@ const showNative = computed({
 
           <!-- Text Fallback -->
           <div v-else-if="control.type === 'text'" class="p-3">
-            <label class="text-sm font-bold text-zinc-900 block mb-2">{{ control.label }}</label>
+            <label class="text-sm font-bold text-inverse block mb-2">{{ control.label }}</label>
             <input
               v-model="localConfig[control.key]"
               type="text"
-              class="w-full h-10 border border-zinc-200 px-3 font-mono text-sm outline-none focus:border-black transition-colors bg-zinc-50 focus:bg-white"
+              class="w-full h-10 border border-border px-3 font-mono text-sm outline-none focus:border-inverse transition-colors bg-surface-muted focus:bg-surface"
             />
           </div>
         </template>
       </div>
 
-      <div class="border-t border-zinc-100 my-4 pt-6">
-        <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4 px-2">
+      <div class="border-t border-border-subtle my-4 pt-6">
+        <h4 class="text-xs font-bold text-subtle uppercase tracking-widest mb-4 px-2">
           Global Physics
         </h4>
 

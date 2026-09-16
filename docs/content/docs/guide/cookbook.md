@@ -9,18 +9,22 @@ Every card below is generated from the playground recipes, so it always matches
 what the Studio can open. The snippets underneath are the canonical way to
 achieve each effect in your own app.
 
-> **Desktop recommended**
->
-> Real-time physics editing needs a precise pointer, but every recipe is also
-> listed under [/labs](/labs).
+:::callout{title="Desktop recommended" variant="note"}
+Real-time physics editing needs a precise pointer, but every recipe is also
+listed under [/labs](/labs).
+:::
 
-<CookbookGrid />
+:cookbook-grid
 
 ## The baseline: trailing ring + precision dot
 
-`Dot` renders at `state.target` (the raw pointer), while `Ring` renders at
-`state.smooth` (the damped position). Pairing them gives the classic effect: an
-instant dot with a lagging outline.
+
+
+`Dot` renders at `state.target` (the raw pointer), while `Ring` renders at `state.smooth` (the damped position). Pairing them gives the classic effect: an
+instant dot with a lagging outline. Try it — hover into the preview and open
+**Controls** to reshape it live.
+
+:cursor-demo{demo="dot-ring" title="Dot + Ring"}
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
@@ -42,6 +46,8 @@ the frame order for plugins that share a priority.
 so the cursor is pulled toward the centre of the hovered element. It activates
 on elements carrying `data-supermouse-magnetic`, and a numeric attribute value
 overrides the configured attraction.
+
+:cursor-demo{demo="magnetic" title="Magnetic pull"}
 
 ```typescript
 import { Magnetic } from "@supermousejs/magnetic";
@@ -79,6 +85,8 @@ app.use(Dot({ size: 6, hideOnShape: true }));
 
 `Stick` caches the measured box and the computed `border-radius` per element, so
 the geometry is read once on hover rather than every frame.
+
+:cursor-demo{demo="stick" title="Shape morphing"}
 
 ## State-driven plugin sets
 
@@ -126,6 +134,8 @@ app.use(Sparkles({ count: 24, decay: 0.9, frequency: 0.35, scatter: 2 }));
 `Trail` renders a fixed pool of segments at decreasing size and opacity, moving
 them through a history buffer — no DOM allocation in `update()`. `Sparkles`
 follows the same idea with a particle pool.
+
+:cursor-demo{demo="trail" title="Trail"}
 
 ## Content-replacing cursors
 

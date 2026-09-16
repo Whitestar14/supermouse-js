@@ -14,13 +14,13 @@ const emit = defineEmits<{
 <template>
   <div class="space-y-3 p-3">
     <div>
-      <label class="text-sm font-bold text-zinc-900 block">{{ label }}</label>
-      <p v-if="description" class="text-[10px] text-zinc-500 font-mono mt-0.5">
+      <label class="text-sm font-bold text-inverse block">{{ label }}</label>
+      <p v-if="description" class="text-[10px] text-muted font-mono mt-0.5">
         {{ description }}
       </p>
     </div>
 
-    <div class="grid grid-cols-2 gap-px bg-zinc-200 border border-zinc-200 overflow-hidden">
+    <div class="grid grid-cols-2 gap-px bg-border border border-border overflow-hidden">
       <button
         v-for="opt in options"
         :key="opt"
@@ -28,8 +28,8 @@ const emit = defineEmits<{
         class="px-3 py-2 text-xs font-bold transition-all capitalize text-center cursor-pointer"
         :class="
           modelValue === opt
-            ? 'bg-black text-white'
-            : 'bg-white text-zinc-500 hover:text-black hover:bg-zinc-50'
+            ? 'bg-inverse text-surface'
+            : 'bg-surface text-muted hover:text-inverse hover:bg-surface-muted'
         "
         @click="emit('update:modelValue', opt)"
       >

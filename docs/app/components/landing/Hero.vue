@@ -1,88 +1,95 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { APP_VERSION } from "@config/constants";
+import { computed } from "vue";
+import { APP_VERSION, LAST_RELEASED_AT, formatRelativeTime } from "@config/constants";
 import CodeBlock from "@components/content/CodeBlock.vue";
+import UiButton from "@components/ui/UiButton.vue";
 
-const copied = ref(false);
-const version: string = APP_VERSION || "2.2.0";
+const { copied, copy: writeToClipboard } = useClipboard(2000);
+const version: string = APP_VERSION || "2.4.0";
 
-const copyCommand = async (): Promise<void> => {
-  await navigator.clipboard.writeText("pnpm add @supermousejs/core");
-  copied.value = true;
-  setTimeout(() => (copied.value = false), 2000);
+const releasedAt = computed(() =>
+  typeof LAST_RELEASED_AT === "string" && LAST_RELEASED_AT.length > 0
+    ? formatRelativeTime(LAST_RELEASED_AT)
+    : null
+);
+
+const versionTooltip = computed(() =>
+  releasedAt.value ? `Released ${releasedAt.value}` : undefined
+);
+
+const copyCommand = (): void => {
+  void writeToClipboard("pnpm add @supermousejs/core");
 };
 
+/**
+ * The sample is the mental model, not decoration: the kernel holds one damped
+ * position (`state.smooth`) and the raw pointer (`state.target`), and modules
+ * choose which one they render from. `Ring` trails, `Dot` tracks.
+ */
 const heroCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';
+import { Ring } from '@supermousejs/ring';
 
-const app = new Supermouse();
+const app = new Supermouse({
+  smoothness: 0.15
+});
 
-app.use(Dot({
-  size: 8,
-  color: '#f59e0b',
-  mixBlendMode: 'difference'
-}));`;
+app.use(Ring({ size: 24 }));
+app.use(Dot({ size: 8 }));
+`;
 </script>
 
 <template>
-  <div class="relative border-b border-zinc-200 bg-white">
-    <div class="flex flex-col lg:flex-row min-h-[640px]">
-      <!-- Sidebar Spacer -->
-      <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white z-10" />
+  <div class="relative border-b border-border bg-surface">
+    <div class="flex flex-col lg:flex-row min-h-160">
+      <div class="hidden lg:block w-24 border-r border-border shrink-0 bg-surface z-10" />
 
-      <!-- Main Content Area -->
       <div class="flex-1 relative flex flex-col lg:flex-row items-center">
-        <!-- Background Grid -->
-        <!-- <div class="absolute inset-0 grid-bg opacity-100 pointer-events-none mix-blend-multiply" /> -->
-
         <div class="w-full h-full flex flex-col lg:flex-row max-w-7xl mx-auto z-10">
-          <!-- Text Column -->
           <div
-            class="flex-1 py-16 px-6 md:px-12 lg:px-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-zinc-200 bg-white/95 backdrop-blur-sm"
+            class="flex-1 py-16 px-6 md:px-12 lg:px-16 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-border bg-surface/95 backdrop-blur-sm"
           >
-            <!-- Version Badge -->
-            <div class="inline-flex items-center gap-2 mb-10">
-              <span class="mono text-[11px] uppercase tracking-widest text-zinc-500 font-bold"
-                >{{ version }} Stable</span
+            <div class="inline-flex items-center gap-2 mb-10 relative">
+              <span
+                :data-supermouse-text="versionTooltip"
+                class="mono text-[11px] uppercase tracking-widest text-muted font-bold underline decoration-dotted underline-offset-4 decoration-subtle hover:decoration-inverse transition-colors cursor-pointer"
               >
+                {{ version }} Stable
+              </span>
             </div>
 
             <!-- Headline -->
             <h1
-              class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-zinc-900 mb-8 leading-[1.05]"
+              class="text-5xl md:text-6xl lg:text-7xl font-bold text-pretty tracking-tighter text-inverse mb-8 leading-[1.05]"
             >
               Cursor Engine <br />
               for Modern Browsers.
             </h1>
 
             <!-- Subtext -->
-            <p class="text-xl text-zinc-600 font-medium max-w-md mb-12 leading-relaxed text-pretty">
-              A modular engine with
-              <span class="text-black font-bold border-b-2 border-black/10">optimized defaults</span
-              >. Fully replaceable parts for maximum control.
+            <p
+              class="text-lg md:text-xl text-body font-medium max-w-lg mb-12 leading-relaxed text-pretty"
+            >
+              A zero-dependency, 4kb kernel with sensible defaults and a plugin system for building
+              beautiful cursors on the web.
             </p>
 
             <!-- Actions -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <NuxtLink
-                to="/docs"
-                class="h-12 px-8 bg-black text-white text-sm font-bold flex items-center justify-center hover:bg-zinc-800 transition-colors"
-              >
-                Get Started
-              </NuxtLink>
+              <UiButton to="/docs/guide/installation">Get Started</UiButton>
 
               <button
-                class="group h-12 px-5 bg-white border border-zinc-200 flex items-center gap-4 hover:border-zinc-400 transition-colors"
+                class="group h-12 px-5 bg-surface border border-border flex items-center gap-4 hover:border-subtle transition-colors"
                 @click="copyCommand"
               >
-                <span class="mono text-zinc-400 text-xs select-none">$</span>
-                <code class="mono flex-1 text-sm text-zinc-900 font-bold"
+                <span class="mono text-subtle text-xs select-none">$</span>
+                <code class="mono flex-1 text-sm text-inverse font-bold"
                   >pnpm add @supermousejs/core</code
                 >
                 <div class="relative size-4 justify-self-end ml-2">
                   <svg
                     v-if="!copied"
-                    class="size-4 text-zinc-400 group-hover:text-black transition-colors"
+                    class="size-4 text-subtle group-hover:text-inverse transition-colors"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -93,7 +100,7 @@ app.use(Dot({
                   </svg>
                   <svg
                     v-else
-                    class="w-4 h-4 text-zinc-900"
+                    class="w-4 h-4 text-inverse"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -107,16 +114,12 @@ app.use(Dot({
           </div>
 
           <div
-            class="w-full lg:w-[520px] shrink-0 bg-zinc-50/50 flex flex-col justify-center p-8 lg:p-12"
+            class="w-full lg:w-130.5 shrink-0 bg-surface-muted/50 flex flex-col justify-center p-8 lg:p-12"
           >
-            <CodeBlock
-              :code="heroCode"
-              title="main.ts"
-              class="shadow-none border border-zinc-200"
-            />
+            <CodeBlock :code="heroCode" title="main.ts" class="border border-border" />
 
             <div class="mt-8 flex gap-8 justify-center opacity-40 grayscale">
-              <div class="size-6 text-zinc-300">
+              <div class="size-6 text-faint">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
                   <path
                     d="M0 8.934l49.854.158 14.167 24.47 14.432-24.47L128 8.935l-63.834 110.14zm126.98.637l-24.36.02-38.476 66.053L25.691 9.592.942 9.572l63.211 107.89zm-25.149-.008l-22.745.168-15.053 24.647L49.216 9.73l-22.794-.168 37.731 64.476zm-75.834-.17l23.002.009m-23.002-.01l23.002.01"
@@ -132,7 +135,7 @@ app.use(Dot({
                   />
                 </svg>
               </div>
-              <div class="size-6 text-zinc-300">
+              <div class="size-6 text-faint">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
                   <path fill="#fff" d="M22.67 47h99.67v73.67H22.67z" />
                   <path
@@ -142,7 +145,7 @@ app.use(Dot({
                   />
                 </svg>
               </div>
-              <div class="size-6 text-zinc-300">
+              <div class="size-6 text-faint">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
                   <defs>
                     <linearGradient
@@ -188,4 +191,3 @@ app.use(Dot({
     </div>
   </div>
 </template>
-

@@ -3,12 +3,15 @@ definePageMeta({
   layout: "docs"
 });
 
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import CodeBlock from "@components/content/CodeBlock.vue";
 import MetadataStrip from "@/components/content/MetadataStrip.vue";
 import Table from "@/components/content/Table.vue";
+import CursorDemo from "@components/content/CursorDemo.vue";
 import { usePageHead } from "@composables/usePageHead";
+import { useTocScroll, useTocSections, type TocSection } from "@composables/useToc";
 import { PLUGINS } from "@data/plugin-data";
+import { DEMOS, PLUGIN_DEMO_IDS } from "@playground/demos";
 
 const route = useRoute();
 
@@ -40,34 +43,41 @@ usePageHead({
 
 const showConfigTable = computed(() => (plugin.value?.options?.length ?? 0) > 0);
 
+/** Docs completeness, expressed with tokens — never a raw colour utility. */
 const docsStatus = computed(() => {
   if (!plugin.value) return null;
   return plugin.value.hasDetailedDocs
-    ? { label: "Full Docs", class: "text-emerald-600" }
-    : { label: "Overview Only", class: "text-zinc-500" };
+    ? { label: "Full Docs", class: "border border-border bg-surface-muted text-inverse" }
+    : { label: "Overview Only", class: "border border-dashed border-border text-subtle" };
 });
+
+/**
+ * This page is generated from package metadata rather than markdown, so it has
+ * to publish its own TOC — otherwise the rail would keep whatever the last
+ * markdown page wrote into the shared `docs-toc` state (the "stale sidebar"
+ * bug on plugin pages). Anchors below match the ids on the headings.
+ */
+const tocSections = computed<TocSection[]>(() => {
+  if (!plugin.value) return [];
+  const sections: TocSection[] = [
+    { id: "installation", label: "Installation", depth: 2 },
+    { id: "usage", label: "Usage", depth: 2 }
+  ];
+  if (showConfigTable.value) {
+    sections.push({ id: "configuration", label: "Configuration", depth: 2 });
+  }
+  return sections;
+});
+
+const tocState = useTocSections();
+watch(tocSections, (sections) => (tocState.value = sections), { immediate: true });
+useTocScroll(tocSections);
 </script>
 
 <template>
   <div v-if="plugin">
-    <!-- Clean Header with Breadcrumbs -->
-    <div class="mb-8">
-      <div class="flex items-center gap-2 mb-6">
-        <NuxtLink
-          to="/docs"
-          class="mono text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-black transition-colors"
-        >
-          Plugins
-        </NuxtLink>
-        <span class="text-zinc-300">/</span>
-        <span class="mono text-xs font-bold uppercase tracking-widest text-zinc-900">
-          {{ plugin.package }}
-        </span>
-      </div>
-      <h1 class="text-5xl font-bold tracking-tighter text-zinc-900 leading-[0.9]">
-        {{ plugin.name }}
-      </h1>
-    </div>
+    <!-- Same header component as markdown pages, package name as the label -->
+    <PageHeader crumb="Plugins" :label="plugin.package" :title="plugin.name" />
 
     <!-- Meta Strip (Matching Introduction) -->
     <MetadataStrip :items="metaItems" />
@@ -75,33 +85,42 @@ const docsStatus = computed(() => {
     <!-- Intro Text -->
     <div class="flex flex-col md:flex-row gap-12 mb-16">
       <div class="flex-1">
-        <p class="text-xl text-zinc-600 leading-relaxed font-medium">
+        <p class="text-xl text-body leading-relaxed font-medium">
           {{ plugin.description }}
         </p>
       </div>
     </div>
 
+    <!-- Live preview: shown for plugins with a registered demo, else omitted -->
+    <CursorDemo
+      v-if="plugin && PLUGIN_DEMO_IDS[plugin.id] && DEMOS[PLUGIN_DEMO_IDS[plugin.id]]"
+      :demo="PLUGIN_DEMO_IDS[plugin.id]"
+      class="mb-16"
+    />
+
     <!-- Integration -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-20">
       <div class="flex flex-col h-full">
         <h3
-          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2"
+          id="installation"
+          class="font-mono text-xs font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2 scroll-mt-32"
         >
-          <span class="w-1.5 h-1.5 bg-black" />
+          <span class="w-1.5 h-1.5 bg-inverse" />
           Installation
         </h3>
         <CodeBlock
           :code="installCode"
           lang="text"
           :clean="true"
-          class="border border-zinc-200 shadow-sm flex-1"
+          class="border border-code-border flex-1"
         />
       </div>
       <div class="flex flex-col h-full">
         <h3
-          class="font-mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2"
+          id="usage"
+          class="font-mono text-xs font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2 scroll-mt-32"
         >
-          <span class="w-1.5 h-1.5 bg-black" />
+          <span class="w-1.5 h-1.5 bg-inverse" />
           Usage
         </h3>
         <CodeBlock
@@ -109,23 +128,30 @@ const docsStatus = computed(() => {
           lang="typescript"
           :recipe-id="plugin.recipeId"
           :clean="true"
-          class="border border-zinc-200 shadow-sm flex-1"
+          class="border border-code-border flex-1"
         />
       </div>
     </div>
 
     <!-- API / Config -->
-    <div class="border-t border-zinc-200 pt-12">
+    <div class="border-t border-border pt-12">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="font-mono text-sm font-bold uppercase tracking-widest text-zinc-900">
+        <h3
+          id="configuration"
+          class="font-mono text-sm font-bold uppercase tracking-widest text-inverse scroll-mt-32"
+        >
           Configuration
         </h3>
         <div class="flex items-center gap-3">
-          <span v-if="docsStatus" class="text-xs font-mono uppercase tracking-widest">
-            <span :class="docsStatus.class">{{ docsStatus.label }}</span>
+          <span
+            v-if="docsStatus"
+            class="mono text-[10px] font-bold uppercase tracking-widest px-2 py-0.5"
+            :class="docsStatus.class"
+          >
+            {{ docsStatus.label }}
           </span>
-          <span v-if="plugin.options?.some((o) => o.reactive)" class="text-xs text-zinc-500">
-            <span class="font-bold text-zinc-900">*</span> Reactive Property
+          <span v-if="plugin.options?.some((o) => o.reactive)" class="text-xs text-muted">
+            <span class="font-bold text-inverse">*</span> Reactive Property
           </span>
         </div>
       </div>
@@ -135,37 +161,37 @@ const docsStatus = computed(() => {
         :columns="optionColumns"
         :rows="plugin.options ?? []"
         v-if="showConfigTable"
-        wrapper-class="border border-zinc-200 bg-white overflow-hidden shadow-sm"
+        wrapper-class="border border-border overflow-hidden"
       >
         <template #cell-name="{ row }">
-          <span class="font-mono text-zinc-900 font-bold relative">
+          <span class="font-mono text-inverse font-bold relative">
             {{ row.name }}
             <span
               v-if="row.reactive"
-              class="absolute top-4 left-2 text-amber-500 text-xs select-none"
+              class="absolute top-4 left-2 text-accent text-xs select-none"
               >*</span
             >
           </span>
         </template>
 
         <template #cell-type="{ row }">
-          <span class="font-mono text-amber-600 text-xs">{{ row.type }}</span>
+          <span class="font-mono text-accent text-xs">{{ row.type }}</span>
         </template>
 
         <template #cell-default="{ row }">
-          <span class="font-mono text-zinc-400 text-xs">{{ row.default || "-" }}</span>
+          <span class="font-mono text-subtle text-xs">{{ row.default || "-" }}</span>
         </template>
 
         <template #cell-description="{ row }">
-          <span class="text-zinc-600 leading-relaxed">{{ row.description }}</span>
+          <span class="text-body leading-relaxed">{{ row.description }}</span>
         </template>
       </Table>
 
       <div
         v-else
-        class="p-12 border border-zinc-200 bg-zinc-50 text-center"
+        class="p-12 border border-border bg-surface-muted text-center"
       >
-        <p class="font-mono text-xs text-zinc-400 uppercase tracking-widest font-bold">
+        <p class="font-mono text-xs text-subtle uppercase tracking-widest font-bold">
           {{ plugin?.hasDetailedDocs ? 'No configuration options' : 'Configuration docs coming soon' }}
         </p>
       </div>
@@ -175,7 +201,7 @@ const docsStatus = computed(() => {
   <!-- 404 State -->
   <div v-else class="min-h-[50vh] flex flex-col items-center justify-center text-center p-8">
     <div
-      class="w-16 h-16 border border-zinc-200 flex items-center justify-center mb-6 text-zinc-300"
+      class="w-16 h-16 border border-border flex items-center justify-center mb-6 text-faint"
     >
       <svg
         width="24"
@@ -192,11 +218,11 @@ const docsStatus = computed(() => {
         <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     </div>
-    <h1 class="text-xl font-bold text-zinc-900 tracking-tighter">Plugin Missing</h1>
-    <p class="text-zinc-500 mt-2 font-mono text-xs">ID: {{ route.params.id }}</p>
+    <h1 class="text-xl font-bold text-inverse tracking-tighter">Plugin Missing</h1>
+    <p class="text-muted mt-2 font-mono text-xs">ID: {{ route.params.id }}</p>
     <NuxtLink
       to="/docs"
-      class="mt-8 px-6 py-3 bg-black text-white font-mono text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+      class="mt-8 px-6 py-3 bg-inverse text-surface font-mono text-xs font-bold uppercase tracking-widest hover:bg-elevated transition-colors"
     >
       Return to Plugins
     </NuxtLink>

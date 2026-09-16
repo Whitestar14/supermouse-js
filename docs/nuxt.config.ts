@@ -1,6 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
+import { execFileSync } from "child_process";
 import tailwindcss from "@tailwindcss/vite";
 import type { NuxtConfig } from "nuxt/config";
 import { SITE_URL, STATIC_SITEMAP_ROUTES, ROBOTS_DISALLOW } from "./app/config/seo";
@@ -8,16 +9,10 @@ import { readDocsContent } from "./app/config/content-nav";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/**
- * Every markdown file under `content/` is a page. Routes, prerendering and the
- * sidebar navigation are all derived from its frontmatter, so the sitemap can
- * never drift from the files on disk.
- */
 const { routes: contentRoutes, navigation: docsNavigation } = readDocsContent(
   path.resolve(__dirname, "content")
 );
 
-// Plugin pages are generated from package metadata, not markdown.
 const pluginsData: Array<{ id: string }> = JSON.parse(
   readFileSync(path.resolve(__dirname, "app/data/generated-plugins.json"), "utf-8")
 );
@@ -27,7 +22,6 @@ const sitemapRoutes = Array.from(
   new Set([...STATIC_SITEMAP_ROUTES, ...contentRoutes, ...pluginRoutes])
 ).sort();
 
-// Workspace packages are aliased straight to their TS sources (as in vite.config.ts)
 const supermouseAliases = Object.fromEntries(
   [
     "react",
@@ -54,7 +48,7 @@ const supermouseAliases = Object.fromEntries(
 
 export default defineNuxtConfig({
   compatibilityDate: "2026-09-08",
-  ssr: true,
+  ssr: false,
 
   modules: ["@nuxt/content"],
 
@@ -66,9 +60,6 @@ export default defineNuxtConfig({
     }
   ],
 
-  // Markdown code fences are highlighted by our own `ProsePre.vue` so they
-  // match `CodeBlock.vue` exactly. Disabling Shiki here stops @nuxtjs/mdc from
-  // injecting `shiki` classes/styles that override that component.
   content: {
     build: {
       markdown: {
@@ -79,9 +70,73 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/index.css"],
 
+  vite: {
+    plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: [
+        "@nuxtjs/mdc",
+        "remark-gfm",
+        "remark-emoji",
+        "remark-mdc",
+        "remark-rehype",
+        "rehype-raw",
+        "parse5",
+        "unist-util-visit",
+        "unified"
+      ]
+    },
+
+    define: {
+      __SUPERMOUSE_VERSION__: JSON.stringify(
+        JSON.parse(readFileSync(path.resolve(__dirname, "../packages/core/package.json"), "utf-8"))
+          .version
+      ),
+
+      __SUPERMOUSE_RELEASE_AT__: JSON.stringify(
+        (() => {
+          const packageVersion = JSON.parse(
+            readFileSync(path.resolve(__dirname, "../packages/core/package.json"), "utf-8")
+          ).version;
+          const tagName = `@supermousejs/core@${packageVersion}`;
+          const tagDate = execFileSync(
+            "git",
+            [
+              "for-each-ref",
+              "--sort=-creatordate",
+              "--format=%(creatordate:iso-strict)",
+              `refs/tags/${tagName}`
+            ],
+            {
+              cwd: path.resolve(__dirname, ".."),
+              encoding: "utf-8",
+              maxBuffer: 1024 * 1024
+            }
+          )
+            .trim()
+            .split("\n")
+            .find(Boolean);
+
+          if (!tagDate) {
+            throw new Error(
+              `No git tag found for ${tagName}. The docs build cannot derive a release date from the repo.`
+            );
+          }
+
+          return tagDate;
+        })()
+      )
+    }
+  },
+
   app: {
     head: {
       htmlAttrs: { lang: "en" },
+      script: [
+        {
+          innerHTML:
+            "(function(){try{var t=localStorage.getItem('supermouse-theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();"
+        }
+      ],
       title: "Supermouse | Modular Cursor System",
       meta: [
         { charset: "utf-8" },
@@ -114,10 +169,9 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
-  // Static prerendering & Vercel deployment: prerender all routes, flat 404.html.
   nitro: {
     prerender: {
-      routes: [...sitemapRoutes, "/404.html"],
+      routes: [...sitemapRoutes, "/404.html", "/search-index.json", "/sitemap.xml", "/robots.txt"],
       crawlLinks: false,
       concurrency: 4,
       failOnError: false
@@ -145,15 +199,5 @@ export default defineNuxtConfig({
     "@composables": path.resolve(__dirname, "app/composables"),
     "@playground": path.resolve(__dirname, "app/components/playground"),
     "@utils": path.resolve(__dirname, "app/utils")
-  },
-
-  vite: {
-    plugins: [tailwindcss()],
-    define: {
-      __SUPERMOUSE_VERSION__: JSON.stringify(
-        JSON.parse(readFileSync(path.resolve(__dirname, "../packages/core/package.json"), "utf-8"))
-          .version
-      )
-    }
   }
 }) satisfies NuxtConfig;

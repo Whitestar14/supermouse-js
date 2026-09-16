@@ -1,4 +1,5 @@
-import { onMounted, onUnmounted, type Ref } from "vue";
+import { onMounted, onUnmounted, watch, type Ref } from "vue";
+import { HEADER_OFFSET_PX } from "@utils/scroll";
 
 /** A single heading in the right-hand table of contents. */
 export interface TocSection {
@@ -11,7 +12,7 @@ export interface TocSection {
 /**
  * Headings for the current page. The docs page publishes them during its own
  * setup; the docs layout reads them later in the same render pass, so the rail
- * is part of the server-rendered HTML rather than appearing after hydration.
+ * is part of the first paint rather than appearing after hydration.
  */
 export function useTocSections() {
   return useState<TocSection[]>("docs-toc", () => []);
@@ -23,49 +24,41 @@ export function useTocActiveSection() {
 }
 
 /**
- * Drives scroll tracking for the section list published by the page.
- * Mount once per page.
+ * Highlights the section currently in view.
+ *
+ * Scrolling is deliberately *not* handled here. Anchor clicks go through the
+ * router and every navigation is positioned by `@utils/scroll`, so the rail
+ * only has to observe — the previous duplicate copy of the scroll logic (and
+ * the "isScrolling" suppression timer it needed) is gone with it.
  */
 export function useTocScroll(sections: Ref<TocSection[]>) {
   const activeSection = useTocActiveSection();
-  let isScrolling = false;
-  let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  const updateActiveSection = () => {
-    if (isScrolling || sections.value.length === 0) return;
-    const fromTop = window.scrollY + 120;
+  const update = (): void => {
+    if (sections.value.length === 0) return;
+
+    const fromTop = window.scrollY + HEADER_OFFSET_PX + 1;
     let current = sections.value[0]?.id ?? "";
+
     for (const section of sections.value) {
       const el = document.getElementById(section.id);
-      if (el && el.offsetTop <= fromTop) current = section.id;
+      if (!el) continue;
+      if (el.getBoundingClientRect().top + window.scrollY <= fromTop) current = section.id;
     }
+
     activeSection.value = current;
   };
 
-  const scrollTo = (id: string, behavior: ScrollBehavior = "smooth") => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    isScrolling = true;
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      isScrolling = false;
-    }, 800);
-    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior });
-    activeSection.value = id;
-  };
-
   onMounted(() => {
-    const hash = window.location.hash.replace("#", "");
-    if (hash) scrollTo(hash, "auto");
-    updateActiveSection();
-    window.addEventListener("scroll", updateActiveSection, { passive: true });
-    window.addEventListener("resize", updateActiveSection, { passive: true });
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
   });
 
   onUnmounted(() => {
-    window.removeEventListener("scroll", updateActiveSection);
-    window.removeEventListener("resize", updateActiveSection);
+    window.removeEventListener("scroll", update);
+    window.removeEventListener("resize", update);
   });
 
-  return { activeSection, scrollTo };
+  watch(sections, update, { flush: "post" });
 }

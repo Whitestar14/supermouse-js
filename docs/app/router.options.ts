@@ -1,14 +1,21 @@
 import type { RouterConfig } from "nuxt/schema";
+import { scrollToAnchor, scrollToTop, scrollToY, requestScrollReset } from "@utils/scroll";
 
-// Replicates the scrollBehavior from the old docs/src/config/router.ts
 export default <RouterConfig>{
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
-      return savedPosition;
+      scrollToY(savedPosition.top, "auto");
+      return false;
     }
+
     if (to.hash) {
-      return { el: to.hash, top: 80, behavior: "smooth" };
+      const id = decodeURIComponent(to.hash.slice(1));
+      return scrollToAnchor(id, "smooth").then((found) => {
+        if (!found) scrollToTop("auto");
+      });
     }
-    return { top: 0 };
+
+    requestScrollReset();
+    return false;
   }
 };

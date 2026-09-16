@@ -21,13 +21,13 @@ const anchorSize = computed(() => (props.level >= 3 ? "text-base" : "text-xl"));
   <component
     :is="tag"
     :id="id"
-    class="group relative flex items-center scroll-mt-28 font-bold tracking-tight text-zinc-900"
+    class="group relative flex items-center scroll-mt-28 font-bold tracking-tight text-inverse"
     :class="CLASSES[level]"
   >
     <a v-if="id" :href="`#${id}`" class="no-underline text-inherit flex items-center gap-2">
       <span><slot /></span>
       <span
-        class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-black font-mono font-normal select-none transition-opacity"
+        class="opacity-0 group-hover:opacity-100 text-subtle hover:text-inverse font-mono font-normal select-none transition-opacity"
         :class="anchorSize"
         aria-hidden="true"
       >

@@ -6,9 +6,15 @@
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event);
   const host = String(config.public.siteUrl || "https://supermouse.js.org").replace(/\/$/, "");
-  const disallow = (config.public.robotsDisallow as unknown as string[]) || ["/404", "/labs"];
+  const disallow = (config.public.robotsDisallow as string[]) || ["/404", "/labs"];
 
-  const lines = ["User-agent: *", "Allow: /", ...disallow.map((path) => `Disallow: ${path}`), "", `Sitemap: ${host}/sitemap.xml`];
+  const lines = [
+    "User-agent: *",
+    "Allow: /",
+    ...disallow.map((path) => `Disallow: ${path}`),
+    "",
+    `Sitemap: ${host}/sitemap.xml`
+  ];
 
   setHeader(event, "Content-Type", "text/plain");
   return `${lines.join("\n")}\n`;

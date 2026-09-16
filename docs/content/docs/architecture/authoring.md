@@ -131,11 +131,13 @@ and the frame loop runs them in that order. Lower runs earlier.
 | `priority: 0` | **Visual** — read `state.smooth` / `state.target` and render. This is the default. |
 | `priority <= -900` | **Controllers** — `States` uses `-999` so it can toggle the plugins about to run. |
 
-> **The tearing bug.** A logic plugin left at the default `0` interleaves with
-> visual plugins: whichever visuals happen to sort after it see the new target
-> while the ones before it see the old one. The dot snaps while the ring trails,
-> and the cursor looks like it has come apart. Any plugin that writes
-> `state.target` must use a negative priority.
+:::callout{title="The tearing bug" variant="warning"}
+A logic plugin left at the default `0` interleaves with visual plugins: whichever
+visuals happen to sort after it see the new target while the ones before it see
+the old one. The dot snaps while the ring trails, and the cursor looks like it
+has come apart. Any plugin that writes `state.target` must use a negative
+priority.
+:::
 
 ## Reactive options
 

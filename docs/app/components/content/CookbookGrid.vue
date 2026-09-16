@@ -11,14 +11,14 @@ const { open } = usePlayground();
 </script>
 
 <template>
-  <div class="my-10 grid grid-cols-1 border-t border-l border-zinc-200 md:grid-cols-2">
+  <div class="my-10 grid grid-cols-1 border-t border-l border-border md:grid-cols-2">
     <div
       v-for="recipe in RECIPES"
       :key="recipe.id"
-      class="group relative flex min-h-[240px] flex-col border-r border-b border-zinc-200 bg-white p-8 transition-colors hover:bg-zinc-50"
+      class="group relative flex min-h-[240px] flex-col border-r border-b border-border bg-surface p-8 transition-colors hover:bg-surface-muted"
     >
       <button
-        class="absolute top-0 right-0 hidden h-12 w-12 items-center justify-center border-b border-l border-zinc-200 bg-white text-zinc-400 transition-all hover:border-black hover:bg-black hover:text-white md:flex"
+        class="absolute top-0 right-0 hidden h-12 w-12 items-center justify-center border-b border-l border-border bg-surface text-subtle transition-all hover:border-inverse hover:bg-inverse hover:text-surface md:flex"
         :title="`Run ${recipe.name} in the Studio`"
         @click="open(recipe.id)"
       >
@@ -27,16 +27,16 @@ const { open } = usePlayground();
         </svg>
       </button>
 
-      <div class="mb-8 h-12 w-12 border border-zinc-200 bg-white p-3 text-zinc-900 shadow-sm">
+      <div class="mb-8 h-12 w-12 border border-border bg-surface p-3 text-inverse">
         <span class="block h-full w-full" v-html="recipe.icon" />
       </div>
 
       <div class="flex-1 pr-8">
-        <h3 class="mb-2 text-lg font-bold tracking-tighter text-zinc-900">{{ recipe.name }}</h3>
-        <p class="text-sm text-zinc-500">{{ recipe.description }}</p>
+        <h3 class="mb-2 text-lg font-bold tracking-tighter text-inverse">{{ recipe.name }}</h3>
+        <p class="text-sm text-muted">{{ recipe.description }}</p>
       </div>
 
-      <div class="mt-8 font-mono text-[9px] tracking-widest text-zinc-400 uppercase">
+      <div class="mt-8 font-mono text-[9px] tracking-widest text-subtle uppercase">
         ID: {{ recipe.id }}
       </div>
     </div>

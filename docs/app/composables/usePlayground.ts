@@ -1,25 +1,29 @@
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
+/**
+ * Global playground state.
+ */
 const isOpen = ref(false);
 const activeRecipeId = ref<string | null>(null);
+const lastRecipeId = ref<string | null>(null);
 
 export function usePlayground() {
-  const open = (recipeId: string) => {
+  const open = (recipeId: string): void => {
+    lastRecipeId.value = activeRecipeId.value ?? recipeId;
     activeRecipeId.value = recipeId;
     isOpen.value = true;
   };
 
-  const close = () => {
+  const close = (): void => {
     isOpen.value = false;
-    // Delay clearing ID to prevent layout jumps during transition
-    setTimeout(() => {
-      if (!isOpen.value) activeRecipeId.value = null;
-    }, 300);
   };
+
+  const displayedRecipeId = computed(() => activeRecipeId.value ?? lastRecipeId.value);
 
   return {
     isOpen,
     activeRecipeId,
+    displayedRecipeId,
     open,
     close
   };

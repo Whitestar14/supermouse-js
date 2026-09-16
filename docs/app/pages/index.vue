@@ -15,7 +15,7 @@ usePageHead({
 </script>
 
 <template>
-  <div class="overflow-hidden bg-white">
+  <div class="overflow-hidden">
     <Hero />
     <PluginList />
     <Mission />

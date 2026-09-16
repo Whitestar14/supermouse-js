@@ -1,24 +1,27 @@
 <template>
   <div :class="['overflow-x-auto', wrapperClass]">
     <table class="w-full text-left text-sm border-collapse" :class="tableClass">
-      <thead class="bg-zinc-50 border-b border-zinc-200">
+      <thead class="border-b border-border">
         <tr>
           <th
             v-for="col in columns"
             :key="col.key"
-            :class="['px-6 py-4 font-mono text-xs font-bold text-zinc-500 uppercase', col.class]"
+            :class="[
+              'px-4 py-3 font-mono text-[10px] font-bold uppercase tracking-widest text-muted',
+              col.class
+            ]"
           >
             {{ col.label }}
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-zinc-200">
+      <tbody>
         <tr
           v-for="(row, rowIndex) in rows"
           :key="rowKey ? (row[rowKey] ?? rowIndex) : rowIndex"
-          class="group hover:bg-zinc-50 transition-colors"
+          class="border-b border-border-subtle last:border-b-0 hover:bg-surface-muted/60 transition-colors"
         >
-          <td v-for="col in columns" :key="col.key" class="px-6 py-5 align-top">
+          <td v-for="col in columns" :key="col.key" class="px-4 py-3 align-top">
             <slot :name="`cell-${col.key}`" :row="row">
               {{ row[col.key] }}
             </slot>
@@ -30,6 +33,11 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * Table — hairline dividers, one header rule, no filled header band. It is the
+ * component counterpart of the markdown tables the typography plugin renders in
+ * docs content, so a generated page reads exactly like a written one.
+ */
 export interface TableColumn {
   key: string;
   label: string;

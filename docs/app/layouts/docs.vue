@@ -6,16 +6,17 @@ import { usePageHead } from "@composables/usePageHead";
 import { useDocsNavigation } from "@config/navigation";
 import { formatDate } from "@utils/date";
 import { useTocSections, useTocActiveSection } from "@composables/useToc";
+import { useScrollLock } from "@composables/useScrollLock";
 
 const route = useRoute();
-// Published by the docs page during its setup, so the rail renders server-side.
 const tocSections = useTocSections();
 const activeSection = useTocActiveSection();
-// Derived from content frontmatter + generated plugin metadata — never edited by hand.
 const DOCS_NAVIGATION = useDocsNavigation();
 
 const activeGroup = ref<string | null>(null);
 const mobileMenuOpen = ref(false);
+
+useScrollLock(mobileMenuOpen);
 
 const isActive = (path: string) => route.path === path;
 
@@ -92,16 +93,7 @@ watch(
   () => route.path,
   () => {
     syncSidebar();
-    tocSections.value = [];
     mobileMenuOpen.value = false;
-
-    if (typeof window !== "undefined") {
-      if ((window as any).lenis) {
-        (window as any).lenis.scrollTo(0, { immediate: true });
-      } else {
-        window.scrollTo(0, 0);
-      }
-    }
   },
   { immediate: true }
 );
@@ -119,9 +111,7 @@ const flatNav = computed(() => {
 const currentDoc = computed(() => flatNav.value.find((item) => item.path === route.path));
 const lastUpdated = computed(() => formatDate(currentDoc.value?.updated));
 const editUrl = computed(() =>
-  currentDoc.value?.updated
-    ? `${GITHUB_URL}/edit/master/docs/content${route.path}.md`
-    : null
+  currentDoc.value?.updated ? `${GITHUB_URL}/edit/main/docs/content${route.path}.md` : null
 );
 
 const currentIndex = computed(() => {
@@ -143,9 +133,9 @@ const nextPage = computed(() => {
 
 <template>
   <div class="flex flex-col h-full min-h-screen">
-    <!-- Mobile Sub-header (Nav Trigger + Breadcrumbs) -->
+    <!-- Mobile Sub-header -->
     <div
-      class="lg:hidden h-12 border-b border-zinc-200 bg-white flex items-center px-6 sticky top-0 z-30 select-none"
+      class="lg:hidden h-12 border-b border-border bg-surface flex items-center px-6 sticky top-[var(--header-h)] z-30 select-none transition-[top] duration-300"
     >
       <button
         class="flex items-center justify-between w-full group outline-none"
@@ -153,14 +143,14 @@ const nextPage = computed(() => {
       >
         <!-- Breadcrumbs -->
         <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-          <span class="text-zinc-400">{{ breadcrumbs.group }}</span>
-          <span class="text-zinc-200">/</span>
-          <span class="text-zinc-900">{{ breadcrumbs.page }}</span>
+          <span class="text-subtle">{{ breadcrumbs.group }}</span>
+          <span class="text-border">/</span>
+          <span class="text-inverse">{{ breadcrumbs.page }}</span>
         </div>
 
         <!-- Toggle Icon -->
         <div
-          class="w-8 h-8 flex items-center justify-center text-zinc-400 group-hover:text-black transition-colors"
+          class="w-8 h-8 flex items-center justify-center text-subtle group-hover:text-inverse transition-colors"
         >
           <svg
             width="10"
@@ -179,24 +169,24 @@ const nextPage = computed(() => {
       <Teleport to="body">
         <div
           v-if="mobileMenuOpen"
-          class="fixed inset-0 bg-white z-[60] flex flex-col"
+          class="fixed inset-x-0 bottom-0 top-[var(--header-h)] bg-surface z-60 flex flex-col"
           data-lenis-prevent
         >
           <!-- Drawer Header (Internal) -->
-          <div class="h-12 border-b border-zinc-200 bg-white flex items-center px-6 shrink-0">
+          <div class="h-12 border-b border-border bg-surface flex items-center px-6 shrink-0">
             <button
               class="flex items-center justify-between w-full group outline-none"
               @click="mobileMenuOpen = false"
             >
               <!-- Breadcrumbs (Same as sticky header) -->
               <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-                <span class="text-zinc-400">{{ breadcrumbs.group }}</span>
-                <span class="text-zinc-200">/</span>
-                <span class="text-zinc-900">{{ breadcrumbs.page }}</span>
+                <span class="text-subtle">{{ breadcrumbs.group }}</span>
+                <span class="text-border">/</span>
+                <span class="text-inverse">{{ breadcrumbs.page }}</span>
               </div>
 
               <!-- Close Icon -->
-              <div class="w-8 h-8 flex items-center justify-center text-black">
+              <div class="w-8 h-8 flex items-center justify-center text-inverse">
                 <svg
                   width="10"
                   height="10"
@@ -213,19 +203,19 @@ const nextPage = computed(() => {
           </div>
 
           <!-- Nav Content -->
-          <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-white">
+          <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-surface">
             <div v-for="group in DOCS_NAVIGATION" :key="group.title">
               <button
                 class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest mb-3 text-left transition-colors"
                 :class="
-                  activeGroup === group.title ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'
+                  activeGroup === group.title ? 'text-inverse' : 'text-subtle hover:text-body'
                 "
                 @click.stop="toggleGroup(group.title)"
               >
                 <div class="flex items-center gap-3">
                   <div
                     class="w-1.5 h-1.5 transition-colors"
-                    :class="activeGroup === group.title ? 'bg-black' : 'bg-zinc-200'"
+                    :class="activeGroup === group.title ? 'bg-inverse' : 'bg-border'"
                   />
                   {{ group.title }}
                 </div>
@@ -238,7 +228,7 @@ const nextPage = computed(() => {
                   stroke-width="3"
                   class="transition-transform duration-200"
                   :class="
-                    activeGroup === group.title ? 'rotate-180 text-black' : 'rotate-0 text-zinc-300'
+                    activeGroup === group.title ? 'rotate-180 text-inverse' : 'rotate-0 text-faint'
                   "
                 >
                   <path d="M6 9l6 6 6-6" />
@@ -247,7 +237,7 @@ const nextPage = computed(() => {
               <!-- Group Items -->
               <div
                 v-show="activeGroup === group.title"
-                class="flex flex-col pl-5 gap-3 pb-2 border-l border-zinc-100 ml-0.5"
+                class="flex flex-col pl-5 gap-3 pb-2 border-l border-border-subtle ml-0.5"
               >
                 <NuxtLink
                   v-for="item in group.items"
@@ -255,7 +245,7 @@ const nextPage = computed(() => {
                   :to="item.path"
                   class="block py-1 text-sm font-medium tracking-tight transition-colors"
                   :class="
-                    isActive(item.path) ? 'text-black font-bold' : 'text-zinc-500 hover:text-black'
+                    isActive(item.path) ? 'text-inverse font-bold' : 'text-muted hover:text-inverse'
                   "
                 >
                   {{ item.label }}
@@ -273,32 +263,30 @@ const nextPage = computed(() => {
     <!-- Main Layout: Gutter + Sidebar + Content -->
     <div class="flex flex-col lg:flex-row flex-1 min-h-0 relative">
       <!-- 1. The Gutter -->
-      <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 bg-white" />
+      <div class="hidden lg:block w-24 border-r border-border shrink-0 bg-surface" />
 
       <!-- 2. Sidebar Navigation (Desktop) -->
       <aside
-        class="hidden lg:block w-[260px] border-r border-zinc-200 shrink-0 relative bg-zinc-50/30"
+        class="hidden lg:block w-65 border-r border-border shrink-0 relative bg-surface-muted/30"
       >
         <!-- Sticky Sidebar with Lenis Prevent -->
         <div
-          class="sticky top-0 h-screen overflow-y-auto py-12 px-8 scrollbar-thin"
+          class="sticky top-[var(--header-h)] h-[calc(100vh-var(--header-h))] overflow-y-auto py-12 px-8 scrollbar-thin transition-[top,height] duration-300"
           data-lenis-prevent
         >
           <nav class="flex flex-col gap-8 pb-32">
             <div v-for="group in DOCS_NAVIGATION" :key="group.title">
               <!-- Group Header -->
               <button
-                class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4 group hover:text-black transition-colors"
-                :class="{ 'text-black': activeGroup === group.title }"
+                class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest text-muted mb-4 group hover:text-inverse transition-colors"
+                :class="{ 'text-inverse': activeGroup === group.title }"
                 @click="toggleGroup(group.title)"
               >
                 <div class="flex items-center gap-3">
                   <div
                     class="w-1.5 h-1.5 transition-colors"
                     :class="
-                      activeGroup === group.title
-                        ? 'bg-black'
-                        : 'bg-zinc-300 group-hover:bg-zinc-400'
+                      activeGroup === group.title ? 'bg-inverse' : 'bg-faint group-hover:bg-subtle'
                     "
                   />
                   {{ group.title }}
@@ -313,8 +301,8 @@ const nextPage = computed(() => {
                   class="transition-transform duration-200"
                   :class="
                     activeGroup === group.title
-                      ? 'rotate-180 text-black'
-                      : 'rotate-0 text-zinc-300 group-hover:text-black'
+                      ? 'rotate-180 text-inverse'
+                      : 'rotate-0 text-faint group-hover:text-inverse'
                   "
                 >
                   <path d="M6 9l6 6 6-6" />
@@ -329,7 +317,7 @@ const nextPage = computed(() => {
                   :to="item.path"
                   class="block py-1 text-sm font-medium tracking-tight transition-colors duration-0"
                   :class="
-                    isActive(item.path) ? 'text-black font-bold' : 'text-zinc-500 hover:text-black'
+                    isActive(item.path) ? 'text-inverse font-bold' : 'text-muted hover:text-inverse'
                   "
                 >
                   {{ item.label }}
@@ -341,16 +329,45 @@ const nextPage = computed(() => {
       </aside>
 
       <!-- Main Content -->
-      <div class="flex-1 min-w-0 bg-white flex flex-col">
-        <div class="flex-1 max-w-4xl mx-auto px-6 md:px-12 py-12 md:py-20 w-full">
+      <div class="flex-1 min-w-0 bg-surface flex flex-col">
+        <div class="flex-1 max-w-4xl mx-auto px-6 md:px-12 py-12 md:pb-8 md:py-20 w-full">
           <slot />
+        </div>
+
+        <!-- Page provenance -->
+        <div
+          v-if="lastUpdated || editUrl"
+          class="px-12 p-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
+        >
+          <span class="mono text-[10px] uppercase tracking-widest text-subtle font-bold">
+            {{ lastUpdated ? `Updated ${lastUpdated}` : "Generated page" }}
+          </span>
+          <a
+            v-if="editUrl"
+            :href="editUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-supermouse-text="Edit this page on github"
+            class="group inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-inverse transition-colors"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </a>
         </div>
 
         <!-- Docs Footer Navigation -->
         <div class="max-w-4xl mx-auto w-full px-6 md:px-12 pb-20 mt-auto">
-          <div
-            class="border-t border-zinc-200 pt-8 flex flex-col sm:flex-row justify-between gap-8"
-          >
+          <div class="border-t border-border pt-8 flex flex-col sm:flex-row justify-between gap-8">
             <!-- Previous -->
             <NuxtLink
               v-if="prevPage"
@@ -358,12 +375,12 @@ const nextPage = computed(() => {
               class="group flex flex-col items-start gap-2 sm:max-w-[45%]"
             >
               <span
-                class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold group-hover:text-black transition-colors"
+                class="mono text-[10px] uppercase tracking-widest text-subtle font-bold group-hover:text-inverse transition-colors"
               >
                 {{ prevPage.group }}
               </span>
               <div
-                class="flex items-center gap-2 text-lg font-bold text-zinc-900 group-hover:underline decoration-2 underline-offset-4 decoration-zinc-900"
+                class="flex items-center gap-2 text-lg font-bold text-inverse group-hover:underline decoration-2 underline-offset-4 decoration-inverse"
               >
                 <svg
                   width="16"
@@ -387,12 +404,12 @@ const nextPage = computed(() => {
               class="group flex flex-col items-end gap-2 sm:max-w-[45%] text-right"
             >
               <span
-                class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold group-hover:text-black transition-colors"
+                class="mono text-[10px] uppercase tracking-widest text-subtle font-bold group-hover:text-inverse transition-colors"
               >
                 {{ nextPage.group }}
               </span>
               <div
-                class="flex items-center gap-2 text-lg font-bold text-zinc-900 group-hover:underline decoration-2 underline-offset-4 decoration-zinc-900"
+                class="flex items-center gap-2 text-lg font-bold text-inverse group-hover:underline decoration-2 underline-offset-4 decoration-inverse"
               >
                 <span class="text-pretty leading-tight">{{ nextPage.label }}</span>
                 <svg
@@ -408,49 +425,16 @@ const nextPage = computed(() => {
               </div>
             </NuxtLink>
           </div>
-
-          <!-- Page provenance -->
-          <div
-            v-if="lastUpdated || editUrl"
-            class="mt-10 pt-6 border-t border-zinc-200 flex flex-wrap items-center justify-between gap-3"
-          >
-            <span
-              class="mono text-[10px] uppercase tracking-widest text-zinc-400 font-bold"
-            >
-              {{ lastUpdated ? `Last updated ${lastUpdated}` : "Generated page" }}
-            </span>
-            <a
-              v-if="editUrl"
-              :href="editUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group inline-flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-black transition-colors"
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-              >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-              Edit this page on GitHub
-            </a>
-          </div>
         </div>
       </div>
 
       <!-- Right Sidebar: TOC -->
       <aside
         v-if="tocSections.length"
-        class="hidden xl:block w-[240px] shrink-0 border-l border-zinc-100 bg-white"
+        class="hidden xl:block max-w-54 min-w-54 shrink-0 border-l border-border"
       >
         <div
-          class="sticky top-28 h-fit max-h-[calc(100vh-7rem)] overflow-y-auto px-6 py-12 scrollbar-thin"
+          class="sticky top-[calc(var(--header-h)+2rem)] h-fit max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto px-6 py-12 scrollbar-thin transition-[top,max-height] duration-300"
         >
           <TableOfContents :sections="tocSections" :active-section="activeSection" />
         </div>
@@ -469,10 +453,10 @@ const nextPage = computed(() => {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #e4e4e7;
+  background: var(--color-border);
   border-radius: 2px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #d4d4d8;
+  background: var(--color-subtle);
 }
 </style>

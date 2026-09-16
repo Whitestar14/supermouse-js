@@ -18,26 +18,26 @@ const updateHex = (e: Event) => {
 
 <template>
   <div class="space-y-2 p-3">
-    <label class="text-sm font-bold text-zinc-900">{{ label }}</label>
+    <label class="text-sm font-bold text-inverse">{{ label }}</label>
     <div
-      class="relative flex h-10 border border-zinc-200 items-center pl-3 gap-2 group hover:border-zinc-400 transition-colors bg-white"
+      class="relative flex h-10 border border-border items-center pl-3 gap-2 group hover:border-subtle transition-colors bg-surface"
     >
-      <span class="font-mono text-zinc-400 text-xs select-none">#</span>
+      <span class="font-mono text-subtle text-xs select-none">#</span>
       <input
         type="text"
         :value="modelValue.replace('#', '')"
-        class="w-full h-full border-none outline-none font-mono text-sm uppercase text-zinc-900 bg-transparent"
+        class="w-full h-full border-none outline-none font-mono text-sm uppercase text-inverse bg-transparent"
         maxlength="6"
         @input="updateHex"
       />
       <input
         type="color"
         :value="modelValue"
-        class="absolute inset-y-0 right-0 w-12 h-full p-0 border-l border-zinc-200 opacity-0 cursor-pointer"
+        class="absolute inset-y-0 right-0 w-12 h-full p-0 border-l border-border opacity-0 cursor-pointer"
         @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       />
       <div
-        class="absolute inset-y-0 right-0 w-10 border-l border-zinc-200 pointer-events-none"
+        class="absolute inset-y-0 right-0 w-10 border-l border-border pointer-events-none"
         :style="{ backgroundColor: modelValue }"
       />
     </div>

@@ -1,47 +1,47 @@
 <template>
   <section class="relative">
     <!-- Header -->
-    <div class="flex border-b border-zinc-200 h-16 md:h-20 bg-white">
+    <div class="flex border-b border-border h-16 md:h-20 bg-surface">
       <div
-        class="w-[80px] md:w-[96px] border-r border-zinc-200 flex items-center justify-center shrink-0"
+        class="w-[80px] md:w-[96px] border-r border-border flex items-center justify-center shrink-0"
       >
-        <span class="mono text-lg font-bold text-zinc-900">03</span>
+        <span class="mono text-lg font-bold text-inverse">03</span>
       </div>
       <div class="flex-1 px-6 md:px-8 flex items-center justify-between">
-        <h2 class="text-lg md:text-xl font-bold tracking-tighter text-zinc-900">Impact</h2>
+        <h2 class="text-lg md:text-xl font-bold tracking-tighter text-inverse">Impact</h2>
         <span
-          class="mono text-[10px] text-zinc-400 uppercase tracking-widest font-bold hidden sm:inline-block"
+          class="mono text-[10px] text-subtle uppercase tracking-widest font-bold hidden sm:inline-block"
           >analytics.json</span
         >
       </div>
     </div>
 
     <div
-      class="border-b border-zinc-200 overflow-hidden relative min-h-[400px] md:min-h-[500px] flex flex-col"
+      class="border-b border-border overflow-hidden relative min-h-[400px] md:min-h-[500px] flex flex-col"
     >
       <div class="flex-1 flex">
         <!-- Gutter -->
-        <div class="hidden lg:block w-[96px] border-r border-zinc-200 shrink-0 z-10 bg-white/50" />
+        <div class="hidden lg:block w-[96px] border-r border-border shrink-0 z-10 bg-surface/50" />
 
         <div class="flex-1 relative flex flex-col px-6 py-12 md:p-16 lg:p-24">
           <div class="relative z-10 max-w-3xl">
             <h2
-              class="text-3xl sm:text-4xl md:text-5xl font-bold text-zinc-900 tracking-tighter leading-[1.1] mb-6"
+              class="text-3xl sm:text-4xl md:text-5xl font-bold text-inverse tracking-tighter leading-[1.1] mb-6"
             >
               Our projects are already trusted by <br class="hidden sm:block" />
               thousands of developers around the world.
             </h2>
             <div class="flex flex-wrap gap-8 mt-12">
               <div>
-                <div class="text-3xl sm:text-4xl font-bold font-mono text-zinc-900">1.2K</div>
-                <div class="text-xs uppercase font-bold tracking-widest text-zinc-400 mt-2">
+                <div class="text-3xl sm:text-4xl font-bold font-mono text-inverse">1.2K</div>
+                <div class="text-xs uppercase font-bold tracking-widest text-subtle mt-2">
                   Monthly Downloads
                 </div>
               </div>
-              <div class="w-px h-16 bg-zinc-200 hidden sm:block" />
+              <div class="w-px h-16 bg-border hidden sm:block" />
               <div>
-                <div class="text-3xl sm:text-4xl font-bold font-mono text-zinc-900">14ms</div>
-                <div class="text-xs uppercase font-bold tracking-widest text-zinc-400 mt-2">
+                <div class="text-3xl sm:text-4xl font-bold font-mono text-inverse">14ms</div>
+                <div class="text-xs uppercase font-bold tracking-widest text-subtle mt-2">
                   Avg. Load Time
                 </div>
               </div>

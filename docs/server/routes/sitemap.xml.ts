@@ -6,7 +6,7 @@
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event);
   const host = String(config.public.siteUrl || "https://supermouse.js.org").replace(/\/$/, "");
-  const routes = (config.public.sitemapRoutes as unknown as string[]) || [];
+  const routes = (config.public.sitemapRoutes as string[]) || [];
 
   const urls = routes
     .map((route) => {

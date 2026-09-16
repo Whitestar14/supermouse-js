@@ -66,28 +66,28 @@ const handleError = () => clearError({ redirect: "/" });
 
 <template>
   <div
-    class="min-h-screen flex flex-col items-center justify-center text-center p-8 bg-white"
+    class="min-h-screen flex flex-col items-center justify-center text-center p-8 bg-surface"
   >
     <img src="/not-found.svg" alt="Not found" class="size-32 max-w-full mb-3" />
 
-    <div class="mb-4 text-9xl leading-none font-bold text-zinc-800 select-none tracking-tighter">
+    <div class="mb-4 text-9xl leading-none font-bold text-elevated select-none tracking-tighter">
       404
     </div>
 
-    <h1 class="text-xl font-bold text-zinc-900 mb-2">Page Not Found</h1>
+    <h1 class="text-xl font-bold text-inverse mb-2">Page Not Found</h1>
 
-    <p class="text-zinc-500 mb-8 text-sm max-w-sm">
+    <p class="text-muted mb-8 text-sm max-w-sm">
       The requested path
-      <span class="text-zinc-900 font-medium">{{ route.path }}</span> could not be found.
+      <span class="text-inverse font-medium">{{ route.path }}</span> could not be found.
     </p>
 
     <div v-if="suggestion" class="mb-10">
-      <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">
+      <span class="text-[10px] font-bold text-subtle uppercase tracking-widest block mb-2">
         Did you mean?
       </span>
       <NuxtLink
         :to="suggestion.path"
-        class="text-lg font-bold text-black border-b-2 border-black/10 hover:border-black transition-colors"
+        class="text-lg font-bold text-inverse border-b-2 border-inverse/10 hover:border-inverse transition-colors"
       >
         {{ suggestion.label }}
       </NuxtLink>
@@ -95,7 +95,7 @@ const handleError = () => clearError({ redirect: "/" });
 
     <button
       type="button"
-      class="px-6 py-3 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors rounded-sm cursor-pointer"
+      class="px-6 py-3 bg-inverse text-surface text-xs font-bold uppercase tracking-widest hover:bg-elevated transition-colors cursor-pointer"
       @click="handleError"
     >
       Return Home

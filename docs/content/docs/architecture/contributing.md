@@ -43,7 +43,7 @@ live in the docs site and playground with no rebuild step.
 
 ## Making a change
 
-1. Branch from `master`.
+1. Branch from `main`.
 2. Keep the PR to one concern.
 3. Add or update tests — this is a rendering engine with real concurrency
    hazards, so "it looked right in the browser" is not enough.

@@ -7,60 +7,24 @@ order: 2
 
 ## Package manager
 
-The engine and every plugin are separate packages, so you only pay for what you
+The engine and every other other plugin are separate packages, so you only pay for what you
 register. Start with the core plus one shape plugin:
 
 ```bash
 pnpm add @supermousejs/core @supermousejs/dot
 ```
 
-Add more as you need them:
+Add then, you can add more as you need them:
 
 ```bash
 pnpm add @supermousejs/ring @supermousejs/magnetic @supermousejs/states
 ```
 
-`@supermousejs/core` and `@supermousejs/utils` have **no runtime
-dependencies** — everything else depends only on `utils`. All packages ship ESM
+`@supermousejs/core` has no runtime
+dependencies, while every other plugin depends on `@supermousejs/utils` except `utils` itself as a recommended convention if you plan on writing plugins yourself. All packages ship ESM
 and UMD builds.
 
-## Mounting
-
-Create one instance per page and keep a reference to it:
-
-```typescript
-import { Supermouse } from "@supermousejs/core";
-import { Dot } from "@supermousejs/dot";
-import { Ring } from "@supermousejs/ring";
-
-const app = new Supermouse({
-  smoothness: 0.15,
-  cursor: "auto",
-  plugins: [Ring({ size: 24 }), Dot({ size: 8 })]
-});
-
-// Registering later works too, and is chainable:
-// app.use(Ring({ size: 24 })).use(Dot({ size: 8 }));
-```
-
-`cursor: "auto"` is the default and the best starting point: the engine hides
-the OS pointer over interactive elements and restores it over text inputs,
-`select` elements and anything marked with
-[`data-supermouse-ignore`](/docs/guide/usage#opting-out). Use
-`cursor: "custom"` only when you want the native pointer suppressed everywhere.
-
-## Framework adapters
-
-The adapters own the instance lifecycle — you never call `destroy()` yourself.
-
-```bash
-pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot
-# or
-pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot
-```
-
-See [Vue integration](/docs/integrations/vue) and
-[React integration](/docs/integrations/react).
+You can see the full list of the official supermouse plugins in [Cookbook](/docs/guide/cookbook).
 
 ## CDN / script tag
 
@@ -77,17 +41,42 @@ namespace:
   const { Dot } = window.SupermouseDot;
   const { Ring } = window.SupermouseRing;
 
-  new Supermouse({ smoothness: 0.15 }).use(Ring({ size: 24 })).use(Dot({ size: 8 }));
+  const mouse = new Supermouse({ smoothness: 0.15 }).use(Ring({ size: 24 })).use(Dot({ size: 8 }));
 </script>
 ```
 
 If your UMD globals differ, check the `unpkg`/`jsdelivr` field in each
 package's `package.json` before copying the snippet.
 
+## Mounting
+
+Create one instance per page and keep a reference to it:
+
+```typescript
+import { Supermouse } from "@supermousejs/core";
+import { Dot } from "@supermousejs/dot";
+import { Ring } from "@supermousejs/ring";
+
+const app = new Supermouse({
+  smoothness: 0.15,
+  cursor: "auto",
+  plugins: [Ring({ size: 24 }), Dot({ size: 8 })]
+});
+
+// Registering later works too, and is chainable with `.use`:
+// app.use(Ring({ size: 24 })).use(Dot({ size: 8 }));
+```
+
+`cursor: "auto"` is the default and the best starting point, this option has it that the engine hides
+the OS pointer over interactive elements and restores it over text inputs,
+`select` elements and anything marked with
+[`data-supermouse-ignore`](/docs/guide/usage#opting-out). Use
+`cursor: "custom"` only when you want the native pointer suppressed everywhere.
+
 ## Cleanup
 
 In a single-page app or under hot module replacement, call `destroy()` when the
-owner unmounts. It cancels the animation frame, removes window listeners, deletes
+owner, usually your root file such as `App.vue`, unmounts. It cancels the animation frame, removes window listeners, deletes
 the stage element and its stylesheet, and runs `destroy()` on every plugin.
 
 ```typescript
@@ -96,26 +85,7 @@ onUnmounted(() => {
 });
 ```
 
-The Vue and React adapters do this for you. If you mount manually inside a
-component that re-mounts (React Strict Mode, HMR), forgetting `destroy()` is the
-most common cause of duplicated cursors — see
-[Troubleshooting](/docs/guide/troubleshooting).
-
-## Server rendering
-
-`Supermouse` reads `window` in its constructor, so construct it on the client.
-In Nuxt, either use the adapter or guard the construction:
-
-```typescript
-if (import.meta.client) {
-  const app = new Supermouse();
-}
-```
-
-The docs site itself is fully prerendered — a cursor engine simply has nothing
-to do until the browser exists.
-
-## Next steps
-
-- [Basic Usage](/docs/guide/usage) — options, hover rules and lifecycle control.
-- [Options reference](/docs/reference/options) — every field with its default.
+The [Vue](/docs/integrations/vue) / [React](/docs/integrations/react) adapters automatically do this for you. If you mount manually inside a
+component that re-mounts (e.g. React Strict Mode, HMR), forgetting `destroy()` is the
+most common cause of duplicated cursors in UI frameworks — see
+[Troubleshooting](/docs/guide/troubleshooting) if you run into any issues.

@@ -3,23 +3,139 @@
 @plugin "@tailwindcss/typography";
 
 /*
- * Tailwind 4 theme tokens (replaces tailwind.config.ts theme.fontFamily).
+ * Tailwind 4 theme tokens.
  * Satoshi is served locally from /public/fonts, JetBrains Mono from Google Fonts
  * (linked in nuxt.config app.head).
+ *
+ * Every semantic colour lives here and is re-declared under `.dark`, so no
+ * component ever needs a `dark:` variant or a hardcoded zinc/amber hex.
  */
 @theme {
   --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Neutrals */
+  --color-surface: #ffffff; /* page background                */
+  --color-surface-muted: #fafafa; /* raised panels, headers       */
+  --color-surface-subtle: #f4f4f5; /* wells, code chips            */
+  --color-border: #e4e4e7; /* primary hairline               */
+  --color-border-subtle: #f4f4f5; /* faint hairline               */
+  --color-inverse: #000000; /* text on light / bg on dark     */
+  --color-strong: #18181b; /* emphasis text                  */
+  --color-elevated: #27272a; /* hovered dark surfaces          */
+  --color-body: #52525b; /* body copy                      */
+  --color-muted: #71717a; /* secondary copy                 */
+  --color-subtle: #a1a1aa; /* tertiary copy                  */
+  --color-faint: #d4d4d8; /* disabled copy, faint decor     */
+
+  --color-accent: #b45309; /* accents on light surfaces      */
+  --color-accent-strong: #78350f; /* accent text on tinted shells  */
+  --color-accent-soft: #fef3c7; /* tinted shell background        */
+
+  --color-danger: #b91c1c;
+  --color-danger-strong: #7f1d1d;
+  --color-danger-soft: #fef2f2;
+
+  /* Operational / live status. Deliberately separate from the brand accent so
+     "running" never reads as decoration. */
+  --color-ok: #15803d;
+
+  /*
+   * Code theme. Both the shell and the syntax palette adapt to the active
+   * mode: light code blocks read like a paper manual, dark ones keep the
+   * original terminal feel. Syntax tokens are consumed by `.tok-*` classes
+   * below, which the local highlighter emits.
+   */
+  --color-code-surface: #f7f7f8;
+  --color-code-border: #e4e4e7;
+  --color-code-text: #27272a; /* plain identifiers              */
+  --color-code-strong: #18181b; /* functions, interpolations      */
+  --color-code-soft: #3f3f46; /* builtins, attributes           */
+  --color-code-muted: #71717a; /* punctuation                    */
+  --color-code-faint: #a1a1aa; /* disabled / dim code            */
+  --color-code-accent: #b45309; /* keywords, tags                 */
+  --color-code-string: #0f766e; /* strings, numbers               */
+  --color-code-number: #9a3412;
+  --color-code-comment: #a1a1aa;
+  --color-tooltip: #f59e0b; /* the cursor tooltip surface     */
+}
+
+/* The header is taller from `md` up (`h-16` -> `h-20`). */
+@media (min-width: 768px) {
+  :root {
+    --header-h: 5rem;
+  }
 }
 
 @layer base {
   :root {
+    /*
+     * Grid rhythm. Every grid in the app is anchored to the *top-left* of its
+     * container (`background-position: 0 0`, see `.grid-bg`), so a rule always
+     * begins flush with the container edge. Centring the pattern instead left a
+     * sliver of a cell at both ends, which read as a rendering mistake.
+     */
+    /*
+     * Height of the sticky header. Sticky columns (docs sidebar, TOC, mobile
+     * sub-header) clear it, so they move in step with the header's
+     * show/hide instead of being covered. `useAutoHideHeader` zeroes it while
+     * the header is slid away and restores the measured height on reveal.
+     */
+    --header-h: 4rem;
     --grid-size: 40px;
     --grid-color: #f0f0f0;
-    --text-main: #09090b;
+    /* Softer grid for interactive demo canvases (see `.grid-bg-soft`). */
+    --grid-color-soft: #f4f4f6;
+    --text-main: var(--color-inverse);
     font-size: 16px;
     line-height: 1.5rem;
     font-family: var(--font-sans);
+    box-sizing: border-box;
+  }
+
+  /*
+   * Dark theme: overriding the token variables is all that is required — every
+   * `bg-*`/`text-*`/`border-*` utility resolves to `var(--color-*)` at runtime.
+   */
+  .dark {
+    --color-surface: #09090b;
+    --color-surface-muted: #131316;
+    --color-surface-subtle: #1f1f23;
+    --color-border: #27272a;
+    --color-border-subtle: #1f1f23;
+    --color-inverse: #fafafa;
+    --color-strong: #ededf0;
+    --color-elevated: #3f3f46;
+    --color-body: #a1a1aa;
+    --color-muted: #8b8b93;
+    --color-subtle: #5c5c66;
+    --color-faint: #3f3f46;
+
+    --color-accent: #f59e0b;
+    --color-accent-strong: #fcd34d;
+    --color-accent-soft: oklch(70% 0.14 82.12 / 0.3);
+
+    --color-danger: #f87171;
+    --color-danger-strong: #fecaca;
+    --color-danger-soft: #2a0d0d;
+
+    --color-ok: #4ade80;
+
+    --color-code-surface: #131316; /* one step lighter than the page */
+    --color-code-border: #27272a;
+    --color-code-text: #e4e4e7;
+    --color-code-strong: #f4f4f5;
+    --color-code-soft: #d4d4d8;
+    --color-code-muted: #5c5c66;
+    --color-code-faint: #52525b;
+    --color-code-accent: #f59e0b;
+    --color-code-string: #a1a1aa;
+    --color-code-number: #d4d4d8;
+    --color-code-comment: #71717a;
+    --color-tooltip: #fe9a00;
+
+    --grid-color: #1c1c20;
+    --grid-color-soft: #16161a;
   }
 
   @font-face {
@@ -34,7 +150,7 @@
   }
 
   b {
-    color: var(--color-zinc-600);
+    color: var(--color-body);
   }
 
   p {
@@ -62,10 +178,15 @@
     pointer-events: none;
   }
 
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   body {
     font-family: var(--font-sans);
     font-size: var(--text-base);
-    background-color: white;
+    background-color: var(--color-surface);
     margin: 0;
     color: var(--text-main);
     -webkit-font-smoothing: antialiased;
@@ -79,7 +200,7 @@
   }
 
   .supermouse-tooltip-cursor {
-    @apply fixed z-[9999] font-bold text-xs pointer-events-none select-none font-mono bg-zinc-800 text-white px-2 py-1 rounded uppercase tracking-wider;
+    @apply fixed z-[9999] font-bold text-xs pointer-events-none select-none font-mono bg-tooltip text-elevated px-2 py-1 rounded uppercase tracking-wider;
   }
 
   .grid-bg {
@@ -87,15 +208,35 @@
       linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
     background-size: var(--grid-size) var(--grid-size);
-    background-position: center top;
+    background-position: 0 0;
+  }
+
+  /*
+   * Demo canvases sit on top of a code shell, so they get a quieter grid than
+   * the landing-page sections — the cursor should be the loudest thing there.
+   */
+  .grid-bg-soft {
+    background-image:
+      linear-gradient(to right, var(--grid-color-soft) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color-soft) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    background-position: 0 0;
   }
 
   ::selection {
-    @apply bg-black/5 text-black;
+    @apply bg-inverse/5 text-inverse;
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border) transparent;
+    }
   }
 
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -103,14 +244,52 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #e4e4e7;
+    background: var(--color-border);
     border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-subtle);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }
 
 @layer components {
+  /*
+   * The canonical in-content link. Restores the dotted underline the old
+   * vite-press `ApiLink.vue` used so API/state references read as links without
+   * shouting.
+   */
   .link {
-    @apply text-black font-bold underline decoration-zinc-300 underline-offset-4 hover:decoration-black transition-all;
+    @apply text-inverse font-bold underline decoration-dotted decoration-faint underline-offset-4 hover:decoration-inverse transition-colors;
+  }
+
+  /*
+   * Markdown prose colouring lives UNLAYERED at the end of this file — the
+   * typography plugin ships unlayered `.prose` rules, and unlayered CSS beats
+   * any @layer regardless of specificity. See the bottom of the file.
+   */
+
+  /*
+   * Markdown prose links get the dotted-underline treatment. The decoration
+   * has to be asserted with `!important`: the typography plugin's shorthand
+   * `text-decoration: underline` resets style/color, which is the same reason
+   * the heading rule below needs it.
+   */
+  .docs-content a {
+    @apply font-semibold text-inverse transition-colors;
+    color: var(--color-inverse) !important;
+    text-decoration-line: underline !important;
+    text-decoration-style: dotted !important;
+    text-decoration-color: var(--color-faint) !important;
+    text-underline-offset: 4px !important;
+  }
+
+  .docs-content a:hover {
+    text-decoration-color: var(--color-inverse) !important;
   }
 
   /* Kill typography-plugin underlines inside markdown doc headings */
@@ -126,4 +305,182 @@
   .docs-content li strong {
     display: inline !important;
   }
+
+  /*
+   * Markdown tables: the frame scrolls, the table keeps real table layout at
+   * full width (see `ProseTable.vue`). The previous `display: block` on the
+   * table itself made the inner box shrink-to-fit, so narrow tables hugged the
+   * left edge instead of spanning the column.
+   */
+  .docs-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .docs-table table {
+    width: 100%;
+  }
+
+  /* Keep code blocks inside the column; the <pre> scrolls internally. */
+  .docs-content pre {
+    max-width: 100%;
+  }
+
+  /*
+   * Code scrollbars (`.code-scroll`, used by every code shell): the horizontal
+   * bar stays invisible until the block is hovered, so a snippet never grows a
+   * permanent grey rail under it. Deliberately thin (4px, app chrome is 6px).
+   */
+  .code-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .code-scroll:hover {
+    scrollbar-color: var(--color-code-muted) transparent;
+  }
+
+  .code-scroll::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+
+  .code-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .code-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 2px;
+  }
+
+  .code-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--color-code-muted);
+  }
+
+  .docs-content pre code {
+    @apply !bg-transparent;
+    color: var(--color-code-text) !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+  }
+
+  /*
+   * Syntax palette emitted by `@utils/highlight`. Classes instead of inline
+   * colours so the code theme is light/dark adaptive from a single definition.
+   */
+  .tok-keyword {
+    color: var(--color-code-accent);
+    font-weight: 600;
+  }
+  .tok-tag {
+    color: var(--color-code-accent);
+    font-weight: 600;
+  }
+  .tok-function {
+    color: var(--color-code-strong);
+  }
+  .tok-interpolation {
+    color: var(--color-code-strong);
+  }
+  .tok-builtin {
+    color: var(--color-code-soft);
+  }
+  .tok-attr {
+    color: var(--color-code-soft);
+  }
+  .tok-string {
+    color: var(--color-code-string);
+  }
+  .tok-number {
+    color: var(--color-code-number);
+  }
+  .tok-comment {
+    color: var(--color-code-comment);
+    font-style: italic;
+  }
+  .tok-punctuation {
+    color: var(--color-code-muted);
+  }
+
+  /*
+   * Range input chrome, shared by the editor controls and demo drawers.
+   * (Previously scoped to UiRange.vue; it is an app-wide primitive.)
+   */
+  .supermouse-range {
+    @apply w-full h-1 appearance-none cursor-pointer transition-all;
+    outline: none;
+  }
+
+  .supermouse-range::-webkit-slider-thumb {
+    @apply appearance-none w-3 h-3 bg-inverse border border-surface shadow-[0_0_0_1px_var(--color-border)] transition-transform active:scale-125;
+  }
+
+  .supermouse-range::-moz-range-thumb {
+    @apply w-3 h-3 bg-inverse border border-surface shadow-[0_0_0_1px_var(--color-border)] rounded-none transition-transform active:scale-125;
+  }
+
+  .supermouse-range::-moz-range-track {
+    @apply h-1 bg-transparent;
+  }
+}
+
+/*
+ * Markdown prose theming — intentionally UNLAYERED. @tailwindcss/typography
+ * emits unlayered `.prose` element rules that read its `--tw-prose-*`
+ * variables, and unlayered declarations beat any @layer regardless of
+ * specificity. Declaring them here (after the plugin CSS in source order) is
+ * the only way to win the cascade — this is what fixes dark-mode prose links
+ * rendering black and list items rendering too dark.
+ */
+.docs-content {
+  --tw-prose-body: var(--color-body);
+  --tw-prose-links: var(--color-inverse);
+  --tw-prose-bold: var(--color-inverse);
+  --tw-prose-headings: var(--color-inverse);
+  --tw-prose-bullets: var(--color-muted);
+  --tw-prose-counters: var(--color-muted);
+  --tw-prose-code: var(--color-strong);
+  --tw-prose-quotes: var(--color-body);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-muted);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border-subtle);
+  --tw-prose-hr: var(--color-border);
+}
+
+.docs-content li {
+  color: var(--color-body);
+}
+
+.docs-content li::marker {
+  color: var(--color-muted);
+}
+
+.docs-content hr {
+  border-color: var(--color-border);
+}
+
+/*
+ * Callout bodies own their paragraph rhythm. The typography plugin gives every
+ * paragraph 1.25em top and bottom, which turned a two-sentence admonition into
+ * a box of air; the callout's own padding is the spacing. Unlayered so it wins
+ * over the plugin's `.prose p` rule. Links and inline code inside a callout are
+ * untouched (the `not-prose` marker is deliberately NOT used, so they keep the
+ * docs treatment).
+ */
+.docs-content .callout-body p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.docs-content .callout-body p + p {
+  margin-top: 0.75rem;
+}
+
+.docs-content .callout-body > :first-child {
+  margin-top: 0;
 }

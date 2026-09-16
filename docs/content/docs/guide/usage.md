@@ -5,28 +5,27 @@ section: Guide
 order: 3
 ---
 
-## 1. Construct
+## 1. Construction
 
-One instance per page. All options are optional:
+You can have one instance per page. All options are optional, Supermouse's defaults already work for 90% of your use cases, so tweak only as needed:
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
 
 const app = new Supermouse({
-  smoothness: 0.15, // lower = snappier, higher = more lag
-  cursor: "auto", // native pointer policy
+  smoothness: 0.15, // higher values for more lag
+  cursor: "auto", // default pointer policy
   dataPrefix: "supermouse" // namespace for data-* interaction attributes
 });
 ```
 
-See [Options](/docs/reference/options) for the full list. The instance exposes
+Check out [Options](/docs/reference/options) for the full list. The instance exposes
 `state`, `stage`, `container`, `isEnabled` and `version`; everything else is a
 method ([Methods](/docs/reference/methods)).
 
-## 2. Register plugins
+## 2. Registering Plugins
 
-Plugins are **factory functions**, not classes — the factory closure is what
-keeps each instance's state isolated.
+Supermouse's plugins are **factory functions** to keep each instance's state isolated.
 
 ```typescript
 import { Dot } from "@supermousejs/dot";
@@ -38,7 +37,7 @@ app.use(Ring({ size: 24 })).use(Dot({ size: 8 }));
 `use()` is chainable and returns the instance. Plugins are re-sorted by
 [`priority`](/docs/reference/plugin-interface#priority) on every registration,
 and registering the same `name` twice logs a warning instead of installing it a
-second time.
+second time. Plugins that crash on registration are logged and are never added to the runtime loop.
 
 You can also pass them up front, which is identical to calling `use()` in a loop:
 
@@ -48,14 +47,16 @@ const app = new Supermouse({
 });
 ```
 
-> **Install managed plugins first.** Behaviour plugins such as
-> [`States()`](/docs/plugins/states) look plugins up by name at runtime, so the
-> plugins they toggle must already be registered when they run.
+:::callout{title="Install managed plugins first" variant="warning"}
+Behaviour plugins such as [`States()`](/docs/plugins/states) look plugins up by
+name at runtime, so the plugins they toggle must already be registered when they
+run.
+:::
 
 ## 3. Describe interactions
 
 Instead of imperative hover handlers, you describe what a hovered element
-*means*. The engine resolves that description into
+_means_. The engine resolves that description into
 [`state.interaction`](/docs/reference/state#interaction) on hover entry, so
 plugins can read it without touching the DOM.
 
@@ -137,12 +138,12 @@ editors and drag handles — never write `cursor: none` yourself.
 
 `setCursor()` — or the `cursor` option — picks the native-pointer policy:
 
-| Mode | Custom stage | Native pointer |
-| :--- | :--- | :--- |
-| `"auto"` | hidden over native controls, otherwise shown | hidden except over native controls |
-| `"custom"` | always shown | always hidden |
-| `"native"` | never shown | always shown |
-| `"both"` | always shown | always shown |
+| Mode       | Custom stage                                 | Native pointer                     |
+| :--------- | :------------------------------------------- | :--------------------------------- |
+| `"auto"`   | hidden over native controls, otherwise shown | hidden except over native controls |
+| `"custom"` | always shown                                 | always hidden                      |
+| `"native"` | never shown                                  | always shown                       |
+| `"both"`   | always shown                                 | always shown                       |
 
 ```typescript
 app.setCursor("native"); // e.g. while a native <select> popup is open
@@ -188,15 +189,15 @@ plugins run exit animations before their element is hidden.
 
 ## 9. Lifecycle
 
-| Call | Effect | `isEnabled` |
-| :--- | :--- | :--- |
-| `enable()` | Resumes input, snaps physics to the last pointer position, re-applies cursor state. | `true` |
-| `disable()` | Stops input, hides the stage, restores the native cursor and resets physics. | `false` |
-| `suspend()` | Yields control without unmounting the stage; clears hover state. | `false` |
-| `resume()` | Re-enables input, re-syncs physics, then updates plugins once before showing the stage. | `true` |
-| `start()` | Starts the `requestAnimationFrame` loop (automatic unless `autoStart: false`). | — |
-| `step(time)` | Advances a single frame manually. | — |
-| `destroy()` | Tears everything down permanently. | — |
+| Call         | Effect                                                                                  | `isEnabled` |
+| :----------- | :-------------------------------------------------------------------------------------- | :---------- |
+| `enable()`   | Resumes input, snaps physics to the last pointer position, re-applies cursor state.     | `true`      |
+| `disable()`  | Stops input, hides the stage, restores the native cursor and resets physics.            | `false`     |
+| `suspend()`  | Yields control without unmounting the stage; clears hover state.                        | `false`     |
+| `resume()`   | Re-enables input, re-syncs physics, then updates plugins once before showing the stage. | `true`      |
+| `start()`    | Starts the `requestAnimationFrame` loop (automatic unless `autoStart: false`).          | —           |
+| `step(time)` | Advances a single frame manually.                                                       | —           |
+| `destroy()`  | Tears everything down permanently.                                                      | —           |
 
 ```typescript
 // Yield while an embedded iframe or canvas owns the pointer

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { highlight } from "@utils/highlight";
 import { usePlayground } from "@composables/usePlayground";
 
@@ -12,37 +12,35 @@ const props = defineProps<{
 }>();
 
 const { open } = usePlayground();
-const copied = ref(false);
+const { copied, copy: writeToClipboard } = useClipboard(2000);
 
 const highlightedCode = computed(() => {
   return highlight(props.code, props.lang || "typescript");
 });
 
-const copy = async () => {
-  await navigator.clipboard.writeText(props.code);
-  copied.value = true;
-  setTimeout(() => (copied.value = false), 2000);
+const copy = (): void => {
+  void writeToClipboard(props.code);
 };
 </script>
 
 <template>
   <div
     class="w-full flex flex-col font-mono text-sm group relative overflow-hidden"
-    :class="clean ? '' : 'border border-zinc-200 bg-[#09090b]'"
+    :class="clean ? '' : 'border border-border bg-code-surface'"
   >
     <!-- Header -->
     <div
       v-if="!clean"
-      class="w-full px-4 py-3 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between select-none shrink-0"
+      class="w-full px-4 py-3 bg-surface-muted border-b border-border flex items-center justify-between select-none shrink-0"
     >
       <div class="flex items-center gap-3">
         <span
           v-if="title"
-          class="text-[10px] uppercase tracking-widest font-bold text-zinc-900 bg-zinc-200/50 px-2 py-1"
+          class="text-[10px] uppercase tracking-widest font-bold text-inverse bg-border/50 px-2 py-1"
         >
           {{ title }}
         </span>
-        <span v-else class="text-[10px] uppercase tracking-widest font-bold text-zinc-400">
+        <span v-else class="text-[10px] uppercase tracking-widest font-bold text-subtle">
           Snippet
         </span>
       </div>
@@ -51,7 +49,7 @@ const copy = async () => {
         <!-- Run Button -->
         <button
           v-if="recipeId"
-          class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-amber-500 transition-colors"
+          class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted hover:text-accent transition-colors"
           @click="open(recipeId)"
         >
           <svg
@@ -69,7 +67,7 @@ const copy = async () => {
         <!-- Copy Button (Header) -->
         <button
           class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-colors"
-          :class="copied ? 'text-green-600' : 'text-zinc-400 hover:text-black'"
+          :class="copied ? 'text-accent' : 'text-subtle hover:text-inverse'"
           @click="copy"
         >
           <span v-if="copied">Copied</span>
@@ -103,8 +101,8 @@ const copy = async () => {
         <div
           class="flex gap-1.5 opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all"
         >
-          <div class="w-2.5 h-2.5 border border-zinc-400 bg-zinc-200" />
-          <div class="w-2.5 h-2.5 border border-zinc-400 bg-zinc-200" />
+          <div class="w-2.5 h-2.5 border border-subtle bg-border" />
+          <div class="w-2.5 h-2.5 border border-subtle bg-border" />
         </div>
       </div>
     </div>
@@ -112,7 +110,7 @@ const copy = async () => {
     <!-- Floating Copy Button (Clean Mode) -->
     <button
       v-if="clean"
-      class="absolute top-4 right-4 z-10 p-2 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded opacity-0 group-hover:opacity-100 transition-all duration-200 backdrop-blur-sm"
+      class="code-scroll absolute top-4 right-4 z-10 flex h-7 w-7 items-center justify-center border border-code-border bg-surface/80 text-code-muted opacity-0 backdrop-blur-sm transition-all duration-150 hover:text-strong group-hover:opacity-100 focus-visible:opacity-100"
       title="Copy to clipboard"
       @click="copy"
     >
@@ -136,20 +134,17 @@ const copy = async () => {
         fill="none"
         stroke="currentColor"
         stroke-width="3"
-        class="text-green-400"
+        class="text-accent"
       >
         <polyline points="20 6 9 17 4 12" />
       </svg>
     </button>
 
     <!-- Code Area -->
-    <div class="w-full relative bg-[#09090b] text-zinc-300 min-h-0 flex-1 overflow-hidden">
-      <!--
-          Added selection classes: selection:bg-zinc-700 selection:text-white
-          This overrides the global light-mode selection style for code blocks.
-       -->
+    <div class="w-full relative bg-code-surface text-code-text min-h-0 flex-1 overflow-hidden">
+      <!-- Selection uses code-theme tokens; see index.css -->
       <pre
-        class="m-0 p-6 overflow-x-auto h-full scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 w-full selection:bg-zinc-700 selection:text-white"
+        class="code-scroll m-0 p-6 overflow-x-auto h-full w-full selection:bg-code-muted/40 selection:text-code-strong"
       ><code
 class="block leading-relaxed"
              v-html="highlightedCode"
@@ -158,18 +153,4 @@ class="block leading-relaxed"
   </div>
 </template>
 
-<style scoped>
-::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #09090b;
-}
-::-webkit-scrollbar-thumb {
-  background: #27272a;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
-}
-</style>
+

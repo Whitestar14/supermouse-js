@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from "vue";
 import EditorControls from "./EditorControls.vue";
-import EditorPreview from "./EditorPreview.vue";
+import DemoStage from "./DemoStage.vue";
 import CodeBlock from "@components/content/CodeBlock.vue";
 import { RECIPES } from "@playground/recipes";
 import { generateCode } from "@utils/code-generator";
@@ -20,7 +20,7 @@ const globalConfig = ref({
   showNative: false
 });
 const mode = ref<SidebarMode>("config");
-const isCopied = ref(false);
+const { copied: isCopied, copy: writeToClipboard } = useClipboard(2000);
 
 const currentRecipe = computed(() => {
   return (RECIPES.find((r) => r.id === props.activeRecipeId) || RECIPES[0])!;
@@ -71,6 +71,24 @@ const handleKeydown = (e: KeyboardEvent) => {
 onMounted(() => window.addEventListener("keydown", handleKeydown));
 onUnmounted(() => window.removeEventListener("keydown", handleKeydown));
 
+const liveConfig = reactive<Record<string, any>>({});
+
+watch(
+  config,
+  (val) => {
+    for (const key of Object.keys(liveConfig)) {
+      if (!(key in val)) delete liveConfig[key];
+    }
+    Object.assign(liveConfig, val);
+  },
+  { immediate: true }
+);
+
+const stageSetup = computed(() => {
+  const recipe = currentRecipe.value;
+  return (app: Parameters<NonNullable<typeof recipe.setup>>[0]) => recipe.setup(app, liveConfig);
+});
+
 watch(
   () => props.activeRecipeId,
   (newId) => {
@@ -91,9 +109,7 @@ watch(
 );
 
 const copyCode = async (): Promise<void> => {
-  await navigator.clipboard.writeText(generatedCode.value);
-  isCopied.value = true;
-  setTimeout(() => (isCopied.value = false), 2000);
+  await writeToClipboard(generatedCode.value);
 };
 </script>
 
@@ -101,14 +117,14 @@ const copyCode = async (): Promise<void> => {
   <Teleport to="body">
     <div
       v-if="activeRecipeId"
-      class="fixed inset-0 z-[100] bg-white/95 flex items-center justify-center p-0 md:p-6 lg:p-8"
+      class="fixed inset-0 z-[100] bg-surface/95 flex items-center justify-center p-0 md:p-6 lg:p-8"
     >
       <div
-        class="bg-white w-full h-full max-w-[1600px] border border-zinc-900 flex flex-col overflow-hidden relative shadow-2xl"
+        class="bg-surface w-full h-full max-w-[1600px] border border-strong flex flex-col overflow-hidden relative shadow-2xl"
       >
         <!-- Mobile Close -->
         <button
-          class="absolute top-0 right-0 z-50 w-12 h-12 flex items-center justify-center bg-black text-white hover:bg-zinc-800 transition-colors lg:hidden cursor-pointer"
+          class="absolute top-0 right-0 z-50 w-12 h-12 flex items-center justify-center bg-inverse text-surface hover:bg-elevated transition-colors lg:hidden cursor-pointer"
           aria-label="Close Editor"
           @click="emit('close')"
         >
@@ -126,7 +142,7 @@ const copyCode = async (): Promise<void> => {
 
         <!-- Desktop Close -->
         <button
-          class="absolute top-0 right-0 z-50 h-12 px-8 bg-black text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors hidden lg:flex items-center justify-center border-l border-b border-zinc-900 cursor-pointer"
+          class="absolute top-0 right-0 z-50 h-12 px-8 bg-inverse text-surface text-xs font-bold uppercase tracking-widest hover:bg-elevated transition-colors hidden lg:flex items-center justify-center border-l border-b border-strong cursor-pointer"
           @click="emit('close')"
         >
           Close Editor
@@ -135,16 +151,16 @@ const copyCode = async (): Promise<void> => {
         <div class="flex flex-1 overflow-hidden flex-col lg:flex-row">
           <!-- Sidebar -->
           <div
-            class="w-full lg:w-[400px] border-b lg:border-b-0 lg:border-r border-zinc-200 shrink-0 h-2/5 lg:h-full flex flex-col bg-white z-10"
+            class="w-full lg:w-[400px] border-b lg:border-b-0 lg:border-r border-border shrink-0 h-2/5 lg:h-full flex flex-col bg-surface z-10"
           >
             <!-- Tabs -->
-            <div class="h-12 flex border-b border-zinc-200 shrink-0 bg-zinc-50">
+            <div class="h-12 flex border-b border-border shrink-0 bg-surface-muted">
               <button
-                class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-150 border-r border-zinc-200 cursor-pointer"
+                class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-150 border-r border-border cursor-pointer"
                 :class="
                   mode === 'config'
-                    ? 'bg-black text-white'
-                    : 'text-zinc-400 bg-white hover:text-black hover:bg-zinc-50'
+                    ? 'bg-inverse text-surface'
+                    : 'text-subtle bg-surface hover:text-inverse hover:bg-surface-muted'
                 "
                 @click="mode = 'config'"
               >
@@ -154,8 +170,8 @@ const copyCode = async (): Promise<void> => {
                 class="flex-1 text-xs font-bold uppercase tracking-widest transition-colors duration-150 cursor-pointer"
                 :class="
                   mode === 'code'
-                    ? 'bg-black text-white'
-                    : 'text-zinc-400 bg-white hover:text-black hover:bg-zinc-50'
+                    ? 'bg-inverse text-surface'
+                    : 'text-subtle bg-surface hover:text-inverse hover:bg-surface-muted'
                 "
                 @click="mode = 'code'"
               >
@@ -179,7 +195,7 @@ const copyCode = async (): Promise<void> => {
 
               <div
                 v-else
-                class="absolute inset-0 overflow-y-auto bg-[#09090b] flex flex-col"
+                class="absolute inset-0 overflow-y-auto bg-code-surface flex flex-col"
                 data-lenis-prevent
               >
                 <div class="flex-1 min-h-0 flex flex-col">
@@ -187,11 +203,11 @@ const copyCode = async (): Promise<void> => {
                 </div>
 
                 <button
-                  class="h-12 border-t border-zinc-800 text-xs font-mono font-bold uppercase tracking-wider shrink-0 sticky bottom-0 transition-all duration-200 flex items-center justify-center cursor-pointer"
+                  class="h-12 border-t border-elevated text-xs font-mono font-bold uppercase tracking-wider shrink-0 sticky bottom-0 transition-all duration-200 flex items-center justify-center cursor-pointer"
                   :class="
                     isCopied
-                      ? 'bg-white text-black border-white'
-                      : 'bg-[#09090b] text-zinc-300 hover:bg-zinc-900 hover:text-white'
+                      ? 'bg-surface text-inverse border-surface'
+                      : 'bg-code-surface text-code-muted hover:bg-inverse hover:text-surface'
                   "
                   @click="copyCode"
                 >
@@ -203,10 +219,10 @@ const copyCode = async (): Promise<void> => {
           </div>
 
           <!-- Preview -->
-          <div class="flex-1 bg-zinc-50 h-3/5 lg:h-full overflow-hidden flex flex-col">
+          <div class="flex-1 bg-surface-muted h-3/5 lg:h-full overflow-hidden flex flex-col">
             <!-- Preview Nav Bar -->
             <div
-              class="h-12 border-b border-zinc-200 bg-white flex items-center justify-between pl-4 pr-16 lg:pr-48 shrink-0"
+              class="h-12 border-b border-border bg-surface flex items-center justify-between pl-4 pr-16 lg:pr-48 shrink-0"
             >
               <!-- Left: Icon & Recipe Title -->
               <div class="flex items-center gap-3 min-w-0">
@@ -214,17 +230,17 @@ const copyCode = async (): Promise<void> => {
                   class="w-5 h-5 flex items-center justify-center filter grayscale opacity-80 shrink-0"
                   v-html="currentRecipe.icon"
                 />
-                <span class="text-sm font-bold text-zinc-900 tracking-tight truncate">{{
+                <span class="text-sm font-bold text-inverse tracking-tight truncate">{{
                   currentRecipe.name
                 }}</span>
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
                 <!-- Pagination Control Pill -->
-                <div class="flex items-center bg-zinc-50 border border-zinc-200 p-0.5">
+                <div class="flex items-center bg-surface-muted border border-border p-0.5">
                   <button
                     :disabled="!hasPrev"
-                    class="w-7 h-7 flex items-center justify-center bg-white text-zinc-900 border border-zinc-200 hover:bg-black hover:text-white hover:border-black disabled:opacity-25 disabled:hover:bg-white disabled:hover:text-zinc-900 disabled:hover:border-zinc-200 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    class="w-7 h-7 flex items-center justify-center bg-surface text-inverse border border-border hover:bg-inverse hover:text-surface hover:border-inverse disabled:opacity-25 disabled:hover:bg-surface disabled:hover:text-inverse disabled:hover:border-border transition-colors cursor-pointer disabled:cursor-not-allowed"
                     title="Previous Preset (Left Arrow)"
                     @click="goPrev"
                   >
@@ -241,16 +257,16 @@ const copyCode = async (): Promise<void> => {
                   </button>
 
                   <div
-                    class="px-2.5 font-mono text-xs font-bold text-zinc-500 select-none flex items-center gap-1"
+                    class="px-2.5 font-mono text-xs font-bold text-muted select-none flex items-center gap-1"
                   >
-                    <span class="text-zinc-900">{{ formattedIndex.current }}</span>
-                    <span class="text-zinc-300">/</span>
+                    <span class="text-inverse">{{ formattedIndex.current }}</span>
+                    <span class="text-faint">/</span>
                     <span>{{ formattedIndex.total }}</span>
                   </div>
 
                   <button
                     :disabled="!hasNext"
-                    class="w-7 h-7 flex items-center justify-center bg-white text-zinc-900 border border-zinc-200 hover:bg-black hover:text-white hover:border-black disabled:opacity-25 disabled:hover:bg-white disabled:hover:text-zinc-900 disabled:hover:border-zinc-200 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    class="w-7 h-7 flex items-center justify-center bg-surface text-inverse border border-border hover:bg-inverse hover:text-surface hover:border-inverse disabled:opacity-25 disabled:hover:bg-surface disabled:hover:text-inverse disabled:hover:border-border transition-colors cursor-pointer disabled:cursor-not-allowed"
                     title="Next Preset (Right Arrow)"
                     @click="goNext"
                   >
@@ -271,10 +287,14 @@ const copyCode = async (): Promise<void> => {
 
             <!-- Preview Canvas -->
             <div class="flex-1 relative overflow-hidden">
-              <EditorPreview
-                :recipe="currentRecipe"
-                :config="config"
-                :global-config="globalConfig"
+              <DemoStage
+                :key="currentRecipe.id"
+                :setup="stageSetup"
+                :smoothness="globalConfig.smoothness"
+                :show-native="globalConfig.showNative"
+                :targets="true"
+                height-class="h-full"
+                class="absolute inset-0"
               />
             </div>
           </div>
@@ -283,4 +303,3 @@ const copyCode = async (): Promise<void> => {
     </div>
   </Teleport>
 </template>
-

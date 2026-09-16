@@ -48,10 +48,11 @@ more lag.
 | `0.25` | 8 | Floaty |
 | `0.50` | 4 | Very loose, heavy drift |
 
-> **Watch the sign.** The JSDoc on `SupermouseOptions.smoothness` historically
-> described lower values as "smoother/slower". The implementation is the
-> opposite: `lambda = 2 / smoothness`, so lower values produce *less* lag. Trust
-> the table above.
+:::callout{title="Watch the sign" variant="note"}
+The JSDoc on `SupermouseOptions.smoothness` historically described lower values
+as "smoother/slower". The implementation is the opposite: `lambda = 2 /
+smoothness`, so lower values produce *less* lag. Trust the table above.
+:::
 
 The default `0.15` exists to be visible without being sluggish. If a design calls
 for a lagging follower, raise it — do not add a second smoothing layer inside the

@@ -24,14 +24,18 @@ interface LanguageGrammar {
   sea: GrammarRule[]; // Low priority, content is highlighted
 }
 
-// Dark Mode Palette (Background #09090b)
+/**
+ * Semantic token classes, resolved by `.tok-*` rules in `index.css` against the
+ * adaptive `--color-code-*` variables. Emitting classes (not inline colours)
+ * is what makes code blocks light/dark adaptive from one definition.
+ */
 const COLORS = {
-  amber: "text-amber-500 font-bold", // Keywords, Tags
-  white: "text-zinc-100", // Identifiers, Functions
-  lightGrey: "text-zinc-300", // Attributes, Builtins
-  mediumGrey: "text-zinc-400", // Strings, Numbers
-  darkGrey: "text-zinc-600", // Punctuation, Operators
-  comment: "text-zinc-500 italic" // Comments
+  amber: "tok-keyword", // Keywords, Tags
+  white: "tok-function", // Identifiers, Functions
+  lightGrey: "tok-builtin", // Attributes, Builtins
+  mediumGrey: "tok-string", // Strings, Numbers
+  darkGrey: "tok-punctuation", // Punctuation, Operators
+  comment: "tok-comment" // Comments
 };
 
 const JS_GRAMMAR: LanguageGrammar = {
@@ -63,10 +67,10 @@ const HTML_GRAMMAR: LanguageGrammar = {
   islands: [
     { type: "comment", pattern: /<!--[\s\S]*?-->/g, style: COLORS.comment },
     { type: "string", pattern: /(['"])(?:\\.|(?!\1).)*\1/g, style: COLORS.mediumGrey },
-    { type: "interpolation", pattern: /\{\{[^}]*\}\}/g, style: COLORS.white }
+    { type: "interpolation", pattern: /\{\{[^}]*\}\}/g, style: "tok-interpolation" }
   ],
   sea: [
-    { type: "tag", pattern: /<\/?[a-zA-Z0-9-]+/g, style: COLORS.amber },
+    { type: "tag", pattern: /<\/?[a-zA-Z0-9-]+/g, style: "tok-tag" },
     {
       type: "attr",
       pattern: /\b(v-[a-zA-Z-]+|@[a-zA-Z-]+|:[a-zA-Z-]+)(?==)/g,

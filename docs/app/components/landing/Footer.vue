@@ -3,35 +3,35 @@ import { AUTHOR, GITHUB_URL, TWITTER_URL, YEAR } from "@config/constants";
 </script>
 
 <template>
-  <footer class="border-t border-zinc-200 bg-white">
+  <footer class="border-t border-border bg-surface">
     <div class="flex flex-col md:flex-row">
       <!-- Left Gutter -->
-      <div class="hidden md:block w-[96px] border-r border-zinc-200 shrink-0" />
+      <div class="hidden md:block w-24 border-r border-border shrink-0" />
 
       <div
         class="flex-1 px-6 py-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-6"
       >
         <div class="flex items-center gap-4">
-          <div class="flex items-baseline text-lg font-bold tracking-tighter text-zinc-300">
+          <div class="flex items-baseline text-lg font-bold tracking-tighter text-faint">
             <span>supermouse</span>
             <div
               class="w-[0.2em] h-[0.2em] bg-current rounded-full mx-[0.05em] relative top-[1px]"
             />
             <span>js</span>
           </div>
-          <span class="text-zinc-300">|</span>
-          <span class="mono text-xs text-zinc-400 uppercase tracking-widest font-bold">
+          <span class="text-faint">|</span>
+          <span class="mono text-xs text-subtle uppercase tracking-widest font-bold">
             Copyright &copy; {{ YEAR }} {{ AUTHOR }}
           </span>
         </div>
 
-        <div class="flex gap-6 text-zinc-400">
+        <div class="flex gap-6 text-subtle">
           <!-- Twitter/X -->
           <a
             :href="TWITTER_URL"
             target="_blank"
             rel="noopener noreferrer"
-            class="hover:text-black transition-colors"
+            class="hover:text-inverse transition-colors"
           >
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -44,7 +44,7 @@ import { AUTHOR, GITHUB_URL, TWITTER_URL, YEAR } from "@config/constants";
             :href="GITHUB_URL"
             target="_blank"
             rel="noopener noreferrer"
-            class="hover:text-black transition-colors"
+            class="hover:text-inverse transition-colors"
           >
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
               <path

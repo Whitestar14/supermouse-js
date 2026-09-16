@@ -29,12 +29,13 @@ export interface SupermousePlugin {
 }
 ```
 
-> **Always return a fresh object from a factory.** A module-level literal shared
-> across instances will interleave its closures:
->
-> ```typescript
-> export const Gravity = (intensity = 5): SupermousePlugin => ({ /* … */ });
-> ```
+:::callout{title="Always return a fresh object from a factory" variant="warning"}
+A module-level literal shared across instances will interleave its closures:
+
+```typescript
+export const Gravity = (intensity = 5): SupermousePlugin => ({ /* … */ });
+```
+:::
 
 ## Fields
 
