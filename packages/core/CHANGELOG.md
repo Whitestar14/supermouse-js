@@ -1,5 +1,11 @@
 # @supermousejs/core
 
+## 2.5.0-beta.1
+
+### Patch Changes
+
+- 5d5ec21: Updated README to document cursor policy and scopes
+
 ## 2.5.0-beta.0
 
 ### Minor Changes

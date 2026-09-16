@@ -1,5 +1,12 @@
 # @supermousejs/vue
 
+## 2.4.4-beta.1
+
+### Patch Changes
+
+- Updated dependencies [5d5ec21]
+  - @supermousejs/core@2.5.0-beta.1
+
 ## 2.4.4-beta.0
 
 ### Patch Changes
