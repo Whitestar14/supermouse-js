@@ -116,7 +116,7 @@ export default defineNuxtConfig({
             .split("\n")
             .find(Boolean);
 
-          if (!tagDate) {
+          if (!tagDate && !tagName?.includes("beta")) {
             throw new Error(
               `No git tag found for ${tagName}. The docs build cannot derive a release date from the repo.`
             );
