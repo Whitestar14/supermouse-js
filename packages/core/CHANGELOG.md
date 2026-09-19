@@ -1,5 +1,12 @@
 # @supermousejs/core
 
+## 2.5.0-beta.2
+
+### Patch Changes
+
+- ff288b4: Fixed Logic Plugins not have effect from wrong ordering of target overwrite
+- 18b57de: Fixed CSS stylesheets being destroyed erroneously from a lack of a primary owner and plugins being activated all at once by the `States` plugin when re-entering previously exited scope
+
 ## 2.5.0-beta.1
 
 ### Patch Changes
