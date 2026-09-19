@@ -18,7 +18,6 @@ export class Input {
   private nativeTarget: HTMLElement | null = null;
   private currentTarget: HTMLElement | null = null;
   private lastParsedTarget: HTMLElement | null = null;
-  private ruleEntries: Array<[string, RuleDefinition]>;
   private releaseViewport: (() => void) | null = null;
 
   public hasSeenPointer = false;
@@ -42,7 +41,6 @@ export class Input {
     this.dataPrefix = options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
     this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
-    this.ruleEntries = options.rules ? Object.entries(options.rules) : [];
 
     this.checkDeviceCapability();
     this.checkMotionPreference();
@@ -57,6 +55,9 @@ export class Input {
   setActiveScope(scope: Scope | null): void {
     if (scope === this.activeScope) return;
     this.activeScope = scope;
+
+    this.lastParsedTarget = null;
+    this.cachedChain = [];
 
     this.releaseViewport?.();
     this.releaseViewport =
@@ -75,7 +76,7 @@ export class Input {
     let cur = target as HTMLElement | null;
     while (cur) {
       const scope = this.scopeByContainer.get(cur);
-      if (scope) return scope;
+      if (scope && !scope.disabled) return scope;
       cur = cur.parentElement;
     }
     return null;
@@ -115,9 +116,12 @@ export class Input {
   }
 
   public parseDOMInteraction(element: HTMLElement): void {
-    const root = this.activeScope?.container ?? document.body;
-    const inheritData = this.activeScope?.inheritDataAttributes ?? true;
+    if (!this.activeScope) return;
+
+    const root = this.activeScope.container;
+    const inheritData = this.activeScope.inheritDataAttributes;
     const pre = this.normalizedDataPrefix;
+    const ruleEntries = this.activeScope.ruleEntries;
 
     if (element !== this.lastParsedTarget) {
       this.lastParsedTarget = element;
@@ -126,7 +130,7 @@ export class Input {
       let cur: HTMLElement | null = element;
       while (cur) {
         const matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
-        for (const [selector, rules] of this.ruleEntries) {
+        for (const [selector, rules] of ruleEntries) {
           if (this.matchesSelector(cur, selector)) {
             matchedRules.push({ selector, rules });
           }

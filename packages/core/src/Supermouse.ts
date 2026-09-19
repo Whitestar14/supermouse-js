@@ -1,11 +1,17 @@
 declare const __VERSION__: string | undefined;
 const VERSION: string = typeof __VERSION__ !== "undefined" ? __VERSION__ : "0.0.0";
 
-import type { MouseState, SupermouseOptions, SupermousePlugin, CursorMode, ScopeConfig } from "./types";
+import type {
+  MouseState,
+  SupermouseOptions,
+  SupermousePlugin,
+  CursorMode,
+  ScopeConfig
+} from "./types";
 import { Scope } from "./internal/Scope";
 import { OFFSCREEN, DEFAULT_HOVER_SELECTORS } from "./constants";
 import { Input } from "./internal/Input";
-import { setRules, destroy as destroyStylesheet } from "./internal/Stylesheet";
+import { createStyleOwner, setRules, destroyStylesheet } from "./internal/Stylesheet";
 import { DEFAULT_CURSOR_POLICY, normalizePolicy } from "./policy";
 
 function lerp(a: number, b: number, factor: number): number {
@@ -17,7 +23,7 @@ function lerp(a: number, b: number, factor: number): number {
  * @param lambda  Response rate.
  * @param dt Delta time in seconds.
  *
- * https://www.youtube.com/watch?v=LSNQuFEDOyQ
+ * https://www.youtube.com/watch?v=LQuFEDOyQ
  */
 function damp(a: number, b: number, lambda: number, dt: number): number {
   return lerp(a, b, 1 - Math.exp(-lambda * dt));
@@ -26,8 +32,16 @@ function damp(a: number, b: number, lambda: number, dt: number): number {
 export interface ScopeHandle {
   readonly name: string | undefined;
   readonly container: HTMLElement;
+  readonly disabled: boolean;
+
   remove(): void;
   setCursor(mode: CursorMode): void;
+  disable(): void;
+  enable(): void;
+
+  use(plugin: SupermousePlugin): ScopeHandle;
+  removePlugin(name: string): void;
+  getPlugin(name: string): SupermousePlugin | undefined;
 }
 
 type ResolvedOptions = SupermouseOptions &
@@ -58,8 +72,11 @@ export class Supermouse {
   private _activeScope: Scope | null = null;
   private _installingScope: Scope | null = null;
   private scopeByContainer = new Map<HTMLElement, Scope>();
+  private scopeByName = new Map<string, Scope>();
+  private scopeHandles = new Map<Scope, ScopeHandle>();
 
   private input: Input;
+  private styleOwner: number;
 
   private rafId = 0;
   private lastTime = 0;
@@ -81,6 +98,8 @@ export class Supermouse {
       ...options
     } as ResolvedOptions;
 
+    this.styleOwner = createStyleOwner();
+
     this.state = {
       pointer: { ...OFFSCREEN },
       target: { ...OFFSCREEN },
@@ -96,7 +115,8 @@ export class Supermouse {
       reducedMotion: false,
       hasReceivedInput: false,
       shape: null,
-      interaction: {}
+      interaction: {},
+      scope: null
     };
 
     const primary = this.createScope({
@@ -105,6 +125,7 @@ export class Supermouse {
       hoverSelectors: this.options.hoverSelectors,
       cursorPolicy: this.options.cursorPolicy,
       plugins: this.options.plugins,
+      rules: this.options.rules,
       zIndex: this.options.zIndex
     });
 
@@ -163,12 +184,20 @@ export class Supermouse {
     return undefined;
   }
 
+  public getScope(name: string): ScopeHandle | undefined {
+    const scope = this.scopeByName.get(name);
+    return scope ? this.scopeHandles.get(scope) : undefined;
+  }
+
   public enablePlugin(name: string): void {
     const plugin = this.getPlugin(name);
-    if (plugin && plugin.isEnabled === false) {
-      plugin.isEnabled = true;
-      if (plugin.element) plugin.element.style.display = "";
-      plugin.onEnable?.(this);
+    if (!plugin || plugin.isEnabled !== false) return;
+
+    plugin.isEnabled = true;
+
+    const active = this._activeScope;
+    if (active && !active.disabled && active.plugins.includes(plugin)) {
+      this.scopeActivatePlugin(plugin);
     }
   }
 
@@ -195,13 +224,7 @@ export class Supermouse {
     this.input.setScopes(this._scopes);
     this.installPlugins(scope);
     this.rebuildStylesheet();
-
-    return {
-      name: scope.name,
-      container: scope.container,
-      remove: () => this.removeScope(scope),
-      setCursor: (mode) => this.setScopeCursor(scope, mode)
-    };
+    return this.scopeHandles.get(scope)!;
   }
 
   public enable(): void {
@@ -240,7 +263,9 @@ export class Supermouse {
     this.state.interaction = {};
   }
 
-  public start(): void { this.startLoop(); }
+  public start(): void {
+    this.startLoop();
+  }
 
   public step(time: number): void {
     this.update(time);
@@ -265,8 +290,11 @@ export class Supermouse {
 
     this._scopes = [];
     this.scopeByContainer.clear();
+    this.scopeByName.clear();
+    this.scopeHandles.clear();
     this._activeScope = null;
-    destroyStylesheet();
+    this.state.scope = null;
+    destroyStylesheet(this.styleOwner);
   }
 
   // ─── Internal ───
@@ -274,19 +302,54 @@ export class Supermouse {
   private _running = false;
 
   private createScope(config: ScopeConfig): Scope {
+    if (this.scopeByContainer.has(config.container)) {
+      console.warn(
+        `[Supermouse] A scope is already registered for this container. ` +
+          `The previous scope will no longer activate.`
+      );
+    }
+
     const scope = new Scope(config, {
       cursor: this.options.cursor,
       hoverSelectors: this.options.hoverSelectors ?? DEFAULT_HOVER_SELECTORS,
       cursorPolicy: this.options.cursorPolicy
-      ? normalizePolicy(this.options.cursorPolicy)
-      : DEFAULT_CURSOR_POLICY,
+        ? normalizePolicy(this.options.cursorPolicy)
+        : DEFAULT_CURSOR_POLICY,
       zIndex: this.options.zIndex,
-      inheritDataAttributes: this.options.inheritDataAttributes
+      inheritDataAttributes: this.options.inheritDataAttributes,
+      ruleEntries: this.options.rules ? Object.entries(this.options.rules) : []
     });
 
     this._scopes.push(scope);
     this.scopeByContainer.set(scope.container, scope);
+    if (scope.name) this.scopeByName.set(scope.name, scope);
+    this.scopeHandles.set(scope, this.buildScopeHandle(scope));
     return scope;
+  }
+
+  private buildScopeHandle(scope: Scope): ScopeHandle {
+    const handle: ScopeHandle = {
+      get name() {
+        return scope.name;
+      },
+      get container() {
+        return scope.container;
+      },
+      get disabled() {
+        return scope.disabled;
+      },
+      remove: () => this.removeScope(scope),
+      setCursor: (mode) => this.setScopeCursor(scope, mode),
+      disable: () => this.disableScope(scope),
+      enable: () => this.enableScope(scope),
+      use: (plugin) => {
+        this.installPlugin(scope, plugin);
+        return handle;
+      },
+      removePlugin: (name) => this.removePluginFromScope(scope, name),
+      getPlugin: (name) => scope.plugins.find((p) => p.name === name)
+    };
+    return handle;
   }
 
   private removeScope(scope: Scope): void {
@@ -305,10 +368,16 @@ export class Supermouse {
 
     this._scopes.splice(i, 1);
     this.scopeByContainer.delete(scope.container);
+    if (scope.name) this.scopeByName.delete(scope.name);
+    this.scopeHandles.delete(scope);
     this.input.setScopes(this._scopes);
 
     if (this._activeScope === scope) {
-      this.input.setActiveScope(this._scopes[0] ?? null);
+      const next =
+        this.findScopeAbove(scope.container.parentElement) ??
+        this._scopes.find((s) => !s.disabled) ??
+        null;
+      this.input.setActiveScope(next);
     }
 
     this.rebuildStylesheet();
@@ -317,6 +386,33 @@ export class Supermouse {
   private setScopeCursor(scope: Scope, mode: CursorMode): void {
     scope.cursorMode = mode;
     if (scope === this._activeScope) this.state.cursorMode = mode;
+  }
+
+  private disableScope(scope: Scope): void {
+    if (scope.disabled) return;
+    scope.disabled = true;
+
+    if (this._activeScope === scope) {
+      const next =
+        this.findScopeAbove(scope.container.parentElement) ??
+        this._scopes.find((s) => !s.disabled) ??
+        null;
+      this.input.setActiveScope(next);
+    }
+  }
+
+  private enableScope(scope: Scope): void {
+    scope.disabled = false;
+  }
+
+  private findScopeAbove(start: HTMLElement | null): Scope | null {
+    let cur = start;
+    while (cur) {
+      const s = this.scopeByContainer.get(cur);
+      if (s && !s.disabled) return s;
+      cur = cur.parentElement;
+    }
+    return null;
   }
 
   private installPlugins(scope: Scope): void {
@@ -344,9 +440,37 @@ export class Supermouse {
     scope.plugins.push(plugin);
     scope.plugins.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 
-    if (scope !== this._activeScope) {
-      plugin.isEnabled = false;
+    if (scope !== this._activeScope || scope.disabled) {
       if (plugin.element) plugin.element.style.display = "none";
+    }
+  }
+
+  private removePluginFromScope(scope: Scope, name: string): void {
+    const i = scope.plugins.findIndex((p) => p.name === name);
+    if (i === -1) return;
+    const plugin = scope.plugins[i];
+    scope.plugins.splice(i, 1);
+
+    const finish = (): void => {
+      try {
+        plugin.onDisable?.(this);
+        plugin.destroy?.(this);
+      } catch (e) {
+        console.error(`[Supermouse] Plugin '${name}' cleanup threw:`, e);
+      }
+      plugin.element?.remove();
+    };
+
+    const result = plugin.onBeforeDisable?.(this);
+    if (result && typeof result.then === "function") {
+      void Promise.resolve(result)
+        .then(finish)
+        .catch((err) => {
+          console.error(`[Supermouse] Plugin '${name}' onBeforeDisable threw:`, err);
+          finish();
+        });
+    } else {
+      finish();
     }
   }
 
@@ -355,29 +479,29 @@ export class Supermouse {
     if (previous === scope) return;
 
     if (previous) {
-      for (const plugin of previous.plugins) this.deactivatePlugin(plugin);
+      for (const plugin of previous.plugins) {
+        if (plugin.isEnabled !== false) this.scopeDeactivatePlugin(plugin);
+      }
     }
 
     this._activeScope = scope;
 
     if (scope) {
       this.state.cursorMode = scope.cursorMode;
-      for (const plugin of scope.plugins) this.activatePlugin(plugin);
+      this.state.scope = { name: scope.name, container: scope.container };
+      for (const plugin of scope.plugins) {
+        if (plugin.isEnabled !== false) this.scopeActivatePlugin(plugin);
+      }
+    } else {
+      this.state.scope = null;
     }
-  }
-
-  private activatePlugin(plugin: SupermousePlugin): void {
-    if (plugin.isEnabled !== false) return;
-    plugin.isEnabled = true;
-    if (plugin.element) plugin.element.style.display = "";
-    plugin.onEnable?.(this);
   }
 
   private deactivatePlugin(plugin: SupermousePlugin): void {
     if (plugin.isEnabled === false) return;
     plugin.isEnabled = false;
 
-    const finish = (): void => {
+    const finish = () => {
       if (plugin.element) plugin.element.style.display = "none";
       plugin.onDisable?.(this);
     };
@@ -395,10 +519,39 @@ export class Supermouse {
     }
   }
 
+  /**
+   * Runs the deactivation lifecycle for a plugin whose owning scope just
+   * became inactive. Does NOT flip `plugin.isEnabled`, so user intent
+   * (e.g. States disabling a plugin) survives the scope round-trip.
+   */
+  private scopeDeactivatePlugin(plugin: SupermousePlugin): void {
+    const finish = () => {
+      if (plugin.element) plugin.element.style.display = "none";
+      plugin.onDisable?.(this);
+    };
+
+    const result = plugin.onBeforeDisable?.(this);
+    if (result && typeof result.then === "function") {
+      void Promise.resolve(result)
+        .then(finish)
+        .catch((err) => {
+          console.error(`[Supermouse] Plugin '${plugin.name}' onBeforeDisable threw:`, err);
+          finish();
+        });
+    } else {
+      finish();
+    }
+  }
+
+  private scopeActivatePlugin(plugin: SupermousePlugin): void {
+    if (plugin.element) plugin.element.style.display = "";
+    plugin.onEnable?.(this);
+  }
+
   private rebuildStylesheet(): void {
     const rules: string[] = [];
     for (const scope of this._scopes) rules.push(...scope.buildRules());
-    setRules(rules);
+    setRules(this.styleOwner, rules);
   }
 
   private runPluginSafe(plugin: SupermousePlugin, deltaTime: number): void {
@@ -539,9 +692,28 @@ export class Supermouse {
   }
 
   /**
-   * @deprecated Prefer setting `hoverSelectors` at scope creation, or use
-   * `definePlugin`'s `selector` option. This method is kept for raw-object
-   * plugins and runtime extension; it mutates the active scope's selector set.
+   * @deprecated Read from the active scope instead.
+   * Exposed for tests and debugging.
+   */
+  public get hoverSelectors(): Set<string> {
+    const scope = this._activeScope ?? this._scopes[0];
+    return scope ? scope.hoverSelectors : new Set();
+  }
+
+  /**
+   * @deprecated Read from the active scope instead.
+   * Exposed for tests and debugging.
+   */
+  public get plugins(): SupermousePlugin[] {
+    const scope = this._activeScope ?? this._scopes[0];
+    return scope ? scope.plugins : [];
+  }
+
+  /**
+   * Adds one or more hover selectors to the current scope. Intended for
+   * raw-object plugins during `install`. Plugins written with `definePlugin`
+   * should use the `selector` option instead, and consumers setting up a
+   * scope should prefer the `hoverSelectors` option at construction.
    */
   public registerHoverTarget(selector: string): void {
     const scope = this._installingScope ?? this._activeScope ?? this._scopes[0];
@@ -550,24 +722,6 @@ export class Supermouse {
       const trimmed = s.trim();
       if (trimmed) scope.hoverSelectors.add(trimmed);
     }
-  }
-
-  /**
-   * @deprecated Read from the active scope instead. Exposed for tests and
-   * debugging only.
-   */
-  public get hoverSelectors(): Set<string> {
-    const scope = this._activeScope ?? this._scopes[0];
-    return scope ? scope.hoverSelectors : new Set();
-  }
-
-  /**
-   * @deprecated Read from the active scope instead. Exposed for tests and
-   * debugging only.
-   */
-  public get plugins(): SupermousePlugin[] {
-    const scope = this._activeScope ?? this._scopes[0];
-    return scope ? scope.plugins : [];
   }
 }
 

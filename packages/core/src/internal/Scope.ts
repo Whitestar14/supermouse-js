@@ -1,4 +1,4 @@
-import type { SupermousePlugin, ScopeConfig, CursorMode } from "../types";
+import type { SupermousePlugin, ScopeConfig, CursorMode, RuleDefinition } from "../types";
 import { compilePolicy, normalizePolicy, type CursorPolicy } from "../policy";
 import { Stage } from "./Stage";
 
@@ -10,6 +10,7 @@ export interface InheritedScopeOptions {
   cursorPolicy: CursorPolicy;
   zIndex: number;
   inheritDataAttributes: boolean;
+  ruleEntries: Array<[string, RuleDefinition]>;
 }
 
 export class Scope {
@@ -19,8 +20,10 @@ export class Scope {
   public readonly nativeSelectors: string[];
   public readonly hideSelectors: string[];
   public readonly inheritDataAttributes: boolean;
+  public readonly ruleEntries: Array<[string, RuleDefinition]>;
   public readonly name: string | undefined;
   public cursorMode: CursorMode;
+  public disabled = false;
 
   constructor(
     public readonly config: ScopeConfig,
@@ -30,6 +33,7 @@ export class Scope {
     this.cursorMode = config.cursor ?? inherited.cursor;
     this.hoverSelectors = new Set(config.hoverSelectors ?? inherited.hoverSelectors);
     this.inheritDataAttributes = config.inheritDataAttributes ?? inherited.inheritDataAttributes;
+    this.ruleEntries = config.rules ? Object.entries(config.rules) : inherited.ruleEntries;
 
     const policy = config.cursorPolicy
       ? normalizePolicy(config.cursorPolicy)
@@ -49,15 +53,14 @@ export class Scope {
     return this.stage.containerElement;
   }
 
-  public get hoverSelectorString(): string {
-  return Array.from(this.hoverSelectors).join(", ");
-}
+  get hoverSelectorString(): string {
+    return Array.from(this.hoverSelectors).join(", ");
+  }
 
- public get nativeSelectorString(): string {
+  get nativeSelectorString(): string {
     return this.nativeSelectors.join(", ");
- }
+  }
 
-  /** Build the CSS rules this scope contributes to the shared stylesheet. */
   buildRules(): string[] {
     const prefix = this.stage.getRulePrefix();
     const exclusion = this.stage.getExclusion();
