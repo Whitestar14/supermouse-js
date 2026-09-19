@@ -93,12 +93,19 @@ describe("Canonical behavior contracts", () => {
       app.state.hasReceivedInput = true;
       app.step(performance.now() + 16);
 
-      // The plugin's write survived the frame.
+      // The plugin's write survived the frame — target is 500, not 100.
       expect(app.state.target).toEqual({ x: 500, y: 500 });
-      // Smooth moved toward 500, not toward 100.
-      expect(app.state.smooth.x).toBeGreaterThan(50);
-      // Displacement reflects target - smooth.
-      expect(app.state.displacement.x).toBeGreaterThan(400);
+
+      // Smooth moved substantially toward 500. If the plugin write had been
+      // clobbered, smooth would have moved toward 100 instead, landing at
+      // ~73.6 for the same dt. Anything above 200 proves the override took
+      // effect.
+      expect(app.state.smooth.x).toBeGreaterThan(200);
+      expect(app.state.smooth.x).toBeLessThan(500);
+
+      // Displacement invariant still holds.
+      expect(app.state.displacement.x).toBeCloseTo(app.state.target.x - app.state.smooth.x);
+      expect(app.state.displacement.y).toBeCloseTo(app.state.target.y - app.state.smooth.y);
     });
 
     it("visual plugins read smooth before this frame's damping", () => {
