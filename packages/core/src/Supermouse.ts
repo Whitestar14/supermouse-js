@@ -618,6 +618,12 @@ export class Supermouse {
       this.input.parseDOMInteraction(currentTarget);
     }
 
+    // this ordering has to remain this way so that plugins with priority < 10 run after this and can overwrite this
+    if (this.input.isEnabled && this.state.hasReceivedInput) {
+      this.state.target.x = this.state.pointer.x;
+      this.state.target.y = this.state.pointer.y;
+    }
+
     const activeScope = this._activeScope;
     if (activeScope) {
       activeScope.stage.setVisibility(this.resolveStageVisibility());
@@ -630,11 +636,6 @@ export class Supermouse {
     }
 
     this.cleanupCrashedPlugins();
-
-    if (this.input.isEnabled && this.state.hasReceivedInput) {
-      this.state.target.x = this.state.pointer.x;
-      this.state.target.y = this.state.pointer.y;
-    }
 
     if (this.input.isEnabled) {
       const factor = this.state.reducedMotion ? 1000 : (1 / this.options.smoothness) * 2;
