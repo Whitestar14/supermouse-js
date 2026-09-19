@@ -1,26 +1,22 @@
-let styleTag: HTMLStyleElement | null = null;
-let currentRules: string[] = [];
+let nextOwnerId = 0;
+const sheets = new Map<number, HTMLStyleElement>();
 
-function ensureTag(): void {
-  if (styleTag || typeof document === "undefined") return;
-  styleTag = document.createElement("style");
-  styleTag.id = "supermouse-styles";
-  document.head.appendChild(styleTag);
+export function createStyleOwner(): number {
+  return nextOwnerId++;
 }
 
-export function setRules(rules: string[]): void {
-  ensureTag();
-  if (!styleTag) return;
-  currentRules = rules;
-  styleTag.textContent = rules.join("\n");
+export function setRules(owner: number, rules: string[]): void {
+  let tag = sheets.get(owner);
+  if (!tag) {
+    tag = document.createElement("style");
+    tag.id = `supermouse-styles-${owner}`;
+    document.head.appendChild(tag);
+    sheets.set(owner, tag);
+  }
+  tag.textContent = rules.join("\n");
 }
 
-export function getRules(): string[] {
-  return currentRules;
-}
-
-export function destroy(): void {
-  styleTag?.remove();
-  styleTag = null;
-  currentRules = [];
+export function destroyStylesheet(owner: number): void {
+  sheets.get(owner)?.remove();
+  sheets.delete(owner);
 }

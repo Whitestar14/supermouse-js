@@ -84,6 +84,12 @@ export interface ScopeConfig {
   /** Plugins installed when this scope activates. */
   plugins?: SupermousePlugin[];
   /**
+   * Rules evaluated against hovered elements inside this scope. If omitted,
+   * the scope inherits the primary scope's rules. If provided, the scope
+   * uses only its own rules.
+   */
+  rules?: Record<string, RuleDefinition>;
+  /**
    * Whether data attributes and rules on ancestors cascade to the hovered
    * element. Inherits from top-level if omitted.
    * @default true
@@ -124,6 +130,8 @@ export interface MouseState {
   shape: ShapeState | null;
   /** Centralized store for hover metadata from data attributes and rules. */
   interaction: InteractionState;
+  /** The currently active scope's identity, or null when none is active. */
+  scope: { name: string | undefined; container: HTMLElement } | null;
 }
 
 /** Configuration options for the Supermouse constructor. */
