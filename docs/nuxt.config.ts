@@ -1,13 +1,15 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
-import { execFileSync } from "child_process";
 import tailwindcss from "@tailwindcss/vite";
 import type { NuxtConfig } from "nuxt/config";
 import { SITE_URL, STATIC_SITEMAP_ROUTES, ROBOTS_DISALLOW } from "./app/config/seo";
 import { readDocsContent } from "./app/config/content-nav";
+import { resolveRelease } from "./app/config/release";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, "..");
+const release = resolveRelease(repoRoot);
 
 const { routes: contentRoutes, navigation: docsNavigation } = readDocsContent(
   path.resolve(__dirname, "content")
@@ -87,44 +89,8 @@ export default defineNuxtConfig({
     },
 
     define: {
-      __SUPERMOUSE_VERSION__: JSON.stringify(
-        JSON.parse(readFileSync(path.resolve(__dirname, "../packages/core/package.json"), "utf-8"))
-          .version
-      ),
-
-      __SUPERMOUSE_RELEASE_AT__: JSON.stringify(
-        (() => {
-          const packageVersion = JSON.parse(
-            readFileSync(path.resolve(__dirname, "../packages/core/package.json"), "utf-8")
-          ).version;
-          const tagName = `@supermousejs/core@${packageVersion}`;
-          const tagDate = execFileSync(
-            "git",
-            [
-              "for-each-ref",
-              "--sort=-creatordate",
-              "--format=%(creatordate:iso-strict)",
-              `refs/tags/${tagName}`
-            ],
-            {
-              cwd: path.resolve(__dirname, ".."),
-              encoding: "utf-8",
-              maxBuffer: 1024 * 1024
-            }
-          )
-            .trim()
-            .split("\n")
-            .find(Boolean);
-
-          if (!tagDate && !tagName?.includes("beta")) {
-            throw new Error(
-              `No git tag found for ${tagName}. The docs build cannot derive a release date from the repo.`
-            );
-          }
-
-          return tagDate;
-        })()
-      )
+      __SUPERMOUSE_VERSION__: JSON.stringify(release.version),
+      __SUPERMOUSE_RELEASE_AT__: JSON.stringify(release.releasedAt)
     }
   },
 
