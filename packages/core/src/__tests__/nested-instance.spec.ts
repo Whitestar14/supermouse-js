@@ -10,7 +10,10 @@ describe("Nested scope handling", () => {
     document.head.innerHTML = "";
   });
 
-  it("nested scope with cursor 'both' shows native cursor over its container", () => {
+  const hasHide = (el: HTMLElement) =>
+    Array.from(el.classList).some((c) => c.startsWith("supermouse-hide-"));
+
+  it("nested scope with cursor 'both' has no hide class of its own", () => {
     app = new Supermouse({ container: document.body, cursor: "auto", autoStart: false });
 
     const preview = document.createElement("div");
@@ -18,18 +21,17 @@ describe("Nested scope handling", () => {
 
     app.addScope({ name: "preview", container: preview, cursor: "both" });
 
-    // Force the outer scope to hide the native cursor.
     app.setCursor("custom");
     app.step(performance.now() + 16);
-    expect(document.body.style.cursor).toBe("none");
+    expect(hasHide(document.body)).toBe(true);
 
-    // Enter preview scope.
     preview.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     app.step(performance.now() + 16);
 
-    // Preview scope in "both" mode sets its own cursor to "auto",
-    // overriding the inherited "none".
-    expect(preview.style.cursor).toBe("auto");
+    // The preview scope is in "both" mode; it does not suppress.
+    // The cascade that lets the native cursor through is verified in
+    // the browser spike, not here.
+    expect(hasHide(preview)).toBe(false);
     expect(app.state.cursorMode).toBe("both");
   });
 
@@ -45,7 +47,7 @@ describe("Nested scope handling", () => {
     app.step(performance.now() + 16);
     expect(app.state.cursorMode).toBe("native");
 
-    handle.remove();
+    handle.destroy();
     panel.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     app.step(performance.now() + 16);
     expect(app.state.cursorMode).toBe("auto");

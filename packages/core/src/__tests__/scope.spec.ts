@@ -20,7 +20,7 @@ describe("Scope API", () => {
 
     expect(handle.name).toBe("sidebar");
     expect(handle.container).toBe(sidebar);
-    expect(typeof handle.remove).toBe("function");
+    expect(typeof handle.destroy).toBe("function");
     expect(typeof handle.setCursor).toBe("function");
   });
 

@@ -73,8 +73,11 @@ export interface SupermousePlugin {
 export interface ScopeConfig {
   /** Optional identifier for `getScope(name)` lookups. */
   name?: string;
-  /** The element this scope is bound to. */
-  container: HTMLElement;
+  /**
+   * The container this scope is bound to. Pass an element reference for
+   * eager binding, or a CSS selector string for lazy resolution.
+   */
+  container: HTMLElement | string;
   /** Cursor mode for this scope. Inherits from top-level if omitted. */
   cursor?: CursorMode;
   /** Hover selectors for this scope. Inherits from top-level if omitted. */
@@ -83,6 +86,12 @@ export interface ScopeConfig {
   cursorPolicy?: CursorPolicyInput;
   /** Plugins installed when this scope activates. */
   plugins?: SupermousePlugin[];
+  /**
+   * Rules evaluated against hovered elements inside this scope. If omitted,
+   * the scope inherits the primary scope's rules. If provided, the scope
+   * uses only its own rules.
+   */
+  rules?: Record<string, RuleDefinition>;
   /**
    * Whether data attributes and rules on ancestors cascade to the hovered
    * element. Inherits from top-level if omitted.
@@ -124,6 +133,8 @@ export interface MouseState {
   shape: ShapeState | null;
   /** Centralized store for hover metadata from data attributes and rules. */
   interaction: InteractionState;
+  /** The currently active scope's identity, or null when none is active. */
+  scope: { name: string | undefined; container: HTMLElement } | null;
 }
 
 /** Configuration options for the Supermouse constructor. */

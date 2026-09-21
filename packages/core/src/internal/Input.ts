@@ -1,6 +1,5 @@
 import type { MouseState, SupermouseOptions, RuleDefinition } from "../types";
 import { OFFSCREEN, SUPERMOUSE_CURSORS } from "../constants";
-import { observe, toLocal } from "./ViewportManager";
 import type { Scope } from "./Scope";
 
 export class Input {
@@ -13,13 +12,10 @@ export class Input {
   private ignoreAttribute: string;
 
   private activeScope: Scope | null = null;
-  private scopeByContainer = new Map<HTMLElement, Scope>();
 
   private nativeTarget: HTMLElement | null = null;
   private currentTarget: HTMLElement | null = null;
   private lastParsedTarget: HTMLElement | null = null;
-  private ruleEntries: Array<[string, RuleDefinition]>;
-  private releaseViewport: (() => void) | null = null;
 
   public hasSeenPointer = false;
   public isEnabled = true;
@@ -37,30 +33,25 @@ export class Input {
     private state: MouseState,
     private options: SupermouseOptions,
     private onEnableChange: (enabled: boolean) => void,
-    private onActiveScopeChange: (scope: Scope | null) => void
+    private onActiveScopeChange: (scope: Scope | null) => void,
+    private resolveScope: (node: Node) => Scope | null,
+    private onHoverSettled: () => void
   ) {
     this.dataPrefix = options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
     this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
-    this.ruleEntries = options.rules ? Object.entries(options.rules) : [];
 
     this.checkDeviceCapability();
     this.checkMotionPreference();
     this.bindEvents();
   }
 
-  setScopes(scopes: Scope[]): void {
-    this.scopeByContainer.clear();
-    for (const scope of scopes) this.scopeByContainer.set(scope.container, scope);
-  }
-
   setActiveScope(scope: Scope | null): void {
     if (scope === this.activeScope) return;
     this.activeScope = scope;
 
-    this.releaseViewport?.();
-    this.releaseViewport =
-      scope && scope.container !== document.body ? observe(scope.container) : null;
+    this.lastParsedTarget = null;
+    this.cachedChain = [];
 
     if (this.hasSeenPointer) {
       this.applyPointerToState();
@@ -71,21 +62,16 @@ export class Input {
     this.onActiveScopeChange(scope);
   }
 
-  private findScope(target: Node): Scope | null {
-    let cur = target as HTMLElement | null;
-    while (cur) {
-      const scope = this.scopeByContainer.get(cur);
-      if (scope) return scope;
-      cur = cur.parentElement;
-    }
-    return null;
-  }
-
   private applyPointerToState(): void {
     const container = this.activeScope?.container ?? document.body;
-    const local = toLocal(container, this.viewportX, this.viewportY);
-    this.state.pointer.x = local.x;
-    this.state.pointer.y = local.y;
+    if (container === document.body) {
+      this.state.pointer.x = this.viewportX;
+      this.state.pointer.y = this.viewportY;
+      return;
+    }
+    const r = container.getBoundingClientRect();
+    this.state.pointer.x = this.viewportX - r.left;
+    this.state.pointer.y = this.viewportY - r.top;
   }
 
   private checkDeviceCapability(): void {
@@ -115,9 +101,12 @@ export class Input {
   }
 
   public parseDOMInteraction(element: HTMLElement): void {
-    const root = this.activeScope?.container ?? document.body;
-    const inheritData = this.activeScope?.inheritDataAttributes ?? true;
+    if (!this.activeScope) return;
+
+    const root = this.activeScope.container;
+    const inheritData = this.activeScope.inheritDataAttributes;
     const pre = this.normalizedDataPrefix;
+    const ruleEntries = this.activeScope.ruleEntries;
 
     if (element !== this.lastParsedTarget) {
       this.lastParsedTarget = element;
@@ -126,7 +115,7 @@ export class Input {
       let cur: HTMLElement | null = element;
       while (cur) {
         const matchedRules: Array<{ selector: string; rules: RuleDefinition }> = [];
-        for (const [selector, rules] of this.ruleEntries) {
+        for (const [selector, rules] of ruleEntries) {
           if (this.matchesSelector(cur, selector)) {
             matchedRules.push({ selector, rules });
           }
@@ -216,7 +205,7 @@ export class Input {
   private handleMouseOver = (e: Event): void => {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
-    const scope = this.findScope(target);
+    const scope = this.resolveScope(target);
 
     if (scope && scope !== this.activeScope) {
       this.setActiveScope(scope);
@@ -224,6 +213,22 @@ export class Input {
 
     if (!this.activeScope) return;
 
+    this.settleHoverState(target);
+    this.onHoverSettled();
+  };
+
+  public isPointerInside(el: HTMLElement): boolean {
+    if (!this.hasSeenPointer) return false;
+    const r = el.getBoundingClientRect();
+    return (
+      this.viewportX >= r.left &&
+      this.viewportX <= r.right &&
+      this.viewportY >= r.top &&
+      this.viewportY <= r.bottom
+    );
+  }
+
+  private settleHoverState(target: HTMLElement): void {
     if (this.state.cursorMode === "auto" && target.closest(`[${this.ignoreAttribute}]`)) {
       this.clearHover();
       this.state.isNative = true;
@@ -236,7 +241,7 @@ export class Input {
     this.currentTarget = target;
     this.parseDOMInteraction(target);
 
-    const hoverable = target.closest(this.activeScope.hoverSelectorString);
+    const hoverable = target.closest(this.activeScope!.hoverSelectorString);
     if (hoverable) {
       this.state.isHover = true;
       this.state.hoverTarget = hoverable as HTMLElement;
@@ -244,7 +249,7 @@ export class Input {
 
     if (this.state.cursorMode !== "auto") return;
 
-    if (this.matchesSelector(target, this.activeScope.nativeSelectorString)) {
+    if (this.matchesSelector(target, this.activeScope!.nativeSelectorString)) {
       this.state.isNative = true;
       this.nativeTarget = target;
       return;
@@ -254,7 +259,7 @@ export class Input {
       this.state.isNative = true;
       this.nativeTarget = target;
     }
-  };
+  }
 
   private handleMouseOut = (e: Event): void => {
     if (!this.isEnabled) return;
@@ -281,8 +286,8 @@ export class Input {
       this.cachedChain = [];
     }
 
-    // Pointer left the window entirely and it uses mouseout and relatedTarget null rather than mouseleave;
-    // the latter does not fire reliably on firefox.
+    // Pointer left the window entirely. Uses mouseout + null relatedTarget
+    // rather than mouseleave; the latter does not fire reliably in Firefox.
     if (!related && this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
       this.state.pointer = { ...OFFSCREEN };
@@ -315,7 +320,6 @@ export class Input {
 
   public destroy(): void {
     this.abortController.abort();
-    this.releaseViewport?.();
     this.cachedChain = [];
   }
 }

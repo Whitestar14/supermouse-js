@@ -3,6 +3,7 @@ import dts from "vite-plugin-dts";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,23 +15,24 @@ export default defineConfig({
     __VERSION__: JSON.stringify(pkg.version)
   },
   build: {
+    target: "es2022",
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
       name: "SupermouseCore",
       fileName: (format) => (format === "es" ? "index.mjs" : "index.umd.js")
-    },
-    rollupOptions: {
-      external: [],
-      output: {
-        globals: {
-          "@supermousejs/core": "SupermouseCore"
-        }
-      }
     }
   },
   esbuild: {
-  legalComments: "none",
-  drop: ["console", "debugger"]
-},
-  plugins: [dts({ rollupTypes: true })]
+    legalComments: "none",
+    drop: ["debugger"]
+  },
+  plugins: [
+    dts({ rollupTypes: true }),
+    visualizer({
+      filename: "./bundle-stats.json",
+      template: "raw-data",
+      gzipSize: true,
+      brotliSize: false
+    })
+  ]
 });
