@@ -33,7 +33,7 @@ describe("Supermouse plugin system", () => {
     app.use(plugin);
     app.use(plugin);
     expect(warn).toHaveBeenCalled();
-    expect((app as any).plugins.length).toBe(1);
+    expect((app as any)._scopes[0].plugins.length).toBe(1);
   });
 
   it("sorts plugins by priority (lower runs first)", () => {

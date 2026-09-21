@@ -73,8 +73,11 @@ export interface SupermousePlugin {
 export interface ScopeConfig {
   /** Optional identifier for `getScope(name)` lookups. */
   name?: string;
-  /** The element this scope is bound to. */
-  container: HTMLElement;
+  /**
+   * The container this scope is bound to. Pass an element reference for
+   * eager binding, or a CSS selector string for lazy resolution.
+   */
+  container: HTMLElement | string;
   /** Cursor mode for this scope. Inherits from top-level if omitted. */
   cursor?: CursorMode;
   /** Hover selectors for this scope. Inherits from top-level if omitted. */

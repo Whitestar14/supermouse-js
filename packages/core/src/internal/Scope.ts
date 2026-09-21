@@ -15,6 +15,12 @@ export interface InheritedScopeOptions {
 
 export class Scope {
   public readonly stage: Stage;
+  /**
+   * The CSS selector used for lazy resolution, or null for eager scopes.
+   * Derived from `config.container` at construction: a string means lazy,
+   * an element means eager.
+   */
+  public readonly containerSelector: string | null;
   public readonly hoverSelectors: Set<string>;
   public readonly plugins: SupermousePlugin[] = [];
   public readonly nativeSelectors: string[];
@@ -23,7 +29,9 @@ export class Scope {
   public readonly ruleEntries: Array<[string, RuleDefinition]>;
   public readonly name: string | undefined;
   public cursorMode: CursorMode;
-  public disabled = false;
+  public active = true;
+
+  private _resolved: boolean;
 
   constructor(
     public readonly config: ScopeConfig,
@@ -42,15 +50,50 @@ export class Scope {
     this.nativeSelectors = compiled.native;
     this.hideSelectors = compiled.hide;
 
-    this.stage = new Stage(config.container, config.zIndex ?? inherited.zIndex);
+    let initialContainer: HTMLElement;
+    if (typeof config.container === "string") {
+      this.containerSelector = config.container;
+      this._resolved = false;
+      initialContainer = document.createElement("div");
+      initialContainer.setAttribute("data-supermouse-placeholder", "");
+    } else {
+      this.containerSelector = null;
+      this._resolved = true;
+      initialContainer = config.container;
+    }
+
+    this.stage = new Stage(initialContainer, config.zIndex ?? inherited.zIndex);
   }
 
   contains(node: Node): boolean {
+    if (!this._resolved) return false;
     return this.stage.containerElement.contains(node);
   }
 
   get container(): HTMLElement {
     return this.stage.containerElement;
+  }
+
+  /**
+   * True for eager scopes, and for selector scopes whose container has
+   * been resolved to a live element.
+   */
+  get resolved(): boolean {
+    return this._resolved;
+  }
+
+  /**
+   * Rebinds this scope's stage to a resolved container. Returns the
+   * previous container if the scope was already resolved, so the caller
+   * can clean up the old binding. No-op for eager scopes.
+   */
+  public resolveContainer(el: HTMLElement): HTMLElement | null {
+    if (this.containerSelector === null) return null;
+    const prev = this._resolved ? this.stage.containerElement : null;
+    if (prev === el) return null;
+    this.stage.setContainer(el);
+    this._resolved = true;
+    return prev;
   }
 
   get hoverSelectorString(): string {

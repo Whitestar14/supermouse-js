@@ -140,12 +140,12 @@ describe("Scope runtime API", () => {
     modal.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     expect(app.state.scope?.name).toBe("modal");
 
-    handle.disable();
-    expect(handle.disabled).toBe(true);
+    handle.deactivate();
+    expect(handle.active).toBe(false);
     expect(app.state.scope?.container).toBe(primary);
 
-    handle.enable();
-    expect(handle.disabled).toBe(false);
+    handle.activate();
+    expect(handle.active).toBe(true);
   });
 
   it("disabled scopes are skipped when resolving the active scope", () => {
@@ -155,7 +155,7 @@ describe("Scope runtime API", () => {
 
     app = new Supermouse({ container: primary, autoStart: false });
     const handle = app.addScope({ name: "modal", container: modal });
-    handle.disable();
+    handle.deactivate();
 
     modal.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     // Modal is disabled; walk continues up to the primary.

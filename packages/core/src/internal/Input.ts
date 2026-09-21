@@ -13,7 +13,6 @@ export class Input {
   private ignoreAttribute: string;
 
   private activeScope: Scope | null = null;
-  private scopeByContainer = new Map<HTMLElement, Scope>();
 
   private nativeTarget: HTMLElement | null = null;
   private currentTarget: HTMLElement | null = null;
@@ -36,7 +35,8 @@ export class Input {
     private state: MouseState,
     private options: SupermouseOptions,
     private onEnableChange: (enabled: boolean) => void,
-    private onActiveScopeChange: (scope: Scope | null) => void
+    private onActiveScopeChange: (scope: Scope | null) => void,
+    private resolveScope: (node: Node) => Scope | null
   ) {
     this.dataPrefix = options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
@@ -45,11 +45,6 @@ export class Input {
     this.checkDeviceCapability();
     this.checkMotionPreference();
     this.bindEvents();
-  }
-
-  setScopes(scopes: Scope[]): void {
-    this.scopeByContainer.clear();
-    for (const scope of scopes) this.scopeByContainer.set(scope.container, scope);
   }
 
   setActiveScope(scope: Scope | null): void {
@@ -70,16 +65,6 @@ export class Input {
     }
 
     this.onActiveScopeChange(scope);
-  }
-
-  private findScope(target: Node): Scope | null {
-    let cur = target as HTMLElement | null;
-    while (cur) {
-      const scope = this.scopeByContainer.get(cur);
-      if (scope && !scope.disabled) return scope;
-      cur = cur.parentElement;
-    }
-    return null;
   }
 
   private applyPointerToState(): void {
@@ -220,7 +205,7 @@ export class Input {
   private handleMouseOver = (e: Event): void => {
     if (!this.isEnabled) return;
     const target = e.target as HTMLElement;
-    const scope = this.findScope(target);
+    const scope = this.resolveScope(target);
 
     if (scope && scope !== this.activeScope) {
       this.setActiveScope(scope);
@@ -285,8 +270,8 @@ export class Input {
       this.cachedChain = [];
     }
 
-    // Pointer left the window entirely and it uses mouseout and relatedTarget null rather than mouseleave;
-    // the latter does not fire reliably on firefox.
+    // Pointer left the window entirely. Uses mouseout + null relatedTarget
+    // rather than mouseleave; the latter does not fire reliably in Firefox.
     if (!related && this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
       this.state.pointer = { ...OFFSCREEN };

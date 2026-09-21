@@ -45,7 +45,7 @@ describe("Nested scope handling", () => {
     app.step(performance.now() + 16);
     expect(app.state.cursorMode).toBe("native");
 
-    handle.remove();
+    handle.destroy();
     panel.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     app.step(performance.now() + 16);
     expect(app.state.cursorMode).toBe("auto");

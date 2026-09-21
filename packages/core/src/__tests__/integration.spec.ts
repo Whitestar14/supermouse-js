@@ -19,7 +19,9 @@ describe("Supermouse integration", () => {
 
     app.use({
       name: "fake-smart-icon",
-      install(instance: Supermouse) { instance.setCursor("custom"); },
+      install(instance: Supermouse) {
+        instance.setCursor("custom");
+      },
       update() {}
     });
 
@@ -57,13 +59,17 @@ describe("Supermouse integration", () => {
 
     // Plugin is installed and its hover selectors are registered.
     expect(app.getPlugin("fake-smart-icon-2")).toBeDefined();
-    expect(Array.from(app.hoverSelectors)).toEqual(
+    expect(Array.from((app as any)._scopes[0].hoverSelectors)).toEqual(
       expect.arrayContaining(["p", "h1", "h2", "h3", "span"])
     );
   });
 
   it("scoped containers do not inherit native cursor:none from a parent scope", () => {
-    const globalApp = new Supermouse({ container: document.body, cursor: "auto", autoStart: false });
+    const globalApp = new Supermouse({
+      container: document.body,
+      cursor: "auto",
+      autoStart: false
+    });
 
     const preview = document.createElement("div");
     document.body.appendChild(preview);

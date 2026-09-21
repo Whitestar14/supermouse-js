@@ -16,7 +16,8 @@ export class Stage {
     if (!container || !(container instanceof HTMLElement)) {
       throw new Error(`[Supermouse] Invalid container: ${container}. Must be an HTMLElement.`);
     }
-    if (!container.isConnected) {
+    const isPlaceholder = container.hasAttribute("data-supermouse-placeholder");
+    if (!container.isConnected && !isPlaceholder) {
       console.warn(
         "[Supermouse] container is not attached to the document — " +
           "stage sizing/positioning will be wrong until it is."
@@ -38,7 +39,7 @@ export class Stage {
       transition: "opacity 0.15s ease"
     });
 
-    if (!isBody) {
+    if (!isBody && !isPlaceholder) {
       const computed = window.getComputedStyle(container);
       this.originalContainerPosition = computed.position;
       if (computed.position === "static") container.style.position = "relative";
@@ -51,6 +52,46 @@ export class Stage {
 
   get containerElement(): HTMLElement {
     return this.container;
+  }
+
+  /**
+   * Rebinds this stage to a new container. Used by selector-based scopes
+   * when their container resolves. The previous container is restored to
+   * its pre-Supermouse state.
+   */
+  public setContainer(newContainer: HTMLElement): void {
+    if (this.container === newContainer) return;
+
+    const oldContainer = this.container;
+    const prevCursorState = this.currentCursorState;
+
+    // Detach from old.
+    oldContainer.classList.remove("supermouse-scope", this.scopeClass, this.hideClass);
+    if (oldContainer !== document.body && this.originalContainerPosition === "static") {
+      oldContainer.style.position = "";
+    }
+    oldContainer.style.cursor = this.originalContainerCursor;
+
+    // Attach to new.
+    newContainer.appendChild(this.element);
+    this.container = newContainer;
+
+    const isBody = newContainer === document.body;
+    this.element.style.position = isBody ? "fixed" : "absolute";
+
+    if (!isBody) {
+      const computed = window.getComputedStyle(newContainer);
+      this.originalContainerPosition = computed.position;
+      if (computed.position === "static") newContainer.style.position = "relative";
+    } else {
+      this.originalContainerPosition = "";
+    }
+    this.originalContainerCursor = newContainer.style.cursor;
+    newContainer.classList.add("supermouse-scope", this.scopeClass);
+
+    // Reapply cursor suppression for the new container.
+    this.currentCursorState = null;
+    if (prevCursorState) this.setNativeCursor(prevCursorState);
   }
 
   /** Full selector prefix: `.supermouse-scope-N.supermouse-hide-N`. */

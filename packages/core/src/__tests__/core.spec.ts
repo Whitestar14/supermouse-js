@@ -101,13 +101,13 @@ describe("Supermouse core", () => {
 
   it("sets default hover selectors", () => {
     app = new Supermouse({ autoStart: false });
-    const selectors = Array.from(app.hoverSelectors);
+    const selectors = Array.from((app as any)._scopes[0].hoverSelectors);
     expect(selectors).toEqual(expect.arrayContaining(DEFAULT_HOVER_SELECTORS));
   });
 
   it("overrides hover selectors if provided", () => {
     app = new Supermouse({ autoStart: false, hoverSelectors: [".my-custom-hover", "a"] });
-    const selectors = Array.from(app.hoverSelectors);
+    const selectors = Array.from((app as any)._scopes[0].hoverSelectors);
     expect(selectors).toEqual([".my-custom-hover", "a"]);
   });
 
