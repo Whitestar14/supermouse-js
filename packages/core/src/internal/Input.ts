@@ -1,6 +1,5 @@
 import type { MouseState, SupermouseOptions, RuleDefinition } from "../types";
 import { OFFSCREEN, SUPERMOUSE_CURSORS } from "../constants";
-import { observe, toLocal } from "./ViewportManager";
 import type { Scope } from "./Scope";
 
 export class Input {
@@ -17,7 +16,6 @@ export class Input {
   private nativeTarget: HTMLElement | null = null;
   private currentTarget: HTMLElement | null = null;
   private lastParsedTarget: HTMLElement | null = null;
-  private releaseViewport: (() => void) | null = null;
 
   public hasSeenPointer = false;
   public isEnabled = true;
@@ -36,7 +34,8 @@ export class Input {
     private options: SupermouseOptions,
     private onEnableChange: (enabled: boolean) => void,
     private onActiveScopeChange: (scope: Scope | null) => void,
-    private resolveScope: (node: Node) => Scope | null
+    private resolveScope: (node: Node) => Scope | null,
+    private onHoverSettled: () => void
   ) {
     this.dataPrefix = options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
@@ -54,10 +53,6 @@ export class Input {
     this.lastParsedTarget = null;
     this.cachedChain = [];
 
-    this.releaseViewport?.();
-    this.releaseViewport =
-      scope && scope.container !== document.body ? observe(scope.container) : null;
-
     if (this.hasSeenPointer) {
       this.applyPointerToState();
       this.state.target.x = this.state.smooth.x = this.state.pointer.x;
@@ -69,9 +64,14 @@ export class Input {
 
   private applyPointerToState(): void {
     const container = this.activeScope?.container ?? document.body;
-    const local = toLocal(container, this.viewportX, this.viewportY);
-    this.state.pointer.x = local.x;
-    this.state.pointer.y = local.y;
+    if (container === document.body) {
+      this.state.pointer.x = this.viewportX;
+      this.state.pointer.y = this.viewportY;
+      return;
+    }
+    const r = container.getBoundingClientRect();
+    this.state.pointer.x = this.viewportX - r.left;
+    this.state.pointer.y = this.viewportY - r.top;
   }
 
   private checkDeviceCapability(): void {
@@ -213,6 +213,22 @@ export class Input {
 
     if (!this.activeScope) return;
 
+    this.settleHoverState(target);
+    this.onHoverSettled();
+  };
+
+  public isPointerInside(el: HTMLElement): boolean {
+    if (!this.hasSeenPointer) return false;
+    const r = el.getBoundingClientRect();
+    return (
+      this.viewportX >= r.left &&
+      this.viewportX <= r.right &&
+      this.viewportY >= r.top &&
+      this.viewportY <= r.bottom
+    );
+  }
+
+  private settleHoverState(target: HTMLElement): void {
     if (this.state.cursorMode === "auto" && target.closest(`[${this.ignoreAttribute}]`)) {
       this.clearHover();
       this.state.isNative = true;
@@ -225,7 +241,7 @@ export class Input {
     this.currentTarget = target;
     this.parseDOMInteraction(target);
 
-    const hoverable = target.closest(this.activeScope.hoverSelectorString);
+    const hoverable = target.closest(this.activeScope!.hoverSelectorString);
     if (hoverable) {
       this.state.isHover = true;
       this.state.hoverTarget = hoverable as HTMLElement;
@@ -233,7 +249,7 @@ export class Input {
 
     if (this.state.cursorMode !== "auto") return;
 
-    if (this.matchesSelector(target, this.activeScope.nativeSelectorString)) {
+    if (this.matchesSelector(target, this.activeScope!.nativeSelectorString)) {
       this.state.isNative = true;
       this.nativeTarget = target;
       return;
@@ -243,7 +259,7 @@ export class Input {
       this.state.isNative = true;
       this.nativeTarget = target;
     }
-  };
+  }
 
   private handleMouseOut = (e: Event): void => {
     if (!this.isEnabled) return;
@@ -304,7 +320,6 @@ export class Input {
 
   public destroy(): void {
     this.abortController.abort();
-    this.releaseViewport?.();
     this.cachedChain = [];
   }
 }

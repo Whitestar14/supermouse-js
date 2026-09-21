@@ -62,40 +62,36 @@ describe("Supermouse Stage", () => {
   });
 
   describe("Native cursor suppression", () => {
-    it("setNativeCursor toggles hide class and inline cursor style", () => {
+    it("setNativeCursor toggles the hide class on the container", () => {
       stage = new Stage(container, 9999);
       stage.setNativeCursor("none");
-      expect(container.style.cursor).toBe("none");
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(true);
+      expect(container.style.cursor).toBe("");
 
       stage.setNativeCursor("auto");
-      expect(container.style.cursor).toBe("auto");
       expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
+      expect(container.style.cursor).toBe("");
     });
 
-    it("restores original container cursor when showing native", () => {
+    it("does not touch inline cursor on the container", () => {
       container.style.cursor = "pointer";
       stage = new Stage(container, 9999);
+
       stage.setNativeCursor("none");
-      expect(container.style.cursor).toBe("none");
-      expect(hasClassPrefix(container, "supermouse-hide-")).toBe(true);
+      expect(container.style.cursor).toBe("pointer");
 
       stage.setNativeCursor("auto");
       expect(container.style.cursor).toBe("pointer");
-      expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
     });
 
-    it("falls back to 'auto' on non-body containers with empty original cursor", () => {
-      container.style.cursor = "";
+    it("hide class is on the container itself, not descendants", () => {
       stage = new Stage(container, 9999);
-      stage.setNativeCursor("auto");
-      expect(container.style.cursor).toBe("auto");
-    });
+      const child = document.createElement("div");
+      container.appendChild(child);
 
-    it("does not set 'auto' on body containers", () => {
-      stage = new Stage(document.body, 9999);
-      stage.setNativeCursor("auto");
-      expect(document.body.style.cursor).toBe("");
+      stage.setNativeCursor("none");
+      expect(container.classList.contains(stage.hideClass)).toBe(true);
+      expect(child.classList.contains(stage.hideClass)).toBe(false);
     });
   });
 

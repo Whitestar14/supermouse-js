@@ -88,17 +88,8 @@ export class Supermouse {
   options: ResolvedOptions;
 
   private _scopes: Scope[] = [];
-  /** Scopes whose `container` config was a selector string, awaiting resolution. */
-  private _selectorScopes: Scope[] = [];
   private _activeScope: Scope | null = null;
   private _installingScope: Scope | null = null;
-  /**
-   * Map from container element to the scope currently bound to it. Eager
-   * scopes are inserted at construction; selector scopes are inserted on
-   * resolution, and rebound when a container unmounts and a fresh match
-   * appears.
-   */
-  private scopeByContainer = new Map<HTMLElement, Scope>();
   private scopeByName = new Map<string, Scope>();
   private scopeHandles = new Map<Scope, ScopeHandle>();
 
@@ -163,7 +154,8 @@ export class Supermouse {
         if (!enabled) this.reset();
       },
       (scope) => this.handleActiveScopeChange(scope),
-      (node) => this.resolveScopeForNode(node)
+      (node) => this.resolveScopeForNode(node),
+      () => this.applyCursorNow()
     );
 
     this.input.setActiveScope(primary);
@@ -230,8 +222,9 @@ export class Supermouse {
   /**
    * Enables a plugin by name, wherever it lives.
    *
-   * If the plugin's scope is not currently active, its `isEnabled` flag is
-   * set but lifecycle hooks do not fire until the scope becomes active.
+   * If the plugin's scope is currently active, the activation lifecycle
+   * runs immediately. If the scope is inactive, `isEnabled` is set but
+   * hooks do not fire until the scope next activates.
    */
   public enablePlugin(name: string): void {
     const plugin = this.getPlugin(name);
@@ -239,8 +232,8 @@ export class Supermouse {
 
     plugin.isEnabled = true;
 
-    const scope = this._activeScope;
-    if (scope && scope.active && scope.plugins.includes(plugin)) {
+    const scope = this.findScopeForPlugin(plugin);
+    if (scope && scope === this._activeScope && scope.active) {
       this.scopeActivatePlugin(plugin);
     }
   }
@@ -248,13 +241,22 @@ export class Supermouse {
   /**
    * Disables a plugin by name, wherever it lives.
    *
-   * Unlike `handle.deactivate()`, this permanently changes the plugin's
-   * user-facing enabled state. The plugin will not activate even when its
-   * owning scope becomes active again.
+   * If the plugin's scope is currently active, the deactivation lifecycle
+   * runs immediately. If the scope is inactive, `isEnabled` is set but
+   * hooks do not fire — they already ran when the scope went inactive.
    */
   public disablePlugin(name: string): void {
     const plugin = this.getPlugin(name);
-    if (plugin && plugin.isEnabled !== false) this.deactivatePlugin(plugin);
+    if (!plugin || plugin.isEnabled === false) return;
+
+    const scope = this.findScopeForPlugin(plugin);
+    const active = scope !== null && scope === this._activeScope && scope.active;
+
+    if (active) {
+      this.deactivatePlugin(plugin);
+    } else {
+      plugin.isEnabled = false;
+    }
   }
 
   public togglePlugin(name: string): void {
@@ -271,8 +273,7 @@ export class Supermouse {
    */
   public setCursor(mode: CursorMode): void {
     if (!this._activeScope) return;
-    this._activeScope.cursorMode = mode;
-    this.state.cursorMode = mode;
+    this.setScopeCursor(this._activeScope, mode);
   }
 
   public addScope(config: ScopeConfig): ScopeHandle {
@@ -344,8 +345,6 @@ export class Supermouse {
     }
 
     this._scopes = [];
-    this._selectorScopes = [];
-    this.scopeByContainer.clear();
     this.scopeByName.clear();
     this.scopeHandles.clear();
     this._activeScope = null;
@@ -358,15 +357,16 @@ export class Supermouse {
   private _running = false;
 
   private createScope(config: ScopeConfig): Scope {
-    const isSelectorScope = typeof config.container === "string";
-
-    if (!isSelectorScope) {
-      const el = config.container as HTMLElement;
-      if (this.scopeByContainer.has(el)) {
-        console.warn(
-          `[Supermouse] A scope is already registered for this container. ` +
-            `The previous scope will no longer activate.`
-        );
+    if (typeof config.container !== "string") {
+      const el = config.container;
+      for (const s of this._scopes) {
+        if (s.containerSelector === null && s.container === el) {
+          console.warn(
+            `[Supermouse] A scope is already registered for this container. ` +
+              `The previous scope will no longer activate.`
+          );
+          break;
+        }
       }
     }
 
@@ -382,11 +382,6 @@ export class Supermouse {
     });
 
     this._scopes.push(scope);
-    if (isSelectorScope) {
-      this._selectorScopes.push(scope);
-    } else {
-      this.scopeByContainer.set(scope.container, scope);
-    }
     if (scope.name) this.scopeByName.set(scope.name, scope);
     this.scopeHandles.set(scope, this.buildScopeHandle(scope));
     return scope;
@@ -433,21 +428,20 @@ export class Supermouse {
     }
     scope.plugins.length = 0;
 
-    this.scopeByContainer.delete(scope.container);
     scope.stage.destroy();
 
     this._scopes.splice(i, 1);
-    const si = this._selectorScopes.indexOf(scope);
-    if (si !== -1) this._selectorScopes.splice(si, 1);
     if (scope.name) this.scopeByName.delete(scope.name);
     this.scopeHandles.delete(scope);
 
     if (this._activeScope === scope) {
       const next =
-        this.findScopeAbove(scope.container.parentElement) ??
+        this.resolveScopeForNode(scope.container.parentElement) ??
         this._scopes.find((s) => s.active) ??
         null;
       this.input.setActiveScope(next);
+      this.input.clearHover();
+      this.applyCursorNow();
     }
 
     this.rebuildStylesheet();
@@ -455,7 +449,10 @@ export class Supermouse {
 
   private setScopeCursor(scope: Scope, mode: CursorMode): void {
     scope.cursorMode = mode;
-    if (scope === this._activeScope) this.state.cursorMode = mode;
+    if (scope === this._activeScope) {
+      this.state.cursorMode = mode;
+      this.applyCursorNow();
+    }
   }
 
   /**
@@ -468,85 +465,89 @@ export class Supermouse {
 
     if (this._activeScope === scope) {
       const next =
-        this.findScopeAbove(scope.container.parentElement) ??
+        this.resolveScopeForNode(scope.container.parentElement) ??
         this._scopes.find((s) => s.active) ??
         null;
       this.input.setActiveScope(next);
+      this.input.clearHover();
+      this.applyCursorNow();
     }
   }
 
   /**
    * Marks the scope eligible for activation.
    *
-   * This is lazy: the scope only becomes active once the pointer triggers
-   * a `mouseover` inside its container. If the pointer is already inside
-   * the container when this is called, the scope stays inactive until the
-   * next mouse movement across a container boundary.
+   * If the pointer is already inside the scope's container, the scope
+   * becomes active immediately. Otherwise it activates on the next
+   * `mouseover` inside the container. Deactivation is always eager.
    */
   private activateScope(scope: Scope): void {
     scope.active = true;
-  }
 
-  private findScopeAbove(start: HTMLElement | null): Scope | null {
-    let cur = start;
-    while (cur) {
-      const s = this.scopeByContainer.get(cur);
-      if (s && s.active) return s;
-      cur = cur.parentElement;
+    if (this._activeScope === scope) return;
+    if (!this.input.hasSeenPointer) return;
+
+    if (scope.containerSelector !== null && !scope.resolved) {
+      const candidates = document.querySelectorAll(scope.containerSelector);
+      for (const el of candidates) {
+        if (this.input.isPointerInside(el as HTMLElement)) {
+          scope.bind(el as HTMLElement);
+          break;
+        }
+      }
+    }
+
+    if (!scope.resolved) return;
+    if (!this.input.isPointerInside(scope.container)) return;
+
+    this.input.setActiveScope(scope);
+    this.applyCursorNow();
+  }
+  /**
+   * Called by `Input` on every `mouseover`, and internally when the active
+   * scope is removed or deactivated. Walks from `node` up the ancestor
+   * chain, returning the innermost active scope whose `match` succeeds
+   * for an ancestor. The matched scope is bound to that ancestor before
+   * return.
+   *
+   * The walk order is what enforces "innermost wins": the first ancestor
+   * matching any active scope is, by construction, the closest one to the
+   * event target. Detached containers can never be ancestors of a live
+   * event target, so no cleanup of stale bindings is required here.
+   */
+  private resolveScopeForNode(node: Node | null): Scope | null {
+    for (let el = node as HTMLElement | null; el; el = el.parentElement) {
+      for (const scope of this._scopes) {
+        if (!scope.active) continue;
+        if (scope.match(el)) {
+          scope.bind(el);
+          return scope;
+        }
+      }
     }
     return null;
   }
 
   /**
-   * Called by `Input` on every `mouseover`. Walks from the event target up
-   * the ancestor chain, returning the innermost active scope whose container
-   * contains the target.
-   *
-   * Eager scopes are found via `scopeByContainer`. Selector scopes are
-   * matched via `Element.matches` against each ancestor, and bound to the
-   * first match. If a previously-bound container was detached, the stale
-   * binding is dropped and the selector loop can re-resolve to a fresh
-   * match.
+   * Synchronously writes the current cursor and stage visibility for the
+   * active scope. Called after hover state settles, on cursor mode changes,
+   * and on programmatic scope transitions. The `update()` rAF path calls
+   * the same writers as a backstop.
    */
-  private resolveScopeForNode(node: Node): Scope | null {
-    let cur = node as HTMLElement | null;
-
-    while (cur) {
-      const bound = this.scopeByContainer.get(cur);
-      if (bound) {
-        if (bound.active && cur.isConnected) return bound;
-        this.scopeByContainer.delete(cur);
-      }
-
-      for (let i = 0; i < this._selectorScopes.length; i++) {
-        const scope = this._selectorScopes[i];
-        if (!scope.active) continue;
-
-        let matches = false;
-        try {
-          matches = cur.matches(scope.containerSelector!);
-        } catch {
-          // Invalid selector; ignore.
-          continue;
-        }
-        if (matches) {
-          this.bindScopeToContainer(scope, cur);
-          return scope;
-        }
-      }
-
-      cur = cur.parentElement;
+  private applyCursorNow(): void {
+    const scope = this._activeScope;
+    if (!scope) return;
+    scope.stage.setVisibility(this.resolveStageVisibility());
+    if (this.input.isEnabled) {
+      scope.stage.setNativeCursor(this.resolveCursorState());
     }
-
-    return null;
   }
 
-  private bindScopeToContainer(scope: Scope, container: HTMLElement): void {
-    const prev = scope.resolveContainer(container);
-    if (prev && prev !== container) {
-      this.scopeByContainer.delete(prev);
+  private findScopeForPlugin(plugin: SupermousePlugin): Scope | null {
+    for (const scope of this._scopes) {
+      if (scope.plugins.includes(plugin)) return scope;
     }
-    this.scopeByContainer.set(container, scope);
+    return null;
   }
 
   private installPlugins(scope: Scope): void {
@@ -683,7 +684,7 @@ export class Supermouse {
   }
 
   private rebuildStylesheet(): void {
-    const rules: string[] = [];
+    const rules: string[] = [":where(.supermouse-scope .supermouse-scope) { cursor: auto }"];
     for (const scope of this._scopes) rules.push(...scope.buildRules());
     setRules(this.styleOwner, rules);
   }

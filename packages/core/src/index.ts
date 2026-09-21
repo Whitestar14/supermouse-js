@@ -7,22 +7,15 @@ export type {
   SupermouseOptions,
   SupermousePlugin,
   ValueOrGetter,
-
   ScopeConfig,
   CursorMode,
-
   MouseState,
   MousePosition,
   ShapeState,
   InteractionState,
-
   RuleValue,
   RuleSet,
   RuleDefinition
 } from "./types";
 
-export type {
-  CursorPolicy,
-  CursorPolicyInput,
-  CursorTargetRule
-} from "./policy";
+export type { CursorPolicy, CursorPolicyInput } from "./policy";

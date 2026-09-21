@@ -12,8 +12,8 @@ describe("Supermouse cursor modes", () => {
     vi.restoreAllMocks();
   });
 
-  const hasClassPrefix = (el: HTMLElement, prefix: string) =>
-    Array.from(el.classList).some((c) => c.startsWith(prefix));
+  const hasHide = (el: HTMLElement) =>
+    Array.from(el.classList).some((c) => c.startsWith("supermouse-hide-"));
 
   function createApp(cursor: "auto" | "custom" | "native" | "both") {
     container = document.createElement("div");
@@ -23,7 +23,6 @@ describe("Supermouse cursor modes", () => {
 
   function hoverElement(el: HTMLElement) {
     el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    // Trigger an update cycle so core applies cursor decisions
     app.step(performance.now() + 16);
   }
 
@@ -42,7 +41,7 @@ describe("Supermouse cursor modes", () => {
 
     expect(app.state.isNative).toBe(true);
     expect(app.stage.style.opacity).toBe("0");
-    expect(container.style.cursor).toBe("auto");
+    expect(hasHide(container)).toBe(false);
   });
 
   it("custom mode ignores native detection and shows custom cursor over inputs", () => {
@@ -54,7 +53,7 @@ describe("Supermouse cursor modes", () => {
 
     expect(app.state.isNative).toBe(false);
     expect(app.stage.style.opacity).toBe("1");
-    expect(container.style.cursor).toBe("none");
+    expect(hasHide(container)).toBe(true);
   });
 
   it("both mode shows custom cursor and keeps native cursor visible over inputs", () => {
@@ -66,8 +65,7 @@ describe("Supermouse cursor modes", () => {
 
     expect(app.state.isNative).toBe(false);
     expect(app.stage.style.opacity).toBe("1");
-    expect(container.style.cursor).toBe("auto");
-    expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
+    expect(hasHide(container)).toBe(false);
   });
 
   it("native mode hides custom stage and keeps native cursor over inputs", () => {
@@ -79,7 +77,7 @@ describe("Supermouse cursor modes", () => {
 
     expect(app.state.isNative).toBe(false);
     expect(app.stage.style.opacity).toBe("0");
-    expect(container.style.cursor).toBe("auto");
+    expect(hasHide(container)).toBe(false);
   });
 
   it("auto mode respects data-supermouse-ignore attribute (still native)", () => {
@@ -103,7 +101,6 @@ describe("Supermouse cursor modes", () => {
 
     expect(app.state.isNative).toBe(false);
     expect(app.stage.style.opacity).toBe("1");
-    expect(container.style.cursor).toBe("none");
-    expect(hasClassPrefix(container, "supermouse-hide-")).toBe(true);
+    expect(hasHide(container)).toBe(true);
   });
 });

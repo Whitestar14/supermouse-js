@@ -1,5 +1,5 @@
 import type { SupermousePlugin, ScopeConfig, CursorMode, RuleDefinition } from "../types";
-import { compilePolicy, normalizePolicy, type CursorPolicy } from "../policy";
+import { normalizePolicy, type CursorPolicy } from "../policy";
 import { Stage } from "./Stage";
 
 export type { ScopeConfig, CursorMode } from "../types";
@@ -31,7 +31,7 @@ export class Scope {
   public cursorMode: CursorMode;
   public active = true;
 
-  private _resolved: boolean;
+  private _bound: boolean;
 
   constructor(
     public readonly config: ScopeConfig,
@@ -46,28 +46,22 @@ export class Scope {
     const policy = config.cursorPolicy
       ? normalizePolicy(config.cursorPolicy)
       : inherited.cursorPolicy;
-    const compiled = compilePolicy(policy);
-    this.nativeSelectors = compiled.native;
-    this.hideSelectors = compiled.hide;
+    this.nativeSelectors = policy.native;
+    this.hideSelectors = policy.hide;
 
     let initialContainer: HTMLElement;
     if (typeof config.container === "string") {
       this.containerSelector = config.container;
-      this._resolved = false;
+      this._bound = false;
       initialContainer = document.createElement("div");
       initialContainer.setAttribute("data-supermouse-placeholder", "");
     } else {
       this.containerSelector = null;
-      this._resolved = true;
+      this._bound = true;
       initialContainer = config.container;
     }
 
     this.stage = new Stage(initialContainer, config.zIndex ?? inherited.zIndex);
-  }
-
-  contains(node: Node): boolean {
-    if (!this._resolved) return false;
-    return this.stage.containerElement.contains(node);
   }
 
   get container(): HTMLElement {
@@ -75,25 +69,42 @@ export class Scope {
   }
 
   /**
-   * True for eager scopes, and for selector scopes whose container has
-   * been resolved to a live element.
+   * True for eager scopes, and for selector scopes that have matched a
+   * live element at least once.
    */
   get resolved(): boolean {
-    return this._resolved;
+    return this._bound;
   }
 
   /**
-   * Rebinds this scope's stage to a resolved container. Returns the
-   * previous container if the scope was already resolved, so the caller
-   * can clean up the old binding. No-op for eager scopes.
+   * True if this scope owns the given element. Element equality for eager
+   * scopes; `Element.matches` for selector scopes. Invalid selectors are
+   * treated as non-matching; validation happens once at scope creation.
    */
-  public resolveContainer(el: HTMLElement): HTMLElement | null {
-    if (this.containerSelector === null) return null;
-    const prev = this._resolved ? this.stage.containerElement : null;
-    if (prev === el) return null;
-    this.stage.setContainer(el);
-    this._resolved = true;
-    return prev;
+  public match(el: HTMLElement): boolean {
+    if (this.containerSelector === null) {
+      return this.stage.containerElement === el;
+    }
+    try {
+      return el.matches(this.containerSelector);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Rebinds this scope's stage to a matched element. No-op for eager
+   * scopes, and no-op if the stage is already attached to `el`.
+   */
+  public bind(el: HTMLElement): void {
+    if (this.containerSelector === null) return;
+    if (this._bound && this.stage.containerElement === el) return;
+    this.stage.attach(el);
+    this._bound = true;
+  }
+
+  contains(node: Node): boolean {
+    return this._bound && this.stage.containerElement.contains(node);
   }
 
   get hoverSelectorString(): string {
@@ -116,8 +127,6 @@ export class Scope {
       rules.push(`${prefix} ${selector}${exclusion} { cursor: none !important; }`);
     }
 
-    rules.push(`${prefix} label${exclusion} { cursor: none !important; }`);
-    rules.push(`${prefix} select${exclusion} { cursor: none !important; }`);
     rules.push(
       `${prefix} input[type="range"]${exclusion}::-webkit-slider-thumb { cursor: none !important; }`
     );

@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import { movePointer } from "./helpers";
 import { Supermouse } from "../Supermouse";
 
 describe("Supermouse lifecycle", () => {
@@ -17,17 +18,6 @@ describe("Supermouse lifecycle", () => {
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
-
-  function movePointer(x: number, y: number) {
-    window.dispatchEvent(
-      new PointerEvent("pointermove", {
-        clientX: x,
-        clientY: y,
-        pointerType: "mouse",
-        bubbles: true
-      })
-    );
-  }
 
   const hasClassPrefix = (el: HTMLElement, prefix: string) =>
     Array.from(el.classList).some((c) => c.startsWith(prefix));
@@ -53,7 +43,7 @@ describe("Supermouse lifecycle", () => {
     expect(rafSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("disable() disables input and restores native cursor", () => {
+  it("disable() disables input and toggles the hide class off", () => {
     app = new Supermouse({ autoStart: false, container });
     movePointer(50, 60);
     app.start();
@@ -61,24 +51,10 @@ describe("Supermouse lifecycle", () => {
     app.disable();
 
     expect(app.isEnabled).toBe(false);
-    expect(container.style.cursor).toBe("auto");
+    expect(hasClassPrefix(container, "supermouse-hide-")).toBe(false);
   });
 
-  it("disable({ reset: true }) also clears physics and input", () => {
-    app = new Supermouse({ autoStart: false, container });
-    movePointer(50, 60);
-    app.start();
-
-    app.disable({ reset: true });
-
-    expect(app.state.target).toEqual({ x: -100, y: -100 });
-    expect(app.state.smooth).toEqual({ x: -100, y: -100 });
-    expect(app.state.velocity).toEqual({ x: 0, y: 0 });
-    expect(app.state.displacement).toEqual({ x: 0, y: 0 });
-    expect(app.state.hasReceivedInput).toBe(false);
-  });
-
-  it("enable() re-enables input, snaps to current pointer, and hides native cursor", () => {
+  it("enable() re-enables input, snaps to current pointer, and toggles the hide class on", () => {
     app = new Supermouse({ autoStart: false, container });
     movePointer(200, 250);
     app.start();
@@ -89,9 +65,7 @@ describe("Supermouse lifecycle", () => {
     expect(app.state.hasReceivedInput).toBe(true);
     expect(app.state.target).toEqual({ x: 200, y: 250 });
     expect(app.state.smooth).toEqual({ x: 200, y: 250 });
-
     expect(hasClassPrefix(container, "supermouse-hide-")).toBe(true);
-    expect(container.style.cursor).toBe("none");
   });
 
   it("scope switch activates incoming scope and deactivates outgoing", () => {

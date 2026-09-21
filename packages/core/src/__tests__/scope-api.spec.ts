@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { Supermouse } from "../Supermouse";
+import { movePointer } from "./helpers";
 
 describe("Scope runtime API", () => {
   let app: Supermouse;
@@ -250,5 +251,146 @@ describe("Scope runtime API", () => {
 
     expect(element.style.display).toBe("");
     expect(onEnable).toHaveBeenCalledTimes(1);
+  });
+
+  it("deactivated eager scopes survive and can be reactivated", () => {
+    app = new Supermouse({ autoStart: false });
+    const sidebar = document.createElement("div");
+    document.body.appendChild(sidebar);
+
+    const handle = app.addScope({ name: "sidebar", container: sidebar });
+
+    sidebar.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.scope?.container).toBe(sidebar);
+
+    handle.deactivate();
+    expect(handle.active).toBe(false);
+
+    sidebar.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.scope?.container).toBe(document.body);
+
+    handle.activate();
+
+    sidebar.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.scope?.container).toBe(sidebar);
+  });
+
+  it("removes detached eager scopes from resolution", () => {
+    app = new Supermouse({ autoStart: false });
+    const sidebar = document.createElement("div");
+    document.body.appendChild(sidebar);
+
+    app.addScope({ name: "sidebar", container: sidebar });
+
+    sidebar.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.scope?.container).toBe(sidebar);
+
+    sidebar.remove();
+
+    // Hover something else; the walk prunes the stale binding as a side effect.
+    const other = document.createElement("div");
+    document.body.appendChild(other);
+    other.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(app.state.scope?.container).toBe(document.body);
+  });
+
+  it("disablePlugin on an inactive scope does not fire hooks twice", () => {
+    const primary = document.createElement("div");
+    const nested = document.createElement("div");
+    document.body.append(primary, nested);
+
+    app = new Supermouse({ container: primary, autoStart: false });
+    const handle = app.addScope({ name: "nested", container: nested });
+
+    const onDisable = vi.fn();
+    const onBeforeDisable = vi.fn();
+    handle.use({ name: "p", onDisable, onBeforeDisable });
+
+    // Enter nested then leave; nested's plugins deactivate.
+    nested.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    primary.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(onBeforeDisable).toHaveBeenCalledTimes(1);
+    expect(onDisable).toHaveBeenCalledTimes(1);
+
+    // Now disable the plugin while its scope is inactive.
+    app.disablePlugin("p");
+
+    // Hooks should not fire a second time.
+    expect(onBeforeDisable).toHaveBeenCalledTimes(1);
+    expect(onDisable).toHaveBeenCalledTimes(1);
+
+    // But the flag is flipped.
+    expect(app.getPlugin("p")?.isEnabled).toBe(false);
+  });
+
+  it("disablePlugin on an active scope fires hooks and flips the flag", () => {
+    app = new Supermouse({ autoStart: false });
+    const panel = document.createElement("div");
+    document.body.appendChild(panel);
+
+    const onDisable = vi.fn();
+    app.addScope({ name: "panel", container: panel, plugins: [{ name: "p", onDisable }] });
+
+    panel.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    app.disablePlugin("p");
+
+    expect(onDisable).toHaveBeenCalledTimes(1);
+    expect(app.getPlugin("p")?.isEnabled).toBe(false);
+  });
+
+  it("dynamically disabled plugins stay disabled through a scope round-trip", () => {
+    const primary = document.createElement("div");
+    const nested = document.createElement("div");
+    document.body.append(primary, nested);
+
+    app = new Supermouse({ container: primary, autoStart: false });
+    app.addScope({ name: "nested", container: nested });
+
+    const onEnable = vi.fn();
+    const p = { name: "target", onEnable };
+    app.use(p);
+
+    // Simulate States: disable the plugin while the primary scope is active.
+    app.disablePlugin("target");
+    expect(p.isEnabled).toBe(false);
+
+    // Leave and return.
+    nested.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    primary.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    // Still disabled, no unexpected enable hooks fired.
+    expect(p.isEnabled).toBe(false);
+    expect(onEnable).not.toHaveBeenCalled();
+  });
+
+  it("activate() is eager when the pointer is already inside the container", () => {
+    const primary = document.createElement("div");
+    const modal = document.createElement("div");
+    document.body.append(primary, modal);
+
+    app = new Supermouse({ container: primary, autoStart: false });
+    const handle = app.addScope({ name: "modal", container: modal, cursor: "native" });
+    handle.deactivate();
+
+    // Position the pointer over the modal without crossing a boundary.
+    vi.spyOn(modal, "getBoundingClientRect").mockReturnValue({
+      left: 50,
+      top: 50,
+      right: 150,
+      bottom: 150,
+      width: 100,
+      height: 100,
+      x: 50,
+      y: 50,
+      toJSON: () => {}
+    } as DOMRect);
+    movePointer(100, 100);
+
+    handle.activate();
+
+    // No mouseover. The scope should already be active.
+    expect(app.state.scope?.name).toBe("modal");
   });
 });
