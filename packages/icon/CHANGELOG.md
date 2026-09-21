@@ -1,5 +1,14 @@
 # @supermousejs/icon
 
+## 2.4.4-beta.3
+
+### Patch Changes
+
+- Updated dependencies [264bcbd]
+- Updated dependencies [e9431a5]
+  - @supermousejs/core@2.5.0-beta.3
+  - @supermousejs/utils@2.4.4-beta.3
+
 ## 2.4.4-beta.2
 
 ### Patch Changes
