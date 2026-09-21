@@ -10,7 +10,7 @@ const selectedIndex = ref(0);
 
 /* The index builds in a few ms, so the loader would flash unseen; hold it for a
  * floor. A cached second open skips it entirely. */
-const LOADER_FLOOR_MS = 700;
+const LOADER_FLOOR_MS = 900;
 const showLoader = ref(false);
 let loaderTimer: ReturnType<typeof setTimeout> | null = null;
 let loaderShownAt = 0;
@@ -184,12 +184,17 @@ watch(query, () => {
            grid of cells that fills in rotation, npm-fetch-suggestion style. -->
       <div v-else class="flex-1 min-h-0 flex flex-col items-center justify-center gap-4">
         <template v-if="showLoader">
+          <!--
+            The cells animate via the global `.search-cell` rule in index.css.
+            Inline `animation` strings are NOT renamed by `<style scoped>`, but
+            scoped `@keyframes` are — which silently killed this animation.
+          -->
           <div class="grid grid-cols-3 gap-1" aria-label="Loading search index">
             <span
               v-for="cell in 9"
               :key="cell"
-              class="w-1.5 h-1.5 bg-subtle"
-              :style="{ animation: `search-cell 1.2s ${(cell - 1) * 0.12}s infinite ease-in-out` }"
+              class="search-cell w-1.5 h-1.5 bg-subtle"
+              :style="{ animationDelay: `${(cell - 1) * 0.12}s` }"
             />
           </div>
           <p class="mono text-[10px] font-bold text-subtle tracking-widest">LOADING INDEX…</p>
@@ -238,15 +243,3 @@ watch(query, () => {
   </div>
 </template>
 
-<style scoped>
-@keyframes search-cell {
-  0%,
-  70%,
-  100% {
-    opacity: 0.2;
-  }
-  35% {
-    opacity: 1;
-  }
-}
-</style>

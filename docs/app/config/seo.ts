@@ -10,7 +10,7 @@ export const SITE_URL = "https://supermouse.js.org";
  * Everything else is discovered from `content/**` and plugin metadata at
  * build time (see nuxt.config.ts), so this list stays tiny on purpose.
  */
-export const STATIC_SITEMAP_ROUTES = ["/", "/labs"];
+export const STATIC_SITEMAP_ROUTES = ["/"];
 
 /** Paths excluded from indexing. */
-export const ROBOTS_DISALLOW = ["/404", "/404.html", "/labs"];
+export const ROBOTS_DISALLOW = ["/404", "/404.html"];

@@ -1,21 +1,43 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import { resolveTokenColor, resolveTokenRgba } from "@utils/theme";
+import { useTheme } from "@composables/useTheme";
 
 const container = ref<HTMLElement | null>(null);
 const cursorRef = ref<HTMLElement | null>(null);
 /** Structural type so the GSAP import can stay dynamic (type-only). */
 let ctx: { revert: () => void } | null = null;
 
-onMounted(async () => {
+const { isDark } = useTheme();
+
+const spots = [
+  { top: "30%", left: "20%", sel: ".node-1" },
+  { top: "20%", left: "80%", sel: ".node-2" },
+  { top: "70%", left: "50%", sel: ".node-3" }
+];
+
+async function build(): Promise<void> {
+  ctx?.revert();
+  ctx = null;
+
   // GSAP only drives the below-the-fold simulation, so it is imported after
   // mount rather than sitting on the initial critical path.
   const { gsap } = await import("gsap");
   if (!container.value) return;
 
+  // Colours are read from tokens at build time, and the whole scene is rebuilt
+  // when the theme flips — anything hardcoded here reads as a light-mode ghost
+  // on a dark page.
+  const C = {
+    inverse: resolveTokenColor("--color-inverse", "#000000"),
+    surface: resolveTokenColor("--color-surface", "#ffffff"),
+    border: resolveTokenColor("--color-border", "#e4e4e7"),
+    ripple: resolveTokenRgba("--color-inverse", 0.2)
+  };
+
   ctx = gsap.context(() => {
     const tl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
 
-    // Initial State
     gsap.set(cursorRef.value, {
       top: "50%",
       left: "50%",
@@ -25,7 +47,6 @@ onMounted(async () => {
       scale: 0.5
     });
 
-    // Entrance
     tl.to(cursorRef.value, {
       opacity: 1,
       scale: 1,
@@ -33,33 +54,22 @@ onMounted(async () => {
       ease: "back.out(1.7)"
     });
 
-    // Loop through nodes hardcoded
-    const targets = [
-      { top: "30%", left: "20%", sel: ".node-1" },
-      { top: "20%", left: "80%", sel: ".node-2" },
-      { top: "70%", left: "50%", sel: ".node-3" }
-    ];
-
-    targets.forEach((target) => {
-      // 1. Move to Node
+    spots.forEach((spot) => {
+      // 1. Move to node
       tl.to(cursorRef.value, {
-        top: target.top,
-        left: target.left,
+        top: spot.top,
+        left: spot.left,
         duration: 0.8,
         ease: "power3.inOut"
       });
 
-      // 2. Click Animation
-      tl.to(cursorRef.value, {
-        scale: 0.8,
-        duration: 0.1,
-        ease: "power1.out"
-      }).to(
-        target.sel,
+      // 2. Press
+      tl.to(cursorRef.value, { scale: 0.8, duration: 0.1, ease: "power1.out" }).to(
+        spot.sel,
         {
           scale: 1.05,
-          backgroundColor: "#000",
-          borderColor: "#000",
+          backgroundColor: C.inverse,
+          borderColor: C.inverse,
           duration: 0.1
         },
         "<"
@@ -67,10 +77,10 @@ onMounted(async () => {
 
       // 3. Ripple
       tl.fromTo(
-        target.sel,
-        { boxShadow: "0 0 0 0px rgba(0,0,0,0.2)" },
+        spot.sel,
+        { boxShadow: `0 0 0 0px ${C.ripple}` },
         {
-          boxShadow: "0 0 0 20px rgba(0,0,0,0)",
+          boxShadow: `0 0 0 20px transparent`,
           duration: 0.5,
           ease: "power1.out",
           clearProps: "boxShadow"
@@ -80,11 +90,11 @@ onMounted(async () => {
 
       // 4. Release
       tl.to(cursorRef.value, { scale: 1, duration: 0.2, ease: "back.out(2)" }, "+=0.1").to(
-        target.sel,
+        spot.sel,
         {
           scale: 1,
-          backgroundColor: "#FFF",
-          borderColor: "#e4e4e7",
+          backgroundColor: C.surface,
+          borderColor: C.border,
           duration: 0.4
         },
         "<"
@@ -93,7 +103,7 @@ onMounted(async () => {
       tl.to({}, { duration: 0.3 });
     });
 
-    // Exit to center
+    // Exit to centre
     tl.to(cursorRef.value, {
       top: "50%",
       left: "50%",
@@ -101,7 +111,10 @@ onMounted(async () => {
       ease: "power2.inOut"
     }).to(cursorRef.value, { opacity: 0, scale: 0.5, duration: 0.4 }, "+=0.2");
   }, container.value);
-});
+}
+
+onMounted(() => void build());
+watch(isDark, () => void build());
 
 onUnmounted(() => {
   ctx?.revert();
@@ -188,7 +201,7 @@ onUnmounted(() => {
             Simulation Running
           </div>
           <div class="flex gap-1">
-            <div class="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+            <div class="w-1 h-1 bg-ok rounded-full animate-pulse" />
             <div class="w-1 h-1 bg-faint rounded-full" />
           </div>
         </div>

@@ -14,7 +14,6 @@ const route = useRoute();
 const mobileMenuOpen = ref(false);
 const isSpinning = ref(false);
 const showVersionMenu = ref(false);
-const isDev = import.meta.env.DEV;
 
 const { instance: mouse, isEnabled: cursorEnabled } = useSupermouse();
 
@@ -22,8 +21,7 @@ const { isDark, toggle: toggleTheme } = useTheme();
 
 useScrollLock(mobileMenuOpen);
 
-const navRef = ref<HTMLElement | null>(null);
-useAutoHideHeader(navRef, { pinned: mobileMenuOpen });
+useAutoHideHeader(mobileMenuOpen);
 
 const versionMenuRef = ref<HTMLElement | null>(null);
 const onDocClick = (e: MouseEvent) => {
@@ -70,7 +68,7 @@ const triggerSpin = () => {
 </script>
 
 <template>
-  <nav ref="navRef" class="sticky top-0 w-full border-b border-border bg-surface z-50">
+  <nav class="header-shell sticky top-0 w-full border-b border-border bg-surface z-50">
     <div class="flex items-stretch h-16 md:h-20 bg-surface relative z-50">
       <!-- 1. Cursor toggle -->
       <button
@@ -248,15 +246,6 @@ const triggerSpin = () => {
         >
           Docs
         </NuxtLink>
-        <NuxtLink
-          v-if="isDev"
-          to="/labs"
-          class="mono text-[11px] uppercase tracking-[0.1em] font-bold transition-colors"
-          :class="navLinkClass('/labs')"
-        >
-          Labs
-        </NuxtLink>
-
         <span
           class="relative mono text-[11px] uppercase tracking-[0.1em] font-bold text-faint inline-flex items-center cursor-not-allowed select-none"
           aria-disabled="true"
@@ -271,8 +260,13 @@ const triggerSpin = () => {
         </span>
       </div>
 
+      <!--
+        Width and padding intentionally mirror the docs layout's TOC rail
+        (`w-64`, `border-l`, `px-6`) so the header's hairline and the rail's
+        hairline are the same vertical line on desktop.
+      -->
       <div
-        class="hidden md:flex w-54 h-full items-center gap-6 px-6 bg-surface border-l border-border shrink-0"
+        class="hidden md:flex w-64 h-full items-center gap-6 px-6 bg-surface border-l border-border shrink-0"
       >
         <ThemeToggle :is-dark="isDark" @toggle="toggleTheme" />
 
@@ -299,7 +293,7 @@ const triggerSpin = () => {
 
     <Teleport to="body">
       <div
-        class="md:hidden fixed inset-0 top-16 bg-surface z-60 transition-all duration-300 ease-in-out flex flex-col"
+        class="md:hidden fixed inset-0 top-[var(--header-h)] bg-surface z-60 transition-all duration-300 ease-in-out flex flex-col"
         :class="mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'"
       >
         <div class="absolute inset-0 grid-bg opacity-50 pointer-events-none" />
@@ -329,14 +323,6 @@ const triggerSpin = () => {
             @click="toggleMenu"
           >
             Docs
-          </NuxtLink>
-          <NuxtLink
-            v-if="isDev"
-            to="/labs"
-            class="text-4xl font-bold tracking-tighter text-inverse inline-flex items-center gap-4 group"
-            @click="toggleMenu"
-          >
-            Labs
           </NuxtLink>
           <span
             class="relative w-full text-4xl font-bold tracking-tighter text-faint cursor-not-allowed select-none"

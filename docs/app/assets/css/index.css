@@ -40,24 +40,19 @@
      "running" never reads as decoration. */
   --color-ok: #15803d;
 
-  /*
-   * Code theme. Both the shell and the syntax palette adapt to the active
-   * mode: light code blocks read like a paper manual, dark ones keep the
-   * original terminal feel. Syntax tokens are consumed by `.tok-*` classes
-   * below, which the local highlighter emits.
-   */
-  --color-code-surface: #f7f7f8;
-  --color-code-border: #e4e4e7;
-  --color-code-text: #27272a; /* plain identifiers              */
-  --color-code-strong: #18181b; /* functions, interpolations      */
-  --color-code-soft: #3f3f46; /* builtins, attributes           */
-  --color-code-muted: #71717a; /* punctuation                    */
-  --color-code-faint: #a1a1aa; /* disabled / dim code            */
-  --color-code-accent: #b45309; /* keywords, tags                 */
-  --color-code-string: #0f766e; /* strings, numbers               */
-  --color-code-number: #9a3412;
-  --color-code-comment: #a1a1aa;
-  --color-tooltip: #f59e0b; /* the cursor tooltip surface     */
+  --color-code-surface: #16161a; /* the block itself             */
+  --color-code-header: #111114; /* the block's title bar        */
+  --color-code-border: #26262b; /* hairlines and chrome         */
+  --color-code-text: #d4d4d8; /* plain identifiers            */
+  --color-code-strong: #fafafa; /* functions, interpolations    */
+  --color-code-soft: #a1a1aa; /* builtins, attributes         */
+  --color-code-muted: #71717a; /* punctuation                  */
+  --color-code-faint: #52525b; /* disabled / dim code          */
+  --color-code-accent: #f59e0b; /* keywords, tags               */
+  --color-code-string: #5eead4; /* strings                      */
+  --color-code-number: #fdba74; /* numbers, literals            */
+  --color-code-comment: #71717a;
+  --color-tooltip: #f59e0b; /* the cursor tooltip surface   */
 }
 
 /* The header is taller from `md` up (`h-16` -> `h-20`). */
@@ -69,19 +64,8 @@
 
 @layer base {
   :root {
-    /*
-     * Grid rhythm. Every grid in the app is anchored to the *top-left* of its
-     * container (`background-position: 0 0`, see `.grid-bg`), so a rule always
-     * begins flush with the container edge. Centring the pattern instead left a
-     * sliver of a cell at both ends, which read as a rendering mistake.
-     */
-    /*
-     * Height of the sticky header. Sticky columns (docs sidebar, TOC, mobile
-     * sub-header) clear it, so they move in step with the header's
-     * show/hide instead of being covered. `useAutoHideHeader` zeroes it while
-     * the header is slid away and restores the measured height on reveal.
-     */
     --header-h: 4rem;
+    --header-shift: 0px;
     --grid-size: 40px;
     --grid-color: #f0f0f0;
     /* Softer grid for interactive demo canvases (see `.grid-bg-soft`). */
@@ -93,10 +77,6 @@
     box-sizing: border-box;
   }
 
-  /*
-   * Dark theme: overriding the token variables is all that is required — every
-   * `bg-*`/`text-*`/`border-*` utility resolves to `var(--color-*)` at runtime.
-   */
   .dark {
     --color-surface: #09090b;
     --color-surface-muted: #131316;
@@ -121,21 +101,37 @@
 
     --color-ok: #4ade80;
 
-    --color-code-surface: #131316; /* one step lighter than the page */
-    --color-code-border: #27272a;
-    --color-code-text: #e4e4e7;
-    --color-code-strong: #f4f4f5;
-    --color-code-soft: #d4d4d8;
-    --color-code-muted: #5c5c66;
-    --color-code-faint: #52525b;
-    --color-code-accent: #f59e0b;
-    --color-code-string: #a1a1aa;
-    --color-code-number: #d4d4d8;
-    --color-code-comment: #71717a;
+    /* The code palette is intentionally absent here — see the @theme block. */
     --color-tooltip: #fe9a00;
 
     --grid-color: #1c1c20;
     --grid-color-soft: #16161a;
+
+    --color-code-surface: #14141a;
+  }
+
+  .header-shell {
+    transform: translateY(var(--header-shift));
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  html.header-hidden {
+    --header-shift: calc(var(--header-h) * -1);
+  }
+
+  html.theme-switching,
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition: none !important;
+    animation-duration: 0s !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-shell {
+      transition: none;
+    }
   }
 
   @font-face {
@@ -149,12 +145,23 @@
     font-variant-ligatures: none;
   }
 
-  b {
-    color: var(--color-body);
-  }
-
   p {
     font-feature-settings: "salt" 0;
+  }
+
+  @keyframes search-cell {
+    0%,
+    70%,
+    100% {
+      opacity: 0.2;
+    }
+    35% {
+      opacity: 1;
+    }
+  }
+
+  .search-cell {
+    animation: search-cell 1.2s infinite ease-in-out;
   }
 
   html.lenis,
@@ -224,7 +231,8 @@
   }
 
   ::selection {
-    @apply bg-inverse/5 text-inverse;
+    background: var(--color-accent-soft);
+    color: var(--color-inverse);
   }
 
   @supports not selector(::-webkit-scrollbar) {
@@ -258,27 +266,10 @@
 }
 
 @layer components {
-  /*
-   * The canonical in-content link. Restores the dotted underline the old
-   * vite-press `ApiLink.vue` used so API/state references read as links without
-   * shouting.
-   */
   .link {
     @apply text-inverse font-bold underline decoration-dotted decoration-faint underline-offset-4 hover:decoration-inverse transition-colors;
   }
 
-  /*
-   * Markdown prose colouring lives UNLAYERED at the end of this file — the
-   * typography plugin ships unlayered `.prose` rules, and unlayered CSS beats
-   * any @layer regardless of specificity. See the bottom of the file.
-   */
-
-  /*
-   * Markdown prose links get the dotted-underline treatment. The decoration
-   * has to be asserted with `!important`: the typography plugin's shorthand
-   * `text-decoration: underline` resets style/color, which is the same reason
-   * the heading rule below needs it.
-   */
   .docs-content a {
     @apply font-semibold text-inverse transition-colors;
     color: var(--color-inverse) !important;
@@ -306,12 +297,6 @@
     display: inline !important;
   }
 
-  /*
-   * Markdown tables: the frame scrolls, the table keeps real table layout at
-   * full width (see `ProseTable.vue`). The previous `display: block` on the
-   * table itself made the inner box shrink-to-fit, so narrow tables hugged the
-   * left edge instead of spanning the column.
-   */
   .docs-table {
     width: 100%;
     overflow-x: auto;
@@ -326,11 +311,6 @@
     max-width: 100%;
   }
 
-  /*
-   * Code scrollbars (`.code-scroll`, used by every code shell): the horizontal
-   * bar stays invisible until the block is hovered, so a snippet never grows a
-   * permanent grey rail under it. Deliberately thin (4px, app chrome is 6px).
-   */
   .code-scroll {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
@@ -406,10 +386,7 @@
     color: var(--color-code-muted);
   }
 
-  /*
-   * Range input chrome, shared by the editor controls and demo drawers.
-   * (Previously scoped to UiRange.vue; it is an app-wide primitive.)
-   */
+  /* Range input chrome for the interactive previews. */
   .supermouse-range {
     @apply w-full h-1 appearance-none cursor-pointer transition-all;
     outline: none;
@@ -428,14 +405,6 @@
   }
 }
 
-/*
- * Markdown prose theming — intentionally UNLAYERED. @tailwindcss/typography
- * emits unlayered `.prose` element rules that read its `--tw-prose-*`
- * variables, and unlayered declarations beat any @layer regardless of
- * specificity. Declaring them here (after the plugin CSS in source order) is
- * the only way to win the cascade — this is what fixes dark-mode prose links
- * rendering black and list items rendering too dark.
- */
 .docs-content {
   --tw-prose-body: var(--color-body);
   --tw-prose-links: var(--color-inverse);
@@ -452,8 +421,38 @@
   --tw-prose-hr: var(--color-border);
 }
 
+.docs-content :where(h1, h2, h3, h4, h5, h6) {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-inverse);
+  text-decoration: none;
+  border: 0;
+}
+
+.docs-content p {
+  color: var(--color-body);
+}
+
+.docs-content strong {
+  color: var(--color-inverse);
+  font-weight: 700;
+}
+
+.docs-content :not(pre) > code {
+  color: var(--color-strong);
+  background: var(--color-surface-subtle);
+  padding: 0.1em 0.35em;
+  border-radius: 0;
+}
+
+.docs-content code::before,
+.docs-content code::after {
+  content: none;
+}
+
 .docs-content li {
   color: var(--color-body);
+  margin: 0.25rem 0;
 }
 
 .docs-content li::marker {
@@ -464,14 +463,6 @@
   border-color: var(--color-border);
 }
 
-/*
- * Callout bodies own their paragraph rhythm. The typography plugin gives every
- * paragraph 1.25em top and bottom, which turned a two-sentence admonition into
- * a box of air; the callout's own padding is the spacing. Unlayered so it wins
- * over the plugin's `.prose p` rule. Links and inline code inside a callout are
- * untouched (the `not-prose` marker is deliberately NOT used, so they keep the
- * docs treatment).
- */
 .docs-content .callout-body p {
   margin-top: 0;
   margin-bottom: 0;
@@ -483,4 +474,20 @@
 
 .docs-content .callout-body > :first-child {
   margin-top: 0;
+}
+
+.docs-content code {
+  font-weight: inherit;
+}
+
+pre,
+pre code {
+  border-radius: 0 !important;
+  font-variant-ligatures: none;
+  tab-size: 2;
+}
+
+.docs-content pre {
+  border-radius: 0 !important;
+  border: 0 !important;
 }

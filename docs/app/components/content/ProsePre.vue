@@ -41,7 +41,7 @@ const langLabel = computed(() => LANG_LABEL[(props.language ?? "ts").toLowerCase
 <template>
   <div class="group relative my-6" :class="props.class">
     <div
-      class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+      class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 opacity-60 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
     >
       <span
         v-if="language"
@@ -51,7 +51,7 @@ const langLabel = computed(() => LANG_LABEL[(props.language ?? "ts").toLowerCase
       </span>
       <button
         type="button"
-        class="flex h-7 w-7 items-center justify-center bg-surface/80 text-code-muted backdrop-blur-sm transition-colors hover:text-strong"
+        class="flex h-7 w-7 items-center justify-center text-code-muted transition-colors hover:text-code-strong"
         :class="copied ? 'text-code-accent' : ''"
         :title="copied ? 'Copied' : 'Copy to clipboard'"
         aria-label="Copy code to clipboard"
@@ -84,7 +84,7 @@ const langLabel = computed(() => LANG_LABEL[(props.language ?? "ts").toLowerCase
     </div>
 
     <pre
-      class="code-scroll overflow-x-auto border border-code-border bg-code-surface p-4 text-sm leading-relaxed text-code-text"
+      class="code-scroll overflow-x-auto bg-code-surface p-4 text-sm leading-relaxed text-code-text"
     ><code class="block" v-html="html" /></pre>
   </div>
 </template>

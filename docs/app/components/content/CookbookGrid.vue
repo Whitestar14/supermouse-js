@@ -1,32 +1,42 @@
 <script setup lang="ts">
 import { RECIPES } from "@playground/recipes";
-import { usePlayground } from "@composables/usePlayground";
 
 /**
- * Every playground recipe, auto-discovered from
- * `playground/recipes/items/*.ts` — adding one is enough to list it here.
+ * Every recipe, auto-discovered from `playground/recipes/items/*.ts` — adding
+ * one is enough to list it here.
+ *
+ * Each card links to the plugin page that owns the effect, where the live
+ * `CursorDemo` preview runs the same idea in-scope instead of opening a modal.
  */
-const { open } = usePlayground();
+const RECIPE_PLUGIN: Record<string, string> = {
+  "basic-dot": "dot",
+  "context-icon": "smart-icon",
+  "ghost-trail": "trail",
+  "magnetic-button": "magnetic",
+  sparkles: "sparkles",
+  "sticky-element": "stick",
+  "text-cursor": "text",
+  "text-ring": "ring",
+  "vehicle-pointer": "pointer"
+};
+
+const href = (id: string): string => {
+  const plugin = RECIPE_PLUGIN[id];
+  return plugin ? `/docs/plugins/${plugin}` : "/docs/plugins";
+};
 </script>
 
 <template>
   <div class="my-10 grid grid-cols-1 border-t border-l border-border md:grid-cols-2">
-    <div
+    <NuxtLink
       v-for="recipe in RECIPES"
       :key="recipe.id"
+      :to="href(recipe.id)"
       class="group relative flex min-h-[240px] flex-col border-r border-b border-border bg-surface p-8 transition-colors hover:bg-surface-muted"
     >
-      <button
-        class="absolute top-0 right-0 hidden h-12 w-12 items-center justify-center border-b border-l border-border bg-surface text-subtle transition-all hover:border-inverse hover:bg-inverse hover:text-surface md:flex"
-        :title="`Run ${recipe.name} in the Studio`"
-        @click="open(recipe.id)"
+      <div
+        class="mb-8 h-12 w-12 border border-border bg-surface p-3 text-inverse transition-colors group-hover:border-subtle"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M8 5v14l11-7z" />
-        </svg>
-      </button>
-
-      <div class="mb-8 h-12 w-12 border border-border bg-surface p-3 text-inverse">
         <span class="block h-full w-full" v-html="recipe.icon" />
       </div>
 
@@ -35,9 +45,23 @@ const { open } = usePlayground();
         <p class="text-sm text-muted">{{ recipe.description }}</p>
       </div>
 
-      <div class="mt-8 font-mono text-[9px] tracking-widest text-subtle uppercase">
-        ID: {{ recipe.id }}
+      <div
+        class="mt-8 flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-subtle"
+      >
+        Open plugin
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          class="transition-transform group-hover:translate-x-1"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
       </div>
-    </div>
+    </NuxtLink>
   </div>
 </template>

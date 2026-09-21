@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import UiButton from "@components/ui/UiButton.vue";
+import { useTheme } from "@composables/useTheme";
 import { resolveTokenColor } from "@utils/theme";
 
 const container = ref<HTMLElement | null>(null);
@@ -12,7 +13,12 @@ const renderRef = ref<HTMLElement | null>(null);
 /** Structural type so the GSAP import can stay dynamic (type-only). */
 let ctx: { revert: () => void } | null = null;
 
-onMounted(async () => {
+const { isDark } = useTheme();
+
+async function build(): Promise<void> {
+  ctx?.revert();
+  ctx = null;
+
   // GSAP only drives the below-the-fold simulation, so it is imported after
   // mount rather than sitting on the initial critical path.
   const { gsap } = await import("gsap");
@@ -132,7 +138,12 @@ onMounted(async () => {
         "<"
       );
   }, container.value);
-});
+}
+
+onMounted(() => void build());
+// Token colours are captured when the scene is built, so a theme flip has to
+// rebuild it — otherwise the dark page keeps light-mode geometry colours.
+watch(isDark, () => void build());
 
 onUnmounted(() => {
   ctx?.revert();

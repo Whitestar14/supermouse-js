@@ -6,6 +6,13 @@ defineProps<{
   activeSection: string;
 }>();
 
+/** Indent and weight per heading level. */
+const TOC_DEPTH: Record<number, string> = {
+  2: "text-sm",
+  3: "text-xs pl-4",
+  4: "text-xs pl-8"
+};
+
 const router = useRouter();
 
 const go = (event: MouseEvent, id: string): void => {
@@ -22,19 +29,19 @@ const go = (event: MouseEvent, id: string): void => {
     <div class="font-mono text-xs font-bold uppercase tracking-widest text-subtle mb-3">
       On This Page
     </div>
-    <nav class="flex flex-col gap-1 text-sm">
+    <nav class="flex flex-col gap-2">
       <a
         v-for="section in sections"
         :key="section.id"
         :href="`#${section.id}`"
         class="transition-colors leading-snug"
         :class="[
-          section.depth === 3 ? 'pl-3 text-xs' : 'text-sm',
+          TOC_DEPTH[section.depth],
           activeSection === section.id
             ? 'text-inverse font-semibold'
-            : section.depth === 3
-              ? 'text-subtle hover:text-strong'
-              : 'text-body hover:text-inverse'
+            : section.depth === 2
+              ? 'text-body hover:text-inverse'
+              : 'text-subtle hover:text-strong'
         ]"
         @click="go($event, section.id)"
       >

@@ -36,7 +36,7 @@ const { instance: pageCursor } = useSupermouse();
 let scope: ScopeHandle | null = null;
 
 const release = (): void => {
-  scope?.remove();
+  scope?.destroy();
   scope = null;
 };
 

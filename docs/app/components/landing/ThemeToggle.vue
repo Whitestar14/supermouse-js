@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { gsap } from "gsap";
 
 const props = defineProps<{ isDark: boolean }>();
 const emit = defineEmits<{ toggle: [] }>();
@@ -9,7 +8,6 @@ const emit = defineEmits<{ toggle: [] }>();
 const uid = Math.random().toString(36).slice(2, 9);
 const maskId = `moon-${uid}`;
 
-const buttonRef = ref<HTMLButtonElement | null>(null);
 const iconRef = ref<SVGSVGElement | null>(null);
 const raysRef = ref<SVGGElement | null>(null);
 const coreRef = ref<SVGCircleElement | null>(null);
@@ -17,15 +15,22 @@ const cutRef = ref<SVGCircleElement | null>(null);
 
 const RAYS = [0, 45, 90, 135, 180, 225, 270, 315];
 
-let tl: ReturnType<typeof gsap.timeline> | null = null;
+/** Structural type so the GSAP import can stay dynamic (type-only). */
+let gsapLib: typeof import("gsap").gsap | null = null;
+let tl: ReturnType<typeof import("gsap").gsap.timeline> | null = null;
 
 const prefersReduced = (): boolean =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-onMounted(() => {
+onMounted(async () => {
+  // GSAP is only needed once the user interacts with this control, so it is
+  // kept off the initial critical path.
   if (!raysRef.value || !coreRef.value || !cutRef.value) return;
 
-  tl = gsap.timeline({ paused: true });
+  ({ gsap: gsapLib } = await import("gsap"));
+  if (!raysRef.value || !coreRef.value || !cutRef.value) return;
+
+  tl = gsapLib.timeline({ paused: true });
 
   /* sun → moon */
   tl.to(
@@ -51,7 +56,7 @@ onMounted(() => {
 watch(
   () => props.isDark,
   (dark) => {
-    if (!tl) return;
+    if (!tl || !gsapLib || !iconRef.value) return;
 
     if (prefersReduced()) {
       tl.progress(dark ? 1 : 0, true);
@@ -60,50 +65,36 @@ watch(
 
     dark ? tl.play() : tl.reverse();
 
-    if (buttonRef.value) {
-      gsap.fromTo(
-        buttonRef.value,
-        { scale: 0.9 },
-        { scale: 1, duration: 0.4, ease: "back.out(3)", overwrite: true }
-      );
-    }
+    gsapLib.fromTo(
+      iconRef.value,
+      { scale: 0.85 },
+      { scale: 1, duration: 0.4, ease: "back.out(3)", overwrite: true }
+    );
   }
 );
-
-/** Hover cue on the glyph only — the button chrome stays untouched. */
-const hover = (active: boolean): void => {
-  if (prefersReduced() || !iconRef.value) return;
-  gsap.to(iconRef.value, {
-    rotate: active ? 12 : 0,
-    duration: 0.3,
-    ease: "power2.out",
-    overwrite: true
-  });
-};
 
 onBeforeUnmount(() => {
   tl?.kill();
   tl = null;
+  gsapLib = null;
 });
 </script>
 
 <template>
   <button
-    ref="buttonRef"
     type="button"
     role="switch"
     :aria-checked="isDark"
     :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
     :title="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
-    class="group inline-flex shrink-0 items-center text-subtle transition-colors duration-150 outline-none hover:text-inverse focus-visible:text-inverse focus-visible:ring-1 focus-visible:ring-subtle"
-    @mouseenter="hover(true)"
-    @mouseleave="hover(false)"
+    data-supermouse-ignore
+    class="group/theme relative grid h-8 w-8 shrink-0 place-items-center border border-border bg-surface text-muted outline-none transition-colors hover:border-subtle hover:text-inverse focus-visible:border-subtle focus-visible:text-inverse"
     @click="emit('toggle')"
   >
     <svg
       ref="iconRef"
       viewBox="0 0 24 24"
-      class="size-5 overflow-visible"
+      class="size-4 overflow-visible"
       fill="none"
       stroke="currentColor"
       stroke-width="1.6"

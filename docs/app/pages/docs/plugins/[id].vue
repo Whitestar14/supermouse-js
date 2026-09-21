@@ -108,12 +108,7 @@ useTocScroll(tocSections);
           <span class="w-1.5 h-1.5 bg-inverse" />
           Installation
         </h3>
-        <CodeBlock
-          :code="installCode"
-          lang="text"
-          :clean="true"
-          class="border border-code-border flex-1"
-        />
+        <CodeBlock :code="installCode" lang="text" :clean="true" class="flex-1" />
       </div>
       <div class="flex flex-col h-full">
         <h3
@@ -123,13 +118,7 @@ useTocScroll(tocSections);
           <span class="w-1.5 h-1.5 bg-inverse" />
           Usage
         </h3>
-        <CodeBlock
-          :code="plugin.code"
-          lang="typescript"
-          :recipe-id="plugin.recipeId"
-          :clean="true"
-          class="border border-code-border flex-1"
-        />
+        <CodeBlock :code="plugin.code" lang="typescript" :clean="true" class="flex-1" />
       </div>
     </div>
 
@@ -158,28 +147,22 @@ useTocScroll(tocSections);
 
       <!-- Options Table -->
       <Table
+        v-if="showConfigTable"
         :columns="optionColumns"
         :rows="plugin.options ?? []"
-        v-if="showConfigTable"
-        wrapper-class="border border-border overflow-hidden"
+        class="border-t border-border"
       >
         <template #cell-name="{ row }">
-          <span class="font-mono text-inverse font-bold relative">
-            {{ row.name }}
-            <span
-              v-if="row.reactive"
-              class="absolute top-4 left-2 text-accent text-xs select-none"
-              >*</span
-            >
-          </span>
+          <span class="font-mono text-xs font-bold text-inverse">{{ row.name }}</span>
+          <span v-if="row.reactive" class="text-accent" title="Reactive property">*</span>
         </template>
 
         <template #cell-type="{ row }">
-          <span class="font-mono text-accent text-xs">{{ row.type }}</span>
+          <span class="font-mono text-xs text-accent">{{ row.type }}</span>
         </template>
 
         <template #cell-default="{ row }">
-          <span class="font-mono text-subtle text-xs">{{ row.default || "-" }}</span>
+          <span class="font-mono text-xs text-muted">{{ row.default || "-" }}</span>
         </template>
 
         <template #cell-description="{ row }">
@@ -187,10 +170,7 @@ useTocScroll(tocSections);
         </template>
       </Table>
 
-      <div
-        v-else
-        class="p-12 border border-border bg-surface-muted text-center"
-      >
+      <div v-else class="p-12 border-t border-border bg-surface-muted text-center">
         <p class="font-mono text-xs text-subtle uppercase tracking-widest font-bold">
           {{ plugin?.hasDetailedDocs ? 'No configuration options' : 'Configuration docs coming soon' }}
         </p>

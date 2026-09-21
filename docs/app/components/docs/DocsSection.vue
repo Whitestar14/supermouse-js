@@ -2,9 +2,12 @@
   <section class="mb-24">
     <PageHeader :label="label" :title="title" />
 
-    <div
-      class="docs-content prose prose-zinc max-w-none prose-headings:font-bold prose-headings:tracking-tighter prose-headings:text-inverse prose-headings:no-underline prose-headings:border-none prose-p:text-body prose-strong:text-inverse prose-strong:font-bold prose-li:my-1 prose-code:text-inverse prose-code:bg-surface-subtle prose-code:px-1 prose-code:before:content-[''] prose-code:after:content-['']"
-    >
+    <!--
+      Prose theming lives in `index.css` (`.docs-content`), not in a stack of
+      `prose-*` utilities: the typography plugin emits unlayered rules, so it
+      is the only place the overrides can actually win the cascade.
+    -->
+    <div class="docs-content prose max-w-none">
       <slot />
     </div>
   </section>

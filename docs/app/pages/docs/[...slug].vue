@@ -26,15 +26,28 @@ if (!page.value) {
  * (during setup, before the layout renders its rail) keeps it in the
  * server-rendered HTML.
  */
+interface MdcTocLink {
+  id: string;
+  text: string;
+  children?: MdcTocLink[];
+}
+
+/**
+ * Flatten the rendered heading tree into the rail's flat list. Nesting is
+ * walked rather than assumed to be one level deep, so pages that use h4 keep
+ * their structure instead of silently dropping it.
+ */
+function flattenToc(links: MdcTocLink[], depth: 2 | 3 | 4): TocSection[] {
+  return links.flatMap((link) => [
+    { id: link.id, label: link.text, depth },
+    ...(link.children
+      ? flattenToc(link.children, Math.min(depth + 1, 4) as 2 | 3 | 4)
+      : [])
+  ]);
+}
+
 const tocSections = computed<TocSection[]>(() =>
-  (page.value?.body?.toc?.links ?? []).flatMap<TocSection>((link) => [
-    { id: link.id, label: link.text, depth: 2 },
-    ...(link.children ?? []).map((child) => ({
-      id: child.id,
-      label: child.text,
-      depth: 3 as const
-    }))
-  ])
+  flattenToc((page.value?.body?.toc?.links ?? []) as MdcTocLink[], 2)
 );
 
 const tocState = useTocSections();

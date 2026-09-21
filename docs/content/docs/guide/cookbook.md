@@ -5,10 +5,10 @@ section: Guide
 order: 5
 ---
 
-The cards below are auto-discovered from the docs' recipe folder, so they always match what the Studio can open. The snippets under each section are the canonical way to build the same thing in your own app.
+The cards below are auto-discovered from the docs' recipe folder, so they always match the live previews. The snippets under each section are the canonical way to build the same thing in your own app.
 
 :::callout{title="Desktop recommended" variant="note"}
-Every preview needs a fine pointer, and the recipes are also plain URLs under [/labs](/labs).
+Every preview needs a fine pointer. Each card opens the plugin page where the effect runs live.
 :::
 
 :cookbook-grid

@@ -25,7 +25,6 @@ export interface PluginMeta {
   description: string;
   code: string;
   icon: string;
-  recipeId: string;
   version: string;
   license?: string;
   options?: OptionSchema[];

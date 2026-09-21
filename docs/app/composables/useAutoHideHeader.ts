@@ -1,77 +1,106 @@
-import { onMounted, onUnmounted, type Ref } from "vue";
+import { onMounted, onScopeDispose, watch, type Ref } from "vue";
 
-export function useAutoHideHeader(
-  el: Ref<HTMLElement | null>,
-  options: { pinned?: Ref<boolean>; hideAfter?: number } = {}
-): void {
-  const { pinned, hideAfter = 140 } = options;
+/**
+ * Drives the app's slide-away header.
+ *
+ * The movement itself is pure CSS: `.header-shell` elements translate by
+ * `--header-shift`, which `html.header-hidden` flips to the negative header
+ * height. This composable only decides *when* that class is present, so the
+ * header, the docs sub-header and the sticky rails all travel on one variable
+ * with one transition — no measured heights, no per-element JS, and nothing
+ * can reserve a gap while the header is mid-flight.
+ *
+ * Elements can pin the header open (mobile menus, drawers) via `pinned`.
+ */
 
-  // Structural type so the dynamic import stays type-only.
-  let gsap: typeof import("gsap").gsap | null = null;
-  let hidden = false;
-  let lastY = 0;
+const HIDE_AFTER = 140;
+const DELTA = 8;
 
-  const publishOffset = (visible: boolean): void => {
-    const height = visible ? (el.value?.offsetHeight ?? 0) : 0;
-    document.documentElement.style.setProperty("--header-h", `${height}px`);
-  };
+let pins = 0;
+let hidden = false;
+let lastY = 0;
+let consumers = 0;
 
-  const setHidden = (next: boolean): void => {
-    if (next === hidden || !el.value) return;
-    hidden = next;
-    publishOffset(!next);
+function apply(): void {
+  document.documentElement.classList.toggle("header-hidden", hidden && pins === 0);
+}
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!gsap) return;
+function setHidden(next: boolean): void {
+  if (next === hidden) return;
+  hidden = next;
+  apply();
+}
 
-    if (reduced) {
-      gsap.set(el.value, { yPercent: next ? -100 : 0 });
-      return;
-    }
+function onScroll(): void {
+  // Overlays own the header while they're open.
+  if (pins > 0) return;
 
-    gsap.to(el.value, {
-      yPercent: next ? -100 : 0,
-      duration: next ? 0.28 : 0.34,
-      ease: next ? "power2.out" : "power3.out",
-      overwrite: true
-    });
-  };
-
-  const onScroll = (): void => {
-    const y = window.scrollY;
-
-    // Overlays (mobile menu) own the header while they are open.
-    if (pinned?.value || y <= hideAfter) {
-      setHidden(false);
-      lastY = y;
-      return;
-    }
-
-    const delta = y - lastY;
-    if (Math.abs(delta) < 8) return; // ignore trackpad jitter
-    setHidden(delta > 0);
+  const y = window.scrollY;
+  if (y <= HIDE_AFTER) {
+    setHidden(false);
     lastY = y;
+    return;
+  }
+
+  const delta = y - lastY;
+  if (Math.abs(delta) < DELTA) return;
+  setHidden(delta > 0);
+  lastY = y;
+}
+
+function onResize(): void {
+  if (!hidden) apply();
+}
+
+function attach(): void {
+  consumers += 1;
+  if (consumers > 1) return;
+  lastY = window.scrollY;
+  hidden = false;
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onResize, { passive: true });
+}
+
+function detach(): void {
+  consumers = Math.max(0, consumers - 1);
+  if (consumers > 0) return;
+  window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("resize", onResize);
+  pins = 0;
+  hidden = false;
+  document.documentElement.classList.remove("header-hidden");
+}
+
+export function useAutoHideHeader(pinned?: Ref<boolean>): void {
+  let held = false;
+
+  const sync = (active: boolean): void => {
+    if (active === held) return;
+    held = active;
+    pins += active ? 1 : -1;
+    if (active) {
+      setHidden(false);
+    } else {
+      lastY = window.scrollY;
+      apply();
+    }
   };
 
-  const onResize = (): void => {
-    if (!hidden) publishOffset(true);
-  };
-
-  onMounted(async () => {
-    if (!el.value) return;
-
-    ({ gsap } = await import("gsap"));
-    gsap.set(el.value, { yPercent: 0 });
+  onMounted(() => {
+    attach();
+    setHidden(false);
     lastY = window.scrollY;
-    publishOffset(true);
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
   });
 
-  onUnmounted(() => {
-    window.removeEventListener("scroll", onScroll);
-    window.removeEventListener("resize", onResize);
-    document.documentElement.style.removeProperty("--header-h");
+  if (pinned) {
+    watch(pinned, sync, { immediate: false });
+  }
+
+  onScopeDispose(() => {
+    if (held) {
+      held = false;
+      pins = Math.max(0, pins - 1);
+    }
+    detach();
   });
 }

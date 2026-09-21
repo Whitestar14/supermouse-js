@@ -4,14 +4,14 @@ import { scrollToAnchor, scrollToTop, scrollToY, requestScrollReset } from "@uti
 export default <RouterConfig>{
   scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
-      scrollToY(savedPosition.top, "auto");
+      scrollToY(savedPosition.top);
       return false;
     }
 
     if (to.hash) {
       const id = decodeURIComponent(to.hash.slice(1));
-      return scrollToAnchor(id, "smooth").then((found) => {
-        if (!found) scrollToTop("auto");
+      return scrollToAnchor(id).then((found) => {
+        if (!found) scrollToTop();
       });
     }
 

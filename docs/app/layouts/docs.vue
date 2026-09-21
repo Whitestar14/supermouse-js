@@ -7,6 +7,7 @@ import { useDocsNavigation } from "@config/navigation";
 import { formatDate } from "@utils/date";
 import { useTocSections, useTocActiveSection } from "@composables/useToc";
 import { useScrollLock } from "@composables/useScrollLock";
+import { useAutoHideHeader } from "@composables/useAutoHideHeader";
 
 const route = useRoute();
 const tocSections = useTocSections();
@@ -17,6 +18,9 @@ const activeGroup = ref<string | null>(null);
 const mobileMenuOpen = ref(false);
 
 useScrollLock(mobileMenuOpen);
+// The drawer owns the header while it's open, so it can never open under a
+// slid-away bar.
+useAutoHideHeader(mobileMenuOpen);
 
 const isActive = (path: string) => route.path === path;
 
@@ -135,7 +139,7 @@ const nextPage = computed(() => {
   <div class="flex flex-col h-full min-h-screen">
     <!-- Mobile Sub-header -->
     <div
-      class="lg:hidden h-12 border-b border-border bg-surface flex items-center px-6 sticky top-[var(--header-h)] z-30 select-none transition-[top] duration-300"
+      class="header-shell lg:hidden h-12 border-b border-border bg-surface flex items-center px-6 sticky top-[var(--header-h)] z-30 select-none"
     >
       <button
         class="flex items-center justify-between w-full group outline-none"
@@ -271,7 +275,7 @@ const nextPage = computed(() => {
       >
         <!-- Sticky Sidebar with Lenis Prevent -->
         <div
-          class="sticky top-[var(--header-h)] h-[calc(100vh-var(--header-h))] overflow-y-auto py-12 px-8 scrollbar-thin transition-[top,height] duration-300"
+          class="header-shell sticky top-[var(--header-h)] h-[calc(100vh-var(--header-h))] overflow-y-auto py-12 px-8 scrollbar-thin"
           data-lenis-prevent
         >
           <nav class="flex flex-col gap-8 pb-32">
@@ -431,10 +435,10 @@ const nextPage = computed(() => {
       <!-- Right Sidebar: TOC -->
       <aside
         v-if="tocSections.length"
-        class="hidden xl:block max-w-54 min-w-54 shrink-0 border-l border-border"
+        class="hidden xl:block w-64 shrink-0 border-l border-border"
       >
         <div
-          class="sticky top-[calc(var(--header-h)+2rem)] h-fit max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto px-6 py-12 scrollbar-thin transition-[top,max-height] duration-300"
+          class="header-shell sticky top-[calc(var(--header-h)+2rem)] h-fit max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto px-6 py-12 scrollbar-thin"
         >
           <TableOfContents :sections="tocSections" :active-section="activeSection" />
         </div>

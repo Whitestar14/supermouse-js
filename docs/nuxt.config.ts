@@ -52,7 +52,26 @@ export default defineNuxtConfig({
   compatibilityDate: "2026-09-08",
   ssr: false,
 
-  modules: ["@nuxt/content"],
+  modules: [
+    "@nuxt/content",
+    /**
+     * `@nuxt/content` asks Vite to pre-bundle `@nuxtjs/mdc`'s own dependencies
+     * (`@nuxtjs/mdc > remark-gfm` and friends). Under pnpm's isolated layout
+     * `@nuxtjs/mdc` is not resolvable from this workspace root, so Vite cannot
+     * expand those entries and Nuxt logs NUXT_B7002 on every boot. They are a
+     * pre-bundling hint only, so the unresolvable ones are dropped here, after
+     * the content module has had its say.
+     */
+    (_options: unknown, nuxt: any) => {
+      const include = nuxt.options.vite?.optimizeDeps?.include as
+        | Array<string | RegExp>
+        | undefined;
+      if (!include) return;
+      nuxt.options.vite.optimizeDeps.include = include.filter(
+        (entry) => typeof entry !== "string" || !entry.startsWith("@nuxtjs/mdc >")
+      );
+    }
+  ],
 
   components: [
     {
@@ -74,19 +93,6 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
-    optimizeDeps: {
-      exclude: [
-        "@nuxtjs/mdc",
-        "remark-gfm",
-        "remark-emoji",
-        "remark-mdc",
-        "remark-rehype",
-        "rehype-raw",
-        "parse5",
-        "unist-util-visit",
-        "unified"
-      ]
-    },
 
     define: {
       __SUPERMOUSE_VERSION__: JSON.stringify(release.version),

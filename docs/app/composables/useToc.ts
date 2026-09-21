@@ -1,12 +1,12 @@
 import { onMounted, onUnmounted, watch, type Ref } from "vue";
-import { HEADER_OFFSET_PX } from "@utils/scroll";
+import { anchorOffset, findAnchor } from "@utils/scroll";
 
 /** A single heading in the right-hand table of contents. */
 export interface TocSection {
   id: string;
   label: string;
-  /** 2 = h2 (top level), 3 = h3 (indented). */
-  depth: 2 | 3;
+  /** 2 = h2, 3 = h3 nested under it, 4 = h4 nested under that. */
+  depth: 2 | 3 | 4;
 }
 
 /**
@@ -33,11 +33,11 @@ export function useTocScroll(sections: Ref<TocSection[]>) {
   const update = (): void => {
     if (sections.value.length === 0) return;
 
-    const fromTop = window.scrollY + HEADER_OFFSET_PX + 1;
+    const fromTop = window.scrollY + anchorOffset() + 1;
     let current = sections.value[0]?.id ?? "";
 
     for (const section of sections.value) {
-      const el = document.getElementById(section.id);
+      const el = findAnchor(section.id);
       if (!el) continue;
       if (el.getBoundingClientRect().top + window.scrollY <= fromTop) current = section.id;
     }

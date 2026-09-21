@@ -51,7 +51,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/dot",
     "importSnippet": "import { Dot } from '@supermousejs/dot'",
@@ -101,7 +101,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/icon",
     "importSnippet": "import { Icon } from '@supermousejs/icon'",
@@ -144,7 +144,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/image",
     "importSnippet": "import { Image } from '@supermousejs/image'",
@@ -174,7 +174,7 @@
         "reactive": true
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/magnetic",
     "importSnippet": "import { Magnetic } from '@supermousejs/magnetic'",
@@ -246,7 +246,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/pointer",
     "importSnippet": "import { Pointer } from '@supermousejs/pointer'",
@@ -297,7 +297,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/ring",
     "importSnippet": "import { Ring } from '@supermousejs/ring'",
@@ -390,7 +390,7 @@
         "reactive": true
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { SmartIcon } from '@supermousejs/labs'",
@@ -454,7 +454,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { SmartRing } from '@supermousejs/labs'",
@@ -504,7 +504,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { Sparkles } from '@supermousejs/labs'",
@@ -541,7 +541,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/states",
     "importSnippet": "import { States } from '@supermousejs/states'",
@@ -564,7 +564,7 @@
         "reactive": true
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/stick",
     "importSnippet": "import { Stick } from '@supermousejs/stick'",
@@ -601,7 +601,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/text",
     "importSnippet": "import { Text } from '@supermousejs/text'",
@@ -672,7 +672,7 @@
         "reactive": false
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/labs",
     "importSnippet": "import { TextRing } from '@supermousejs/labs'",
@@ -709,7 +709,7 @@
         "reactive": true
       }
     ],
-    "version": "2.4.1",
+    "version": "2.4.4-beta.3",
     "license": "MIT",
     "installCommand": "pnpm install @supermousejs/trail",
     "importSnippet": "import { Trail } from '@supermousejs/trail'",

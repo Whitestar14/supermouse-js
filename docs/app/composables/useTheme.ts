@@ -10,11 +10,35 @@ const isDark = ref(
   typeof document !== "undefined" && document.documentElement.classList.contains("dark")
 );
 
+let restoring = false;
+
+/**
+ * Swaps the token block with transitions disabled for a single frame.
+ *
+ * Without this, elements carrying `transition-colors` (the logo, the search
+ * bar, nav links) would animate to the new palette at their own pace while
+ * everything else snapped — which reads as a half-applied theme. See
+ * `html.theme-switching` in `index.css`.
+ */
 const setDark = (dark: boolean): void => {
   isDark.value = dark;
-  if (typeof document !== "undefined") {
-    document.documentElement.classList.toggle("dark", dark);
-  }
+  if (typeof document === "undefined") return;
+
+  const root = document.documentElement;
+  root.classList.add("theme-switching");
+  root.classList.toggle("dark", dark);
+  // Force the style flush while transitions are suppressed.
+  void root.offsetHeight;
+
+  if (restoring) return;
+  restoring = true;
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      root.classList.remove("theme-switching");
+      restoring = false;
+    })
+  );
+
   try {
     localStorage.setItem(STORAGE_KEY, dark ? "dark" : "light");
   } catch {

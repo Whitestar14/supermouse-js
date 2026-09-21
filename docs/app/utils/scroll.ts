@@ -1,14 +1,31 @@
-/** DOCUMENTED_HEADER_OFFSET_PX: sticky navbar clearance for hash targets. */
+/**
+ * Anchor scrolling for a client-rendered app.
+ *
+ * The site is `ssr: false` and page bodies arrive through async data, so a hash
+ * target usually does not exist yet when vue-router resolves `scrollBehavior`.
+ * Its native `{ el: to.hash }` silently no-ops and the page stays put — the
+ * flaky "clicked a link and landed at the top" bug. Everything here waits
+ * (bounded) for the element and scrolls through one code path.
+ *
+ * Scrolling is instant. Lenis owns the window, so a "smooth" jump would animate
+ * the whole page for a heading that is already on screen — that is the jank,
+ * not a feature.
+ */
+
+/** Fallback clearance below the sticky header when CSS tokens are unreadable. */
 export const HEADER_OFFSET_PX = 120;
 
-/** How long we watch for a hash target to appear before giving up (for now). */
-const ANCHOR_WAIT_MS = 3000;
+/** How long we watch for a hash target to appear before giving up. */
+const ANCHOR_WAIT_MS = 1500;
 
 /** How long an unhonoured anchor intent stays valid for a late settle. */
 const ANCHOR_INTENT_TTL_MS = 8000;
 
-/** Safety net: never leave a pending reset unapplied forever. */
+/** Safety net: never leave a pending top-reset unapplied forever. */
 const TOP_RESET_FALLBACK_MS = 1200;
+
+/** Only correct a late layout shift if it actually moved the target. */
+const CORRECTION_THRESHOLD_PX = 24;
 
 interface AnchorIntent {
   id: string;
@@ -20,36 +37,70 @@ let pendingAnchor: AnchorIntent | null = null;
 let topResetPending = false;
 let topResetFallback: ReturnType<typeof setTimeout> | null = null;
 
-/**
- * Resolve a scrolling element. Lenis owns `window` scrolling, so when it is
- * active we drive it and let native `scrollTo` handle nested containers.
- */
-function scrollWindow(top: number, behavior: ScrollBehavior): void {
-  const lenis = (window as any).lenis;
-  if (lenis?.scrollTo) {
-    lenis.scrollTo(top, { immediate: behavior === "auto", duration: 1.2 });
-    return;
-  }
-  window.scrollTo({ top, behavior });
+/** Distance to keep between the sticky header and a hash target. */
+export function anchorOffset(): number {
+  if (typeof document === "undefined") return HEADER_OFFSET_PX;
+  const styles = getComputedStyle(document.documentElement);
+  const header = parseFloat(styles.getPropertyValue("--header-h"));
+  if (!Number.isFinite(header) || header <= 0) return HEADER_OFFSET_PX;
+  return header + 24;
 }
 
-/** Scroll to an absolute Y position, honouring Lenis when active. */
-export function scrollToY(top: number, behavior: ScrollBehavior = "auto"): void {
-  scrollWindow(top, behavior);
+const headerOffset = anchorOffset;
+
+/**
+ * Resolve a heading id.
+ *
+ * MDC prefixes ids that start with a digit (`5. Opt out` -> `#_5-opt-out`), and
+ * authors write both forms in prose, so try the plausible spellings before
+ * declaring an anchor missing.
+ */
+export function findAnchor(id: string): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+
+  const direct = document.getElementById(id);
+  if (direct) return direct;
+
+  const prefixed = document.getElementById(`_${id}`);
+  if (prefixed) return prefixed;
+
+  try {
+    return document.querySelector<HTMLElement>(`[id="${CSS.escape(id)}"]`);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve a scrolling element. Lenis owns `window` scrolling, so when it is
+ * active we drive it; nested containers keep native behaviour.
+ */
+function scrollWindow(top: number): void {
+  const lenis = (window as any).lenis;
+  if (lenis?.scrollTo) {
+    lenis.scrollTo(top, { immediate: true, force: true });
+    return;
+  }
+  window.scrollTo({ top, behavior: "auto" });
+}
+
+/** Scroll to an absolute Y position. */
+export function scrollToY(top: number): void {
+  scrollWindow(top);
 }
 
 /** Scroll to the top of the document. */
-export function scrollToTop(behavior: ScrollBehavior = "auto"): void {
-  scrollWindow(0, behavior);
+export function scrollToTop(): void {
+  scrollWindow(0);
 }
 
 /** Scroll an element to just below the sticky header. */
-function scrollElementIntoView(el: HTMLElement, behavior: ScrollBehavior): void {
-  scrollWindow(Math.max(0, el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET_PX), behavior);
+function scrollElementIntoView(el: HTMLElement): void {
+  scrollWindow(Math.max(0, el.getBoundingClientRect().top + window.scrollY - headerOffset()));
 }
 
 /**
- * Wait for `getElementById(id)` to exist, up to `timeoutMs`. Returns null on
+ * Wait for `getAnchor(id)` to exist, up to `timeoutMs`. Resolves null on
  * timeout so callers can fall back instead of hanging.
  */
 export function waitForAnchor(id: string, timeoutMs = ANCHOR_WAIT_MS): Promise<HTMLElement | null> {
@@ -59,7 +110,7 @@ export function waitForAnchor(id: string, timeoutMs = ANCHOR_WAIT_MS): Promise<H
       return;
     }
 
-    const existing = document.getElementById(id);
+    const existing = findAnchor(id);
     if (existing) {
       resolve(existing);
       return;
@@ -67,7 +118,7 @@ export function waitForAnchor(id: string, timeoutMs = ANCHOR_WAIT_MS): Promise<H
 
     let timer: ReturnType<typeof setTimeout>;
     const observer = new MutationObserver(() => {
-      const el = document.getElementById(id);
+      const el = findAnchor(id);
       if (!el) return;
       observer.disconnect();
       clearTimeout(timer);
@@ -77,18 +128,19 @@ export function waitForAnchor(id: string, timeoutMs = ANCHOR_WAIT_MS): Promise<H
     observer.observe(document.body, { childList: true, subtree: true });
     timer = setTimeout(() => {
       observer.disconnect();
-      resolve(document.getElementById(id));
+      resolve(findAnchor(id));
     }, timeoutMs);
   });
 }
 
+const nextFrame = (): Promise<void> =>
+  new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+
 /**
- * Scroll to an anchor once it exists.
+ * Scroll to an anchor once it exists. Resolves `true` when the target was
+ * found and honoured.
  */
-export async function scrollToAnchor(
-  id: string,
-  behavior: ScrollBehavior = "smooth"
-): Promise<boolean> {
+export async function scrollToAnchor(id: string): Promise<boolean> {
   const intent: AnchorIntent = { id, startedAt: Date.now(), done: false };
   pendingAnchor = intent;
   topResetPending = false;
@@ -98,17 +150,22 @@ export async function scrollToAnchor(
   // A newer navigation took over while we waited.
   if (pendingAnchor !== intent) return true;
 
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // Let the page settle (fonts, async body, sticky offsets) before measuring.
+  await nextFrame();
   if (pendingAnchor !== intent) return true;
 
-  scrollElementIntoView(el, behavior);
+  scrollElementIntoView(el);
   intent.done = true;
 
+  // A late layout shift (images, async sections) can move the target; nudge
+  // once, instantly, and only when it's actually off.
   setTimeout(() => {
     if (pendingAnchor !== intent) return;
-    const corrected = el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET_PX;
-    if (Math.abs(corrected - window.scrollY) > 8) scrollWindow(Math.max(0, corrected), "auto");
-  }, 400);
+    const target = el.getBoundingClientRect().top + window.scrollY - headerOffset();
+    if (Math.abs(target - window.scrollY) > CORRECTION_THRESHOLD_PX) {
+      scrollWindow(Math.max(0, target));
+    }
+  }, 280);
 
   return true;
 }
@@ -133,7 +190,7 @@ export function settlePendingNavigation(): void {
 
   if (topResetPending) {
     topResetPending = false;
-    scrollToTop("auto");
+    scrollToTop();
     return;
   }
 
@@ -145,9 +202,9 @@ export function settlePendingNavigation(): void {
     return;
   }
 
-  const el = document.getElementById(intent.id);
+  const el = findAnchor(intent.id);
   if (!el) return;
 
-  scrollElementIntoView(el, "auto");
+  scrollElementIntoView(el);
   intent.done = true;
 }

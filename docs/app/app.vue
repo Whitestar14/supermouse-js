@@ -3,14 +3,11 @@ import { defineAsyncComponent } from "vue";
 import Lenis from "lenis";
 import Navbar from "@components/landing/Navbar.vue";
 import { useAppCursor } from "@composables/useAppCursor";
-import { usePlayground } from "@composables/usePlayground";
 import { useScrollLock } from "@composables/useScrollLock";
 
-const CursorEditor = defineAsyncComponent(() => import("@components/playground/CursorEditor.vue"));
 const SearchPalette = defineAsyncComponent(() => import("@components/landing/SearchPalette.vue"));
 
 const { instance } = useAppCursor();
-const { isOpen: isEditorOpen, activeRecipeId, close: closeEditor } = usePlayground();
 
 const isSearchOpen = ref(false);
 
@@ -77,7 +74,7 @@ onMounted(() => {
   }
 });
 
-useScrollLock(computed(() => isEditorOpen.value || isSearchOpen.value));
+useScrollLock(isSearchOpen);
 
 // Dev-only audit of the live instance: priorities, orphaned stages, cursor mode.
 watch(
@@ -89,10 +86,6 @@ watch(
   },
   { immediate: true }
 );
-
-const navigateEditor = (id: string): void => {
-  activeRecipeId.value = id;
-};
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
@@ -110,12 +103,6 @@ onUnmounted(() => {
       </NuxtLayout>
     </main>
 
-    <CursorEditor
-      v-if="isEditorOpen"
-      :active-recipe-id="activeRecipeId"
-      @close="closeEditor"
-      @navigate="navigateEditor"
-    />
     <SearchPalette v-if="isSearchOpen" @close="isSearchOpen = false" />
   </div>
 </template>
