@@ -1,10 +1,8 @@
 import { ref } from "vue";
 
 /**
- * Theme state, owned by the app rather than by the navbar.
- *
- * The initial value is read from `<html class="dark">`, which a pre-paint
- * inline script in `nuxt.config` sets from localStorage / OS preference
+ * Theme state for the app. The initial value comes from `<html class="dark">`,
+ * set pre-paint by the inline script in `nuxt.config.ts`.
  */
 const STORAGE_KEY = "supermouse-theme";
 

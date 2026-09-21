@@ -1,6 +1,6 @@
 ---
-title: React Integration
-description: useSupermouse hook and SupermouseProvider for React and Next.js.
+title: React
+description: useSupermouse and SupermouseProvider for React and Next.js.
 section: Integrations
 order: 2
 package: @supermousejs/react
@@ -8,11 +8,9 @@ dependency: react >= 16.8
 license: MIT
 ---
 
-The React adapter exposes a `SupermouseProvider` context and a `useSupermouse`
-hook. The engine is created in an effect and destroyed on cleanup, which makes
-it safe under React 18 Strict Mode's double mount.
+The React adapter exposes a context provider and a hook. The instance is created in an effect and destroyed on cleanup, which is what makes it safe under Strict Mode's double mount.
 
-## Installation
+## Install
 
 ```bash
 pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot
@@ -20,9 +18,7 @@ pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot
 
 ## Root provider
 
-Wrap your app in `SupermouseProvider`. `options` matches
-[SupermouseOptions](/docs/reference/options) and `plugins` is installed
-immediately after construction.
+`options` matches [SupermouseOptions](/docs/reference/options) and `plugins` is installed right after construction.
 
 ```tsx
 import { SupermouseProvider } from "@supermousejs/react";
@@ -40,11 +36,11 @@ export default function App() {
 }
 ```
 
+The effect runs once, so `options` and `plugins` are read on mount only. Changing them later does nothing; the engine was configured once.
+
 ## Reading the instance
 
-`useSupermouse()` returns `{ instance, isEnabled }`. `instance` is `null` until
-the effect runs, and `isEnabled` stays in sync when you call `enable()` /
-`disable()`.
+`useSupermouse()` returns `{ instance, isEnabled }`. `instance` is `null` until the effect has run.
 
 ```tsx
 import { useSupermouse } from "@supermousejs/react";
@@ -61,14 +57,13 @@ export const CustomButton = () => {
 };
 ```
 
-Outside the provider the hook falls back to `{ instance: null, isEnabled: true }`
-rather than throwing, so components can render before the provider mounts.
+Outside a provider the hook returns `{ instance: null, isEnabled: true }` rather than throwing, so a component can render before the provider mounts.
+
+`isEnabled` tracks explicit `enable()` / `disable()` calls, because the adapter patches those methods. It does not reflect the engine's own hibernation on a coarse pointer — `instance.isEnabled` does.
 
 ## Next.js (App Router)
 
-Supermouse touches `window`, so the engine must be created on the client. The
-provider already does this from an effect — add the `"use client"` directive to
-the component that renders it:
+The engine touches `window`, so it has to be created on the client. The provider already does that from an effect; add the directive on the component that renders it:
 
 ```tsx
 "use client";
@@ -88,6 +83,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## Strict Mode
 
-React 18 runs effects twice in development: the provider constructs an engine,
-destroys it, then constructs another. Because the cleanup calls `destroy()`,
-you end up with exactly one live instance and no duplicated stage elements.
+React 18 runs effects twice in development: the provider constructs an engine, destroys it, and constructs another. Because the cleanup calls `destroy()`, you end up with one live instance and no duplicated stage elements.

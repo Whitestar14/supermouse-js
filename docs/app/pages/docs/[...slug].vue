@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useTocScroll, useTocSections, type TocSection } from "@composables/useToc";
+import { APP_VERSION } from "@config/constants";
 
 definePageMeta({
   layout: "docs"
@@ -48,8 +49,13 @@ const META_FIELDS = [
   ["license", "LICENSE"]
 ] as const;
 
+/**
+ * A page that declares any of them gets the whole strip; `version` falls back to
+ * the release the site is presenting, so it can never drift from the build.
+ */
 const metaItems = META_FIELDS.flatMap(([key, label]) => {
-  const value = page.value?.[key];
+  if (!page.value || !META_FIELDS.some(([field]) => page.value?.[field])) return [];
+  const value = page.value[key] ?? (key === "version" ? APP_VERSION : undefined);
   return value ? [{ label, content: String(value) }] : [];
 });
 

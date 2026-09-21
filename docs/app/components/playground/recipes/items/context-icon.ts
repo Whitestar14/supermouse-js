@@ -30,23 +30,16 @@ export const contextIconRecipe: PresetRecipe = {
       description: 'Align "Top Left" for arrows.'
     }
   ],
-  setup: (app, config) => {
-    app.options.cursor = "custom";
-    app.options.rules = {
-      "a, button": { icon: "hand" },
-      input: { icon: "text" }
-    };
-
-    app.use(
-      SmartIcon({
-        icons: ICON_SVGS,
-        size: () => config.size,
-        color: () => config.color,
-        transitionDuration: config.transitionDuration,
-        anchor: () => config.anchor
-      })
-    );
-  },
+  scope: { cursor: "custom" },
+  plugins: (config) => [
+    SmartIcon({
+      icons: ICON_SVGS,
+      size: () => config.size,
+      color: () => config.color,
+      transitionDuration: config.transitionDuration,
+      anchor: () => config.anchor
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/labs": ["SmartIcon"]

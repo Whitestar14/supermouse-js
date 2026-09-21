@@ -40,18 +40,16 @@ export const vehiclePointerRecipe: PresetRecipe = {
       description: "Wait time before resetting"
     }
   ],
-  setup: (app, config) => {
-    app.use(
-      Pointer({
-        size: () => config.size,
-        color: () => config.color,
-        restingAngle: () => config.restingAngle,
-        returnToRest: () => config.returnToRest,
-        restDelay: () => config.restDelay,
-        svg: POINTER_SVG
-      })
-    );
-  },
+  plugins: (config) => [
+    Pointer({
+      size: () => config.size,
+      color: () => config.color,
+      restingAngle: () => config.restingAngle,
+      returnToRest: () => config.returnToRest,
+      restDelay: () => config.restDelay,
+      svg: POINTER_SVG
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/pointer": ["Pointer"]

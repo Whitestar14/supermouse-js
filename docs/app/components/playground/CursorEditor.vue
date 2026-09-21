@@ -4,7 +4,9 @@ import EditorControls from "./EditorControls.vue";
 import DemoStage from "./DemoStage.vue";
 import CodeBlock from "@components/content/CodeBlock.vue";
 import { RECIPES } from "@playground/recipes";
+import { smoothnessPlugin } from "@playground/demos";
 import { generateCode } from "@utils/code-generator";
+import type { CursorMode } from "@supermousejs/core";
 
 const props = defineProps<{
   activeRecipeId: string | null;
@@ -84,9 +86,17 @@ watch(
   { immediate: true }
 );
 
-const stageSetup = computed(() => {
+const stagePlugins = computed(() => {
   const recipe = currentRecipe.value;
-  return (app: Parameters<NonNullable<typeof recipe.setup>>[0]) => recipe.setup(app, liveConfig);
+  return () => [
+    smoothnessPlugin(() => globalConfig.value.smoothness),
+    ...recipe.plugins(liveConfig)
+  ];
+});
+
+const stageCursor = computed<CursorMode>(() => {
+  if (globalConfig.value.showNative) return "both";
+  return currentRecipe.value.scope?.cursor ?? "auto";
 });
 
 watch(
@@ -289,9 +299,8 @@ const copyCode = async (): Promise<void> => {
             <div class="flex-1 relative overflow-hidden">
               <DemoStage
                 :key="currentRecipe.id"
-                :setup="stageSetup"
-                :smoothness="globalConfig.smoothness"
-                :show-native="globalConfig.showNative"
+                :plugins="stagePlugins"
+                :cursor="stageCursor"
                 :targets="true"
                 height-class="h-full"
                 class="absolute inset-0"

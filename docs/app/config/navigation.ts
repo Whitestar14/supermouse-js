@@ -23,11 +23,8 @@ function toNavItems(plugins: typeof PLUGINS): NavItem[] {
 }
 
 /**
- * The docs sidebar, prev/next pager and search index all read from this.
- *
- * Written pages come from `content/**` frontmatter (resolved at build time in
- * nuxt.config.ts) and plugin pages come from generated package metadata, so
- * there is no hand-maintained route list to keep in sync.
+ * Sidebar, prev/next pager and search index all read from this: content
+ * frontmatter plus generated plugin metadata, with no hand-written route list.
  */
 export function useDocsNavigation(): NavGroup[] {
   const { docsNavigation } = useRuntimeConfig().public;

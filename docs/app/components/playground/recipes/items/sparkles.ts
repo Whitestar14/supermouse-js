@@ -21,15 +21,13 @@ export const sparklesRecipe: PresetRecipe = {
       description: "Speed required to spawn"
     }
   ],
-  setup: (app, config) => {
-    app.use(Dot({ size: 8, color: () => config.color }));
-    app.use(
-      Sparkles({
-        color: () => config.color,
-        frequency: config.velocity
-      })
-    );
-  },
+  plugins: (config) => [
+    Dot({ size: 8, color: () => config.color }),
+    Sparkles({
+      color: () => config.color,
+      frequency: config.velocity
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/dot": ["Dot"],

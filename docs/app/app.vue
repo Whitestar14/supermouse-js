@@ -79,10 +79,7 @@ onMounted(() => {
 
 useScrollLock(computed(() => isEditorOpen.value || isSearchOpen.value));
 
-const navigateEditor = (id: string): void => {
-  activeRecipeId.value = id;
-};
-
+// Dev-only audit of the live instance: priorities, orphaned stages, cursor mode.
 watch(
   instance,
   (app) => {
@@ -92,6 +89,10 @@ watch(
   },
   { immediate: true }
 );
+
+const navigateEditor = (id: string): void => {
+  activeRecipeId.value = id;
+};
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);

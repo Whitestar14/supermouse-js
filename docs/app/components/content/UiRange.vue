@@ -20,10 +20,7 @@ const progress = computed(() => {
   return ((props.modelValue - props.min) / (props.max - props.min)) * 100;
 });
 
-/*
- * Track fill reads the theme tokens so the slider adapts to light/dark; the
- * inline style is required because the track is painted via a CSS gradient.
- */
+/* Token-based track fill; inline because the track is a CSS gradient. */
 const trackStyle = computed(() => ({
   background: `linear-gradient(to right, var(--color-inverse) ${progress.value}%, var(--color-border) ${progress.value}%)`
 }));

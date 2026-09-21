@@ -29,28 +29,19 @@ export const stickyElementRecipe: PresetRecipe = {
       description: "Fade out the center dot when sticking."
     }
   ],
-  setup: (app, config) => {
-    app.use(Stick({ padding: Number(config.padding) }));
-    app.use(
-      Dot({
-        size: 8,
-        color: config.color,
-        hideOnShape: config.hideDot
-      })
-    );
-    app.use(
-      SmartRing({
-        size: 30,
-        color: config.color,
-        enableSkew: true
-      })
-    );
-
-    setTimeout(() => {
-      const btns = document.querySelectorAll("button, [data-hover]");
-      btns.forEach((b) => b.setAttribute("data-supermouse-stick", "true"));
-    }, 50);
-  },
+  plugins: (config) => [
+    Stick({ padding: Number(config.padding) }),
+    Dot({
+      size: 8,
+      color: config.color,
+      hideOnShape: config.hideDot
+    }),
+    SmartRing({
+      size: 30,
+      color: config.color,
+      enableSkew: true
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/stick": ["Stick"],

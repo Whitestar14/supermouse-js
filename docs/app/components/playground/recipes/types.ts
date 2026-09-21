@@ -1,4 +1,4 @@
-import type { SupermouseInstance } from "@supermousejs/vue";
+import type { CursorMode, SupermousePlugin } from "@supermousejs/core";
 
 export type ControlType = "range" | "color" | "toggle" | "text" | "select";
 
@@ -9,11 +9,7 @@ interface ControlBase {
   description?: string;
 }
 
-/**
- * Discriminated union so the editor can render each control without non-null
- * assertions: a `range` control is guaranteed to carry `min`/`max`, a `select`
- * is guaranteed to carry `options`, and so on.
- */
+/** Each control type carries exactly the fields its renderer needs. */
 export type ControlSchema =
   | (ControlBase & { type: "range"; min: number; max: number; step?: number; unit?: string })
   | (ControlBase & { type: "color" })
@@ -74,6 +70,9 @@ export interface PresetRecipe {
   description: string;
   icon: string;
   schema: ControlSchema[];
-  setup: (app: SupermouseInstance, config: any) => void;
+  /** Plugins for the preview scope. Options read the live config each frame. */
+  plugins: (config: any) => SupermousePlugin[];
+  /** Region configuration the demo needs, e.g. a different cursor mode. */
+  scope?: { cursor?: CursorMode };
   generateAST?: (config: any, globalConfig: any) => RecipeAST;
 }

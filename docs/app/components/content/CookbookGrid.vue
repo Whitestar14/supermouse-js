@@ -3,9 +3,8 @@ import { RECIPES } from "@playground/recipes";
 import { usePlayground } from "@composables/usePlayground";
 
 /**
- * Renders every playground recipe. The list comes from
- * `playground/recipes/items/*.ts` via `import.meta.glob`, so adding a recipe
- * makes it appear here and in the Cookbook page with no extra wiring.
+ * Every playground recipe, auto-discovered from
+ * `playground/recipes/items/*.ts` — adding one is enough to list it here.
  */
 const { open } = usePlayground();
 </script>

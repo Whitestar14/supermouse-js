@@ -5,8 +5,6 @@
  * ordering, prerender route list and per-page "last updated" dates all come
  * from one source of truth. Adding a markdown page with `title` / `section` /
  * `order` is enough — nothing else needs updating by hand.
- *
- * Framework-free so `nuxt.config.ts` can import it directly.
  */
 
 import { execSync } from "child_process";

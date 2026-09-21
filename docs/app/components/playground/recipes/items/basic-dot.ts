@@ -28,15 +28,13 @@ export const basicDotRecipe: PresetRecipe = {
       defaultValue: "normal"
     }
   ],
-  setup: (app, config) => {
-    app.use(
-      Dot({
-        size: () => config.size,
-        color: () => config.color,
-        mixBlendMode: config.mixBlendMode
-      })
-    );
-  },
+  plugins: (config) => [
+    Dot({
+      size: () => config.size,
+      color: () => config.color,
+      mixBlendMode: config.mixBlendMode
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/dot": ["Dot"]

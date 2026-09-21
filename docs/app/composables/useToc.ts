@@ -24,12 +24,8 @@ export function useTocActiveSection() {
 }
 
 /**
- * Highlights the section currently in view.
- *
- * Scrolling is deliberately *not* handled here. Anchor clicks go through the
- * router and every navigation is positioned by `@utils/scroll`, so the rail
- * only has to observe — the previous duplicate copy of the scroll logic (and
- * the "isScrolling" suppression timer it needed) is gone with it.
+ * Highlights the section in view. Scrolling lives in `@utils/scroll`, so the
+ * rail only observes.
  */
 export function useTocScroll(sections: Ref<TocSection[]>) {
   const activeSection = useTocActiveSection();

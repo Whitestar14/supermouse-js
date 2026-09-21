@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
 import DemoStage from "@playground/DemoStage.vue";
-import { DEMOS, createDemoSpec, type DemoSpec } from "@playground/demos";
+import { DEMOS, createDemoSpec, smoothnessPlugin, type DemoSpec } from "@playground/demos";
 
 /**
  * CursorDemo — inline *interactive preview* for docs content.
@@ -38,12 +38,12 @@ const title = computed(() => props.title ?? DEMO_TITLES[props.demo] ?? props.dem
 const spec = reactive<DemoSpec>(createDemoSpec());
 const DEFAULT_SPEC: DemoSpec = { ...spec };
 
-const setup = computed(() => {
+const plugins = computed(() => {
   const factory = DEMOS[props.demo];
   if (!factory) return undefined;
-  // The reactive spec is captured by the closure; getter options read it every
-  // frame, so slider changes are live without re-mounting the stage.
-  return (app: Parameters<typeof factory>[0]) => factory(app, spec);
+  // The reactive spec is read through getters, so slider changes are live
+  // without re-mounting the stage.
+  return () => [smoothnessPlugin(() => spec.smoothness), ...factory(spec)];
 });
 
 watch(
@@ -66,12 +66,7 @@ const trackStyle = (value: number, min: number, max: number) => {
   };
 };
 
-/**
- * The two on-demand toggles share one treatment: a square marker that fills
- * when the panel is open, plus a mono label. That is the same control language
- * as the rest of the docs (see the section headings) — bordered chips read as a
- * second layer of chrome inside a shell that already has a border.
- */
+/** Shared treatment for the drawer toggles: square marker plus mono label. */
 const toggleClass = (open: boolean): string =>
   [
     "flex h-7 items-center gap-2 mono text-[10px] font-bold uppercase tracking-widest transition-colors outline-none",
@@ -187,9 +182,8 @@ const markerClass = (open: boolean): string =>
 
     <!-- Live canvas -->
     <DemoStage
-      v-if="setup"
-      :setup="setup"
-      :smoothness="spec.smoothness"
+      v-if="plugins"
+      :plugins="plugins"
       :bare="true"
       :targets="targetsOpen"
       height-class="h-64 md:h-72"

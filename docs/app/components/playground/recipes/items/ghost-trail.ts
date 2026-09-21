@@ -22,25 +22,21 @@ export const ghostTrailRecipe: PresetRecipe = {
       defaultValue: 0.5
     }
   ],
-  setup: (app, config) => {
-    app.use(Dot({ size: 4, color: () => config.color }));
-    app.use(
-      SmartRing({
-        size: () => config.size,
-        color: () => config.color,
-        mixBlendMode: "normal",
-        enableSkew: true
-      })
-    );
-    app.use(
-      Trail({
-        length: 15,
-        size: () => config.size,
-        color: () => config.color,
-        isEnabled: true
-      })
-    );
-  },
+  plugins: (config) => [
+    Dot({ size: 4, color: () => config.color }),
+    SmartRing({
+      size: () => config.size,
+      color: () => config.color,
+      mixBlendMode: "normal",
+      enableSkew: true
+    }),
+    Trail({
+      length: 15,
+      size: () => config.size,
+      color: () => config.color,
+      isEnabled: true
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/dot": ["Dot"],

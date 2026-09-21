@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-/**
- * The single button primitive for the site.
- *
- * Renders a `NuxtLink` when `to` is set, an external `<a>` when `href` is set,
- * and a native `<button>` otherwise — so the same visual language is used for
- * navigation and actions without repeating the class soup on every page.
- */
+/** One button primitive: `NuxtLink` when `to`, `<a>` when `href`, else `<button>`. */
 type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
 

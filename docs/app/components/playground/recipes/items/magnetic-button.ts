@@ -32,21 +32,14 @@ export const magneticButtonRecipe: PresetRecipe = {
       description: "Capture radius"
     }
   ],
-  setup: (app, config) => {
-    app.use(
-      Magnetic({
-        attraction: () => config.attraction,
-        distance: () => config.distance
-      })
-    );
-    app.use(Dot({ size: 8, color: "#000" }));
-    app.use(Ring({ size: 30, color: "#000" }));
-
-    setTimeout(() => {
-      const btns = document.querySelectorAll("button, [data-hover]");
-      btns.forEach((b) => b.setAttribute("data-supermouse-magnetic", "true"));
-    }, 50);
-  },
+  plugins: (config) => [
+    Magnetic({
+      attraction: () => config.attraction,
+      distance: () => config.distance
+    }),
+    Dot({ size: 8, color: "#000" }),
+    Ring({ size: 30, color: "#000" })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/magnetic": ["Magnetic"],

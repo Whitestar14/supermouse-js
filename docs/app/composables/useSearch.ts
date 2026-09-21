@@ -1,14 +1,7 @@
 /**
- * useSearch — MiniSearch-powered docs search over *sections*, not just pages.
- *
- * The index is built from `/search-index.json`, a prerendered dump of
- * `queryCollectionSearchSections('docs')`. That gives one document per heading
- * (page title, sub-headings and the body text beneath each), so queries match
- * things "in between" page titles — a paragraph or an h3 — and land on the
- * right anchor.
- *
- * The index is fetched the first time the palette opens and cached for the
- * session, so it never adds weight to a page's initial payload.
+ * MiniSearch over *sections* rather than pages: `/search-index.json` holds one
+ * document per heading, so a query can land on a paragraph's anchor instead of
+ * a page top. Fetched on first palette open.
  */
 import { computed, ref, shallowRef } from "vue";
 import MiniSearch from "minisearch";

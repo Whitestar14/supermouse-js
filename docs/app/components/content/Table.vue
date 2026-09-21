@@ -33,11 +33,7 @@
 </template>
 
 <script setup lang="ts">
-/**
- * Table — hairline dividers, one header rule, no filled header band. It is the
- * component counterpart of the markdown tables the typography plugin renders in
- * docs content, so a generated page reads exactly like a written one.
- */
+/** Component counterpart of the markdown table shell (`ProseTable.vue`). */
 export interface TableColumn {
   key: string;
   label: string;

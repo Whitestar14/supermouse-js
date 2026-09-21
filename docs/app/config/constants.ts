@@ -1,14 +1,12 @@
-/**
- * Global application constants and metadata.
- *
- * The version is injected from `packages/core/package.json` at build time
- * (see `vite.define` in nuxt.config.ts) so it can never drift from the release.
- */
+/** Fallback for a build where the define never reached this module; the globals
+ * are always strings in a normal build (see `config/release.ts`). */
+const release: { version: string; releasedAt: string } =
+  typeof __SUPERMOUSE_VERSION__ === "string" && typeof __SUPERMOUSE_RELEASE_AT__ === "string"
+    ? { version: __SUPERMOUSE_VERSION__, releasedAt: __SUPERMOUSE_RELEASE_AT__ }
+    : { version: "2.4.3", releasedAt: "" };
 
-declare const __SUPERMOUSE_VERSION__: string;
-declare const __SUPERMOUSE_RELEASE_AT__: string;
-
-export const APP_VERSION = `v${__SUPERMOUSE_VERSION__}`;export const LAST_RELEASED_AT = __SUPERMOUSE_RELEASE_AT__;
+export const APP_VERSION = `v${release.version}`;
+export const LAST_RELEASED_AT = release.releasedAt;
 
 export function formatRelativeTime(iso: string): string {
   const then = new Date(iso);
@@ -27,11 +25,15 @@ export function formatRelativeTime(iso: string): string {
   const diff = diffMs / minute;
   if (diff < 1) return "just now";
   if (diff < 60) return `${Math.floor(diff)} minute${Math.floor(diff) === 1 ? "" : "s"} ago`;
-  if (diff < 1440) return `${Math.floor(diff / 60)} hour${Math.floor(diff / 60) === 1 ? "" : "s"} ago`;
-  if (diff < 28 * 1440) return `${Math.floor(diff / 1440)} day${Math.floor(diff / 1440) === 1 ? "" : "s"} ago`;
-  if (diff < 12 * 28 * 1440) return `${Math.floor(diff / (7 * 1440))} week${Math.floor(diff / (7 * 1440)) === 1 ? "" : "s"} ago`;
-  if (diff < 24 * 365.25 * 24 * 60) return `${Math.floor(diff / (30.44 * 1440))} month${Math.floor(diff / (30.44 * 1440)) === 1 ? "" : "s"} ago`;
-  return `${Math.floor(diff / (365.25 * 1440))} year${Math.floor(diff / (365.25 * 1440)) === 1 ? "" : "s"} ago`;
+  if (diff < 1440)
+    return `${Math.floor(diff / 60)} hour${Math.floor(diff / 60) === 1 ? "" : "s"} ago`;
+  if (diff < 28 * 1440)
+    return `${Math.floor(diff / 1440)} day${Math.floor(diff / 1440) === 1 ? "" : "s"} ago`;
+  if (diff < 12 * 28 * 1440)
+    return `${Math.floor(diff / week)} week${Math.floor(diff / week) === 1 ? "" : "s"} ago`;
+  if (diff < 12 * month)
+    return `${Math.floor(diff / month)} month${Math.floor(diff / month) === 1 ? "" : "s"} ago`;
+  return `${Math.floor(diff / year)} year${Math.floor(diff / year) === 1 ? "" : "s"} ago`;
 }
 
 export const APP_NAME = "Supermouse.js";

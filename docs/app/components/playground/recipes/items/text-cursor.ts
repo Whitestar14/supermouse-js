@@ -19,15 +19,13 @@ export const textCursorRecipe: PresetRecipe = {
       unit: "px"
     }
   ],
-  setup: (app, config) => {
-    app.use(Dot({ size: 8, color: "#000000" }));
-    app.use(
-      Text({
-        offset: [0, config.offsetY],
-        duration: 200
-      })
-    );
-  },
+  plugins: (config) => [
+    Dot({ size: 8, color: "#000000" }),
+    Text({
+      offset: [0, config.offsetY],
+      duration: 200
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/dot": ["Dot"],

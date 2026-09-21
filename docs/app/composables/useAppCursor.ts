@@ -4,8 +4,6 @@ import { Icon } from "@supermousejs/icon";
 import { Text } from "@supermousejs/text";
 import { States } from "@supermousejs/states";
 import { SpotlightReveal } from "./plugins/spotlight-reveal-plugin";
-// import { GlitchCursor } from "./plugins/glitch-plugin";
-// import { MotionBlur } from "./plugins/motion-blur-plugin";
 
 const LOGO_CURSOR = `
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -109,24 +107,11 @@ export function useAppCursor(): SupermouseContext {
         className: "supermouse-tooltip-cursor"
       }),
       States({
-        default: ["default-icon", "text", "glitch", "motion-blur"],
+        default: ["default-icon", "text"],
         states: {
           "playground-card": ["playground-card-bg", "playground-card-arrow"]
         }
       })
-      // GlitchCursor({
-      //   name: "glitch",
-      //   cursorSize: 15,
-      //   glitchColorB: "#00feff",
-      //   glitchColorR: "#ff4f71"
-      // })
-      // MotionBlur({
-      //   name: "motion-blur",
-      //   cursorSize: 16,
-      //   cursorColor: "#000000",
-      //   intensity: 0.4,
-      //   maxSpread: 60
-      // })
     ]
   );
 }

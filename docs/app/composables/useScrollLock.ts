@@ -1,15 +1,9 @@
 import { onScopeDispose, watch, type Ref } from "vue";
 
 /**
- * Locks page scrolling while an overlay is open (mobile nav, search, editor).
- *
- * `body { overflow: hidden }` alone does **not** work here: Lenis keeps driving
- * the window scroll from its own rAF loop, which is why the mobile menu could
- * still be scrolled behind the overlay. This stops Lenis, hides overflow and
- * compensates for the scrollbar so the layout doesn't shift sideways.
- *
- * A module-level counter means stacked overlays can't unlock each other: the
- * page is only released when the last one closes.
+ * Locks page scrolling while an overlay is open. Hiding overflow is not enough —
+ * Lenis drives the window from its own loop — so this stops Lenis too. The
+ * counter keeps stacked overlays from unlocking each other.
  */
 let locks = 0;
 let previousOverflow = "";

@@ -22,9 +22,8 @@ const copyCommand = (): void => {
 };
 
 /**
- * The sample is the mental model, not decoration: the kernel holds one damped
- * position (`state.smooth`) and the raw pointer (`state.target`), and modules
- * choose which one they render from. `Ring` trails, `Dot` tracks.
+ * The sample is the mental model: one damped position (`smooth`) and the raw
+ * pointer (`target`), with modules choosing which to render from.
  */
 const heroCode = `import { Supermouse } from '@supermousejs/core';
 import { Dot } from '@supermousejs/dot';

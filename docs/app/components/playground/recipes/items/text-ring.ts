@@ -47,19 +47,17 @@ export const textRingRecipe: PresetRecipe = {
     },
     { key: "color", label: "Color", type: "color", defaultValue: "#000000" }
   ],
-  setup: (app, config) => {
-    app.use(Dot({ size: 6, color: () => config.color }));
-    app.use(
-      TextRing({
-        text: () => config.text,
-        radius: () => config.radius,
-        fontSize: () => config.fontSize,
-        speed: () => config.speed,
-        color: () => config.color,
-        spread: config.spread
-      })
-    );
-  },
+  plugins: (config) => [
+    Dot({ size: 6, color: () => config.color }),
+    TextRing({
+      text: () => config.text,
+      radius: () => config.radius,
+      fontSize: () => config.fontSize,
+      speed: () => config.speed,
+      color: () => config.color,
+      spread: config.spread
+    })
+  ],
   generateAST: (config) => ({
     imports: {
       "@supermousejs/dot": ["Dot"],

@@ -8,12 +8,8 @@ const { query, results, isLoading } = useSearch();
 const searchInput = ref<HTMLInputElement | null>(null);
 const selectedIndex = ref(0);
 
-/*
- * The index is small enough to build in a few milliseconds, which made the
- * loading state flash by unseen. We hold the loader for a short floor so the
- * state change is legible, but never longer than the index actually takes plus
- * that floor — opening the palette a second time (index cached) shows nothing.
- */
+/* The index builds in a few ms, so the loader would flash unseen; hold it for a
+ * floor. A cached second open skips it entirely. */
 const LOADER_FLOOR_MS = 700;
 const showLoader = ref(false);
 let loaderTimer: ReturnType<typeof setTimeout> | null = null;
