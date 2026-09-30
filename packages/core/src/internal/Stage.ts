@@ -89,12 +89,10 @@ export class Stage {
     return this.container;
   }
 
-  /** Full selector prefix: `.supermouse-scope-N.supermouse-hide-N`. */
   getRulePrefix(): string {
     return `.${this.scopeClass}.${this.hideClass}`;
   }
 
-  /** CSS `:not()` chain that prevents the rules from leaking into nested scopes. */
   getExclusion(): string {
     return `:not(.${this.scopeClass} .supermouse-scope):not(.${this.scopeClass} .supermouse-scope *)`;
   }

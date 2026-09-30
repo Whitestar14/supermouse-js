@@ -19,21 +19,6 @@ describe("Supermouse cursor modes", () => {
     app = new Supermouse({ container, cursor, autoStart: false });
   }
 
-  // jsdom doesn't apply UA stylesheets, so it can't verify that a plain
-  // <input type="text"> with no explicit cursor falls back to native.
-  // That path relies on the browser's UA `input { cursor: text }` rule,
-  // which the probe reads under the class-toggle approach. Verifying it
-  // requires the browser automation matrix (§5.4).
-  //
-  // The three tests above approximate the path by setting cursor: text
-  // inline, which exercises the probe and the fallback decision without
-  // depending on UA behavior.
-
-  it.skip("auto mode falls back on a bare <input> with no explicit cursor (browser only)", () => {
-    // Skipped: jsdom doesn't apply UA stylesheets. See comment above.
-    // Re-enable when browser automation lands.
-  });
-
   it("auto mode marks native inputs as isNative and hides custom stage", () => {
     createApp("auto");
     const input = document.createElement("input");

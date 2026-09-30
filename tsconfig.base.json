@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "stripInternal": true,
 
     /* Linting */
     "strict": true,

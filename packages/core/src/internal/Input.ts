@@ -10,6 +10,7 @@ export class Input {
   private dataPrefix: string;
   private normalizedDataPrefix: string;
   private ignoreAttribute: string;
+  private probeAttribute: string;
 
   private activeScope: Scope | null = null;
 
@@ -40,7 +41,7 @@ export class Input {
     this.dataPrefix = options.dataPrefix ?? "supermouse";
     this.normalizedDataPrefix = this.dataPrefix.toLowerCase();
     this.ignoreAttribute = `data-${this.dataPrefix}-ignore`;
-
+    this.probeAttribute = `data-${this.dataPrefix}-probe`;
     this.checkDeviceCapability();
     this.checkMotionPreference();
     this.bindEvents();
@@ -63,7 +64,7 @@ export class Input {
   }
 
   private applyPointerToState(): void {
-    const container = this.activeScope?.container ?? document.body;
+    const container = this.activeScope?.stage.containerElement ?? document.body;
     if (container === document.body) {
       this.state.pointer.x = this.viewportX;
       this.state.pointer.y = this.viewportY;
@@ -100,10 +101,26 @@ export class Input {
     this.onEnableChange(enabled);
   }
 
+  /**
+   * Recomputes hover state against the element currently under the pointer.
+   * Called after a programmatic scope transition — the mouseover path
+   * handles this itself, but the three engine-initiated transitions don't
+   * fire a mouseover.
+   */
+  public resettle(): void {
+    if (!this.hasSeenPointer) return;
+    const el = document.elementFromPoint(this.viewportX, this.viewportY);
+    if (el) {
+      this.settleHoverState(el as HTMLElement);
+    } else {
+      this.clearHover();
+    }
+  }
+
   public parseDOMInteraction(element: HTMLElement): void {
     if (!this.activeScope) return;
 
-    const root = this.activeScope.container;
+    const root = this.activeScope.stage.containerElement;
     const inheritData = this.activeScope.inheritDataAttributes;
     const pre = this.normalizedDataPrefix;
     const ruleEntries = this.activeScope.ruleEntries;
@@ -172,16 +189,12 @@ export class Input {
     }
   }
 
-  /**
-   * Reads the element's authored cursor value without our own suppression
-   * interfering.
-   */
   private resolveAuthoredCursor(target: HTMLElement): string {
-    target.setAttribute("data-sm-probe", "");
+    target.setAttribute(this.probeAttribute, "");
     try {
       return window.getComputedStyle(target).cursor;
     } finally {
-      target.removeAttribute("data-sm-probe");
+      target.removeAttribute(this.probeAttribute);
     }
   }
 
@@ -300,8 +313,6 @@ export class Input {
       this.cachedChain = [];
     }
 
-    // Pointer left the window entirely. Uses mouseout + null relatedTarget
-    // rather than mouseleave; the latter does not fire reliably in Firefox.
     if (!related && this.options.hideOnLeave) {
       this.state.hasReceivedInput = false;
       this.state.pointer = { ...OFFSCREEN };

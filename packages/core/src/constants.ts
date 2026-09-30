@@ -13,12 +13,6 @@ export const SUPERMOUSE_CURSORS = new Set([
 
 /**
  * Selectors whose elements yield to the OS cursor in `"auto"` mode.
- *
- * The engine emits one wildcard rule per scope that suppresses the native
- * cursor over every element (with `!important`, exclusions, and the probe
- * attribute opt-out). This list is the exception: elements matching these
- * selectors override the wildcard and let the OS cursor through.
- *
  */
 export const DEFAULT_NATIVE_CURSOR_SELECTORS = ["input", "textarea", "select", "[contenteditable]"];
 

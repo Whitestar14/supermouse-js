@@ -1,5 +1,5 @@
 export { Supermouse, DEFAULT_HOVER_SELECTORS } from "./Supermouse";
-export type { SupermouseInstance, ScopeHandle } from "./Supermouse";
+export type { SupermouseInstance } from "./Supermouse";
 
 export type {
   SupermouseOptions,

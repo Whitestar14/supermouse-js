@@ -46,10 +46,10 @@ describe("Native cursor selectors", () => {
 
   it("default natives are select and [contenteditable]", () => {
     expect(DEFAULT_NATIVE_CURSOR_SELECTORS).toEqual([
-      "select",
-      "[contenteditable]",
       "input",
-      "textarea"
+      "textarea",
+      "select",
+      "[contenteditable]"
     ]);
   });
 
