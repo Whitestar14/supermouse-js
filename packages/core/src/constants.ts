@@ -1,15 +1,15 @@
- /** Off-screen park position before input arrives or after pointer leaves viewport. */
- export const OFFSCREEN = { x: -100, y: -100 } as const;
+/** Off-screen park position before input arrives or after pointer leaves viewport. */
+export const OFFSCREEN = { x: -100, y: -100 } as const;
 
- export const SUPERMOUSE_CURSORS = new Set([
-   "default",
-   "auto",
-   "pointer",
-   "none",
-   "inherit",
-   "grab",
-   "grabbing"
- ]);
+export const SUPERMOUSE_CURSORS = new Set([
+  "default",
+  "auto",
+  "pointer",
+  "none",
+  "inherit",
+  "grab",
+  "grabbing"
+]);
 
 /**
  * Selectors whose elements yield to the OS cursor in `"auto"` mode.
@@ -19,19 +19,14 @@
  * attribute opt-out). This list is the exception: elements matching these
  * selectors override the wildcard and let the OS cursor through.
  *
- * `input` and `textarea` are not listed. Their UA cursor is `text`, which
- * is not in `SUPERMOUSE_CURSORS`, so the probe already treats them as
- * fallback candidates. `select` and `[contenteditable]` have UA cursors
- * (`default`, `auto`) that the probe classifies as non-fallback, so they
- * need explicit entries.
  */
-export const DEFAULT_NATIVE_CURSOR_SELECTORS = ["select", "[contenteditable]"];
+export const DEFAULT_NATIVE_CURSOR_SELECTORS = ["input", "textarea", "select", "[contenteditable]"];
 
- export const DEFAULT_HOVER_SELECTORS = [
-   "a",
-   "button",
-   "input",
-   "textarea",
-   "[data-hover]",
-   "[data-cursor]"
- ];
+export const DEFAULT_HOVER_SELECTORS = [
+  "a",
+  "button",
+  "input",
+  "textarea",
+  "[data-hover]",
+  "[data-cursor]"
+];
