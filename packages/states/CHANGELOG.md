@@ -1,5 +1,13 @@
 # @supermousejs/states
 
+## 2.4.4-beta.5
+
+### Patch Changes
+
+- Updated dependencies [d82c62d]
+  - @supermousejs/utils@2.4.4-beta.5
+  - @supermousejs/core@2.5.0-beta.5
+
 ## 2.4.4-beta.4
 
 ### Patch Changes
