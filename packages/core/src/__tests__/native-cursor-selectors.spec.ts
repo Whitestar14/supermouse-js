@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, beforeEach } from "vitest";
 import { Supermouse } from "../Supermouse";
 import { DEFAULT_NATIVE_CURSOR_SELECTORS } from "../constants";
+import { hover } from "./helpers";
 
 describe("Native cursor selectors", () => {
   let app: Supermouse;
@@ -16,10 +17,6 @@ describe("Native cursor selectors", () => {
     document.body.innerHTML = "";
     document.head.innerHTML = "";
   });
-
-  function hover(el: HTMLElement) {
-    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-  }
 
   it("custom native selector triggers fallback in auto mode", () => {
     app = new Supermouse({
@@ -48,7 +45,12 @@ describe("Native cursor selectors", () => {
   });
 
   it("default natives are select and [contenteditable]", () => {
-    expect(DEFAULT_NATIVE_CURSOR_SELECTORS).toEqual(["select", "[contenteditable]"]);
+    expect(DEFAULT_NATIVE_CURSOR_SELECTORS).toEqual([
+      "select",
+      "[contenteditable]",
+      "input",
+      "textarea"
+    ]);
   });
 
   it("select triggers fallback via the default native list", () => {

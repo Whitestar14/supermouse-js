@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { Supermouse } from "../Supermouse";
+import { hasHideClass } from "./helpers";
 
 describe("Nested scope handling", () => {
   let app: Supermouse;
@@ -9,9 +10,6 @@ describe("Nested scope handling", () => {
     document.body.innerHTML = "";
     document.head.innerHTML = "";
   });
-
-  const hasHide = (el: HTMLElement) =>
-    Array.from(el.classList).some((c) => c.startsWith("supermouse-hide-"));
 
   it("nested scope with cursor 'both' has no hide class of its own", () => {
     app = new Supermouse({ container: document.body, cursor: "auto", autoStart: false });
@@ -23,7 +21,7 @@ describe("Nested scope handling", () => {
 
     app.setCursor("custom");
     app.step(performance.now() + 16);
-    expect(hasHide(document.body)).toBe(true);
+    expect(hasHideClass(document.body)).toBe(true);
 
     preview.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     app.step(performance.now() + 16);
@@ -31,7 +29,7 @@ describe("Nested scope handling", () => {
     // The preview scope is in "both" mode; it does not suppress.
     // The cascade that lets the native cursor through is verified in
     // the browser spike, not here.
-    expect(hasHide(preview)).toBe(false);
+    expect(hasHideClass(preview)).toBe(false);
     expect(app.state.cursorMode).toBe("both");
   });
 

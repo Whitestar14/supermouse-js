@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { Supermouse } from "../Supermouse";
+import { hover, movePointer } from "./helpers";
 
 describe("Canonical behavior contracts", () => {
   let app: Supermouse;
@@ -16,20 +17,6 @@ describe("Canonical behavior contracts", () => {
     document.head.innerHTML = "";
     vi.restoreAllMocks();
   });
-
-  function move(x: number, y: number) {
-    window.dispatchEvent(
-      new PointerEvent("pointermove", {
-        clientX: x,
-        clientY: y,
-        pointerType: "mouse"
-      })
-    );
-  }
-
-  function hover(el: HTMLElement) {
-    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-  }
 
   // ────────────────────────────────────────────────────────────────
   // Update loop ordering
@@ -181,7 +168,7 @@ describe("Canonical behavior contracts", () => {
 
     it("first pointer move snaps target and smooth to pointer (no sweep)", () => {
       app = new Supermouse({ container, autoStart: false });
-      move(250, 250);
+      movePointer(250, 250);
 
       expect(app.state.pointer).toEqual({ x: 250, y: 250 });
       expect(app.state.target).toEqual({ x: 250, y: 250 });
@@ -345,7 +332,7 @@ describe("Canonical behavior contracts", () => {
   describe("enable / disable / reset", () => {
     it("enable() snaps target and smooth to last pointer position", () => {
       app = new Supermouse({ container, autoStart: false });
-      move(300, 400);
+      movePointer(300, 400);
       app.disable();
       app.enable();
 
@@ -356,7 +343,7 @@ describe("Canonical behavior contracts", () => {
 
     it("disable() stops input but keeps state", () => {
       app = new Supermouse({ container, autoStart: false });
-      move(100, 100);
+      movePointer(100, 100);
       app.step(performance.now() + 16);
       const targetBefore = { ...app.state.target };
       const smoothBefore = { ...app.state.smooth };
@@ -370,7 +357,7 @@ describe("Canonical behavior contracts", () => {
 
     it("disable({ reset: true }) clears physics state", () => {
       app = new Supermouse({ container, autoStart: false });
-      move(100, 100);
+      movePointer(100, 100);
       app.step(performance.now() + 16);
 
       app.disable({ reset: true });
@@ -382,7 +369,7 @@ describe("Canonical behavior contracts", () => {
 
     it("reset() clears physics and interaction, leaves input alone", () => {
       app = new Supermouse({ container, autoStart: false });
-      move(100, 100);
+      movePointer(100, 100);
       app.step(performance.now() + 16);
 
       app.reset();
@@ -401,7 +388,7 @@ describe("Canonical behavior contracts", () => {
   describe("hideOnLeave", () => {
     it("mouseout with null relatedTarget resets pointer and flag", () => {
       app = new Supermouse({ container, autoStart: false, hideOnLeave: true });
-      move(100, 100);
+      movePointer(100, 100);
       expect(app.state.hasReceivedInput).toBe(true);
 
       document.dispatchEvent(new MouseEvent("mouseout", { relatedTarget: null }));
@@ -412,7 +399,7 @@ describe("Canonical behavior contracts", () => {
 
     it("does not fire when hideOnLeave: false", () => {
       app = new Supermouse({ container, autoStart: false, hideOnLeave: false });
-      move(100, 100);
+      movePointer(100, 100);
 
       document.dispatchEvent(new MouseEvent("mouseout", { relatedTarget: null }));
 

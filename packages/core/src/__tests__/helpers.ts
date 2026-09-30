@@ -24,6 +24,16 @@ export function movePointer(
   window.dispatchEvent(new PointerEvent("pointermove", { clientX: x, clientY: y, pointerType }));
 }
 
+/** Dispatches a synthetic pointerdown event on window. */
+export function dispatchPointerDown(pointerType: "mouse" | "touch" | "pen" = "mouse"): void {
+  window.dispatchEvent(new PointerEvent("pointerdown", { pointerType }));
+}
+
+/** Dispatches a synthetic pointerup event on window. */
+export function dispatchPointerUp(pointerType: "mouse" | "touch" | "pen" = "mouse"): void {
+  window.dispatchEvent(new PointerEvent("pointerup", { pointerType }));
+}
+
 /** Dispatches a synthetic mouseover event on the element. */
 export function hover(el: Element): void {
   el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));

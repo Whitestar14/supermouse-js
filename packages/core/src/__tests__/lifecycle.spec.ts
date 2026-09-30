@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { movePointer } from "./helpers";
+import { hasClassPrefix, movePointer } from "./helpers";
 import { Supermouse } from "../Supermouse";
 
 describe("Supermouse lifecycle", () => {
@@ -18,9 +18,6 @@ describe("Supermouse lifecycle", () => {
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
-
-  const hasClassPrefix = (el: HTMLElement, prefix: string) =>
-    Array.from(el.classList).some((c) => c.startsWith(prefix));
 
   it("auto-starts the loop when autoStart is true", () => {
     const startLoopSpy = vi.spyOn(Supermouse.prototype as any, "startLoop");

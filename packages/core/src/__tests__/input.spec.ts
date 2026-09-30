@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi, beforeEach } from "vitest";
 import { Supermouse } from "../Supermouse";
+import { dispatchPointerDown, dispatchPointerUp, hover, movePointer, unhover } from "./helpers";
 
 describe("Supermouse input handling", () => {
   let app: Supermouse;
@@ -19,45 +20,15 @@ describe("Supermouse input handling", () => {
     vi.restoreAllMocks();
   });
 
-  function dispatchPointerMove(x: number, y: number, pointerType = "mouse") {
-    const event = new PointerEvent("pointermove", {
-      clientX: x,
-      clientY: y,
-      pointerType,
-      bubbles: true
-    });
-    window.dispatchEvent(event);
-  }
-
-  function dispatchPointerDown() {
-    window.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "mouse", bubbles: true }));
-  }
-
-  function dispatchPointerUp() {
-    window.dispatchEvent(new PointerEvent("pointerup", { pointerType: "mouse", bubbles: true }));
-  }
-
-  function dispatchMouseOver(target: HTMLElement) {
-    target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-  }
-
-  function dispatchMouseOut(target: HTMLElement, relatedTarget?: Node) {
-    const event = new MouseEvent("mouseout", {
-      bubbles: true,
-      relatedTarget: relatedTarget ?? null
-    });
-    target.dispatchEvent(event);
-  }
-
   it("updates pointer and sets hasReceivedInput on first move", () => {
-    dispatchPointerMove(100, 150);
+    movePointer(100, 150);
     expect(app.state.pointer).toEqual({ x: 100, y: 150 });
     expect(app.state.hasReceivedInput).toBe(true);
   });
 
   it("continues updating pointer on subsequent moves", () => {
-    dispatchPointerMove(100, 150);
-    dispatchPointerMove(200, 250);
+    movePointer(100, 150);
+    movePointer(200, 250);
     expect(app.state.pointer).toEqual({ x: 200, y: 250 });
   });
 
@@ -81,7 +52,7 @@ describe("Supermouse input handling", () => {
     app.destroy();
     app = new Supermouse({ container, autoStart: false });
 
-    dispatchPointerMove(50, 60, "touch");
+    movePointer(50, 60, "touch");
     // Touch should be ignored, so pointer remains offscreen
     expect(app.state.pointer).toEqual({ x: -100, y: -100 });
     expect(app.state.hasReceivedInput).toBe(false);
@@ -101,7 +72,7 @@ describe("Supermouse input handling", () => {
     link.setAttribute("data-supermouse-magnetic", ""); // empty becomes true
     container.appendChild(link);
 
-    dispatchMouseOver(link);
+    hover(link);
 
     expect(app.state.isHover).toBe(true);
     expect(app.state.hoverTarget).toBe(link);
@@ -116,10 +87,10 @@ describe("Supermouse input handling", () => {
     const link = document.createElement("a");
     container.appendChild(link);
 
-    dispatchMouseOver(link);
+    hover(link);
     expect(app.state.isHover).toBe(true);
 
-    dispatchMouseOut(link);
+    unhover(link);
     expect(app.state.isHover).toBe(false);
     expect(app.state.hoverTarget).toBeNull();
     expect(app.state.interaction).toEqual({});
@@ -129,7 +100,7 @@ describe("Supermouse input handling", () => {
     const input = document.createElement("input");
     container.appendChild(input);
     input.style.cursor = "text";
-    dispatchMouseOver(input);
+    hover(input);
 
     expect(app.state.isNative).toBe(true);
   });
@@ -139,7 +110,7 @@ describe("Supermouse input handling", () => {
     div.style.cursor = "text"; // not in SUPERMOUSE_CURSORS
     container.appendChild(div);
 
-    dispatchMouseOver(div);
+    hover(div);
 
     expect(app.state.isNative).toBe(true);
   });
@@ -149,7 +120,7 @@ describe("Supermouse input handling", () => {
     // default cursor is auto/default, which is in SUPERMOUSE_CURSORS
     container.appendChild(div);
 
-    dispatchMouseOver(div);
+    hover(div);
 
     expect(app.state.isNative).toBe(false);
   });
@@ -159,7 +130,7 @@ describe("Supermouse input handling", () => {
     div.setAttribute("data-supermouse-ignore", "");
     container.appendChild(div);
 
-    dispatchMouseOver(div);
+    hover(div);
 
     expect(app.state.isNative).toBe(true);
   });
@@ -168,14 +139,14 @@ describe("Supermouse input handling", () => {
     const span = document.createElement("span");
     container.appendChild(span);
 
-    dispatchMouseOver(span);
+    hover(span);
 
     expect(app.state.isHover).toBe(false);
     expect(app.state.hoverTarget).toBeNull();
   });
 
   it("resets pointer to offscreen on document mouseleave when hideOnLeave is true", () => {
-    dispatchPointerMove(100, 100);
+    movePointer(100, 100);
     expect(app.state.pointer).toEqual({ x: 100, y: 100 });
 
     const leaveEvent = new MouseEvent("mouseout", { relatedTarget: null });
@@ -189,7 +160,7 @@ describe("Supermouse input handling", () => {
     app.destroy();
     app = new Supermouse({ container, autoStart: false, hideOnLeave: false });
 
-    dispatchPointerMove(100, 100);
+    movePointer(100, 100);
     const leaveEvent = new MouseEvent("mouseout", { relatedTarget: null });
     document.dispatchEvent(leaveEvent);
 
@@ -213,7 +184,7 @@ describe("Supermouse input handling", () => {
 
     window.dispatchEvent(new Event("resize"));
 
-    dispatchPointerMove(250, 350);
+    movePointer(250, 350);
 
     expect(app.state.pointer).toEqual({ x: 50, y: 50 });
   });
@@ -234,7 +205,7 @@ describe("Supermouse input handling", () => {
     const parseSpy = vi.spyOn(input, "parseDOMInteraction");
 
     // Hover the inner button (inside ignored area)
-    innerButton.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    hover(innerButton);
 
     // Expect no interaction parsing
     expect(parseSpy).not.toHaveBeenCalled();
@@ -249,7 +220,7 @@ describe("Supermouse input handling", () => {
     // Now move to a normal element outside ignored area
     const normalButton = document.createElement("button");
     container.appendChild(normalButton);
-    normalButton.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    hover(normalButton);
 
     // Normal behavior should resume
     expect(app.state.isNative).toBe(false);
@@ -264,7 +235,7 @@ describe("Supermouse input handling", () => {
     const p = document.createElement("p");
     container.appendChild(p);
 
-    p.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    hover(p);
 
     expect(app.state.pointerTarget).toBe(p);
     expect(app.state.hoverTarget).toBeNull();
@@ -275,7 +246,7 @@ describe("Supermouse input handling", () => {
     const p = document.createElement("p");
     container.appendChild(p);
 
-    p.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    hover(p);
     expect(app.state.pointerTarget).toBe(p);
 
     p.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }));
