@@ -1,5 +1,13 @@
 # @supermousejs/dot
 
+## 2.4.4-beta.6
+
+### Patch Changes
+
+- Updated dependencies [187e451]
+  - @supermousejs/core@2.5.0-beta.6
+  - @supermousejs/utils@2.4.4-beta.6
+
 ## 2.4.4-beta.5
 
 ### Patch Changes

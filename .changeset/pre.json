@@ -16,10 +16,12 @@
     "@supermousejs/text": "2.4.3",
     "@supermousejs/trail": "2.4.3",
     "@supermousejs/utils": "2.4.3",
-    "@supermousejs/vue": "2.4.3"
+    "@supermousejs/vue": "2.4.3",
+    "@supermousejs/browser-tests": "0.0.0"
   },
   "changesets": [
     "fruity-clouds-grab",
+    "happy-rocks-shine",
     "heavy-balloons-judge",
     "lazy-trains-rescue",
     "pretty-times-own",

@@ -1,5 +1,17 @@
 # @supermousejs/core
 
+## 2.5.0-beta.6
+
+### Patch Changes
+
+- 187e451: Restore `input` and `textarea` to `DEFAULT_NATIVE_CURSOR_SELECTORS`.
+
+  Beta.5 removed them on the assumption that the probe would catch them via
+  their UA `cursor: text` value. Browser testing showed WebKit doesn't
+  set a UA cursor on form controls — the computed value is `auto` — so
+  the probe doesn't fire there and the custom cursor showed over form
+  fields in Safari.
+
 ## 2.5.0-beta.5
 
 ### Patch Changes
