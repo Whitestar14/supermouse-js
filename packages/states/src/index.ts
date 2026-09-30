@@ -17,19 +17,22 @@ export interface StatesOptions {
  * Hovers over `[data-supermouse-state="foo"]` enable the plugin list
  * registered for `"foo"`. Everything else falls back to `default`.
  *
- * Install this **after** all plugins it manages, or initialization will
- * miss plugins that haven't been registered yet.
+ * States re-evaluates every frame, so it can be installed at any point in
+ * the plugin registration order. Managed plugins installed after States
+ * are picked up on the next frame.
+ *
+ * States is authoritative for `isEnabled` on the plugins it manages.
+ * Manually calling `app.enablePlugin()` or `app.disablePlugin()` on a
+ * managed plugin will be reverted on the next frame if it disagrees with
+ * the current state.
  */
 export const States = (options: StatesOptions) => {
   const attr = options.attribute ?? "data-supermouse-state";
   const defaultSet = new Set(options.default);
 
-  // Every plugin this instance ever touches
   const managed = new Set<string>();
   Object.values(options.states).forEach((list) => list.forEach((p) => managed.add(p)));
   options.default.forEach((p) => managed.add(p));
-
-  let currentState = "__UNINITIALIZED__";
 
   return definePlugin(
     {
@@ -52,8 +55,6 @@ export const States = (options: StatesOptions) => {
           }
         }
 
-        if (nextState === currentState) return;
-
         const active = nextState === "default" ? options.default : options.states[nextState];
 
         for (const name of managed) {
@@ -66,12 +67,9 @@ export const States = (options: StatesOptions) => {
           if (shouldBe && !isEnabled) app.enablePlugin(name);
           if (!shouldBe && isEnabled) app.disablePlugin(name);
         }
-
-        currentState = nextState;
       },
 
       destroy(app) {
-        // Restore defaults on teardown so the app isn't left half-broken
         for (const name of managed) {
           const plugin = app.getPlugin(name);
           if (!plugin) continue;
