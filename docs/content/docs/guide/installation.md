@@ -5,7 +5,7 @@ section: Guide
 order: 2
 ---
 
-## Package manager
+## Via package manager
 
 The engine and every other other plugin are separate packages, so you only pay for what you
 register. Start with the core plus one shape plugin:
@@ -48,14 +48,16 @@ namespace:
 If your UMD globals differ, check the `unpkg`/`jsdelivr` field in each
 package's `package.json` before copying the snippet.
 
-## Mounting
+## Mounting the app
 
-Create one instance per page and keep a reference to it:
+Create one instance per page preferably at the root of your project(e.g. `App.vue` or `index.html`) and keep a reference to it:
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
 import { Dot } from "@supermousejs/dot";
 import { Ring } from "@supermousejs/ring";
+import { Flow } from "@xyz/flow";
+import { Vacuum } from "@xyz/vacuum";
 
 const app = new Supermouse({
   smoothness: 0.15,
@@ -64,14 +66,13 @@ const app = new Supermouse({
 });
 
 // Registering later works too, and is chainable with `.use`:
-// app.use(Ring({ size: 24 })).use(Dot({ size: 8 }));
+// app.use(Flow()).use(Vacuum());
 ```
 
-`cursor: "auto"` is the default and the best starting point, this option has it that the engine hides
-the OS pointer over interactive elements and restores it over text inputs,
+`cursor: "auto"` is the default and the best starting point, this option has the engine hide
+the OS pointer over interactive elements and restore it over text inputs,
 `select` elements and anything marked with
-[`data-supermouse-ignore`](/docs/guide/usage#opting-out). Use
-`cursor: "custom"` only when you want the native pointer suppressed everywhere.
+[`data-supermouse-ignore`](/docs/guide/usage#opting-out). You can learn more other options this can be set in [cursor constructor options](/docs/reference/options#cursor).
 
 ## Cleanup
 
@@ -85,7 +86,7 @@ onUnmounted(() => {
 });
 ```
 
-The [Vue](/docs/integrations/vue) / [React](/docs/integrations/react) adapters automatically do this for you. If you mount manually inside a
+The [Vue](/docs/integrations/vue) / [React](/docs/integrations/react) adapters automatically do this for you if you use them. If you mount manually inside a
 component that re-mounts (e.g. React Strict Mode, HMR), forgetting `destroy()` is the
 most common cause of duplicated cursors in UI frameworks — see
 [Troubleshooting](/docs/guide/troubleshooting) if you run into any issues.

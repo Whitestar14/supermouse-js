@@ -107,7 +107,7 @@
     --grid-color: #1c1c20;
     --grid-color-soft: #16161a;
 
-    --color-code-surface: #14141a;
+    --color-code-surface: hsl(0, 0%, 10%);
   }
 
   .header-shell {

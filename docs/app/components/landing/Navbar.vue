@@ -46,8 +46,7 @@ const navLinkClass = (path: string): string =>
     : "text-subtle hover:text-inverse";
 
 const logoCursorText = computed(() => {
-  if (!mouse.value) return "Loading...";
-  return cursorEnabled.value ? "Switch to Native" : "Switch to Supermouse";
+  return mouse.value === null ? "Loading..." : "Switch to Native";
 });
 
 const toggleMenu = () => {
@@ -73,7 +72,7 @@ const triggerSpin = () => {
       <!-- 1. Cursor toggle -->
       <button
         type="button"
-        class="w-20 md:w-24 border-r border-border flex items-center justify-center shrink-0 bg-surface hover:bg-surface-muted transition-colors outline-none"
+        class="w-20 md:w-24 border-r border-border flex items-center justify-center shrink-0 bg-surface hover:bg-surface-muted transition-colors cursor-pointer outline-none"
         aria-label="Toggle cursor mode"
         :data-supermouse-text="logoCursorText"
         @click="triggerSpin"
@@ -81,7 +80,7 @@ const triggerSpin = () => {
         <div class="group block p-4 pointer-events-none">
           <div
             class="w-8 h-8 transition-all duration-500 ease-out"
-            :class="isSpinning ? 'rotate-[315deg] scale-125' : '-rotate-45 group-hover:scale-110'"
+            :class="isSpinning ? 'rotate-315 scale-125' : '-rotate-45 group-hover:scale-110'"
           >
             <svg
               viewBox="0 0 32 32"
