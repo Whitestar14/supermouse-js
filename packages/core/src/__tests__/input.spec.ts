@@ -258,4 +258,99 @@ describe("Supermouse input handling", () => {
     // Interaction parsing should happen again
     expect(parseSpy).toHaveBeenCalled();
   });
+
+  it("pointerTarget is the raw element under the pointer", () => {
+    app = new Supermouse({ autoStart: false });
+    const p = document.createElement("p");
+    container.appendChild(p);
+
+    p.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(app.state.pointerTarget).toBe(p);
+    expect(app.state.hoverTarget).toBeNull();
+  });
+
+  it("pointerTarget clears on mouseout", () => {
+    app = new Supermouse({ autoStart: false });
+    const p = document.createElement("p");
+    container.appendChild(p);
+
+    p.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.pointerTarget).toBe(p);
+
+    p.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }));
+    expect(app.state.pointerTarget).toBeNull();
+  });
+
+  it("pointerTarget and hoverTarget can differ", () => {
+    app = new Supermouse({ autoStart: false });
+    const a = document.createElement("a");
+    const span = document.createElement("span");
+    a.appendChild(span);
+    container.appendChild(a);
+
+    span.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(app.state.pointerTarget).toBe(span);
+    expect(app.state.hoverTarget).toBe(a);
+  });
+
+  it("probe attribute is removed after reading", () => {
+    app = new Supermouse({ autoStart: false });
+    const div = document.createElement("div");
+    div.style.cursor = "crosshair";
+    container.appendChild(div);
+
+    div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    // The probe runs internally; the attribute should be gone by now.
+    expect(div.hasAttribute("data-sm-probe")).toBe(false);
+  });
+
+  it("isNative triggers when the authored cursor is exotic", () => {
+    // jsdom can't compute stylesheets, but it CAN return inline cursor.
+    app = new Supermouse({ autoStart: false });
+    const div = document.createElement("div");
+    div.style.cursor = "crosshair";
+    container.appendChild(div);
+
+    div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(app.state.isNative).toBe(true);
+  });
+
+  it("populates authoredCursor on pointerTarget change in any mode", () => {
+    // "custom" mode — the core does not consult the value for isNative.
+    app = new Supermouse({ autoStart: false, cursor: "custom" });
+    const div = document.createElement("div");
+    div.style.cursor = "crosshair";
+    container.appendChild(div);
+
+    div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(app.state.authoredCursor).toBe("crosshair");
+  });
+
+  it("clears authoredCursor on mouseout", () => {
+    app = new Supermouse({ autoStart: false });
+    const div = document.createElement("div");
+    div.style.cursor = "crosshair";
+    container.appendChild(div);
+
+    div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.authoredCursor).toBe("crosshair");
+
+    div.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }));
+    expect(app.state.authoredCursor).toBeNull();
+  });
+
+  it("removes the probe attribute after reading", () => {
+    app = new Supermouse({ autoStart: false });
+    const div = document.createElement("div");
+    container.appendChild(div);
+
+    div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(div.hasAttribute("data-sm-probe")).toBe(false);
+  });
 });

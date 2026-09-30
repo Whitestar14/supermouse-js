@@ -118,13 +118,14 @@ export class Scope {
   buildRules(): string[] {
     const prefix = this.stage.getRulePrefix();
     const exclusion = this.stage.getExclusion();
+    const probe = ":not([data-sm-probe])";
     const rules: string[] = [
-      `${prefix}${exclusion} { cursor: none !important; }`,
-      `${prefix} *${exclusion} { cursor: none !important; }`
+      `${prefix}${exclusion}${probe} { cursor: none !important; }`,
+      `${prefix} *${exclusion}${probe} { cursor: none !important; }`
     ];
 
     for (const selector of this.hideSelectors) {
-      rules.push(`${prefix} ${selector}${exclusion} { cursor: none !important; }`);
+      rules.push(`${prefix} ${selector}${exclusion}${probe} { cursor: none !important; }`);
     }
 
     rules.push(

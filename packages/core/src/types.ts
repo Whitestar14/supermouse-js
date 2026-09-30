@@ -123,6 +123,16 @@ export interface MouseState {
   isNative: boolean;
   /** Current cursor mode: auto, custom, native, or both. */
   cursorMode: CursorMode;
+  /**
+   * The raw element currently under the pointer, regardless of whether it
+   * matches any hover selector.
+   */
+  pointerTarget: HTMLElement | null;
+  /**
+   * The authored cursor value at `pointerTarget`, resolved as if
+   * Supermouse's suppression were not active.
+   */
+  authoredCursor: string | null;
   /** Currently hovered DOM element, if any. */
   hoverTarget: HTMLElement | null;
   /** User has `prefers-reduced-motion` enabled. */

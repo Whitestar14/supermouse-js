@@ -172,8 +172,17 @@ export class Input {
     }
   }
 
-  private resolveComputedCursor(target: HTMLElement): string {
-    return window.getComputedStyle(target).cursor;
+  /**
+   * Reads the element's authored cursor value without our own suppression
+   * interfering.
+   */
+  private resolveAuthoredCursor(target: HTMLElement): string {
+    target.setAttribute("data-sm-probe", "");
+    try {
+      return window.getComputedStyle(target).cursor;
+    } finally {
+      target.removeAttribute("data-sm-probe");
+    }
   }
 
   private handleMove = (e: PointerEvent): void => {
@@ -239,6 +248,9 @@ export class Input {
     this.state.isNative = false;
     this.nativeTarget = null;
     this.currentTarget = target;
+    this.state.pointerTarget = target;
+    const authored = this.resolveAuthoredCursor(target);
+    this.state.authoredCursor = authored;
     this.parseDOMInteraction(target);
 
     const hoverable = target.closest(this.activeScope!.hoverSelectorString);
@@ -255,7 +267,7 @@ export class Input {
       return;
     }
 
-    if (target.isContentEditable || !SUPERMOUSE_CURSORS.has(this.resolveComputedCursor(target))) {
+    if (target.isContentEditable || !SUPERMOUSE_CURSORS.has(authored)) {
       this.state.isNative = true;
       this.nativeTarget = target;
     }
@@ -282,6 +294,8 @@ export class Input {
 
     if (target === this.currentTarget) {
       this.currentTarget = null;
+      this.state.pointerTarget = null;
+      this.state.authoredCursor = null;
       this.lastParsedTarget = null;
       this.cachedChain = [];
     }
@@ -301,6 +315,8 @@ export class Input {
     this.nativeTarget = null;
     this.state.interaction = {};
     this.currentTarget = null;
+    this.state.pointerTarget = null;
+    this.state.authoredCursor = null;
     this.lastParsedTarget = null;
     this.cachedChain = [];
   }

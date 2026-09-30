@@ -14,7 +14,9 @@
   "url": "https://github.com/Whitestar14/supermouse-js",
   "license": "MIT",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@supermousejs/utils": "workspace:*"
