@@ -68,7 +68,7 @@ export const TextRing = (options: TextRingOptions = {}): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: options.name ?? "text-ring",
-      selector: "[data-supermouse-text-ring]",
+      hoverSelector: "[data-supermouse-text-ring]",
 
       create: (app) => {
         const container = createActor("div") as HTMLDivElement;

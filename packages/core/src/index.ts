@@ -1,8 +1,6 @@
 export { Supermouse, DEFAULT_HOVER_SELECTORS } from "./Supermouse";
 export type { SupermouseInstance, ScopeHandle } from "./Supermouse";
 
-export { DEFAULT_CURSOR_POLICY } from "./policy";
-
 export type {
   SupermouseOptions,
   SupermousePlugin,
@@ -18,4 +16,4 @@ export type {
   RuleDefinition
 } from "./types";
 
-export type { CursorPolicy, CursorPolicyInput } from "./policy";
+export { DEFAULT_NATIVE_CURSOR_SELECTORS } from "./constants";

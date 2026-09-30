@@ -291,6 +291,7 @@ describe("Canonical behavior contracts", () => {
       app = new Supermouse({ container, autoStart: false, cursor: "auto" });
 
       const input = document.createElement("input");
+      input.style.cursor = "text";
       container.appendChild(input);
       hover(input);
       expect(app.state.isNative).toBe(true);

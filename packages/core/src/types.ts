@@ -1,5 +1,4 @@
 import type { SupermouseInstance } from "./Supermouse";
-import type { CursorPolicyInput } from "./policy";
 
 export interface MousePosition {
   x: number;
@@ -82,8 +81,11 @@ export interface ScopeConfig {
   cursor?: CursorMode;
   /** Hover selectors for this scope. Inherits from top-level if omitted. */
   hoverSelectors?: string[];
-  /** Custom cursor policy for this scope. Inherits from top-level if omitted. */
-  cursorPolicy?: CursorPolicyInput;
+  /**
+   * Selectors whose elements yield to the OS cursor in `"auto"` mode.
+   * Defaults to `DEFAULT_NATIVE_CURSOR_SELECTORS`.
+   */
+  nativeCursorSelectors?: string[];
   /** Plugins installed when this scope activates. */
   plugins?: SupermousePlugin[];
   /**
@@ -183,10 +185,8 @@ export interface SupermouseOptions {
    */
   cursor?: CursorMode;
 
-  /**
-   * Custom cursor policy. Defaults to `DEFAULT_CURSOR_POLICY` from `./policy`.
-   */
-  cursorPolicy?: CursorPolicyInput;
+  /** Native cursor selectors for this scope. Inherits from top-level if omitted. */
+  nativeCursorSelectors?: string[];
 
   /**
    * Additional scopes registered at construction. The primary scope is

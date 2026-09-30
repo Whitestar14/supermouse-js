@@ -1,7 +1,8 @@
 import { describe, it, expect, afterEach, beforeEach } from "vitest";
 import { Supermouse } from "../Supermouse";
+import { DEFAULT_NATIVE_CURSOR_SELECTORS } from "../constants";
 
-describe("Cursor policy", () => {
+describe("Native cursor selectors", () => {
   let app: Supermouse;
   let container: HTMLElement;
 
@@ -25,7 +26,7 @@ describe("Cursor policy", () => {
       container,
       autoStart: false,
       cursor: "auto",
-      cursorPolicy: { native: [".fallback"], hide: [] }
+      nativeCursorSelectors: [".fallback"]
     });
     const el = document.createElement("div");
     el.className = "fallback";
@@ -34,11 +35,11 @@ describe("Cursor policy", () => {
     expect(app.state.isNative).toBe(true);
   });
 
-  it("native selector not in hide emits no CSS rule", () => {
+  it("native selectors do not appear in the generated stylesheet", () => {
     app = new Supermouse({
       container,
       autoStart: false,
-      cursorPolicy: { native: [".fallback"], hide: [] }
+      nativeCursorSelectors: [".fallback"]
     });
     const css = Array.from(document.querySelectorAll("style[id^='supermouse-styles-']"))
       .map((t) => t.textContent)
@@ -46,35 +47,19 @@ describe("Cursor policy", () => {
     expect(css).not.toContain(".fallback");
   });
 
-  it("hide-only selector suppresses without triggering fallback", () => {
-    app = new Supermouse({
-      container,
-      autoStart: false,
-      cursor: "auto",
-      cursorPolicy: { native: [], hide: [".suppress"] }
-    });
-    const el = document.createElement("div");
-    el.className = "suppress";
+  it("default natives are select and [contenteditable]", () => {
+    expect(DEFAULT_NATIVE_CURSOR_SELECTORS).toEqual(["select", "[contenteditable]"]);
+  });
+
+  it("select triggers fallback via the default native list", () => {
+    app = new Supermouse({ container, autoStart: false, cursor: "auto" });
+    const el = document.createElement("select");
     container.appendChild(el);
     hover(el);
-    expect(app.state.isNative).toBe(false);
-
-    const css = Array.from(document.querySelectorAll("style[id^='supermouse-styles-']"))
-      .map((t) => t.textContent)
-      .join("\n");
-    expect(css).toContain(".suppress");
+    expect(app.state.isNative).toBe(true);
   });
 
-  it("default policy puts label and select in the hide list", () => {
-    app = new Supermouse({ container, autoStart: false });
-    const css = Array.from(document.querySelectorAll("style[id^='supermouse-styles-']"))
-      .map((t) => t.textContent)
-      .join("\n");
-    expect(css).toMatch(/\blabel\b/);
-    expect(css).toMatch(/\bselect\b/);
-  });
-
-  it("[contenteditable] triggers native fallback", () => {
+  it("[contenteditable] triggers fallback via the default native list", () => {
     app = new Supermouse({ container, autoStart: false, cursor: "auto" });
     const el = document.createElement("div");
     el.setAttribute("contenteditable", "true");
@@ -83,13 +68,17 @@ describe("Cursor policy", () => {
     expect(app.state.isNative).toBe(true);
   });
 
-  it("per-scope cursorPolicy overrides the top-level default", () => {
-    app = new Supermouse({ container, autoStart: false, cursorPolicy: { native: [], hide: [] } });
+  it("per-scope nativeCursorSelectors override the top-level default", () => {
+    app = new Supermouse({
+      container,
+      autoStart: false,
+      nativeCursorSelectors: []
+    });
     const sidebar = document.createElement("div");
     document.body.appendChild(sidebar);
     app.addScope({
       container: sidebar,
-      cursorPolicy: { native: [".custom"], hide: [] }
+      nativeCursorSelectors: [".custom"]
     });
     const el = document.createElement("div");
     el.className = "custom";

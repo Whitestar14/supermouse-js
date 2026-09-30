@@ -37,7 +37,7 @@ export const States = (options: StatesOptions) => {
       priority: -999,
 
       install(app) {
-        app.registerHoverTarget(`[${attr}]`);
+        app.addHoverSelectors(`[${attr}]`);
       },
 
       update(app) {

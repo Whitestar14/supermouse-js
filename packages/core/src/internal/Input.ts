@@ -278,14 +278,14 @@ export class Input {
     const target = e.target as HTMLElement;
     const related = (e as MouseEvent).relatedTarget as Node | null;
 
-    if (target === this.state.hoverTarget || target.contains(this.state.hoverTarget)) {
+    if (target === this.state.hoverTarget || this.state.hoverTarget?.contains(target)) {
       if (!related || !this.state.hoverTarget?.contains(related)) {
         this.state.isHover = false;
         this.state.hoverTarget = null;
       }
     }
 
-    if (this.nativeTarget && (target === this.nativeTarget || target.contains(this.nativeTarget))) {
+    if (this.nativeTarget && (target === this.nativeTarget || this.nativeTarget.contains(target))) {
       if (!related || !this.nativeTarget.contains(related)) {
         this.state.isNative = false;
         this.nativeTarget = null;

@@ -89,7 +89,7 @@ export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: options.name ?? "smart-icon",
-      selector: "[data-supermouse-icon]",
+      hoverSelector: "[data-supermouse-icon]",
 
       create: (app) => {
         const el = createActor("div") as HTMLDivElement;

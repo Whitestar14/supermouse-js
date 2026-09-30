@@ -9,10 +9,9 @@ import type {
   ScopeConfig
 } from "./types";
 import { Scope } from "./internal/Scope";
-import { OFFSCREEN, DEFAULT_HOVER_SELECTORS } from "./constants";
+import { OFFSCREEN, DEFAULT_HOVER_SELECTORS, DEFAULT_NATIVE_CURSOR_SELECTORS } from "./constants";
 import { Input } from "./internal/Input";
 import { createStyleOwner, setRules, destroyStylesheet } from "./internal/Stylesheet";
-import { DEFAULT_CURSOR_POLICY, normalizePolicy } from "./policy";
 
 function lerp(a: number, b: number, factor: number): number {
   return a + (b - a) * factor;
@@ -143,7 +142,7 @@ export class Supermouse {
       container: this.options.container,
       cursor: this.options.cursor,
       hoverSelectors: this.options.hoverSelectors,
-      cursorPolicy: this.options.cursorPolicy,
+      nativeCursorSelectors: this.options.nativeCursorSelectors,
       plugins: this.options.plugins,
       rules: this.options.rules,
       zIndex: this.options.zIndex
@@ -375,9 +374,7 @@ export class Supermouse {
     const scope = new Scope(config, {
       cursor: this.options.cursor,
       hoverSelectors: this.options.hoverSelectors ?? DEFAULT_HOVER_SELECTORS,
-      cursorPolicy: this.options.cursorPolicy
-        ? normalizePolicy(this.options.cursorPolicy)
-        : DEFAULT_CURSOR_POLICY,
+      nativeCursorSelectors: this.options.nativeCursorSelectors ?? DEFAULT_NATIVE_CURSOR_SELECTORS,
       zIndex: this.options.zIndex,
       inheritDataAttributes: this.options.inheritDataAttributes,
       ruleEntries: this.options.rules ? Object.entries(this.options.rules) : []
@@ -831,15 +828,24 @@ export class Supermouse {
   }
 
   /**
-   * Adds one or more hover selectors to the current scope. Intended for
-   * raw-object plugins during `install`. Plugins written with `definePlugin`
-   * should use the `selector` option instead, and consumers setting up a
-   * scope should prefer the `hoverSelectors` option at construction.
+   * Adds one or more hover selectors to the current scope's shared set.
+   *
+   * During a plugin's `install()`, writes to that plugin's owning scope.
+   * At runtime, writes to the currently active scope. All plugins in the
+   * scope share one selector set: `state.hoverTarget` is the innermost
+   * element matching any registered selector, so two plugins that
+   * register different granularities (e.g. `a` vs `p`) receive the same
+   * `hoverTarget` — the innermost match.
+   *
+   * Prefer the `hoverSelectors` option at construction for static cases,
+   * or a visual plugin's `hoverSelector` field for plugins that need
+   * their own contribution. Use this method for dynamic registration —
+   * elements that mount after construction.
    */
-  public registerHoverTarget(selector: string): void {
+  public addHoverSelectors(selectors: string): void {
     const scope = this._installingScope ?? this._activeScope ?? this._scopes[0];
     if (!scope) return;
-    for (const s of selector.split(",")) {
+    for (const s of selectors.split(",")) {
       const trimmed = s.trim();
       if (trimmed) scope.hoverSelectors.add(trimmed);
     }

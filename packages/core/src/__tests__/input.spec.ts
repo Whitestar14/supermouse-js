@@ -128,7 +128,7 @@ describe("Supermouse input handling", () => {
   it("sets isNative for input elements when ignoreOnNative is auto", () => {
     const input = document.createElement("input");
     container.appendChild(input);
-
+    input.style.cursor = "text";
     dispatchMouseOver(input);
 
     expect(app.state.isNative).toBe(true);
@@ -352,5 +352,20 @@ describe("Supermouse input handling", () => {
     div.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 
     expect(div.hasAttribute("data-sm-probe")).toBe(false);
+  });
+
+  it("clears hoverTarget when the pointer leaves from a descendant", () => {
+    app = new Supermouse({ autoStart: false });
+    const button = document.createElement("button");
+    const span = document.createElement("span");
+    button.appendChild(span);
+    container.appendChild(button);
+
+    span.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    expect(app.state.hoverTarget).toBe(button);
+
+    span.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }));
+    expect(app.state.hoverTarget).toBeNull();
+    expect(app.state.isHover).toBe(false);
   });
 });

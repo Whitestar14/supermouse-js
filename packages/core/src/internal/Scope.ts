@@ -1,5 +1,4 @@
 import type { SupermousePlugin, ScopeConfig, CursorMode, RuleDefinition } from "../types";
-import { normalizePolicy, type CursorPolicy } from "../policy";
 import { Stage } from "./Stage";
 
 export type { ScopeConfig, CursorMode } from "../types";
@@ -7,7 +6,7 @@ export type { ScopeConfig, CursorMode } from "../types";
 export interface InheritedScopeOptions {
   cursor: CursorMode;
   hoverSelectors: string[];
-  cursorPolicy: CursorPolicy;
+  nativeCursorSelectors: string[];
   zIndex: number;
   inheritDataAttributes: boolean;
   ruleEntries: Array<[string, RuleDefinition]>;
@@ -24,7 +23,6 @@ export class Scope {
   public readonly hoverSelectors: Set<string>;
   public readonly plugins: SupermousePlugin[] = [];
   public readonly nativeSelectors: string[];
-  public readonly hideSelectors: string[];
   public readonly inheritDataAttributes: boolean;
   public readonly ruleEntries: Array<[string, RuleDefinition]>;
   public readonly name: string | undefined;
@@ -43,11 +41,7 @@ export class Scope {
     this.inheritDataAttributes = config.inheritDataAttributes ?? inherited.inheritDataAttributes;
     this.ruleEntries = config.rules ? Object.entries(config.rules) : inherited.ruleEntries;
 
-    const policy = config.cursorPolicy
-      ? normalizePolicy(config.cursorPolicy)
-      : inherited.cursorPolicy;
-    this.nativeSelectors = policy.native;
-    this.hideSelectors = policy.hide;
+    this.nativeSelectors = config.nativeCursorSelectors ?? inherited.nativeCursorSelectors;
 
     let initialContainer: HTMLElement;
     if (typeof config.container === "string") {
@@ -119,22 +113,14 @@ export class Scope {
     const prefix = this.stage.getRulePrefix();
     const exclusion = this.stage.getExclusion();
     const probe = ":not([data-sm-probe])";
-    const rules: string[] = [
+
+    return [
       `${prefix}${exclusion}${probe} { cursor: none !important; }`,
-      `${prefix} *${exclusion}${probe} { cursor: none !important; }`
-    ];
-
-    for (const selector of this.hideSelectors) {
-      rules.push(`${prefix} ${selector}${exclusion}${probe} { cursor: none !important; }`);
-    }
-
-    rules.push(
-      `${prefix} input[type="range"]${exclusion}::-webkit-slider-thumb { cursor: none !important; }`
-    );
-    rules.push(
+      `${prefix} *${exclusion}${probe} { cursor: none !important; }`,
+      `${prefix} *${exclusion}${probe} { cursor: none !important; }`,
+      // Pseudo-elements are not matched by `*`; they need explicit rules.
+      `${prefix} input[type="range"]${exclusion}::-webkit-slider-thumb { cursor: none !important; }`,
       `${prefix} input[type="range"]${exclusion}::-moz-range-thumb { cursor: none !important; }`
-    );
-
-    return rules;
+    ];
   }
 }

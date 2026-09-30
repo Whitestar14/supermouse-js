@@ -22,7 +22,7 @@ export const Ring = (options: RingOptions = {}): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: options.name || "ring",
-      selector: "[data-supermouse-color]",
+      hoverSelector: "[data-supermouse-color]",
 
       create: (app: SupermouseInstance) => {
         const el = dom.createCircle(cfg.size(app.state), "transparent");
