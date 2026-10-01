@@ -20,6 +20,7 @@
     "@supermousejs/browser-tests": "0.0.0"
   },
   "changesets": [
+    "fancy-apples-fetch",
     "fruity-clouds-grab",
     "happy-rocks-shine",
     "heavy-balloons-judge",
@@ -27,7 +28,9 @@
     "pretty-times-own",
     "ready-ducks-learn",
     "ready-emus-begin",
+    "seven-bikes-fix",
     "spotty-banks-hide",
+    "three-rocks-cross",
     "wicked-olives-smoke",
     "young-signs-tease"
   ]

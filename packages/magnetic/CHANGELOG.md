@@ -1,5 +1,14 @@
 # @supermousejs/magnetic
 
+## 2.4.4-beta.7
+
+### Patch Changes
+
+- Updated dependencies [dd5af3d]
+- Updated dependencies [eef841f]
+  - @supermousejs/core@2.5.0-beta.7
+  - @supermousejs/utils@2.4.4-beta.7
+
 ## 2.4.4-beta.6
 
 ### Patch Changes
