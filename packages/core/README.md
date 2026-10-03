@@ -63,23 +63,23 @@ const mouse = new Supermouse({ plugins: [redDot] });
 
 ## Options
 
-| Option                  | Default                                                                 | Description                                                    |
-| ----------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `smoothness`            | `0.15`                                                                  | Lower = smoother cursor follow                                 |
-| `hoverSelectors`        | `["a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"]` | Selectors that set `state.isHover`                             |
-| `enableTouch`           | `false`                                                                 | Allow touch events to move the cursor                          |
-| `autoDisableOnMobile`   | `true`                                                                  | Disable on coarse-pointer devices                              |
-| `cursor`                | `"auto"`                                                                | `"auto"`, `"custom"`, `"native"`, or `"both"`                  |
-| `cursorPolicy`          | `DEFAULT_CURSOR_POLICY`                                                 | Rules for native-cursor fallback and CSS suppression           |
-| `inheritDataAttributes` | `true`                                                                  | Cascade `data-*` attributes and `rules` from ancestors         |
-| `hideOnLeave`           | `true`                                                                  | Hide when the pointer leaves the window                        |
-| `container`             | `document.body`                                                         | Primary scope's container                                      |
-| `scopes`                | —                                                                       | Additional scopes registered at construction                   |
-| `zIndex`                | `9999`                                                                  | Stage stacking order                                           |
-| `dataPrefix`            | `"supermouse"`                                                          | Prefix for data attributes                                     |
-| `rules`                 | —                                                                       | Map of selectors to interaction data                           |
-| `plugins`               | —                                                                       | Plugins to install at creation                                 |
-| `autoStart`             | `true`                                                                  | Set `false` and call `.start()` manually                       |
+| Option                  | Default                                                                 | Description                                            |
+| ----------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| `smoothness`            | `0.15`                                                                  | Lower = smoother cursor follow                         |
+| `hoverSelectors`        | `["a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"]` | Selectors that set `state.isHover`                     |
+| `enableTouch`           | `false`                                                                 | Allow touch events to move the cursor                  |
+| `autoDisableOnMobile`   | `true`                                                                  | Disable on coarse-pointer devices                      |
+| `cursor`                | `"auto"`                                                                | `"auto"`, `"custom"`, `"native"`, or `"both"`          |
+| `cursorPolicy`          | `DEFAULT_CURSOR_POLICY`                                                 | Rules for native-cursor fallback and CSS suppression   |
+| `inheritDataAttributes` | `true`                                                                  | Cascade `data-*` attributes and `rules` from ancestors |
+| `hideOnLeave`           | `true`                                                                  | Hide when the pointer leaves the window                |
+| `container`             | `document.body`                                                         | Primary scope's container                              |
+| `scopes`                | —                                                                       | Additional scopes registered at construction           |
+| `zIndex`                | `9999`                                                                  | Stage stacking order                                   |
+| `dataPrefix`            | `"supermouse"`                                                          | Prefix for data attributes                             |
+| `rules`                 | —                                                                       | Map of selectors to interaction data                   |
+| `plugins`               | —                                                                       | Plugins to install at creation                         |
+| `autoStart`             | `true`                                                                  | Set `false` and call `.start()` manually               |
 
 ## Cursor Modes
 
@@ -108,10 +108,7 @@ import { Supermouse, DEFAULT_CURSOR_POLICY } from "@supermousejs/core";
 
 const mouse = new Supermouse({
   cursorPolicy: {
-    rules: [
-      ...DEFAULT_CURSOR_POLICY.rules,
-      { selector: "[data-native]", native: true }
-    ]
+    rules: [...DEFAULT_CURSOR_POLICY.rules, { selector: "[data-native]", native: true }]
   }
 });
 ```
@@ -183,32 +180,32 @@ Rules match ancestors as well as the hovered element. HTML `data-*` attributes o
 ## API
 
 ```ts
-mouse.state;      // current MouseState
-mouse.options;    // resolved options
-mouse.stage;      // DOM element plugins render into
-mouse.container;  // container element (active scope)
-mouse.isEnabled;  // input processing flag
-mouse.isRunning;  // animation loop flag
+mouse.state; // current MouseState
+mouse.options; // resolved options
+mouse.stage; // DOM element plugins render into
+mouse.container; // container element (active scope)
+mouse.isEnabled; // input processing flag
+mouse.isRunning; // animation loop flag
 
-mouse.enable();                 // start input, apply cursor state
-mouse.disable();                // stop input, restore native cursor
+mouse.enable(); // start input, apply cursor state
+mouse.disable(); // stop input, restore native cursor
 mouse.disable({ reset: true }); // also reset physics and hover state
-mouse.reset();                  // reset state only
+mouse.reset(); // reset state only
 
-mouse.setCursor(mode);          // "auto" | "custom" | "native" | "both"
+mouse.setCursor(mode); // "auto" | "custom" | "native" | "both"
 
-mouse.addScope(config);         // -> { name, container, setCursor, remove }
+mouse.addScope(config); // -> { name, container, setCursor, remove }
 
-mouse.use(plugin);              // install plugin
-mouse.getPlugin(name);          // retrieve plugin
-mouse.enablePlugin(name);       // enable plugin
-mouse.disablePlugin(name);      // disable plugin
-mouse.togglePlugin(name);       // toggle plugin
+mouse.use(plugin); // install plugin
+mouse.getPlugin(name); // retrieve plugin
+mouse.enablePlugin(name); // enable plugin
+mouse.disablePlugin(name); // disable plugin
+mouse.togglePlugin(name); // toggle plugin
 
-mouse.registerHoverTarget(sel); // add hover selector at runtime
-mouse.start();                  // start animation loop
-mouse.step(time);               // advance one frame manually
-mouse.destroy();                // destroy instance and plugins
+mouse.addHoverSelector(sel); // add hover selector at runtime
+mouse.start(); // start animation loop
+mouse.step(time); // advance one frame manually
+mouse.destroy(); // destroy instance and plugins
 ```
 
 ## Browser Support

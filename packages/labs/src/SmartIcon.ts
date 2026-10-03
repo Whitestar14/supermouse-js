@@ -9,9 +9,10 @@ import {
   Layers
 } from "@supermousejs/utils";
 
-export interface SmartIconMap {
-  [key: string]: string;
-}
+import { resolveSemanticState } from "./resolveSemanticState";
+
+export type { SmartIconMap } from "./resolveSemanticState";
+import type { SmartIconMap } from "./resolveSemanticState";
 
 export type SmartIconAnchor = "center" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -20,7 +21,14 @@ export interface SmartIconOptions {
   isEnabled?: boolean;
   icons: SmartIconMap;
   defaultState?: string;
-  useSemanticTags?: boolean;
+  /**
+   * If true (default), resolve icon state from the semantic meaning of the
+   * pointer target — text inputs become "text", links become "pointer",
+   * authored cursors feed the "text"/"grab" icons. If false, only
+   * `data-supermouse-icon` attributes drive state, with `defaultState`
+   * as the fallback.
+   */
+  useSemanticDetection?: boolean;
   transitionDuration?: number;
   /** Minimum ms a state must be requested before committing. Default 80. */
   switchDelay?: number;
@@ -31,38 +39,6 @@ export interface SmartIconOptions {
   anchor?: ValueOrGetter<SmartIconAnchor>;
   followStrategy?: ValueOrGetter<"smooth" | "raw">;
   rotateWithVelocity?: ValueOrGetter<boolean>;
-}
-
-function resolveSemanticState(target: HTMLElement, icons: SmartIconMap): string | null {
-  const tag = target.tagName.toLowerCase();
-
-  if (tag === "input" || tag === "textarea" || target.isContentEditable) {
-    const type = (target as HTMLInputElement).type;
-    if (!["button", "submit", "checkbox", "radio", "range", "color"].includes(type)) {
-      if (icons["text"]) return "text";
-    } else if (icons["pointer"]) {
-      return "pointer";
-    }
-  } else if (tag === "a" || tag === "button" || target.closest("a") || target.closest("button")) {
-    if (icons["pointer"]) return "pointer";
-  }
-
-  if (
-    icons["text"] &&
-    ["p", "span", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "code", "pre"].includes(
-      tag
-    )
-  ) {
-    return "text";
-  }
-
-  if (icons["text"] || icons["grab"]) {
-    const computedCursor = window.getComputedStyle(target).cursor;
-    if (icons["text"] && computedCursor === "text") return "text";
-    if (icons["grab"] && computedCursor === "grab") return "grab";
-  }
-
-  return null;
 }
 
 export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
@@ -90,7 +66,7 @@ export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
     rotateWithVelocity: false
   });
 
-  const useSemanticTags = options.useSemanticTags ?? true;
+  const useSemanticDetection = options.useSemanticDetection ?? true;
   const duration = options.transitionDuration ?? 200;
   const switchDelay = options.switchDelay ?? 80;
   const userOffX = options.offset?.[0] ?? 0;
@@ -113,15 +89,11 @@ export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: options.name ?? "smart-icon",
-      selector: "[data-supermouse-icon]",
+      hoverSelector: "[data-supermouse-icon]",
 
       create: (app) => {
         const el = createActor("div") as HTMLDivElement;
         css(el, { zIndex: Layers.CURSOR });
-
-        if (useSemanticTags) {
-          app.registerHoverTarget("p, span, h1, h2, h3, h4, h5, h6, li, blockquote, code, pre");
-        }
 
         contentWrapper = createActor("div") as HTMLDivElement;
         css(contentWrapper, {
@@ -161,7 +133,7 @@ export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
         const time = performance.now();
         const dt = dtMs / 1000;
         const icons = options.icons;
-        const target = app.state.hoverTarget;
+        const target = app.state.pointerTarget;
         const hasTarget = !!target;
         const targetChanged = hasTarget && target !== lastTarget;
 
@@ -170,7 +142,9 @@ export const SmartIcon = (options: SmartIconOptions): SupermousePlugin => {
         if (hasTarget) {
           if (targetChanged) {
             lastTarget = target;
-            cachedSemanticState = useSemanticTags ? resolveSemanticState(target, icons) : null;
+            cachedSemanticState = useSemanticDetection
+              ? resolveSemanticState(target, icons, app.state.authoredCursor)
+              : null;
           }
 
           const attrIcon = app.state.interaction?.icon;

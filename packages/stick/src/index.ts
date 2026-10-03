@@ -25,7 +25,7 @@ export const Stick = (options: StickOptions = {}) => {
       priority: -10,
 
       install(app) {
-        app.registerHoverTarget("[data-supermouse-stick]");
+        app.addHoverSelectors("[data-supermouse-stick]");
       },
 
       update(app) {

@@ -22,7 +22,7 @@ export const Magnetic = (options: MagneticOptions = {}) => {
       priority: -10,
 
       install(app) {
-        app.registerHoverTarget("[data-supermouse-magnetic]");
+        app.addHoverSelectors("[data-supermouse-magnetic]");
       },
 
       update(app) {

@@ -19,7 +19,7 @@ export const Text = (options: TextOptions = {}): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: "text",
-      selector: "[data-supermouse-text]",
+      hoverSelector: "[data-supermouse-text]",
 
       create: () => {
         const el = dom.createActor("div") as HTMLDivElement;

@@ -1,5 +1,40 @@
 # @supermousejs/states
 
+## 2.4.4-beta.7
+
+### Patch Changes
+
+- 240b3f9: - States no longer requires last-registration order. It re-evaluates the managed plugin set every frame against the current hover state, so plugins installed after States are correctly enabled or disabled on the next frame.
+  - Behavior change: States is now authoritative for `isEnabled` on its managed plugins. A manual `app.enablePlugin()` or `app.disablePlugin()` call on a managed plugin is reverted on the next frame if it disagrees with the current state.
+- Updated dependencies [dd5af3d]
+- Updated dependencies [eef841f]
+  - @supermousejs/core@2.5.0-beta.7
+  - @supermousejs/utils@2.4.4-beta.7
+
+## 2.4.4-beta.6
+
+### Patch Changes
+
+- Updated dependencies [187e451]
+  - @supermousejs/core@2.5.0-beta.6
+  - @supermousejs/utils@2.4.4-beta.6
+
+## 2.4.4-beta.5
+
+### Patch Changes
+
+- Updated dependencies [d82c62d]
+  - @supermousejs/utils@2.4.4-beta.5
+  - @supermousejs/core@2.5.0-beta.5
+
+## 2.4.4-beta.4
+
+### Patch Changes
+
+- Updated dependencies [cb9bf9a]
+  - @supermousejs/core@2.5.0-beta.4
+  - @supermousejs/utils@2.4.4-beta.4
+
 ## 2.4.4-beta.3
 
 ### Patch Changes

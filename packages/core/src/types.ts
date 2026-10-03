@@ -1,5 +1,4 @@
 import type { SupermouseInstance } from "./Supermouse";
-import type { CursorPolicyInput } from "./policy";
 
 export interface MousePosition {
   x: number;
@@ -82,8 +81,11 @@ export interface ScopeConfig {
   cursor?: CursorMode;
   /** Hover selectors for this scope. Inherits from top-level if omitted. */
   hoverSelectors?: string[];
-  /** Custom cursor policy for this scope. Inherits from top-level if omitted. */
-  cursorPolicy?: CursorPolicyInput;
+  /**
+   * Selectors whose elements yield to the OS cursor in `"auto"` mode.
+   * Defaults to `DEFAULT_NATIVE_CURSOR_SELECTORS`.
+   */
+  nativeCursorSelectors?: string[];
   /** Plugins installed when this scope activates. */
   plugins?: SupermousePlugin[];
   /**
@@ -123,6 +125,16 @@ export interface MouseState {
   isNative: boolean;
   /** Current cursor mode: auto, custom, native, or both. */
   cursorMode: CursorMode;
+  /**
+   * The raw element currently under the pointer, regardless of whether it
+   * matches any hover selector.
+   */
+  pointerTarget: HTMLElement | null;
+  /**
+   * The authored cursor value at `pointerTarget`, resolved as if
+   * Supermouse's suppression were not active.
+   */
+  authoredCursor: string | null;
   /** Currently hovered DOM element, if any. */
   hoverTarget: HTMLElement | null;
   /** User has `prefers-reduced-motion` enabled. */
@@ -173,10 +185,8 @@ export interface SupermouseOptions {
    */
   cursor?: CursorMode;
 
-  /**
-   * Custom cursor policy. Defaults to `DEFAULT_CURSOR_POLICY` from `./policy`.
-   */
-  cursorPolicy?: CursorPolicyInput;
+  /** Native cursor selectors for this scope. Inherits from top-level if omitted. */
+  nativeCursorSelectors?: string[];
 
   /**
    * Additional scopes registered at construction. The primary scope is

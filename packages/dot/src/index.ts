@@ -24,7 +24,7 @@ export const Dot = (options: DotOptions = {}): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: "dot",
-      selector: "[data-supermouse-color]",
+      hoverSelector: "[data-supermouse-color]",
 
       create: (app) => {
         const size = getSize(app.state);

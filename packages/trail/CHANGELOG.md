@@ -1,5 +1,38 @@
 # @supermousejs/trail
 
+## 2.4.4-beta.7
+
+### Patch Changes
+
+- Updated dependencies [dd5af3d]
+- Updated dependencies [eef841f]
+  - @supermousejs/core@2.5.0-beta.7
+  - @supermousejs/utils@2.4.4-beta.7
+
+## 2.4.4-beta.6
+
+### Patch Changes
+
+- Updated dependencies [187e451]
+  - @supermousejs/core@2.5.0-beta.6
+  - @supermousejs/utils@2.4.4-beta.6
+
+## 2.4.4-beta.5
+
+### Patch Changes
+
+- Updated dependencies [d82c62d]
+  - @supermousejs/utils@2.4.4-beta.5
+  - @supermousejs/core@2.5.0-beta.5
+
+## 2.4.4-beta.4
+
+### Patch Changes
+
+- Updated dependencies [cb9bf9a]
+  - @supermousejs/core@2.5.0-beta.4
+  - @supermousejs/utils@2.4.4-beta.4
+
 ## 2.4.4-beta.3
 
 ### Patch Changes

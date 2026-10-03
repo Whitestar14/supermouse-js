@@ -57,7 +57,7 @@ describe("Supermouse integration", () => {
       name: "fake-smart-icon-2",
       install(instance: Supermouse) {
         instance.setCursor("custom");
-        instance.registerHoverTarget("p, h1, h2, h3, span");
+        instance.addHoverSelectors("p, h1, h2, h3, span");
       },
       update() {}
     });

@@ -88,10 +88,15 @@ export interface VisualConfig<
   destroy?(app: SupermouseInstance): void;
 
   /**
-   * Auto-registers this selector as a hover target on install.
-   * Equivalent to `app.registerHoverTarget(selector)` inside `install()`.
+   * Auto-registers this selector in the owning scope's hover set on
+   * install. Equivalent to `app.addHoverSelectors(selector)` inside
+   * `install()`.
+   *
+   * The selector contributes to a shared set: all plugins in the same
+   * scope see the same `state.hoverTarget`, resolved as the innermost
+   * element matching any registered selector.
    */
-  selector?: string;
+  hoverSelector?: string;
 
   /**
    * Called before the plugin is disabled. Can return a Promise to delay
@@ -169,9 +174,11 @@ export function definePlugin(
       }
       this.element = app.stage.appendChild(root);
       isMounted = true;
-      if (config.selector) {
-        app.registerHoverTarget(config.selector);
+
+      if (config.hoverSelector) {
+        app.addHoverSelectors(config.hoverSelector);
       }
+
       if (!resolvedEnabled) {
         root.style.display = "none";
       }

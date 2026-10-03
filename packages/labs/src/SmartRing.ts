@@ -43,7 +43,7 @@ export const SmartRing = (options: SmartRingOptions = {}): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: options.name ?? "smart-ring",
-      selector: "[data-supermouse-color]",
+      hoverSelector: "[data-supermouse-color]",
 
       create: (app) => {
         const el = createCircle(cfg.size(app.state), cfg.fill(app.state));

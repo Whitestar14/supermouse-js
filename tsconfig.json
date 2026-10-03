@@ -9,11 +9,8 @@
     "scripts/**/*.js",
     "scripts/**/*.ts",
     "eslint.config.ts",
-    "*.ts"
+    "*.ts",
+    "packages/core/vitest.config.ts"
   ],
-  "exclude": [
-    "packages/**/dist/**",
-    "playground/**",
-    "docs/**"
-  ]
+  "exclude": ["packages/**/dist/**", "playground/**", "docs/**"]
 }

@@ -25,7 +25,7 @@ export const Image = (options: ImageOptions = {}): SupermousePlugin => {
   return definePlugin<HTMLDivElement>(
     {
       name: options.name ?? "image",
-      selector: "[data-supermouse-img]",
+      hoverSelector: "[data-supermouse-img]",
 
       create: () => {
         const container = dom.createActor("div") as HTMLDivElement;

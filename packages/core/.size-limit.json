@@ -1,0 +1,16 @@
+[
+  {
+    "name": "core (esm, gzip)",
+    "path": "dist/index.mjs",
+    "limit": "6.1 kB",
+    "gzip": true,
+    "brotli": false
+  },
+  {
+    "name": "core (esm, brotli)",
+    "path": "dist/index.mjs",
+    "limit": "5.4 kB",
+    "gzip": false,
+    "brotli": true
+  }
+]

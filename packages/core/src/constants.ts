@@ -11,6 +11,11 @@ export const SUPERMOUSE_CURSORS = new Set([
   "grabbing"
 ]);
 
+/**
+ * Selectors whose elements yield to the OS cursor in `"auto"` mode.
+ */
+export const DEFAULT_NATIVE_CURSOR_SELECTORS = ["input", "textarea", "select", "[contenteditable]"];
+
 export const DEFAULT_HOVER_SELECTORS = [
   "a",
   "button",

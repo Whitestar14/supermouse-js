@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { Stage } from "../internal/Stage";
+import { hasClassPrefix } from "./helpers";
 
 describe("Supermouse Stage", () => {
   let container: HTMLElement;
@@ -16,9 +17,6 @@ describe("Supermouse Stage", () => {
     document.head.innerHTML = "";
     vi.restoreAllMocks();
   });
-
-  const hasClassPrefix = (el: HTMLElement, prefix: string) =>
-    Array.from(el.classList).some((c) => c.startsWith(prefix));
 
   describe("Element creation & positioning", () => {
     it("creates stage element with default styles", () => {
