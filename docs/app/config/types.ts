@@ -30,7 +30,6 @@ export interface PluginMeta {
   options?: OptionSchema[];
   installCommand: string;
   importSnippet: string;
-  hasDetailedDocs: boolean;
 }
 
 export type { SupermouseInstance, SupermousePlugin, SupermouseOptions, MouseState };

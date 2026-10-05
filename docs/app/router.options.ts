@@ -1,5 +1,5 @@
 import type { RouterConfig } from "nuxt/schema";
-import { scrollToAnchor, scrollToTop, scrollToY, requestScrollReset } from "@utils/scroll";
+import { requestAnchor, requestTop, scrollToY } from "@utils/scroll";
 
 export default <RouterConfig>{
   scrollBehavior(to, _from, savedPosition) {
@@ -8,14 +8,11 @@ export default <RouterConfig>{
       return false;
     }
 
-    if (to.hash) {
-      const id = decodeURIComponent(to.hash.slice(1));
-      return scrollToAnchor(id).then((found) => {
-        if (!found) scrollToTop();
-      });
-    }
+    // The target does not exist yet, so record the intent and let
+    // `anchor-scroll.client.ts` carry it out once the page has rendered.
+    if (to.hash) requestAnchor(decodeURIComponent(to.hash.slice(1)));
+    else requestTop();
 
-    requestScrollReset();
     return false;
   }
 };

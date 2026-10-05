@@ -1,69 +1,63 @@
 ---
-title: Basic Usage
+title: Usage
 description: Construct the engine, register plugins, describe hover interactions, and control the lifecycle.
 section: Guide
 order: 3
 ---
 
-## 1. Construction
-
-You can have one instance per page. All options are optional, Supermouse's defaults already work for 90% of your use cases, so tweak only as needed:
+Getting the engine onto the page takes a single constructor, and every option has a sensible default — so you can start with nothing and reach for settings only when your layout asks for them. This page walks through the whole surface, from registering plugins to controlling the lifecycle.
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
 
 const app = new Supermouse({
-  smoothness: 0.15, // higher values for more lag
-  cursor: "auto", // default pointer policy
-  dataPrefix: "supermouse" // namespace for data-* interaction attributes
+  smoothness: 0.15, // Response factor (lower is snappier)
+  cursor: "auto", // Pointer policy
+  dataPrefix: "supermouse" // Prefix for data-* interaction attributes
 });
 ```
 
-Check out [Options](/docs/reference/options) for the full list. The instance exposes
-`state`, `stage`, `container`, `isEnabled` and `version`; everything else is a
-method ([Methods](/docs/reference/methods)).
+Instances expose read-only properties (`state`, `stage`, `container`, `isEnabled`, `isRunning`) alongside chainable instance methods and lifecycle controls.
 
-## 2. Registering Plugins
+---
 
-Supermouse's plugins are **factory functions** to keep each instance's state isolated.
+## Plugin Registration
+
+Plugins are authored as **factory functions** to guarantee per-instance state isolation.
+
+Register plugins via the chainable `.use()` or through the constructor `plugins` array:
 
 ```typescript
 import { Dot } from "@supermousejs/dot";
 import { Ring } from "@supermousejs/ring";
 
+// via .use()
 app.use(Ring({ size: 24 })).use(Dot({ size: 8 }));
-```
 
-`use()` is chainable and returns the instance. Plugins are re-sorted by
-[`priority`](/docs/reference/plugin-interface#priority) on every registration,
-and registering the same `name` twice logs a warning instead of installing it a
-second time. Plugins that crash on registration are logged and are never added to the runtime loop.
-
-You can also pass them up front, which is identical to calling `use()` in a loop:
-
-```typescript
+// via constructor array
 const app = new Supermouse({
   plugins: [Ring({ size: 24 }), Dot({ size: 8 })]
 });
 ```
 
-:::callout{title="Install managed plugins first" variant="warning"}
-Behaviour plugins such as [`States()`](/docs/plugins/states) look plugins up by
-name at runtime, so the plugins they toggle must already be registered when they
-run.
-:::
+::callout
+Plugins auto-sort by [`priority`](/docs/reference/api#priority-ranges) on registration. If a plugin with an existing `name` is registered, the engine logs a warning and skips installation for that plugin.
+::
 
-## 3. Describe interactions
+---
 
-Instead of imperative hover handlers, you describe what a hovered element
-_means_. The engine resolves that description into
-[`state.interaction`](/docs/reference/state#interaction) on hover entry, so
-plugins can read it without touching the DOM.
+## Defining Interactions
 
-Two sources feed the same object:
+Some plugins usually allow for distinct cursor behavior over specific elements, like the official Dot plugin changing color on hover, via data-attributes
+Supermouse avoids attaching imperative event listeners to individual interactive elements. Instead, it parses hover metadata directly into [`state.interaction`](/docs/reference/api#scopes--interaction) on hover entry, preventing per-frame DOM layout thrashing.
+
+Interaction metadata is gathered from two sources:
+
+### 1. Semantic Rules
+
+Map CSS selectors to static state objects or resolver functions receiving the target element:
 
 ```typescript
-// a) selector rules, evaluated when the pointer enters a matching element
 const app = new Supermouse({
   rules: {
     ".btn-magnetic": { magnetic: 0.5 },
@@ -72,94 +66,86 @@ const app = new Supermouse({
 });
 ```
 
+### 2. Data Attributes
+
+Declare interaction metadata directly in markup:
+
 ```html
-<!-- b) data attributes on the element itself -->
 <button class="btn-magnetic" data-supermouse-magnetic="0.8" data-supermouse-text="Copy">
   Copy link
 </button>
 ```
 
-Then any plugin (or your own code) can read it:
+Plugins read the parsed payload directly from state:
 
 ```typescript
-app.state.interaction.magnetic; // 0.8 — the attribute won, it has higher priority
+app.state.interaction.magnetic; // 0.8 (HTML dataset overrides rule default)
 app.state.interaction.text; // "Copy"
 ```
 
-Rules of the road:
+### Interaction Precedence & Rules
 
-- **Data attributes win over `rules`**, which makes `rules` a good place for
-  global defaults and attributes a good place for per-element overrides.
-- Attribute names are camel-cased after the prefix: `data-supermouse-mix-blend`
-  becomes `interaction.mixBlend`. Set `dataPrefix` to change the namespace.
-- A valueless attribute (`data-supermouse-magnetic`) resolves to `true`.
-- Use [`data-supermouse-ignore`](/docs/guide/usage#5-opt-out) to hand a subtree
-  back to the operating system.
+- **Precedence:** `data-*` attributes override selector `rules`.
+- **Normalization:** Attribute names convert to camelCase following the prefix (e.g., `data-supermouse-mix-blend` maps to `interaction.mixBlend`).
+- **Booleans:** Valueless attributes (`data-supermouse-magnetic`) resolve to `true`.
+- **Inheritance:** By default, attributes and rules cascade up the DOM ancestor tree to the hovered target. Disable this via `inheritDataAttributes: false`.
 
-Selector matching uses `element.matches()` for simple selectors. Descendant
-selectors such as `[data-hover] a` are matched as "element matches the last
-compound **and** has a matching ancestor", which is cheap but worth knowing:
+---
 
-```html
-<div data-hover><a href="#">matched by `[data-hover] a`</a></div>
-```
+## Hover Targets
 
-## 4. Hover targets
+`state.isHover` tracks whether the pointer is over an interactive element.
 
-`state.isHover` is driven by `hoverSelectors`, which defaults to
-`a`, `button`, `input`, `textarea`, `[data-hover]`, `[data-cursor]`.
-
-Passing `hoverSelectors` **replaces** that default list. To extend it while
-keeping the defaults, register selectors at runtime instead:
+- **Default Selectors:** `a, button, input, textarea, [data-hover], [data-cursor]`
+- **Override:** Pass `hoverSelectors` at construction to replace defaults.
+- **Runtime Extension:** Call `addHoverSelectors()` with a comma-separated list to add selectors dynamically:
 
 ```typescript
-app.registerHoverTarget(".cmd-palette-item");
+app.addHoverSelectors(".cmd-palette-item, .dropdown-trigger");
 ```
 
-Registering a hover target also adds it to the stage's suppression stylesheet,
-so the OS pointer is hidden over those elements too. The stage always suppresses
-the native cursor on `a`, `button`, `input`, `textarea`, `select`,
-`[role="button"]` and `[tabindex]`.
+---
 
-## 5. Opt out
+## Opting Out (`data-supermouse-ignore`)
 
-Mark any subtree to keep the real cursor:
+To preserve the native OS cursor over specific subtrees (e.g., canvas elements, code editors, or native widgets), apply `data-supermouse-ignore`:
 
 ```html
-<textarea data-supermouse-ignore placeholder="Native cursor here"></textarea>
+<div data-supermouse-ignore class="embedded-editor">
+  <textarea placeholder="Native system cursor active here"></textarea>
+</div>
 ```
 
-While the pointer is over an ignored element the engine clears
-`state.hoverTarget` and `state.interaction`, sets `state.isNative = true`, and
-hides the custom stage. This is the supported way to handle inputs, embedded
-editors and drag handles — never write `cursor: none` yourself.
+When entering an ignored container, the engine clears `state.hoverTarget` and `state.interaction`, sets `state.isNative = true`, and hides the custom cursor stage.
 
-## 6. Cursor modes
+---
 
-`setCursor()` — or the `cursor` option — picks the native-pointer policy:
+## Cursor Modes
 
-| Mode       | Custom stage                                 | Native pointer                     |
-| :--------- | :------------------------------------------- | :--------------------------------- |
-| `"auto"`   | hidden over native controls, otherwise shown | hidden except over native controls |
-| `"custom"` | always shown                                 | always hidden                      |
-| `"native"` | never shown                                  | always shown                       |
-| `"both"`   | always shown                                 | always shown                       |
+Set the suppression policy at construction via `cursor`, or at runtime using `setCursor()`:
+
+| Mode       | Custom Stage                                        | Native Pointer                                               |
+| ---------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| `"auto"`   | Hidden over native form controls; visible otherwise | Hidden except over native form controls and ignored elements |
+| `"custom"` | Always visible when input is active                 | Always hidden (`cursor: none !important`)                    |
+| `"native"` | Never visible                                       | Always visible                                               |
+| `"both"`   | Always visible when input is active                 | Always visible (coexists without suppression)                |
 
 ```typescript
-app.setCursor("native"); // e.g. while a native <select> popup is open
-app.setCursor("auto"); // restore the heuristics
+// Temporarily yield to native cursor (e.g., active text editing or native popups)
+app.setCursor("native");
+
+// Restore standard automatic heuristics
+app.setCursor("auto");
 ```
 
-In `"auto"` the engine treats an element as native when it is an
-`input`/`textarea`/`select`, is `contenteditable`, **or** its computed `cursor`
-is something other than `default`/`auto`/`pointer`/`none`/`inherit`/`grab`/`grabbing`.
-That last rule is why a third-party date picker with `cursor: text` keeps the OS
-cursor without any configuration.
+In `"auto"` mode, native pointers restore automatically over `<input>`, `<textarea>`, `<select>`, `[contenteditable]`, or elements with non-standard computed CSS cursors.
 
-## 7. Scope to a container
+---
 
-Pass a `container` to restrict rendering, hover detection and coordinates to one
-element — useful for modals, canvases and embedded widgets:
+## Scoping to Containers
+
+Scope pointer tracking, coordinate calculations, and element mounting to a specific DOM node:
 
 ```typescript
 const modal = document.getElementById("checkout")!;
@@ -170,62 +156,77 @@ const app = new Supermouse({
 });
 ```
 
-The stage is appended to the container, positioned `absolute` instead of `fixed`,
-and the container gets `position: relative` if it was `static`. **Pointer
-coordinates become container-relative**, so always position plugins with
-`state.smooth` / `state.target` rather than `clientX`.
+Setting a `container`:
 
-## 8. Control plugins at runtime
+1. Appends the stage using `position: absolute` instead of `fixed`.
+2. Automatically assigns `position: relative` to static containers.
+3. Transforms `state.pointer`, `state.target`, and `state.smooth` into container-relative coordinates.
+
+> For interfaces with multiple independent cursor zones (e.g., artboards or sidebars), see the **[Scopes Guide](/docs/guide/scopes)**.
+
+---
+
+## Dynamic Plugin Management
+
+Inspect, toggle, or control plugin lifecycles at runtime:
 
 ```typescript
-app.getPlugin("ring"); // SupermousePlugin | undefined
-app.disablePlugin("ring"); // hides the element, skips update(), calls onDisable()
-app.enablePlugin("ring"); // restores display and calls onEnable()
+const ring = app.getPlugin("ring"); // Returns SupermousePlugin | undefined
+
+app.disablePlugin("ring"); // Halts update() and hides stage elements
+app.enablePlugin("ring"); // Resumes update() and restores stage visibility
 app.togglePlugin("ring");
 ```
 
-`disablePlugin` awaits `onBeforeDisable` if it returns a promise, which is how
-plugins run exit animations before their element is hidden.
+If a plugin defines an asynchronous `beforeDisable` (or `onBeforeDisable`) hook, the engine awaits its returned Promise before hiding the DOM element (ideal for exit animations).
 
-## 9. Lifecycle
+---
 
-| Call         | Effect                                                                                  | `isEnabled` |
-| :----------- | :-------------------------------------------------------------------------------------- | :---------- |
-| `enable()`   | Resumes input, snaps physics to the last pointer position, re-applies cursor state.     | `true`      |
-| `disable()`  | Stops input, hides the stage, restores the native cursor and resets physics.            | `false`     |
-| `suspend()`  | Yields control without unmounting the stage; clears hover state.                        | `false`     |
-| `resume()`   | Re-enables input, re-syncs physics, then updates plugins once before showing the stage. | `true`      |
-| `start()`    | Starts the `requestAnimationFrame` loop (automatic unless `autoStart: false`).          | —           |
-| `step(time)` | Advances a single frame manually.                                                       | —           |
-| `destroy()`  | Tears everything down permanently.                                                      | —           |
+## Engine Lifecycle API
+
+| Method           | Behavior                                                                                                                                        | `isEnabled` |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `enable()`       | Resumes event listeners, snaps coordinates to pointer, and reveals stage.                                                                       | `true`      |
+| `disable(opts?)` | Halts event listeners, hides stage, and restores native pointer. Preserves physics state. Pass `{ reset: true }` to move coordinates offscreen. | `false`     |
+| `reset()`        | Clears hover targets, interaction metadata, and resets coordinates offscreen.                                                                   | Unchanged   |
+| `start()`        | Starts the `requestAnimationFrame` loop (called automatically unless `autoStart: false`).                                                       | —           |
+| `step(time)`     | Advances the engine frame manually by timestamp (useful for headless testing).                                                                  | —           |
+| `destroy()`      | Permanently teardowns listeners, stage elements, stylesheets, and plugins.                                                                      | `false`     |
 
 ```typescript
-// Yield while an embedded iframe or canvas owns the pointer
-canvas.addEventListener("pointerenter", () => app.suspend());
-canvas.addEventListener("pointerleave", () => app.resume());
+// Pause cursor tracking
+app.disable();
 
-// Pause when the tab is hidden happens automatically; this is for UI toggles
-if (reducedEffects) app.disable();
-else app.enable();
+// Resume tracking; coordinates snap cleanly to prevent offscreen warping
+app.enable();
 ```
 
-Note that `enable()` and `resume()` deliberately snap `smooth` to the pointer so
-the cursor never animates in from `(-100, -100)` when it comes back.
+---
 
-## 10. Reduced motion
+## Accessibility & Reduced Motion
 
-`state.reducedMotion` mirrors `prefers-reduced-motion: reduce`. When it is
-`true`, the engine raises the damping rate so the cursor tracks the pointer
-almost exactly, and your plugins should skip decorative scaling and rotation:
+Supermouse monitors `(prefers-reduced-motion: reduce)` media queries and flags changes in `state.reducedMotion`.
+
+When reduced motion is active:
+
+- Damping collapses (`lambda = 1000`) for instant pointer tracking without lag.
+- Plugins should check `app.state.reducedMotion` to bypass heavy decorative transforms:
 
 ```typescript
 update(app, dt) {
-  const scale = app.state.reducedMotion ? 1 : 1 + speed / 2000;
+  if (app.state.reducedMotion) {
+    dom.setTransform(el, app.state.smooth.x, app.state.smooth.y);
+    return;
+  }
+  // Standard decorative animation logic
 }
+
 ```
 
-## Next steps
+---
 
-- [Cookbook](/docs/guide/cookbook) — ready-made combinations.
-- [State reference](/docs/reference/state) — every field and who writes it.
-- [Plugin Authoring](/docs/architecture/authoring) — build your own.
+## Next Steps
+
+- **[Scopes Guide](/docs/guide/scopes)**: Coordinate multi-region cursor behavior.
+- **[Core API Reference](/docs/reference/api)**: Complete options, methods, and state schema.
+- **[Writing Plugins](/docs/architecture/authoring)**: Build visual and logic plugins.

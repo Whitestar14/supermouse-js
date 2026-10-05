@@ -2,7 +2,7 @@
 title: Utilities
 description: The complete @supermousejs/utils surface — math, DOM, SVG, CSS constants, option helpers and diagnostics.
 section: Reference
-order: 6
+order: 2
 ---
 
 `@supermousejs/utils` is the shared toolkit for the core runtime and for plugin
@@ -13,7 +13,7 @@ nothing else.
 import { damp, definePlugin, dom, Layers } from "@supermousejs/utils";
 ```
 
-Modules are also importable as namespaces — `math`, `dom`, `effects` and `svg` —
+Modules can be importable as namespaces — `math`, `dom`, `effects` and `svg` —
 in addition to flat named exports:
 
 ```typescript
@@ -25,22 +25,22 @@ dom.setTransform(el, x, y);
 
 ## Math
 
-| Export | Signature | Description |
-| :--- | :--- | :--- |
-| `lerp` | `(start, end, factor) => number` | Linear interpolation. |
-| `damp` | `(a, b, lambda, dt) => number` | Frame-rate independent exponential damping. |
-| `lerpAngle` | `(start, end, factor) => number` | Interpolation across the 360° wrap — use for rotation. |
-| `clamp` | `(value, min, max) => number` | Constrains a value to a range. |
-| `dist` | `(x1, y1, x2?, y2?) => number` | Distance between two points; the two-argument form measures vector magnitude. |
-| `angle` | `(x, y) => number` | Heading of a vector in degrees. |
-| `circumference` | `(r) => number` | Circle circumference. |
-| `random` | `(min, max) => number` | Random value in range. |
+| Export          | Signature                        | Description                                                                   |
+| :-------------- | :------------------------------- | :---------------------------------------------------------------------------- |
+| `lerp`          | `(start, end, factor) => number` | Linear interpolation.                                                         |
+| `damp`          | `(a, b, lambda, dt) => number`   | Frame-rate independent exponential damping.                                   |
+| `lerpAngle`     | `(start, end, factor) => number` | Interpolation across the 360° wrap — use for rotation.                        |
+| `clamp`         | `(value, min, max) => number`    | Constrains a value to a range.                                                |
+| `dist`          | `(x1, y1, x2?, y2?) => number`   | Distance between two points; the two-argument form measures vector magnitude. |
+| `angle`         | `(x, y) => number`               | Heading of a vector in degrees.                                               |
+| `circumference` | `(r) => number`                  | Circle circumference.                                                         |
+| `random`        | `(min, max) => number`           | Random value in range.                                                        |
 
 ```typescript
 import { damp, lerpAngle } from "@supermousejs/utils";
 
 update(app, dtMs) {
-  const dt = dtMs / 1000; // damp expects SECONDS
+  const dt = dtMs / 1000; // damp expects seconds
   currentSize = damp(currentSize, targetSize, 20, dt);
   currentRotation = lerpAngle(currentRotation, app.state.angle, 0.15);
 }
@@ -48,19 +48,19 @@ update(app, dtMs) {
 
 ## DOM
 
-| Export | Signature | Description |
-| :--- | :--- | :--- |
-| `css` | `(el, styles) => void` | Applies styles, skipping properties whose value has not changed. |
+| Export         | Signature                                                         | Description                                                                     |
+| :------------- | :---------------------------------------------------------------- | :------------------------------------------------------------------------------ |
+| `css`          | `(el, styles) => void`                                            | Applies styles, skipping properties whose value has not changed.                |
 | `setTransform` | `(el, x, y, rotation?, scaleX?, scaleY?, skewX?, skewY?) => void` | Writes a `translate3d` transform and auto-centres with `translate(-50%, -50%)`. |
-| `createActor` | `(tagName?) => HTMLElement \| SVGSVGElement` | Element base: absolute, `pointer-events: none`, `will-change: transform`. |
-| `createCircle` | `(size, color) => HTMLDivElement` | Circular actor. |
-| `projectRect` | `(element, container?) => DOMRect` | Bounding rect in the container's coordinate space. |
-| `injectStyles` | `(id, css) => void` | Idempotent `<style>` injection, keyed by id. |
+| `createActor`  | `(tagName?) => HTMLElement \| SVGSVGElement`                      | Element base: absolute, `pointer-events: none`, `will-change: transform`.       |
+| `createCircle` | `(size, color) => HTMLDivElement`                                 | Circular actor.                                                                 |
+| `projectRect`  | `(element, container?) => DOMRect`                                | Bounding rect in the container's coordinate space.                              |
+| `injectStyles` | `(id, css) => void`                                               | Idempotent `<style>` injection, keyed by id.                                    |
 
 ```typescript
 import { dom } from "@supermousejs/utils";
 
-const el = dom.createCircle(8, "black");
+const el = dom.createCircle(8, "black");do it for her that is to say you do it for him
 app.stage.appendChild(el);
 
 dom.css(el, { opacity: String(app.state.isHover ? 0.4 : 1) });
@@ -75,7 +75,7 @@ unconditionally inside `update()`.
 (use `createActor`). They remain for compatibility and will be removed.
 
 `projectRect` is the correct way to measure a DOM element when a
-[`container`](/docs/reference/options#container) is in play:
+[`container`](/docs/reference/api#supermouseoptions) is in play:
 
 ```typescript
 const rect = dom.projectRect(target, app.container);
@@ -108,7 +108,7 @@ dom.setTransform(el, app.state.smooth.x, app.state.smooth.y, rotation, scaleX, s
 
 ### `normalize(option, defaultValue)`
 
-Resolves a [`ValueOrGetter`](/docs/reference/plugin-interface) into a function
+Resolves a `ValueOrGetter` into a function
 that always returns a concrete value, removing `typeof` branching from the hot
 path.
 
@@ -135,15 +135,15 @@ non-browser environments. Useful when a plugin should opt out entirely on touch.
 
 `Easings` and `Layers` keep transitions and stacking consistent across plugins.
 
-| Constant | Value |
-| :--- | :--- |
-| `Easings.EASE_OUT_EXPO` | `cubic-bezier(0.16, 1, 0.3, 1)` |
-| `Easings.ELASTIC_OUT` | `cubic-bezier(0.34, 1.56, 0.64, 1)` |
-| `Easings.SMOOTH` | `ease-out` |
-| `Layers.TRACE` | `"100"` — trails, sparkles, particles |
-| `Layers.FOLLOWER` | `"200"` — rings and followers |
-| `Layers.CURSOR` | `"300"` — the primary dot or pointer |
-| `Layers.OVERLAY` | `"400"` — text, tooltips, images |
+| Constant                | Value                                 |
+| :---------------------- | :------------------------------------ |
+| `Easings.EASE_OUT_EXPO` | `cubic-bezier(0.16, 1, 0.3, 1)`       |
+| `Easings.ELASTIC_OUT`   | `cubic-bezier(0.34, 1.56, 0.64, 1)`   |
+| `Easings.SMOOTH`        | `ease-out`                            |
+| `Layers.TRACE`          | `"100"` — trails, sparkles, particles |
+| `Layers.FOLLOWER`       | `"200"` — rings and followers         |
+| `Layers.CURSOR`         | `"300"` — the primary dot or pointer  |
+| `Layers.OVERLAY`        | `"400"` — text, tooltips, images      |
 
 ```typescript
 import { Easings, Layers } from "@supermousejs/utils";
@@ -153,7 +153,7 @@ el.style.transition = `opacity 200ms ${Easings.SMOOTH}`;
 ```
 
 These are relative to the cursor stage, not the page — the stage itself is
-positioned by the [`zIndex`](/docs/reference/options#zindex) option.
+positioned by the [`zIndex`](/docs/reference/api#supermouseoptions) option.
 
 ## Authoring helper
 
@@ -161,7 +161,7 @@ positioned by the [`zIndex`](/docs/reference/options#zindex) option.
 
 Creates a plugin with automatic mounting and lifecycle handling. Accepts either a
 visual config (has `create`) or a logic config. Full field-by-field reference:
-[Plugin Authoring](/docs/architecture/authoring#defineplugin).
+[Writing Plugins](/docs/architecture/authoring#defineplugin).
 
 ## Diagnostics
 

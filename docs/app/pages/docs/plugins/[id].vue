@@ -3,17 +3,42 @@ definePageMeta({
   layout: "docs"
 });
 
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import CodeBlock from "@components/content/CodeBlock.vue";
 import MetadataStrip from "@/components/content/MetadataStrip.vue";
 import Table from "@/components/content/Table.vue";
 import CursorDemo from "@components/content/CursorDemo.vue";
+import ProseH2 from "@components/content/ProseH2.vue";
 import { usePageHead } from "@composables/usePageHead";
-import { useTocScroll, useTocSections, type TocSection } from "@composables/useToc";
+import { useToc, type TocSection } from "@composables/useToc";
 import { PLUGINS } from "@data/plugin-data";
 import { DEMOS, PLUGIN_DEMO_IDS } from "@playground/demos";
 
 const route = useRoute();
+
+/**
+ * Authored markdown for this plugin, if one exists (`content/plugins/<id>.md`).
+ * When present it carries the narrative — usage, patterns, caveats, live demos;
+ * otherwise the generated sections below stand in. The options table is always
+ * driven by `meta.json`, so structure can never drift from the package.
+ */
+const { data: pluginDoc } = await useAsyncData(`plugin-doc-${route.params.id}`, () =>
+  queryCollection("plugins").path(`/plugins/${route.params.id}`).first()
+);
+
+interface TocLink {
+  id: string;
+  text: string;
+  children?: TocLink[];
+}
+
+/** Flatten the rendered heading tree into the rail's flat list (h2→h4). */
+function flattenToc(links: TocLink[], depth: 2 | 3 | 4): TocSection[] {
+  return links.flatMap((link) => [
+    { id: link.id, label: link.text, depth },
+    ...(link.children ? flattenToc(link.children, Math.min(depth + 1, 4) as 2 | 3 | 4) : [])
+  ]);
+}
 
 const plugin = computed(() => {
   return PLUGINS.find((p) => p.id === route.params.id);
@@ -43,14 +68,6 @@ usePageHead({
 
 const showConfigTable = computed(() => (plugin.value?.options?.length ?? 0) > 0);
 
-/** Docs completeness, expressed with tokens — never a raw colour utility. */
-const docsStatus = computed(() => {
-  if (!plugin.value) return null;
-  return plugin.value.hasDetailedDocs
-    ? { label: "Full Docs", class: "border border-border bg-surface-muted text-inverse" }
-    : { label: "Overview Only", class: "border border-dashed border-border text-subtle" };
-});
-
 /**
  * This page is generated from package metadata rather than markdown, so it has
  * to publish its own TOC — otherwise the rail would keep whatever the last
@@ -59,19 +76,21 @@ const docsStatus = computed(() => {
  */
 const tocSections = computed<TocSection[]>(() => {
   if (!plugin.value) return [];
-  const sections: TocSection[] = [
-    { id: "installation", label: "Installation", depth: 2 },
-    { id: "usage", label: "Usage", depth: 2 }
-  ];
+
+  const sections: TocSection[] = pluginDoc.value
+    ? flattenToc((pluginDoc.value.body?.toc?.links ?? []) as TocLink[], 2)
+    : [
+        { id: "installation", label: "Installation", depth: 2 },
+        { id: "usage", label: "Usage", depth: 2 }
+      ];
+
   if (showConfigTable.value) {
     sections.push({ id: "configuration", label: "Configuration", depth: 2 });
   }
   return sections;
 });
 
-const tocState = useTocSections();
-watch(tocSections, (sections) => (tocState.value = sections), { immediate: true });
-useTocScroll(tocSections);
+useToc(tocSections);
 </script>
 
 <template>
@@ -82,67 +101,65 @@ useTocScroll(tocSections);
     <!-- Meta Strip (Matching Introduction) -->
     <MetadataStrip :items="metaItems" />
 
-    <!-- Intro Text -->
-    <div class="flex flex-col md:flex-row gap-12 mb-16">
-      <div class="flex-1">
-        <p class="text-xl text-body leading-relaxed font-medium">
-          {{ plugin.description }}
-        </p>
-      </div>
+    <!-- Authored docs: the narrative body, when the plugin ships markdown -->
+    <div v-if="pluginDoc" class="docs-content prose max-w-none mb-20">
+      <ContentRenderer :value="pluginDoc" />
     </div>
 
-    <!-- Live preview: shown for plugins with a registered demo, else omitted -->
-    <CursorDemo
-      v-if="plugin && PLUGIN_DEMO_IDS[plugin.id] && DEMOS[PLUGIN_DEMO_IDS[plugin.id]]"
-      :demo="PLUGIN_DEMO_IDS[plugin.id]"
-      class="mb-16"
-    />
-
-    <!-- Integration -->
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-20">
-      <div class="flex flex-col h-full">
-        <h3
-          id="installation"
-          class="font-mono text-xs font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2 scroll-mt-32"
-        >
-          <span class="w-1.5 h-1.5 bg-inverse" />
-          Installation
-        </h3>
-        <CodeBlock :code="installCode" lang="text" :clean="true" class="flex-1" />
-      </div>
-      <div class="flex flex-col h-full">
-        <h3
-          id="usage"
-          class="font-mono text-xs font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2 scroll-mt-32"
-        >
-          <span class="w-1.5 h-1.5 bg-inverse" />
-          Usage
-        </h3>
-        <CodeBlock :code="plugin.code" lang="typescript" :clean="true" class="flex-1" />
-      </div>
-    </div>
-
-    <!-- API / Config -->
-    <div class="border-t border-border pt-12">
-      <div class="flex items-center justify-between mb-8">
-        <h3
-          id="configuration"
-          class="font-mono text-sm font-bold uppercase tracking-widest text-inverse scroll-mt-32"
-        >
-          Configuration
-        </h3>
-        <div class="flex items-center gap-3">
-          <span
-            v-if="docsStatus"
-            class="mono text-[10px] font-bold uppercase tracking-widest px-2 py-0.5"
-            :class="docsStatus.class"
-          >
-            {{ docsStatus.label }}
-          </span>
-          <span v-if="plugin.options?.some((o) => o.reactive)" class="text-xs text-muted">
-            <span class="font-bold text-inverse">*</span> Reactive Property
-          </span>
+    <!-- Generated fallback for plugins without authored docs -->
+    <template v-else>
+      <!-- Intro Text -->
+      <div class="flex flex-col md:flex-row gap-12 mb-16">
+        <div class="flex-1">
+          <p class="text-xl text-body leading-relaxed font-medium">
+            {{ plugin.description }}
+          </p>
         </div>
+      </div>
+
+      <!-- Live preview: shown for plugins with a registered demo, else omitted -->
+      <CursorDemo
+        v-if="plugin && PLUGIN_DEMO_IDS[plugin.id] && DEMOS[PLUGIN_DEMO_IDS[plugin.id]]"
+        :demo="PLUGIN_DEMO_IDS[plugin.id]"
+        class="mb-16"
+      />
+
+      <!-- Integration -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-20">
+        <div class="flex flex-col h-full">
+          <h3
+            id="installation"
+            class="font-mono text-xs font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2 scroll-mt-32"
+          >
+            <span class="w-1.5 h-1.5 bg-inverse" />
+            Installation
+          </h3>
+          <CodeBlock :code="installCode" lang="text" :clean="true" class="flex-1" />
+        </div>
+        <div class="flex flex-col h-full">
+          <h3
+            id="usage"
+            class="font-mono text-xs font-bold uppercase tracking-widest text-muted mb-4 flex items-center gap-2 scroll-mt-32"
+          >
+            <span class="w-1.5 h-1.5 bg-inverse" />
+            Usage
+          </h3>
+          <CodeBlock :code="plugin.code" lang="typescript" :clean="true" class="flex-1" />
+        </div>
+      </div>
+    </template>
+
+    <!-- Configuration: same heading shell as authored markdown pages. -->
+    <div class="border-t border-border">
+      <ProseH2 id="configuration">Configuration</ProseH2>
+      <div class="docs-content max-w-none mb-8">
+        <p class="leading-relaxed">
+          Every option <code>{{ plugin.name }}</code> accepts, with its type, default, and whether
+          it is reactive. Options marked <strong>*</strong> accept a function of
+          <a href="/docs/reference/api#mousestate">MouseState</a> and are re-read every frame. The
+          engine's own settings — damping, cursor mode, scoping — are listed under
+          <a href="/docs/reference/api#supermouseoptions">constructor options</a>.
+        </p>
       </div>
 
       <!-- Options Table -->
@@ -172,7 +189,7 @@ useTocScroll(tocSections);
 
       <div v-else class="p-12 border-t border-border bg-surface-muted text-center">
         <p class="font-mono text-xs text-subtle uppercase tracking-widest font-bold">
-          {{ plugin?.hasDetailedDocs ? 'No configuration options' : 'Configuration docs coming soon' }}
+          No configuration options
         </p>
       </div>
     </div>
@@ -180,9 +197,7 @@ useTocScroll(tocSections);
 
   <!-- 404 State -->
   <div v-else class="min-h-[50vh] flex flex-col items-center justify-center text-center p-8">
-    <div
-      class="w-16 h-16 border border-border flex items-center justify-center mb-6 text-faint"
-    >
+    <div class="w-16 h-16 border border-border flex items-center justify-center mb-6 text-faint">
       <svg
         width="24"
         height="24"

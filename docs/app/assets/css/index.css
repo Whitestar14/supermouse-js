@@ -69,7 +69,7 @@
     --grid-size: 40px;
     --grid-color: #f0f0f0;
     /* Softer grid for interactive demo canvases (see `.grid-bg-soft`). */
-    --grid-color-soft: #f4f4f6;
+    --grid-color-soft: #333334;
     --text-main: var(--color-inverse);
     font-size: 16px;
     line-height: 1.5rem;
@@ -107,7 +107,9 @@
     --grid-color: #1c1c20;
     --grid-color-soft: #16161a;
 
-    --color-code-surface: hsl(0, 0%, 10%);
+    --color-code-surface: #111113;
+    --color-code-header: #0a0a0a;
+    --color-code-border: #1c1c20;
   }
 
   .header-shell {
@@ -338,6 +340,80 @@
     background: var(--color-code-muted);
   }
 
+  /*
+   * Chrome that stays on screen for a long time: nav rails, the TOC, the
+   * search results. The standard pair is written first so Firefox and
+   * Chromium 121+ paint a thin themed bar; the `::-webkit-scrollbar` rules
+   * cover Safari, which ignores the standard properties.
+   */
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .scroll-area::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-area::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+
+  .scroll-area::-webkit-scrollbar-thumb:hover {
+    background: var(--color-subtle);
+  }
+
+  /* Horizontal rails that scroll on touch but should never show a bar. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .code-panel {
+    --color-surface: var(--color-code-surface);
+    --color-surface-muted: var(--color-code-header);
+    --color-surface-subtle: var(--color-code-border);
+    --color-border: var(--color-code-border);
+    --color-border-subtle: var(--color-code-border);
+    --color-inverse: var(--color-code-strong);
+    --color-strong: var(--color-code-strong);
+    --color-body: var(--color-code-text);
+    --color-muted: var(--color-code-soft);
+    --color-subtle: var(--color-code-muted);
+    --color-faint: var(--color-code-faint);
+  }
+
+  /*
+   * Cursor previews need a fine pointer: `autoDisableOnMobile` turns the engine
+   * off for touch, so the stage is swapped for a notice. Expressed as a media
+   * query rather than a JS check on purpose — it is the same test the engine
+   * runs (`(pointer: fine)`), it survives SSR without a hydration mismatch, and
+   * it reacts the moment a mouse is attached.
+   */
+  .pointer-demo-fallback {
+    display: none;
+  }
+
+  @media (pointer: coarse), (pointer: none) {
+    .pointer-demo-stage {
+      display: none;
+    }
+
+    .pointer-demo-fallback {
+      display: flex;
+    }
+  }
+
   .docs-content pre code {
     @apply !bg-transparent;
     color: var(--color-code-text) !important;
@@ -386,22 +462,67 @@
     color: var(--color-code-muted);
   }
 
-  /* Range input chrome for the interactive previews. */
+  /*
+   * Range chrome for the interactive previews. The track is painted from an
+   * inline `background-image` gradient (see ControlSlider), so the element is
+   * given a generous 24px hit area while `background-size` keeps the visible
+   * rail at 4px — a thin line that still accepts a thumb on touch screens.
+   * `--range-thumb` lets a colour control tint its handle to match the value.
+   */
   .supermouse-range {
-    @apply w-full h-1 appearance-none cursor-pointer transition-all;
+    --range-thumb: var(--color-inverse);
+    @apply block w-full cursor-pointer appearance-none;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 0.25rem;
     outline: none;
   }
 
+  .supermouse-range:focus-visible {
+    box-shadow:
+      0 0 0 2px var(--color-surface),
+      0 0 0 3px var(--color-inverse);
+  }
+
   .supermouse-range::-webkit-slider-thumb {
-    @apply appearance-none w-3 h-3 bg-inverse border border-surface shadow-[0_0_0_1px_var(--color-border)] transition-transform active:scale-125;
+    @apply appearance-none;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 0;
+    background: var(--range-thumb);
+    border: 1px solid var(--color-surface);
+    box-shadow: 0 0 0 1px var(--color-border);
+    transition: transform 0.1s ease;
+  }
+
+  .supermouse-range:hover::-webkit-slider-thumb,
+  .supermouse-range:active::-webkit-slider-thumb {
+    transform: scale(1.2);
   }
 
   .supermouse-range::-moz-range-thumb {
-    @apply w-3 h-3 bg-inverse border border-surface shadow-[0_0_0_1px_var(--color-border)] rounded-none transition-transform active:scale-125;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 0;
+    background: var(--range-thumb);
+    border: 1px solid var(--color-surface);
+    box-shadow: 0 0 0 1px var(--color-border);
+    transition: transform 0.1s ease;
+  }
+
+  .supermouse-range:hover::-moz-range-thumb,
+  .supermouse-range:active::-moz-range-thumb {
+    transform: scale(1.2);
   }
 
   .supermouse-range::-moz-range-track {
-    @apply h-1 bg-transparent;
+    height: 0.25rem;
+    background: transparent;
   }
 }
 

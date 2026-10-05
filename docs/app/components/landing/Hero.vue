@@ -69,8 +69,8 @@ app.use(Dot({ size: 8 }));
             <p
               class="text-lg md:text-xl text-body font-medium max-w-lg mb-12 leading-relaxed text-pretty"
             >
-              A zero-dependency, 4kb kernel with sensible defaults and a plugin system for building
-              beautiful cursors on the web.
+              A small, zero-dependency kernel with sensible defaults and a plugin system for
+              building beautiful cursors on the web.
             </p>
 
             <!-- Actions -->

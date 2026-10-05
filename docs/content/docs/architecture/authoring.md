@@ -1,18 +1,17 @@
 ---
-title: Plugin Authoring
-description: Build Supermouse plugins — the plugin contract, definePlugin, priority, and hot-path rules.
+title: Writing Plugins
+description: Build Supermouse plugins — the plugin contract, definePlugin, priority, the interaction and shape buses, and how to keep the frame loop cheap.
 section: Architecture
-order: 4
+order: 1
 ---
 
-Plugins are the only extension mechanism. The core runtime is deliberately thin:
-it aggregates input, sorts plugins by priority, damps the cursor toward its
-destination, and gets out of the way. Everything visual or behavioural is a
-plugin.
+Plugins are the only extension mechanism in Supermouse. The core is deliberately thin: it captures input, sorts plugins by priority, damps the cursor toward its target, and stays out of the way. **Every visual and every behaviour — the dot, the ring, magnetism, sticky cursors — is a plugin.**
+
+That means writing a plugin is the normal way to make Supermouse do something new. This page takes you from an empty file to a published package.
 
 ## The contract
 
-A plugin is a plain object with a `name`:
+A plugin is a plain object with a `name`. Everything else is optional:
 
 ```typescript
 import type { SupermousePlugin } from "@supermousejs/core";
@@ -21,169 +20,184 @@ export const Gravity = (intensity = 5): SupermousePlugin => ({
   name: "gravity",
   priority: -10, // logic plugins run before physics
   update(app, dtMs) {
-    app.state.target.y += intensity;
+    app.state.target.y += intensity * (dtMs / 1000); // dtMs keeps it framerate-independent
   }
 });
 ```
 
-Two rules matter more than the rest:
-
-**Always export a factory, never a shared object literal.** The factory closure is
-where per-instance state lives. A module-level object shared by two cursors will
-interleave its state and misbehave.
-
-**`name` is the runtime handle.** `getPlugin`, `enablePlugin`, `disablePlugin`,
-`togglePlugin` and `States()` all resolve plugins by name. Names must be unique
-per instance — `use()` warns and refuses a duplicate.
-
-## Writing a visual plugin
-
-Visual plugins are simpler than they look: create one element, style it from
-options, position it from state. `definePlugin()` handles the mounting,
-enabling, disabling and teardown for you.
+Register it like any other plugin:
 
 ```typescript
-import { definePlugin, dom } from "@supermousejs/utils";
-import type { SupermousePlugin } from "@supermousejs/core";
+app.use(Gravity(12)); // or: new Supermouse({ plugins: [Gravity(12)] })
+```
 
-export const Crosshair = (options: { size?: number } = {}): SupermousePlugin => {
-  const size = options.size ?? 16;
+Three rules matter more than the rest.
 
-  return definePlugin<HTMLDivElement>(
-    {
-      name: "crosshair",
-      // auto-registers as a hover target AND suppresses the native cursor over it
-      selector: "[data-supermouse-crosshair]",
+**Always export a factory, never a shared object literal.** The factory closure is where per-instance state lives. A module-level object reused by two cursors will interleave its state and misbehave.
 
-      create: () => {
-        const el = document.createElement("div");
-        el.textContent = "+";
-        dom.css(el, { font: `${size}px/1 monospace` });
-        return el;
-      },
-
-      update: (app, el) => {
-        dom.setTransform(el, app.state.smooth.x, app.state.smooth.y);
-      },
-
-      cleanup: (app, el) => {
-        // tear down anything create() attached outside the element
-      }
+```typescript
+export const RedDot = (): SupermousePlugin => {
+  let el: HTMLDivElement | null = null; // one element per instance
+  return {
+    name: "red-dot",
+    install(app) {
+      /* … */
     },
-    options // lets callers override `name` and `isEnabled`
-  );
+    update(app) {
+      /* … */
+    },
+    destroy() {
+      el?.remove();
+    }
+  };
 };
 ```
 
-The element returned by `create()` is appended to [`app.stage`](/docs/architecture/sandbox),
-not to the body, and it is exposed to the runtime as `plugin.element` — which is
-what lets the engine hide and restore it when the plugin is toggled.
+**`name` is the runtime handle.** `getPlugin`, `enablePlugin`, `disablePlugin`, `togglePlugin` and `States()` all resolve plugins by name, so names must be unique per instance. `use()` warns and refuses a duplicate.
 
-## `definePlugin` reference
+**Guard on `state.hasReceivedInput`.** Before the first pointer event — and whenever the pointer leaves the window with `hideOnLeave` (the default) — the engine sets `hasReceivedInput` to `false` and parks `pointer`, `target` and `smooth` off-screen at `(-100, -100)`. Read those coordinates only when input is real, or your effect will fling itself into the corner as it fades. If you want an element to shrink or drift away on exit, cache the last valid position and animate from that instead — so the exit plays out at the exact edge point where the pointer left.
 
-`definePlugin(config, userOptions?)` accepts one of two config shapes. If the
-config has a `create` function it is treated as visual; otherwise it is a logic
-plugin and is passed through unchanged.
+## A complete visual plugin
+
+Visual plugins are simpler than they look: create one element, style it from options, position it from state.
+
+```typescript
+import type { SupermousePlugin } from "@supermousejs/core";
+import { css, setTransform } from "@supermousejs/utils";
+
+export const Crosshair = (options: { size?: number } = {}): SupermousePlugin => {
+  const size = options.size ?? 16;
+  let el: HTMLDivElement | null = null;
+
+  return {
+    name: "crosshair",
+
+    install(app) {
+      el = document.createElement("div");
+      el.textContent = "+";
+      css(el, { fontSize: `${size}px`, lineHeight: 1, color: "#fff" });
+      app.stage.appendChild(el);
+      // tells the engine this element counts as hoverable
+      app.addHoverSelectors("[data-supermouse-crosshair]");
+    },
+
+    update(app) {
+      if (!el || !app.state.hasReceivedInput) return;
+      const { x, y } = app.state.smooth;
+      setTransform(el, x, y);
+    },
+
+    destroy() {
+      el?.remove();
+    }
+  };
+};
+```
+
+The element is appended to `app.stage`, not to the body — that is what keeps cursor art above page content and lets the engine show and hide it as scopes change. Assign it to `plugin.element` (as `definePlugin` does for you) if you want the engine to hide it automatically when the plugin is disabled.
+
+Write styles through `css()` from `@supermousejs/utils`. It caches the last value per property and skips the DOM write when nothing changed, which is why a plugin can set the same width every frame for free:
+
+```typescript
+css(el, {
+  width: `${size}px`,
+  height: `${size}px`,
+  opacity: app.state.isHover ? 1 : 0.5
+});
+setTransform(el, app.state.smooth.x, app.state.smooth.y);
+```
+
+:::callout{title="Two habits for a cheap update()" variant="note"}
+`update()` runs 60–240 times a second on the main thread, so **never assign `el.style.*` directly** (that is what `css()` is for), and **never read layout** — no `getBoundingClientRect`, `offsetWidth`, or `getComputedStyle`. Measure once on hover and cache it, the way `Stick` does. Reuse elements and vectors rather than allocating each frame; `Trail` builds its pool once and afterwards only moves numbers through a history buffer.
+:::
+
+## `definePlugin()`
+
+`definePlugin(config, userOptions?)` from `@supermousejs/utils` removes the boilerplate: it creates the element, mounts it on the stage, assigns `plugin.element`, wires enable/disable visibility, and runs teardown. If the config has a `create` function it is treated as **visual**; otherwise it is a **logic** plugin and is returned almost unchanged.
+
+```typescript
+import { definePlugin, css, setTransform } from "@supermousejs/utils";
+
+export const MyDot = definePlugin<HTMLDivElement>({
+  name: "my-dot",
+  hoverSelector: "[data-my-dot]", // auto-registers a hover selector on install
+
+  create: () => {
+    const el = document.createElement("div");
+    css(el, { width: "8px", height: "8px", borderRadius: "50%", background: "red" });
+    return el;
+  },
+
+  update: (app, el) => {
+    if (!app.state.hasReceivedInput) return;
+    const { x, y } = app.state.smooth;
+    setTransform(el, x, y);
+  }
+});
+```
 
 ### Visual config
 
-| Field | Signature | Notes |
-| :--- | :--- | :--- |
-| `create` | `(app) => E` | **Required.** Called once during `install()`. Return the root element. |
-| `update` | `(app, element, dtMs) => void` | Every frame while enabled. `dtMs` is milliseconds. |
-| `onEnable` | `(app, element) => void` | Element is already visible. |
-| `onDisable` | `(app, element) => void` | Element is still in the DOM — start exit transitions here. |
-| `cleanup` | `(app, element) => void` | Runs before the element is removed. Detach listeners, kill timelines. |
-| `destroy` | `(app) => void` | General teardown, after `cleanup` and removal. |
-| `selector` | `string` | Auto-registers a hover target on install. |
-| `beforeDisable` | `(app, element) => void \| Promise<void>` | Delays hiding until the returned promise resolves. |
-| `priority` | `number` | Default `0`. |
-| `name` | `string` | **Required.** |
+| Field           | Signature                                 | Notes                                                                    |
+| :-------------- | :---------------------------------------- | :----------------------------------------------------------------------- |
+| `create`        | `(app) => E`                              | **Required.** Called once during `install()`. Return the root element.   |
+| `update`        | `(app, element, dtMs) => void`            | Every frame while enabled. `dtMs` is milliseconds.                       |
+| `onEnable`      | `(app, element) => void`                  | Element is already visible.                                              |
+| `onDisable`     | `(app, element) => void`                  | Element is still in the DOM — start exit transitions here.               |
+| `cleanup`       | `(app, element) => void`                  | Runs before the element is removed. Detach listeners and kill timelines. |
+| `destroy`       | `(app) => void`                           | General teardown, after `cleanup` and removal.                           |
+| `hoverSelector` | `string`                                  | Adds a selector to the owning scope's hover set on install.              |
+| `beforeDisable` | `(app, element) => void \| Promise<void>` | Return a promise to delay hiding until an exit animation finishes.       |
+| `priority`      | `number`                                  | Default `0`.                                                             |
+| `name`          | `string`                                  | **Required.**                                                            |
 
 ### Logic config
 
-| Field | Signature | Notes |
-| :--- | :--- | :--- |
-| `update` | `(app, dtMs) => void` | Required in practice — modify `state.target`. |
-| `install` | `(app) => void` | Register hover targets here. |
-| `onEnable` / `onDisable` | `(app) => void` | Toggle hooks. |
-| `destroy` | `(app) => void` | Teardown. |
-| `beforeDisable` | `(app) => void \| Promise<void>` | Async exit hook. |
-| `priority` | `number` | Default `0`. |
+| Field                    | Signature                        | Notes                                              |
+| :----------------------- | :------------------------------- | :------------------------------------------------- |
+| `update`                 | `(app, dtMs) => void`            | Required in practice — modify `state.target` here. |
+| `install`                | `(app) => void`                  | Register hover selectors or external listeners.    |
+| `onEnable` / `onDisable` | `(app) => void`                  | Toggle hooks.                                      |
+| `destroy`                | `(app) => void`                  | Teardown.                                          |
+| `beforeDisable`          | `(app) => void \| Promise<void>` | Async exit hook.                                   |
+| `priority`               | `number`                         | Default `0`.                                       |
+| `name`                   | `string`                         | **Required.**                                      |
 
 ### `userOptions`
 
-The second argument is the override channel, and it is how every official plugin
-lets callers rename or pre-disable an instance:
+The second argument is the override channel. Every official plugin forwards it, so callers can rename or pre-disable an instance without editing your plugin:
 
 ```typescript
 app.use(SmartRing({ name: "playground-card-bg", isEnabled: false }));
 ```
 
-## Priority
+## Priority: who runs first
 
-`use()` sorts the plugin list by `priority` ascending after every registration,
-and the frame loop runs them in that order. Lower runs earlier.
+`use()` sorts the plugin list by `priority` ascending after every registration, and the frame loop runs them in that order. Lower runs earlier. Ties fall back to registration order, so installation order only matters between equal priorities.
 
-| Range | Use for |
-| :--- | :--- |
-| `priority < 0` | **Logic** — rewrite `state.target`. `Magnetic` and `Stick` use `-10`. |
-| `priority: 0` | **Visual** — read `state.smooth` / `state.target` and render. This is the default. |
+| Range              | Use for                                                                           |
+| :----------------- | :-------------------------------------------------------------------------------- |
+| `priority < 0`     | **Logic** — rewrite `state.target`. `Magnetic` and `Stick` use `-10`.             |
+| `priority: 0`      | **Visual** — read `state.smooth` / `state.target` and render. The default.        |
 | `priority <= -900` | **Controllers** — `States` uses `-999` so it can toggle the plugins about to run. |
 
-:::callout{title="The tearing bug" variant="warning"}
-A logic plugin left at the default `0` interleaves with visual plugins: whichever
-visuals happen to sort after it see the new target while the ones before it see
-the old one. The dot snaps while the ring trails, and the cursor looks like it
-has come apart. Any plugin that writes `state.target` must use a negative
-priority.
+:::callout{title="Execution order and state consistency" variant="warning"}
+A logic plugin left at the default priority (`0`) interleaves with visual plugins: any visual plugin that runs after it sees the updated `target`, while one that runs before it sees last frame's value. If your plugin writes to `state.target`, give it a **negative priority**.
 :::
 
-## Reactive options
+## Reacting to hover: the interaction bus
 
-Options may be static values or a getter, typed as `ValueOrGetter<T>`:
-
-```typescript
-Dot({
-  size: 8,
-  color: (state) => (state.isHover ? "#10b981" : "#000000"),
-  opacity: (state) => (state.isDown ? 0.6 : 1)
-});
-```
-
-Normalise once at construction, then call the getter in the loop — this removes
-`typeof` branching from the hot path entirely:
+If you need to know about the element under the pointer, do **not** read its attributes inside `update()`. Doing that every frame forces synchronous layout and is the most common cause of jank in cursor plugins. Instead, the input layer rebuilds `state.interaction` from `rules` and data attributes the moment the hover target changes — the DOM cost is already paid for you:
 
 ```typescript
-import { normalize, normalizeAll } from "@supermousejs/utils";
-
-const getSize = normalize(options.size, 8);
-
-const cfg = normalizeAll(options, { size: 20, color: "#ffffff", borderWidth: 2 });
-// later, in update(): cfg.size(app.state)
-```
-
-## The interaction bus
-
-`state.interaction` is a flat object the input layer rebuilds from `rules` and
-`data-*` attributes. It is the **only** supported way to get hover metadata — the
-engine has already paid the DOM cost for you.
-
-```typescript
-install(app) {
-  app.registerHoverTarget("[data-supermouse-stick]"); // ensures hover detection
-},
-
-update(app) {
+update(app, el) {
   const sticky = app.state.interaction.stick === true;
   const color = app.state.interaction.color; // from data-supermouse-color
-  if (color) dom.css(el, { backgroundColor: color });
+  if (color) css(el, { backgroundColor: color });
 }
 ```
 
-Values are re-resolved every frame, so they are safe to use for animation, not
-just enter/exit transitions. Declare your keys for TypeScript with module
-augmentation:
+Values are re-resolved every frame, so they are safe for animation, not just enter/exit transitions. Declare your keys for TypeScript with module augmentation:
 
 ```typescript
 declare module "@supermousejs/core" {
@@ -195,90 +209,66 @@ declare module "@supermousejs/core" {
 }
 ```
 
-## The shape bus
-
-Logic plugins that know the geometry of a target publish it to `state.shape`;
-visual plugins morph to it. This is how `Stick` and `SmartRing` stay decoupled —
-you can swap the visual without touching the sticky logic.
+`rules` lets you describe the same data from CSS selectors instead of markup. HTML `data-{prefix}-*` attributes override rule values per property:
 
 ```typescript
-// logic side
-app.state.shape = { width: rect.width + padding, height: rect.height + padding, borderRadius: radius };
+const app = new Supermouse({
+  rules: {
+    ".primary-action": { magnetic: true, color: "red" }
+  }
+});
+```
+
+## Sharing geometry: the shape bus
+
+Measuring a hovered element is expensive, so do it once and share it. Logic plugins that know the geometry of a target publish it to `state.shape`; visual plugins morph to it. This is how `Stick` and `SmartRing` stay decoupled — you can swap the visual without touching the sticky logic.
+
+```typescript
+// logic side — measured on hover, not in the loop
+app.state.shape = {
+  width: rect.width + padding,
+  height: rect.height + padding,
+  borderRadius: radius
+};
 
 // visual side
 const shape = app.state.shape;
 if (shape) {
-  // morph, then reset to null when the hover ends
+  // morph to shape, then reset to null when the hover ends
 }
 ```
 
-Plugins that occupy the same space as a morphed shape can opt out with
-`hideOnShape: true` — `Dot` defaults to this.
+Plugins that occupy the same space as a morphed shape can opt out with `hideOnShape: true` — `Dot` defaults to this.
 
-## Hot-path rules
+## Reactive options
 
-`update()` runs 60–240 times a second on the main thread. Three rules:
+Most options accept `ValueOrGetter<T>` — a static value, or a function of `MouseState`. Normalise once, then call the getter in the loop; this removes `typeof` branching from the hot path entirely.
 
-**1. Never read layout.** No `getBoundingClientRect`, no `offsetWidth`, no
-`getComputedStyle`. Read cached geometry on hover instead. `Stick` does its
-`getBoundingClientRect` and `getComputedStyle` work once per element, guarded by
-the cached `lastTarget`.
+```typescript
+Dot({
+  size: 8,
+  color: (state) => (state.isHover ? "#10b981" : "#000000"),
+  opacity: (state) => (state.isDown ? 0.6 : 1)
+});
+```
 
-**2. Be frame-rate independent.** Use `dtMs / 1000` with `damp`/`lerp`, never a
-fixed increment.
+```typescript
+import { normalize, normalizeAll } from "@supermousejs/utils";
 
-**3. Do not allocate.** Reuse elements and vectors. `Trail` allocates its pool
-once in `create()` and then only moves numbers through a history buffer.
+const getSize = normalize(options.size, 8);
 
-`dom.css()` already helps here — it caches the last written value per property
-and skips the DOM write when nothing changed, which is why plugins can set the
-same width and height every frame cheaply.
+const cfg = normalizeAll(options, { size: 20, color: "#ffffff", borderWidth: 2 });
+// later, in update(): cfg.size(app.state)
+```
 
-## Tracking multiple targets
+## Lifecycle, exit animations, and failures
 
-Three workable strategies, in increasing order of setup cost:
+- `install(app)` runs once, synchronously, inside `app.use()`.
+- `update(app, dtMs)` runs every frame while the plugin is enabled.
+- `onEnable` / `onDisable` fire as plugins are toggled or as scopes change.
+- `destroy(app)` runs when the plugin is removed or the app is destroyed.
 
-- **Per-frame query** — `querySelectorAll` each frame into a `Map`. Fine for a
-  handful of elements; expensive if the selector is broad.
-- **Pre-created pool** — allocate N elements in `create()` and decide which to
-  show during `update`. This is what `Sparkles` and `Trail` do; nothing is
-  created inside the loop.
-- **Static registration** — collect every target once in `install()` and reuse
-  the references. Best when the DOM structure is stable.
-
-Separate *what you track* from *how you draw it*. `Sparkles` does not know about
-containers at all; it emits particles along the pointer path. A spotlight needs to
-know which container the pointer is inside so it can clamp the highlight. Pick the
-model that matches the data.
-
-## When the pointer leaves
-
-On `mouseleave` with `hideOnLeave` (the default), the engine sets
-`state.hasReceivedInput = false` and parks `state.pointer` at `(-100, -100)`. A
-plugin that renders those coordinates blindly will fling its element into the
-corner as it fades.
-
-Three ways out:
-
-- **Last known position** — cache the last valid local coordinates and keep
-  rendering them while the element fades or shrinks.
-- **Stop sourcing** — for trailing effects, stop spawning on
-  `hasReceivedInput === false` and let existing particles finish their own
-  lifecycle. `Sparkles` does this.
-- **Hide instantly** — set `opacity: 0` and restore on the first move back.
-
-The last-known-position approach is usually right for effects that shrink on
-exit, because the shrink plays out at the exact edge point where the pointer left.
-
-## Failures and teardown
-
-- Throwing in `install()` rejects the plugin; it is never registered.
-- Throwing in `update()` disables the plugin, logs the error, and later runs its
-  `onDisable` and `destroy` hooks and removes its element. Other plugins keep
-  running.
-- `onBeforeDisable` (or `beforeDisable` in a config) may return a promise. The
-  core awaits it before hiding the element — that is how `SmartRing` plays a
-  150ms fade-and-shrink exit.
+`onBeforeDisable` (or `beforeDisable` in a `definePlugin` config) may return a promise. The core awaits it before hiding the element — that is how `SmartRing` plays a 150 ms fade-and-shrink exit with no `setTimeout` hacks:
 
 ```typescript
 beforeDisable(app, el) {
@@ -287,6 +277,11 @@ beforeDisable(app, el) {
   return new Promise((resolve) => setTimeout(resolve, 150));
 }
 ```
+
+Failures are contained:
+
+- Throwing in `install()` rejects the plugin; it is never registered.
+- Throwing in `update()` disables that plugin, logs the error, and later runs its `onDisable` and `destroy` hooks and removes its element. Other plugins keep running.
 
 ## Testing
 
@@ -305,20 +300,16 @@ app.step(33.34);
 expect(app.state.smooth.x).toBeGreaterThan(0);
 ```
 
-Because `autoStart: false` stops the `requestAnimationFrame` loop, `step(time)`
-gives you deterministic control over delta time in tests.
+Because `autoStart: false` stops the `requestAnimationFrame` loop, `step(time)` gives you deterministic delta time.
 
-Run `doctor(app)` in the browser when something is off — it flags logic plugins
-with a non-negative priority, mis-ordered `States()` and competing instances.
+When something is off in the browser, run `doctor(app)` from `@supermousejs/utils` — it flags logic plugins left at a non-negative priority, mis-ordered `States()`, and competing instances.
 
 ## Publishing
 
-You are free to publish under your own namespace (`supermouse-plugin-x`,
-`@your-scope/supermouse-x`). The `@supermousejs/*` scope is reserved for the
-official packages.
+Publish under your own namespace (`supermouse-plugin-x`, `@your-scope/supermouse-x`) — you don't need to contribute here to extend Supermouse. The `@supermousejs/*` scope is reserved for the official packages.
 
 ## Related
 
-- [Plugin Interface](/docs/reference/plugin-interface) — the field-by-field contract.
-- [The Pipeline](/docs/architecture/pipeline) — exactly when your hooks run.
-- [Contributing](/docs/architecture/contributing) — landing a plugin in this repo.
+- [Plugin Interface](/docs/reference/api#supermouseplugin) — the field-by-field contract.
+- [Core Concepts](/docs/architecture/pipeline) — execution pipeline and frame timing.
+- [Utilities](/docs/reference/utilities) — `css`, `setTransform`, `normalize`, `doctor`, and friends.

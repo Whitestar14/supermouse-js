@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTocScroll, useTocSections, type TocSection } from "@composables/useToc";
+import { useToc, type TocSection } from "@composables/useToc";
 import { APP_VERSION } from "@config/constants";
 
 definePageMeta({
@@ -20,29 +20,17 @@ if (!page.value) {
   });
 }
 
-/**
- * The table of contents comes straight from the rendered markdown headings, so
- * it can never drift from the page body. Publishing it to shared state here
- * (during setup, before the layout renders its rail) keeps it in the
- * server-rendered HTML.
- */
 interface MdcTocLink {
   id: string;
   text: string;
   children?: MdcTocLink[];
 }
 
-/**
- * Flatten the rendered heading tree into the rail's flat list. Nesting is
- * walked rather than assumed to be one level deep, so pages that use h4 keep
- * their structure instead of silently dropping it.
- */
+/** Flattens the heading tree into the rail's list, walking nested levels. */
 function flattenToc(links: MdcTocLink[], depth: 2 | 3 | 4): TocSection[] {
   return links.flatMap((link) => [
     { id: link.id, label: link.text, depth },
-    ...(link.children
-      ? flattenToc(link.children, Math.min(depth + 1, 4) as 2 | 3 | 4)
-      : [])
+    ...(link.children ? flattenToc(link.children, Math.min(depth + 1, 4) as 2 | 3 | 4) : [])
   ]);
 }
 
@@ -50,10 +38,7 @@ const tocSections = computed<TocSection[]>(() =>
   flattenToc((page.value?.body?.toc?.links ?? []) as MdcTocLink[], 2)
 );
 
-const tocState = useTocSections();
-tocState.value = tocSections.value;
-
-useTocScroll(tocSections);
+useToc(tocSections);
 
 /** Frontmatter keys surfaced as the metadata strip, in display order. */
 const META_FIELDS = [

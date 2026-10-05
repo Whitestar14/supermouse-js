@@ -11,6 +11,12 @@ supercopy.py
 *.py
 .DS_Store
 *.log
+
+# Local agent/editor session files
+.freebuff/
+
+# Generated from packages/*/meta.json by scripts/build-data.js
+docs/app/data/generated-plugins.ts
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

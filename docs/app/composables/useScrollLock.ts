@@ -6,7 +6,7 @@ import { onScopeDispose, watch, type Ref } from "vue";
  * counter keeps stacked overlays from unlocking each other.
  */
 let locks = 0;
-let previousOverflow = "";
+let previousRootOverflow = "";
 let previousPaddingRight = "";
 let previousLenisStopped = false;
 
@@ -18,11 +18,15 @@ function acquire(): void {
   const body = document.body;
   const scrollbar = window.innerWidth - root.clientWidth;
 
-  previousOverflow = body.style.overflow;
+  // Lock the *root* element, never <body>. Setting `overflow: hidden` on <body>
+  // makes it a scroll container, which breaks `position: sticky` on the header
+  // and side rails — they snap to their static position when an overlay opens
+  // on a scrolled page.
+  previousRootOverflow = root.style.overflow;
   previousPaddingRight = body.style.paddingRight;
   previousLenisStopped = root.classList.contains("lenis-stopped");
 
-  body.style.overflow = "hidden";
+  root.style.overflow = "hidden";
   if (scrollbar > 0) body.style.paddingRight = `${scrollbar}px`;
 
   (window as any).lenis?.stop?.();
@@ -33,12 +37,12 @@ function release(): void {
   locks = Math.max(0, locks - 1);
   if (locks > 0 || typeof document === "undefined") return;
 
-  const body = document.body;
-  body.style.overflow = previousOverflow;
-  body.style.paddingRight = previousPaddingRight;
+  const root = document.documentElement;
+  root.style.overflow = previousRootOverflow;
+  document.body.style.paddingRight = previousPaddingRight;
 
   if (!previousLenisStopped) (window as any).lenis?.start?.();
-  document.documentElement.classList.remove("scroll-locked");
+  root.classList.remove("scroll-locked");
 }
 
 /** Lock/unlock the page whenever `active` flips. */

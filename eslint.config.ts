@@ -14,7 +14,7 @@ export default defineConfig(
       "**/.output/**",
       "**/.cache/**",
       "**/.env*",
-      "**/generated-plugins.json",
+      "**/generated-plugins.ts",
       "**/.vscode/**",
       "**/.idea/**",
       "**/.DS_Store",

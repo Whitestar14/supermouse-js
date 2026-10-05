@@ -1,47 +1,59 @@
 ---
-title: The Pipeline
-description: The exact order of operations inside a single frame, from pointer input to plugin render.
+title: Core Concepts
+description: The execution pipeline, exponential damping physics, stage sandbox, and DOM layout firewall.
 section: Architecture
-order: 1
+order: 2
 ---
 
-Supermouse runs one `requestAnimationFrame` loop per instance. Everything —
-input, logic, physics, rendering — happens inside a single deterministic pass
-with a fixed order. Knowing that order is what lets you predict whether a plugin
-should read `target` or `smooth`, and why a logic plugin needs a negative
-priority.
+Supermouse is built on a simple architecture: a single, deterministic `requestAnimationFrame` loop that isolates input tracking, scope coordination, and physics damping from application rendering.
 
-## One frame, in order
+---
+
+## The Execution Pipeline
+
+Every animation frame executes in an exact, deterministic order:
 
 ```javascript
 function update(time) {
-  // 1. Delta time, clamped so a background tab cannot teleport the cursor
+  // 1. Compute delta time, clamped to 100ms
   const dtMs = time - lastTime;
   const dt = Math.min(dtMs / 1000, 0.1);
   lastTime = time;
 
-  // 2. Hover bookkeeping (cached selector matches, fresh values)
+  // 2. Hover interaction evaluation (cached selectors, refreshed values)
   const target = input.getCurrentTarget();
-  if (target && !target.isConnected) input.clearHover();
-  else if (target) input.parseDOMInteraction(target);
+  if (target && !target.isConnected) {
+    input.clearHover();
+  } else if (target) {
+    input.parseDOMInteraction(target);
+  }
 
-  // 3. Stage visibility + native-cursor suppression for this frame
-  stage.setVisibility(resolveStageVisibility());
-  if (input.isEnabled) stage.setNativeCursor(resolveCursorState());
-
-  // 4. Intent: the raw pointer becomes the default destination
+  // 3. Initialize target goal from raw pointer coordinates
   if (input.isEnabled && state.hasReceivedInput) {
     state.target.x = state.pointer.x;
     state.target.y = state.pointer.y;
   }
 
-  // 5. Plugins, sorted by priority — logic (< 0) before visuals (>= 0)
-  for (const plugin of plugins) plugin.update(app, dtMs); // note: milliseconds
+  // 4. Active scope plugin execution
+  const activeScope = this._activeScope;
+  if (activeScope) {
+    activeScope.stage.setVisibility(this.resolveStageVisibility());
+    if (this.input.isEnabled) {
+      activeScope.stage.setNativeCursor(this.resolveCursorState());
+    }
 
-  // 6. Physics — after plugins, so logic edits land this frame
-  if (input.isEnabled) {
+    // Logic plugins (priority < 0) run first and can modify state.target
+    // Visual plugins (priority >= 0) run next
+    for (let i = 0; i < activeScope.plugins.length; i++) {
+      this.runPluginSafe(activeScope.plugins[i], dtMs);
+    }
+  }
+
+  this.cleanupCrashedPlugins();
+
+  // 5. Physics step (exponential damping toward state.target)
+  if (this.input.isEnabled) {
     const lambda = state.reducedMotion ? 1000 : (1 / smoothness) * 2;
-
     const px = state.smooth.x;
     const py = state.smooth.y;
 
@@ -51,7 +63,7 @@ function update(time) {
     state.displacement.x = state.target.x - state.smooth.x;
     state.displacement.y = state.target.y - state.smooth.y;
 
-    state.velocity.x = (state.smooth.x - px) / dt; // px per second
+    state.velocity.x = (state.smooth.x - px) / dt;
     state.velocity.y = (state.smooth.y - py) / dt;
 
     if (Math.abs(state.velocity.x) > 0.1 || Math.abs(state.velocity.y) > 0.1) {
@@ -61,74 +73,73 @@ function update(time) {
 }
 ```
 
-## What this means in practice
+---
 
-**`state.target` is fresh; `state.smooth` is one frame behind.** `target` is
-rewritten from `pointer` at step 4, so anything reading it gets this frame's
-input. `smooth` is only advanced at step 6 — *after* plugins run — so a visual
-plugin reading `smooth` sees the value produced at the end of the previous frame.
-This is exactly why `Dot` renders at `target` (crisp, pinned to the real pointer)
-while `Ring` renders at `smooth` (trailing).
+## Exponential Damping Physics
 
-**Logic runs before physics, because both live in step 5.** A plugin with
-`priority: -10` rewrites `state.target`, and step 6 damps toward that rewritten
-value in the *same* frame. A plugin with `priority: -999` — like `States` — runs
-before even those, which is how it can toggle the plugins that would otherwise
-have already run this frame.
+Supermouse replaces naive `x += (target - x) * factor` linear lerping with framerate-independent exponential damping:
 
-**Plugins always run; only physics is gated.** Steps 4 and 6 are skipped when
-input is disabled (`disable()`, `suspend()`, or a coarse pointer), but step 5
-still executes. That keeps plugins able to animate out during a suspension, and
-it is why `resume()` triggers one extra plugin pass before showing the stage.
+```typescript
+function lerp(start: number, end: number, factor: number): number {
+  return start + (end - start) * factor;
+}
 
-**Delta time arrives in milliseconds.** The core uses seconds internally for
-`damp()`, but hands plugins `dtMs`, because that is the useful unit for timers
-and one-shot effects. Divide by 1000 before calling any math helper.
-
-## The loop itself
-
-- The loop starts automatically unless [`autoStart: false`](/docs/reference/options),
-  and can be driven manually with `start()` and `step(time)`.
-- It pauses while `document.hidden` is true and resumes on visibility change,
-  resetting `lastTime` so the first frame back has a sane delta.
-- `dt` is clamped to 100ms. Without that clamp, a backgrounded tab would hand the
-  smoothing function a huge delta and the cursor would jump on return.
-
-## Failure isolation
-
-Each plugin runs inside a guarded call:
-
-```javascript
-try {
-  plugin.update?.(app, dtMs);
-} catch (error) {
-  plugin.isEnabled = false;
-  crashedPlugins.push(plugin);
+function damp(current: number, target: number, lambda: number, dt: number): number {
+  return lerp(current, target, 1 - Math.exp(-lambda * dt));
 }
 ```
 
-After the plugin loop, crashed plugins are removed from the list and their
-`onDisable` / `destroy` hooks run, their stage elements are discarded, and the
-error is logged. A single bad plugin cannot stall or blank the cursor.
+- **`current`**: Current coordinate (`state.smooth.x`)
+- **`target`**: Destination goal (`state.target.x`)
+- **`lambda`**: Exponential decay rate ($\lambda = \frac{1}{\text{smoothness}} \times 2$)
+- **`dt`**: Delta time in **seconds**
 
-## Native-cursor resolution
+Because the interpolation factor uses `Math.exp(-lambda * dt)`, the cursor follows the identical geometric curve regardless of display refresh rate (e.g. 60Hz, 120Hz, or 240Hz).
 
-Two small functions decide whether the OS pointer is visible and whether the
-custom stage is:
+### Kinematics: Velocity vs. Displacement
 
-| `cursor` mode | Platform cursor | Stage visible when |
-| :--- | :--- | :--- |
-| `"auto"` | `none` unless the hovered element is native | input enabled, not native, and input has been received |
-| `"custom"` | always `none` | input enabled and input has been received |
-| `"native"` | always `auto` | never |
-| `"both"` | always `auto` | input enabled and input has been received |
+- **`state.velocity`**: Calculated as $(\vec{smooth} - \vec{smooth}_{\text{prev}}) / dt$ in **pixels per second**. Reflects actual rendered speed. Use this for directional rotation, stretch-and-squash, or particle emission.
+- **`state.displacement`**: Calculated as $\vec{target} - \vec{smooth}$ in **pixels**. Represents remaining distance to target. Use this for overshoot compensation or trailing indicators.
+- **`state.angle`**: Derived from velocity using $\operatorname{atan2}$. Ignores speeds below $0.1\text{ px/s}$ to eliminate heading jitter when at rest.
 
-"Native element" means an `input`, `textarea` or `select`, a `contenteditable`
-element, an element inside `[data-supermouse-ignore]`, or an element whose
-computed `cursor` is a value the author clearly chose.
+### Delta Time Clamping
 
-## Related
+Raw delta time is clamped to a maximum of `0.1s` (100ms). When a user switches tabs or un-minimizes the browser, the elapsed time can be several seconds. Without clamping, exponential damping would cause the cursor to snap jarringly across the screen.
 
-- [Physics Loop](/docs/architecture/physics) — the damping function itself.
-- [Stage & Sandbox](/docs/architecture/sandbox) — the DOM contract.
-- [State reference](/docs/reference/state) — every field and who writes it.
+---
+
+## Stage Sandbox & Engine Stylesheet
+
+Plugins never append elements directly to `document.body`. Every scope manages an isolated `Stage` element:
+
+- **Viewport Positioning**: When scoped to `document.body`, `app.stage` is `position: fixed; inset: 0px`. For element containers, it is `position: absolute; inset: 0px`.
+- **CSS Isolation**: All scopes share an engine stylesheet with scoped cursor rules. An automatic reset cuts cursor inheritance between nested scopes:
+
+```css
+:where(.supermouse-scope .supermouse-scope) {
+  cursor: auto;
+}
+```
+
+This prevents an outer scope's `cursor: none !important` from leaking into an inner scope container.
+
+---
+
+## The DOM Layout Firewall
+
+Reading layout geometry (such as `getBoundingClientRect()` or `getComputedStyle()`) during animation frames forces synchronous browser layout calculation, causing frame drops. Supermouse enforces a layout firewall:
+
+1. **Zero Layout Reads in Frame Loop**: The frame loop never queries element geometry.
+2. **On-Demand Hover Measurement**: Bounding boxes for sticky/magnetic elements are read **once on hover entry** and cached.
+3. **Ancestor Attribute Cascade**: Interaction attributes (`data-supermouse-*`) are parsed into `state.interaction` on hover transitions and refreshed per frame without DOM querying.
+
+---
+
+## Fault Isolation
+
+Plugin updates are wrapped in an isolated `try/catch` boundary. If an author's plugin throws an unhandled exception:
+
+1. It is disabled immediately so it cannot stall the frame loop.
+2. After the current frame completes, its `onDisable` and `destroy` hooks are executed safely.
+3. Its DOM element is removed from the stage.
+4. Other plugins and the core engine continue running normally.

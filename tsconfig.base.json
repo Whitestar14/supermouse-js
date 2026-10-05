@@ -36,8 +36,7 @@
       "@supermousejs/vue": ["./packages/vue/src"],
       "@supermousejs/react": ["./packages/react/src"],
       "@supermousejs/trail": ["./packages/trail/src"],
-      "@supermousejs/labs": ["./packages/labs/src"],
-      "@supermousejs/zoetrope": ["./packages/zoetrope/src"]
+      "@supermousejs/labs": ["./packages/labs/src"]
     }
   }
 }

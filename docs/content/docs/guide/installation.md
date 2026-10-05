@@ -1,35 +1,36 @@
 ---
 title: Installation
-description: Install the core engine and the plugins you need, then mount a single instance.
+description: Install the core engine and plugins via package managers or CDN script tags.
 section: Guide
 order: 2
 ---
 
-## Via package manager
+Supermouse is modular by design: the core engine and each plugin ship as their own package, so you install only the pieces you actually use. Nothing in the core pulls a visual effect in behind your back.
 
-The engine and every other other plugin are separate packages, so you only pay for what you
-register. Start with the core plus one shape plugin:
+## Package Manager
 
-```bash
-pnpm add @supermousejs/core @supermousejs/dot
-```
-
-Add then, you can add more as you need them:
+Install the core package along with your chosen visual plugins:
 
 ```bash
-pnpm add @supermousejs/ring @supermousejs/magnetic @supermousejs/states
+# pnpm
+pnpm add @supermousejs/core @supermousejs/dot @supermousejs/ring
+
+# npm
+npm install @supermousejs/core @supermousejs/dot @supermousejs/ring
+
+# yarn
+yarn add @supermousejs/core @supermousejs/dot @supermousejs/ring
 ```
 
-`@supermousejs/core` has no runtime
-dependencies, while every other plugin depends on `@supermousejs/utils` except `utils` itself as a recommended convention if you plan on writing plugins yourself. All packages ship ESM
-and UMD builds.
+`@supermousejs/core` has **zero runtime dependencies**. Official plugins depend solely on `@supermousejs/utils` for shared DOM, math, and SVG utilities. All packages ship ESM and UMD builds.
 
-You can see the full list of the official supermouse plugins in [Cookbook](/docs/guide/cookbook).
+Every official plugin is listed in the sidebar, and the [Cookbook](/docs/guide/cookbook) shows them working together.
 
-## CDN / script tag
+---
 
-For pages without a bundler, the packages expose UMD builds on a global
-namespace:
+## CDN / Script Tag
+
+For static HTML pages or quick prototyping without a build step, load the UMD bundles via a CDN like unpkg or jsDelivr:
 
 ```html
 <script src="https://unpkg.com/@supermousejs/core"></script>
@@ -41,23 +42,22 @@ namespace:
   const { Dot } = window.SupermouseDot;
   const { Ring } = window.SupermouseRing;
 
-  const mouse = new Supermouse({ smoothness: 0.15 }).use(Ring({ size: 24 })).use(Dot({ size: 8 }));
+  const mouse = new Supermouse({ smoothness: 0.15 })
+    .use(Ring({ size: 24 }))
+    .use(Dot({ size: 8 }));
 </script>
 ```
 
-If your UMD globals differ, check the `unpkg`/`jsdelivr` field in each
-package's `package.json` before copying the snippet.
+---
 
-## Mounting the app
+## Initializing Supermouse
 
-Create one instance per page preferably at the root of your project(e.g. `App.vue` or `index.html`) and keep a reference to it:
+Create an instance and retain a reference to it, typically in your root application file (e.g., `App.vue`, `layout.tsx`, or main entry script):
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
 import { Dot } from "@supermousejs/dot";
 import { Ring } from "@supermousejs/ring";
-import { Flow } from "@xyz/flow";
-import { Vacuum } from "@xyz/vacuum";
 
 const app = new Supermouse({
   smoothness: 0.15,
@@ -65,28 +65,37 @@ const app = new Supermouse({
   plugins: [Ring({ size: 24 }), Dot({ size: 8 })]
 });
 
-// Registering later works too, and is chainable with `.use`:
-// app.use(Flow()).use(Vacuum());
+// Additional plugins can be registered dynamically via .use()
+// app.use(MyCustomPlugin());
 ```
 
-`cursor: "auto"` is the default and the best starting point, this option has the engine hide
-the OS pointer over interactive elements and restore it over text inputs,
-`select` elements and anything marked with
-[`data-supermouse-ignore`](/docs/guide/usage#opting-out). You can learn more other options this can be set in [cursor constructor options](/docs/reference/options#cursor).
+`cursor: "auto"` is the default and recommended mode. In this mode, Supermouse hides the native OS cursor over standard interactive elements, but automatically restores it over text inputs, textareas, selects, and elements marked with [`data-supermouse-ignore`](/docs/guide/usage#opting-out-data-supermouse-ignore).
 
-## Cleanup
+See [Options Reference](/docs/reference/api#supermouseoptions) for details on all constructor options.
 
-In a single-page app or under hot module replacement, call `destroy()` when the
-owner, usually your root file such as `App.vue`, unmounts. It cancels the animation frame, removes window listeners, deletes
-the stage element and its stylesheet, and runs `destroy()` on every plugin.
+---
+
+## Lifecycle and Teardown
+
+In single-page applications or components subject to hot-module replacement (HMR), invoke `destroy()` when the owning component or page unmounts:
 
 ```typescript
+// Example: Vue 3 / Nuxt
 onUnmounted(() => {
   app.destroy();
 });
 ```
 
-The [Vue](/docs/integrations/vue) / [React](/docs/integrations/react) adapters automatically do this for you if you use them. If you mount manually inside a
-component that re-mounts (e.g. React Strict Mode, HMR), forgetting `destroy()` is the
-most common cause of duplicated cursors in UI frameworks — see
-[Troubleshooting](/docs/guide/troubleshooting) if you run into any issues.
+```typescript
+// Example: React useEffect
+useEffect(() => {
+  const app = new Supermouse({ plugins: [Dot({ size: 8 })] });
+  return () => {
+    app.destroy();
+  };
+}, []);
+```
+
+Calling `destroy()` cleanly removes animation frames, window and container listeners, disposes of stage elements and injected stylesheets, and calls `destroy()` on all active plugins.
+
+If you are using our official adapters for [Vue](/docs/integrations/vue) or [React](/docs/integrations/react), lifecycle teardown is handled automatically.

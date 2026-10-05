@@ -5,17 +5,21 @@ section: Guide
 order: 5
 ---
 
-The cards below are auto-discovered from the docs' recipe folder, so they always match the live previews. The snippets under each section are the canonical way to build the same thing in your own app.
+Every cursor people actually ask for is a combination of a few small plugins. This page collects the ones that come up again and again — each with a live preview you can move your pointer through, plus the snippet that produces it.
+
+Pick a card to open the plugin it belongs to, or read straight down for the recipes.
 
 :::callout{title="Desktop recommended" variant="note"}
-Every preview needs a fine pointer. Each card opens the plugin page where the effect runs live.
+The previews need a fine pointer. On a touch device the effect still renders, but the engine stays out of your way.
 :::
 
 :cookbook-grid
 
-## Dot plus trailing ring
+---
 
-`Dot` renders at `state.target`, `Ring` at `state.smooth`. Pairing them is the classic effect: an instant dot with a lagging outline. Hover into the preview and open **Controls** to reshape it live.
+## A dot with a trailing ring
+
+The classic. `Dot` renders straight at `state.target` — glued to your pointer — while `Ring` eases toward it at `state.smooth`. The gap between the two is the entire illusion of weight.
 
 :cursor-demo{demo="dot-ring" title="Dot + Ring"}
 
@@ -29,11 +33,11 @@ const app = new Supermouse({ smoothness: 0.15, cursor: "custom" });
 app.use(Ring({ size: 24, borderWidth: 2, color: "#ffffff" })).use(Dot({ size: 8 }));
 ```
 
-Order in that chain does not matter: `use()` sorts by priority and both sit at `0`.
+Order in that chain doesn't matter: `use()` sorts by priority and both sit at `0`. Reach for `smoothness` when the ring feels either glued or sluggish.
 
 ## Magnetic buttons
 
-`Magnetic` is a logic plugin (`priority: -10`). On a hovered element carrying `data-supermouse-magnetic` it writes a pulled position into `state.target`, and a numeric attribute value overrides the configured attraction.
+`Magnetic` is a logic plugin (`priority: -10`). When the pointer nears an element marked `data-supermouse-magnetic`, it pulls `state.target` toward the element's centre — and a numeric attribute value overrides the configured attraction per button.
 
 :cursor-demo{demo="magnetic" title="Magnetic pull"}
 
@@ -48,11 +52,11 @@ app.use(Magnetic({ attraction: 0.35, distance: 120 }));
 <button data-supermouse-magnetic="0.8">Strong pull</button>
 ```
 
-The preview pairs it with `Dot`, and that pairing is the point: `target` is a per-frame channel read by plugins that run after the logic plugin, and `Dot` is the only official plugin that reads it. A ring-only cursor will not move. See [the three channels](/docs/architecture/authoring#the-three-channels).
+The preview pairs it with `Dot`, which reads `target` directly. Anything positioned from `smooth` (like `Ring`) will still trail behind — see [Damping Physics](/docs/architecture/pipeline#exponential-damping-physics) for why.
 
 ## Morphing onto the hovered element
 
-`Stick` is the other logic plugin. It measures the hovered element once, publishes its box as [`state.shape`](/docs/reference/state#shape), and moves `state.target` to its centre. `SmartRing` consumes the shape and morphs to it, and `Dot` hides itself while a shape is active because `hideOnShape` defaults to `true`.
+`Stick` is the other logic plugin: it measures the hovered element once, publishes its box as [`state.shape`](/docs/reference/api#scopes--interaction), and moves `state.target` to the element's centre. `SmartRing` morphs to that shape, and `Dot` politely hides itself while a shape is active because `hideOnShape` defaults to `true`.
 
 :cursor-demo{demo="stick" title="Shape morphing"}
 
@@ -70,11 +74,11 @@ app.use(Dot({ size: 6, hideOnShape: true }));
 <a href="/pricing" data-supermouse-stick>Pricing</a>
 ```
 
-`Stick` caches the measured box and the element's computed `border-radius`, so nothing is measured again while the pointer stays put.
+Because `Stick` caches the measured box and the element's computed `border-radius`, nothing is re-measured while the pointer stays put.
 
-## State-driven plugin sets
+## Swapping whole plugins on state
 
-`States` enables and disables whole plugins based on the element under the pointer. It is a controller at `priority: -999`, so it runs before the plugins it manages — and it must be **registered after** them, since it resolves them by name when it installs.
+`States` turns plugins on and off based on the element under the pointer. It's a controller at `priority: -999`, so it runs before the plugins it manages — and it must be **registered after** them, because it resolves them by name at install time.
 
 ```typescript
 import { States } from "@supermousejs/states";
@@ -98,9 +102,13 @@ app.use(
 <button data-supermouse-state="labelled" data-supermouse-text="Copy">Copy</button>
 ```
 
-Use `attribute` to drive it from your own attribute instead of `data-supermouse-state`. `destroy()` restores the `default` set, so you are never left with a half-disabled cursor.
+Pass `attribute` to drive it from your own attribute instead of `data-supermouse-state`. On `destroy()` the `default` set is restored, so you're never left with a half-disabled cursor.
 
 ## Trails and particles
+
+Two ways to leave a mark behind the pointer — a fading history, and a scatter of particles. Both allocate a fixed pool up front and only move numbers afterwards, so neither touches layout inside `update()`.
+
+:cursor-demo{demo="trail" title="Trail"}
 
 ```typescript
 import { Trail } from "@supermousejs/trail";
@@ -110,13 +118,13 @@ app.use(Trail({ length: 12, size: 6, color: "#6366f1" }));
 app.use(Sparkles({ count: 24, decay: 2.5, frequency: 10, scatter: 5 }));
 ```
 
-:cursor-demo{demo="trail" title="Trail"}
+`Trail` walks its pool through a history buffer; `Sparkles` spawns a particle every `frequency` pixels of travel.
 
-Both allocate a fixed pool in `create()` and only move numbers afterwards. `Trail` walks its pool through a history buffer; `Sparkles` spawns a particle every `frequency` pixels of travel. Neither reads layout in `update()`.
+## Replacing the cursor with content
 
-## Content-replacing cursors
+`Text`, `Image` and `Icon` swap the cursor for real content while hovering an element that asks for it. All three position from `state.smooth`, so they inherit the trailing feel of a ring.
 
-`Text`, `Image` and `Icon` swap the cursor for content while hovering an element that declares it. All three position from `state.smooth`, so they inherit the trailing feel of a ring.
+:cursor-demo{demo="text" title="Text cursor"}
 
 ```typescript
 import { Text } from "@supermousejs/text";
@@ -131,7 +139,7 @@ app.use(Image({ className: "cursor-preview", offset: [0, 30], smoothness: 0.2 })
 <a href="/shot" data-supermouse-img="/thumbnails/shot.jpg">Screenshot</a>
 ```
 
-Style the tooltip yourself — the plugin creates the element and manages visibility, nothing else:
+Styling is entirely yours — the plugin creates the element and toggles its visibility, nothing else:
 
 ```css
 .cursor-tooltip {
@@ -144,11 +152,11 @@ Style the tooltip yourself — the plugin creates the element and manages visibi
 }
 ```
 
-:cursor-demo{demo="text" title="Text cursor"}
-
-## Directional pointer
+## An arrow that knows where it's going
 
 `Pointer` rotates an SVG to face the direction of travel and eases back to a resting angle when you stop. It reads `state.velocity`, so the arrow only turns while the pointer is genuinely moving.
+
+:cursor-demo{demo="pointer" title="Directional pointer"}
 
 ```typescript
 import { Pointer } from "@supermousejs/pointer";
@@ -164,11 +172,9 @@ app.use(
 );
 ```
 
-:cursor-demo{demo="pointer" title="Directional pointer"}
+## A branded icon set
 
-## Layering a branded state machine
-
-`SmartIcon` is the batteries-included option: one DOM node, several SVG states, and automatic switching driven by semantic tags and interaction data.
+`SmartIcon` is the batteries-included option: one DOM node, several SVG states, and automatic switching driven by semantic tags and interaction data. Reach for it when you want a coherent icon language without wiring each state by hand.
 
 ```typescript
 import { SmartIcon } from "@supermousejs/labs";
@@ -188,18 +194,22 @@ app.use(
 );
 ```
 
-## Keeping the hot path cheap
+---
 
-Toggle plugins rather than writing conditionals inside `update()`:
+## Housekeeping
+
+Two habits keep a cursor feeling expensive instead of heavy.
+
+**Toggle plugins rather than branching inside `update()`.** A disabled plugin costs nothing per frame:
 
 ```typescript
-app.disablePlugin("trail"); // while a heavy panel is open
+app.disablePlugin("trail"); // e.g. while a heavy panel is open
 app.enablePlugin("trail");
 ```
 
-When the plugin needs an exit animation, put it in `beforeDisable` — `SmartRing` fades and shrinks for 150ms, and the core does not hide the element until that promise resolves.
+When a plugin needs an exit animation, put it in `beforeDisable` — `SmartRing` fades and shrinks for 150 ms, and the core waits for that promise before hiding the element.
 
-## Respecting user preferences
+**Respect the user's motion preference.** The engine already collapses its own smoothing when [`state.reducedMotion`](/docs/reference/api#pointer--environment-flags) is true, but decorative motion is still up to you:
 
 ```typescript
 if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -207,11 +217,9 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 }
 ```
 
-The engine already collapses its own smoothing when [`state.reducedMotion`](/docs/reference/state#reducedmotion) is true. This is about your decorative motion.
-
 ## Two cursors on one page
 
-A page cursor plus a region that behaves differently is a [scope](/docs/guide/scopes), not a second instance: one animation loop, one `state`, automatic hand-off.
+A page cursor plus a region that behaves differently is a [scope](/docs/guide/scopes), not a second instance — one animation loop, one `state`, automatic hand-off:
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
@@ -232,4 +240,4 @@ const app = new Supermouse({
 });
 ```
 
-Hovering the canvas stands the page cursor's plugins down and enables the region's own; leaving re-syncs the page cursor at the pointer instead of travelling back from the region. A scope also owns its hover semantics, which is how a preview can describe elements without leaking those descriptions into the rest of the page.
+Hovering the canvas stands the page cursor's plugins down and enables the region's own; leaving re-syncs the page cursor at the pointer instead of travelling back from the region. A scope owns its hover semantics too, which is how a preview can describe elements without leaking those descriptions into the rest of the page.

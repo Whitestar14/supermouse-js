@@ -4,15 +4,28 @@ description: A headless cursor engine that separates pointer intent from cursor 
 section: Guide
 order: 1
 license: MIT
-version: 2.4.1
-coreSize: 4.8kb
+version: 2.5.0
+coreSize: 5.4kb
 ---
 
-Supermouse.js is a cursor engine built with TypeScript that automatically handles mouse input, movement physics and a [plugin lifecycle](../architecture/sandbox#the-dom-firewall). Custom cursor handling gets complex when effects begin to stack on each other, and Supermouse aims to be a performant solution to this problem. It's written bottom-up from TypeScript, has zero dependencies, and the core is a tiny kernel so you can focus on writing or extending by [installing plugins](), official or community, directly into your framework of your choice, or even in plain HTML.
+A cursor is one of the few parts of a page your visitor touches before they read a single word. Get it right and the whole interface feels considered; get it wrong and every scroll, hover and keystroke carries a small friction. **Supermouse.js is a headless, physics-driven cursor engine** that makes the first impression feel effortless.
 
-Check out the [Cookbook]() for the full catalogue of Supermouse.js' official plugins.
+It tracks the pointer, smooths it with frame-rate-independent physics, and coordinates the hand-off between the custom cursor and the operating system — nothing more. Drawing is left to plugins, so you decide exactly what the cursor should look and feel like. The whole thing is written in TypeScript and the core ships at around 5.4&nbsp;kB.
 
-Initializing Supermouse in any project is simple, as integrating into your frontend is just to declare the constructor and register plugins, which you can extend later with `app.use(plugin)`.
+## Why not just hide the cursor?
+
+Because that is where most cursor libraries quietly break. The moment you reach for `cursor: none`, a chain of small decisions starts working against you:
+
+- **Input smoothing introduces lag.** A cursor that visibly trails your hand feels broken, so the physics has to be tuned properly.
+- **Third-party CSS fights back.** A stray `cursor: pointer` in a stylesheet you don't control produces a double cursor, which visitors read as a bug.
+- **The OS still matters.** Text inputs, textareas, iframes and accessibility tools all depend on the native cursor; hiding it wholesale breaks them. Supermouse hands the pointer back to the OS precisely where it matters, and you can [tune exactly where](/docs/guide/usage#cursor-modes).
+- **Real interfaces have more than one context.** A modal, a canvas, a nested artboard — each may want its own behaviour, and they should not fight over the pointer.
+
+Supermouse solves these problems once, at the engine level, so your plugins can stay small and focused.
+
+## A tiny taste
+
+Getting started is two imports and a constructor. Everything else is opt-in:
 
 ```typescript
 import { Supermouse } from "@supermousejs/core";
@@ -25,19 +38,14 @@ const app = new Supermouse({
 });
 ```
 
----
+That's a dot with a trailing ring. You can register more plugins later with `app.use(plugin)`, and pull any of them back out with `app.disablePlugin(name)`.
 
-## Getting Started
+## Where to go next
 
-- Check out [Installation](/docs/guide/installation) to mount your first cursor.
-- See [Basic Usage](/docs/guide/usage) for options, interaction rules, lifecycle.
-- See [Plugin Authoring](/docs/architecture/authoring) to learn how to write your own.
-- See [Cookbook](/docs/guide/cookbook) for patterns of common effects.
+- **[Installation](/docs/guide/installation)** — add `@supermousejs/core` and pick your visual plugins.
+- **[Basic Usage](/docs/guide/usage)** — constructor options, declarative interaction rules, and the lifecycle.
+- **[Scopes](/docs/guide/scopes)** — give different regions of a page their own cursor behaviour.
+- **[Cookbook](/docs/guide/cookbook)** — copy-pasteable recipes for the effects people ask for most.
+- **[The Pipeline](/docs/architecture/pipeline)** — the deep dive into execution order and frame timing.
 
----
-
-## Motivation
-
-I've always been fascinated by cursor effects seen on awwwards sites and every open source option that proposed to make those effects accessible would either ship only a dot with a 4-6kb overhead for styling the color and the click shrink effect, or they would also be coupled with render passes in frameworks and would have issues fighting the OS because setting `cursor: none` would break text inputs, iframes and accessibility. This would also be made worse when third-party CSS overrides it, producing double cursors; users hate losing the native cursor for a reason, and Supermouse supports [handling for native inputs for projects that want it](./api-to-cursor-auto). Some other cursor libraries, such as [Curzr](), the project Supermouse.js derives inspiration from massively, has not been supported for nearly 2 years since a [codepen demo]().
-
-Supermouse solves each of these problems in the engine with a loop outside any framework's render cycle so it runs consistently on any refresh rate, geometry reading only on hover entry and a sophisticated stylesheet scoping mechanism for native cursor suppression that the core can rebuild deterministically. You can read the full technical overview of how it works in [the rendering pipeline](/docs/architecture/pipeline).
+> Supermouse was inspired by [Curzr](https://curzr.com), a lovely little project whose demo has gone unmaintained for years. This is an attempt to carry that idea forward on a modern foundation — and, ideally, to be the last cursor library you need to install.

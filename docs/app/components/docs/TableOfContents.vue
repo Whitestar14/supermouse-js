@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TocSection } from "@composables/useToc";
+import { pinTocSection, type TocSection } from "@composables/useToc";
 
 defineProps<{
   sections: TocSection[];
@@ -20,6 +20,7 @@ const go = (event: MouseEvent, id: string): void => {
     return;
   }
   event.preventDefault();
+  pinTocSection(id);
   void router.push({ hash: `#${id}` });
 };
 </script>

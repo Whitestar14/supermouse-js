@@ -1,86 +1,92 @@
 ---
 title: Contributing
-description: What belongs in this repo, how to test a change, and how the docs maintain themselves.
+description: Monorepo layout, workspace CLI, plugin scaffolding, test suites, and documentation automation.
 section: Architecture
-order: 5
+order: 3
 ---
 
-Supermouse is a small core with an intentionally small official plugin surface. The ecosystem is meant to be userland, and a large first-party catalogue is a maintenance liability, so the bar for adding to this repo is higher than the bar for publishing your own plugin.
+Supermouse is structured as a `pnpm` monorepo containing the engine, shared utilities, official plugins, framework adapters, an interactive playground, and this documentation site.
 
-## What belongs here
+---
 
-Core fixes, performance work, bug fixes in existing plugins, documentation, and reference-quality plugins that demonstrate a pattern nothing else covers.
+## Repository Layout
 
-Not: niche visual effects, framework wrappers beyond the maintained Vue and React adapters, stylistic variants of what exists, or opinionated behaviour. Those belong in [your own package](/docs/architecture/authoring#publishing). When you are unsure, open a discussion before writing code.
+| Path                             | Contents                                                                                |
+| :------------------------------- | :-------------------------------------------------------------------------------------- |
+| `packages/core`                  | Core cursor engine, input listeners, stage sandbox, and state types. Zero dependencies. |
+| `packages/utils`                 | Math, DOM, SVG, and plugin authoring helpers. Zero dependencies.                        |
+| `packages/*`                     | Standalone plugin packages (`@supermousejs/dot`, `ring`, `magnetic`, `stick`, etc.).    |
+| `packages/vue`, `packages/react` | Framework adapters for Vue 3 / Nuxt and React / Next.js.                                |
+| `playground/`                    | Standalone sandbox application for live experimentation.                                |
+| `docs/`                          | Documentation application built with Nuxt 4 and `@nuxt/content`.                        |
+| `scripts/`                       | Non-destructive build and metadata compilation scripts.                                 |
 
-## Setup
+Packages are linked via `workspace:*`. Edits to package source files in `packages/` are immediately live in the documentation site and playground without intermediate compile steps.
 
-```bash
-pnpm install
-pnpm dev:docs      # docs site (regenerates plugin data first)
-pnpm dev:play      # playground
-pnpm test          # every package suite
-```
+---
 
-Use pnpm. Internal packages are linked with `workspace:*`, so an edit in `packages/` is live in the docs site and playground with no rebuild.
-
-## Making a change
-
-1. Branch from `main`.
-2. One concern per PR.
-3. Add or update tests. This is a rendering engine with real ordering hazards, so "it looked right in the browser" does not count.
-4. `pnpm changeset` if published behaviour changed.
-5. `pnpm lint`, `pnpm test`, and `pnpm build:docs`.
-
-### Tests
-
-Vitest runs in every package, with `jsdom`. The core suite is the model to follow: it drives frames with `app.step(time)` and `autoStart: false` instead of waiting on real animation frames.
+## Workspace Commands
 
 ```bash
-pnpm test
-pnpm --filter @supermousejs/core test
+pnpm install            # Install workspace dependencies
+pnpm dev:docs           # Compile plugin data and launch docs dev server
+pnpm dev:play           # Launch the interactive playground
+pnpm build:packages     # Build all library packages via Vite
+pnpm test               # Run Vitest test suites across all packages
+pnpm test:watch         # Run tests in watch mode
+pnpm lint               # ESLint check across all files
+pnpm format             # Format codebase using Prettier
+pnpm generate-docs      # Compile plugin metadata for the docs app
 ```
 
-Assert on the public contract — `state`, the DOM, the lifecycle hooks. A plugin test should prove the plugin enables, disables, cleans up and does not leak its element.
+---
 
-## Code conventions
+## Adding a Plugin
 
-- No DOM reads inside `update()`. See [the DOM firewall](/docs/architecture/sandbox#the-dom-firewall).
-- Logic plugins that publish `state.target` declare a negative priority, so consumers running later in the same frame see the value. `doctor()` reports the ones that do not.
-- Options are read through `normalize()` / `normalizeAll()` so the hot path never branches on `typeof`.
-- Prettier and ESLint own formatting: `pnpm format`, `pnpm lint`.
-- No new abstraction without a performance or ergonomics reason. The core is small on purpose.
+Creating a plugin package requires no proprietary CLI or destructive tooling:
 
-## The documentation contract
+1. Create a new folder under `packages/<plugin-name>` (or copy a lightweight baseline such as `packages/dot`).
+2. Update `package.json` with your package name (`@supermousejs/<plugin-name>`).
+3. Add a `meta.json` file specifying your plugin's options, metadata, and description.
+4. Run `pnpm install` — pnpm automatically links your package into the workspace via `pnpm-workspace.yaml`.
 
-Docs are data. `docs/app/config/content-nav.ts` walks `docs/content/**/*.md` at build time and derives the sidebar, the prev/next pager, the prerender list and the search index from three frontmatter keys:
+---
 
-| Key | Drives |
-| :--- | :--- |
-| `title` | Page `<h1>`, sidebar label, search label |
-| `section` | Sidebar group (`Guide`, `Architecture`, `Integrations`, `Reference`; anything else is appended alphabetically) |
-| `order` | Position within the group, and therefore prev/next |
-| `description` | Meta description and social previews |
+## Automated Documentation Generation
 
-"Last updated" comes from the file's last git commit, and every page gets an **Edit this page on GitHub** link from its own path. Adding a page means adding one markdown file — there is no route list, sitemap or navigation config to edit.
-
-Two rules for content:
-
-- Do not repeat the title as an `# H1`. It comes from frontmatter, and an inline one renders a second `<h1>`.
-- Verify against `packages/`. Option names, defaults and method behaviour in these pages are read from source, not from memory.
-
-Plugin pages are generated, never written: each package's `meta.json` is validated against its exported `*Options` interface by `pnpm generate-docs`, which also rewrites the package READMEs and `docs/app/data/generated-plugins.json`.
-
-## Versioning
-
-`@changesets/cli` drives bumps and changelogs.
+Plugin pages and documentation metadata are compiled passively:
 
 ```bash
-pnpm changeset          # describe the change, pick a bump
-pnpm version-packages   # apply versions and changelogs
-pnpm release            # build + publish packages, then rebuild docs and playground
+pnpm generate-docs
 ```
 
-## Philosophy
+This script (`scripts/build-data.js`) parses `packages/*/meta.json` and writes `docs/app/data/generated-plugins.ts` — a module typed against the docs app's own `PluginMeta` — for the docs app to import. It is strictly passive and non-destructive: it **never** overwrites authored package READMEs or alters your source files.
 
-Predictable behaviour over clever behaviour. Explicit data flow: input, then logic, then physics, then render, one direction, every frame. Minimal magic. A small core and a userland ecosystem.
+The output is gitignored, so run it after cloning. `pnpm dev:docs` and `pnpm build:docs` both do this for you.
+
+---
+
+## Pull Request Guidelines
+
+1. **Focus**: Keep PRs focused on a single concern.
+2. **Deterministic Tests**: Every new feature or bug fix must include tests. Vitest tests should drive frames using `app.step(time)` and `autoStart: false` rather than waiting for real animation frames:
+   ```bash
+   pnpm --filter @supermousejs/core test
+   ```
+3. **Changesets**: Include a changeset for any user-facing change:
+   ```bash
+   pnpm changeset
+   ```
+4. **Validation**: Ensure `pnpm lint`, `pnpm test`, and `pnpm build:packages` pass cleanly.
+
+---
+
+## Versioning & Releases
+
+Releases are managed using `@changesets/cli`:
+
+```bash
+pnpm changeset          # Document changes and select semver bump (patch/minor/major)
+pnpm version-packages   # Apply version bumps and update package CHANGELOGs
+pnpm release            # Build, publish to npm, and build docs and playground
+```

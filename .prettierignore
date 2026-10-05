@@ -30,4 +30,4 @@ Thumbs.db
 # Generated files
 *.min.js
 *.min.css
-generated-plugins.json
+docs/app/data/generated-plugins.ts

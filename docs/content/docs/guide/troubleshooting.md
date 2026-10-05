@@ -29,7 +29,7 @@ So this is the usual culprit:
 
 The engine sees a non-standard value, treats the element as native, and un-hides the OS pointer while your stage is still visible.
 
-**Fix:** delete the declaration and describe the intent instead. Mark the element `data-supermouse-ignore` to hand it fully back to the OS, or use [`rules`](/docs/guide/usage#_3-describe-interactions) and let a plugin render the state:
+**Fix:** delete the declaration and describe the intent instead. Mark the element `data-supermouse-ignore` to hand it fully back to the OS, or use [`rules`](/docs/guide/usage#defining-interactions) and let a plugin render the state:
 
 ```typescript
 new Supermouse({ rules: { ".card": { text: "Open" } } });
@@ -49,7 +49,7 @@ Work down this list:
 
 ## The cursor disappears behind a modal
 
-Stacking comes from [`zIndex`](/docs/reference/options#zindex), which defaults to `9999`:
+Stacking comes from [`zIndex`](/docs/reference/api#supermouseoptions), which defaults to `9999`:
 
 ```typescript
 new Supermouse({ zIndex: 100000 });
@@ -133,11 +133,11 @@ The container has to be in the document before the instance is constructed, or i
 
 ## Non-mouse input moves the cursor
 
-`autoDisableOnMobile: false` also removes the per-event touch filter, so a finger drag on a hybrid device drives the cursor. Add `enableTouch: false` if you want the engine running on that device but only for the mouse. See [enableTouch and autoDisableOnMobile](/docs/reference/options#enabletouch-and-autodisableonmobile).
+`autoDisableOnMobile: false` also removes the per-event touch filter, so a finger drag on a hybrid device drives the cursor. Add `enableTouch: false` if you want the engine running on that device but only for the mouse. See [Options Reference](/docs/reference/api#supermouseoptions).
 
 ## It feels heavy
 
-- Never call `getBoundingClientRect()`, `offsetWidth` or `getComputedStyle()` inside `update()`. Use [`state.interaction`](/docs/reference/state#interaction) and [`state.shape`](/docs/reference/state#shape), which the engine caches for you.
+- Never call `getBoundingClientRect()`, `offsetWidth` or `getComputedStyle()` inside `update()`. Use [`state.interaction`](/docs/reference/api#scopes--interaction) and [`state.shape`](/docs/reference/api#scopes--interaction), which the engine caches for you.
 - Prefer `transform` and `opacity` over layout properties.
 - Reuse elements instead of creating them per frame — `Trail` and `Sparkles` pool their nodes.
 - Turn plugins off instead of branching inside the loop: `app.disablePlugin("trail")`.

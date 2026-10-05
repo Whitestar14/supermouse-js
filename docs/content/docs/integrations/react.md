@@ -18,7 +18,7 @@ pnpm add @supermousejs/react @supermousejs/core @supermousejs/dot
 
 ## Root provider
 
-`options` matches [SupermouseOptions](/docs/reference/options) and `plugins` is installed right after construction.
+`options` matches [SupermouseOptions](/docs/reference/api#supermouseoptions) and `plugins` is installed right after construction.
 
 ```tsx
 import { SupermouseProvider } from "@supermousejs/react";

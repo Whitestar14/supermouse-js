@@ -107,6 +107,10 @@ function collectPages(
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith("_") || entry.name.startsWith(".")) continue;
 
+    // `content/plugins/**` backs the plugins collection, not the docs sidebar;
+    // it is rendered by the dedicated `/docs/plugins/[id]` page.
+    if (prefix === "" && entry.isDirectory() && entry.name === "plugins") continue;
+
     const relative = `${prefix}${entry.name}`;
     const absolute = path.join(dir, entry.name);
 

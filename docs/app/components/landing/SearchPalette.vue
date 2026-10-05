@@ -135,13 +135,19 @@ watch(query, () => {
         Results: flex-1 with min-h-0 so the list scrolls inside the stable
         frame instead of resizing it.
       -->
-      <div v-if="results.length" class="flex-1 min-h-0 overflow-y-auto" data-lenis-prevent>
+      <div
+        v-if="results.length"
+        class="flex-1 min-h-0 overflow-y-auto scroll-area"
+        data-lenis-prevent
+      >
         <div
           v-for="(res, i) in results"
           :key="res.id"
           class="w-full text-left px-4 h-14 flex items-center border-b border-border last:border-b-0 transition-colors duration-100"
           :class="
-            i === selectedIndex ? 'bg-inverse text-surface' : 'bg-surface text-inverse hover:bg-surface-muted'
+            i === selectedIndex
+              ? 'bg-inverse text-surface'
+              : 'bg-surface text-inverse hover:bg-surface-muted'
           "
           @click="navigate(res)"
           data-supermouse-icon="pointer"
@@ -242,4 +248,3 @@ watch(query, () => {
     </div>
   </div>
 </template>
-

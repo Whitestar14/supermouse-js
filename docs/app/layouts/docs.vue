@@ -207,7 +207,7 @@ const nextPage = computed(() => {
           </div>
 
           <!-- Nav Content -->
-          <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-surface">
+          <nav class="flex flex-col p-6 gap-6 flex-1 overflow-y-auto bg-surface no-scrollbar">
             <div v-for="group in DOCS_NAVIGATION" :key="group.title">
               <button
                 class="w-full flex items-center justify-between mono text-xs font-bold uppercase tracking-widest mb-3 text-left transition-colors"
@@ -275,7 +275,7 @@ const nextPage = computed(() => {
       >
         <!-- Sticky Sidebar with Lenis Prevent -->
         <div
-          class="header-shell sticky top-[var(--header-h)] h-[calc(100vh-var(--header-h))] overflow-y-auto py-12 px-8 scrollbar-thin"
+          class="header-shell sticky top-[var(--header-h)] h-[calc(100vh-var(--header-h))] overflow-y-auto py-12 px-8 no-scrollbar"
           data-lenis-prevent
         >
           <nav class="flex flex-col gap-8 pb-32">
@@ -433,12 +433,9 @@ const nextPage = computed(() => {
       </div>
 
       <!-- Right Sidebar: TOC -->
-      <aside
-        v-if="tocSections.length"
-        class="hidden xl:block w-64 shrink-0 border-l border-border"
-      >
+      <aside v-if="tocSections.length" class="hidden xl:block w-64 shrink-0 border-l border-border">
         <div
-          class="header-shell sticky top-[calc(var(--header-h)+2rem)] h-fit max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto px-6 py-12 scrollbar-thin"
+          class="header-shell sticky top-[calc(var(--header-h)+2rem)] h-fit max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto px-6 py-12 no-scrollbar"
         >
           <TableOfContents :sections="tocSections" :active-section="activeSection" />
         </div>
@@ -448,19 +445,3 @@ const nextPage = computed(() => {
     <Footer />
   </div>
 </template>
-
-<style scoped>
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 2px;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: var(--color-subtle);
-}
-</style>

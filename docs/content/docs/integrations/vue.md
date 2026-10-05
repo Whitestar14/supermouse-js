@@ -8,7 +8,7 @@ dependency: vue >= 3.2.0
 license: MIT
 ---
 
-The Vue adapter wraps `@supermousejs/core` in `provide` / `inject` and owns the lifecycle, so you never call [`destroy()`](/docs/reference/methods#destroy) by hand.
+The Vue adapter wraps `@supermousejs/core` in `provide` / `inject` and owns the lifecycle, so you never call [`destroy()`](/docs/reference/api#lifecycle-methods) by hand.
 
 ## Install
 
@@ -18,7 +18,7 @@ pnpm add @supermousejs/vue @supermousejs/core @supermousejs/dot
 
 ## Root provider
 
-Call `provideSupermouse` once at the root. It takes the same options as the [constructor](/docs/reference/options), plus an array of plugins.
+Call `provideSupermouse` once at the root. It takes the same options as the [constructor](/docs/reference/api#supermouseoptions), plus an array of plugins.
 
 ```vue
 <script setup>
@@ -44,7 +44,7 @@ interface SupermouseContext {
 }
 ```
 
-`instance` is `null` until mount, so guard before reading [state](/docs/reference/state) or calling methods.
+`instance` is `null` until mount, so guard before reading [state](/docs/reference/api#mousestate) or calling methods.
 
 ```vue
 <script setup>

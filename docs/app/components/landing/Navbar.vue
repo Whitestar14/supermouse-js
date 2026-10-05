@@ -36,7 +36,6 @@ onMounted(() => {
 });
 onBeforeUnmount(() => document.removeEventListener("click", onDocClick));
 
-/* ---------- nav helpers ---------- */
 const isActiveLink = (path: string): boolean =>
   path === "/" ? route.path === "/" : route.path === path || route.path.startsWith(`${path}/`);
 

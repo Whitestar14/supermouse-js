@@ -1,9 +1,9 @@
-import { settlePendingNavigation } from "@utils/scroll";
+import { applyPendingNavigation } from "@utils/scroll";
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.hook("page:finish", () => {
     void nextTick(() => {
-      requestAnimationFrame(() => settlePendingNavigation());
+      requestAnimationFrame(() => applyPendingNavigation());
     });
   });
 });

@@ -1,6 +1,5 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
 import tailwindcss from "@tailwindcss/vite";
 import type { NuxtConfig } from "nuxt/config";
 import { SITE_URL, STATIC_SITEMAP_ROUTES, ROBOTS_DISALLOW } from "./app/config/seo";
@@ -15,10 +14,16 @@ const { routes: contentRoutes, navigation: docsNavigation } = readDocsContent(
   path.resolve(__dirname, "content")
 );
 
-const pluginsData: Array<{ id: string }> = JSON.parse(
-  readFileSync(path.resolve(__dirname, "app/data/generated-plugins.json"), "utf-8")
-);
-const pluginRoutes = pluginsData.map((p) => `/docs/plugins/${p.id}`);
+// Plugin ids come from `packages/*/meta.json`, compiled into a module by
+// `scripts/build-data.js`. It is gitignored, so a fresh clone has to generate it
+// — say so plainly rather than failing on a missing import.
+const { GENERATED_PLUGINS } = await import("./app/data/generated-plugins").catch(() => {
+  throw new Error(
+    "docs/app/data/generated-plugins.ts is missing. Run `pnpm generate-docs` " +
+      "from the repo root (or use `pnpm dev:docs`, which does it for you)."
+  );
+});
+const pluginRoutes = GENERATED_PLUGINS.map((p) => `/docs/plugins/${p.id}`);
 
 const sitemapRoutes = Array.from(
   new Set([...STATIC_SITEMAP_ROUTES, ...contentRoutes, ...pluginRoutes])
@@ -30,7 +35,6 @@ const supermouseAliases = Object.fromEntries(
     "utils",
     "trail",
     "labs",
-    "zoetrope",
     "core",
     "dot",
     "ring",
@@ -63,13 +67,24 @@ export default defineNuxtConfig({
      * the content module has had its say.
      */
     (_options: unknown, nuxt: any) => {
-      const include = nuxt.options.vite?.optimizeDeps?.include as
-        | Array<string | RegExp>
-        | undefined;
-      if (!include) return;
-      nuxt.options.vite.optimizeDeps.include = include.filter(
-        (entry) => typeof entry !== "string" || !entry.startsWith("@nuxtjs/mdc >")
-      );
+      const dropMdcDeps = (list: unknown): unknown => {
+        if (!Array.isArray(list)) return list;
+        return list.filter(
+          (entry) => typeof entry !== "string" || !entry.startsWith("@nuxtjs/mdc >")
+        );
+      };
+
+      // @nuxt/content adds these to Nuxt's options during module setup…
+      nuxt.options.vite ??= {};
+      nuxt.options.vite.optimizeDeps ??= {};
+      nuxt.options.vite.optimizeDeps.include = dropMdcDeps(nuxt.options.vite.optimizeDeps.include);
+
+      // …and may re-add them from a `vite:extendConfig` hook, so strip them from
+      // the final Vite config too. That is the array Nuxt resolves (and warns on).
+      nuxt.hook("vite:extendConfig", (config: any) => {
+        if (!config?.optimizeDeps) return;
+        config.optimizeDeps.include = dropMdcDeps(config.optimizeDeps.include);
+      });
     }
   ],
 
