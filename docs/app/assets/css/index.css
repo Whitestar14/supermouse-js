@@ -1,0 +1,614 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/typography";
+
+/*
+ * Tailwind 4 theme tokens.
+ * Satoshi is served locally from /public/fonts, JetBrains Mono from Google Fonts
+ * (linked in nuxt.config app.head).
+ *
+ * Every semantic colour lives here and is re-declared under `.dark`, so no
+ * component ever needs a `dark:` variant or a hardcoded zinc/amber hex.
+ */
+@theme {
+  --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Neutrals */
+  --color-surface: #ffffff; /* page background                */
+  --color-surface-muted: #fafafa; /* raised panels, headers       */
+  --color-surface-subtle: #f4f4f5; /* wells, code chips            */
+  --color-border: #e4e4e7; /* primary hairline               */
+  --color-border-subtle: #f4f4f5; /* faint hairline               */
+  --color-inverse: #000000; /* text on light / bg on dark     */
+  --color-strong: #18181b; /* emphasis text                  */
+  --color-elevated: #27272a; /* hovered dark surfaces          */
+  --color-body: #52525b; /* body copy                      */
+  --color-muted: #71717a; /* secondary copy                 */
+  --color-subtle: #a1a1aa; /* tertiary copy                  */
+  --color-faint: #d4d4d8; /* disabled copy, faint decor     */
+
+  --color-accent: #b45309; /* accents on light surfaces      */
+  --color-accent-strong: #78350f; /* accent text on tinted shells  */
+  --color-accent-soft: #fef3c7; /* tinted shell background        */
+
+  --color-danger: #b91c1c;
+  --color-danger-strong: #7f1d1d;
+  --color-danger-soft: #fef2f2;
+
+  /* Operational / live status. Deliberately separate from the brand accent so
+     "running" never reads as decoration. */
+  --color-ok: #15803d;
+
+  --color-code-surface: #16161a; /* the block itself             */
+  --color-code-header: #111114; /* the block's title bar        */
+  --color-code-border: #26262b; /* hairlines and chrome         */
+  --color-code-text: #d4d4d8; /* plain identifiers            */
+  --color-code-strong: #fafafa; /* functions, interpolations    */
+  --color-code-soft: #a1a1aa; /* builtins, attributes         */
+  --color-code-muted: #71717a; /* punctuation                  */
+  --color-code-faint: #52525b; /* disabled / dim code          */
+  --color-code-accent: #f59e0b; /* keywords, tags               */
+  --color-code-string: #5eead4; /* strings                      */
+  --color-code-number: #fdba74; /* numbers, literals            */
+  --color-code-comment: #71717a;
+  --color-tooltip: #f59e0b; /* the cursor tooltip surface   */
+}
+
+/* The header is taller from `md` up (`h-16` -> `h-20`). */
+@media (min-width: 768px) {
+  :root {
+    --header-h: 5rem;
+  }
+}
+
+@layer base {
+  :root {
+    --header-h: 4rem;
+    --header-shift: 0px;
+    --grid-size: 40px;
+    --grid-color: #f0f0f0;
+    /* Softer grid for interactive demo canvases (see `.grid-bg-soft`). */
+    --grid-color-soft: #333334;
+    --text-main: var(--color-inverse);
+    font-size: 16px;
+    line-height: 1.5rem;
+    font-family: var(--font-sans);
+    box-sizing: border-box;
+  }
+
+  .dark {
+    --color-surface: #09090b;
+    --color-surface-muted: #131316;
+    --color-surface-subtle: #1f1f23;
+    --color-border: #27272a;
+    --color-border-subtle: #1f1f23;
+    --color-inverse: #fafafa;
+    --color-strong: #ededf0;
+    --color-elevated: #3f3f46;
+    --color-body: #a1a1aa;
+    --color-muted: #8b8b93;
+    --color-subtle: #5c5c66;
+    --color-faint: #3f3f46;
+
+    --color-accent: #f59e0b;
+    --color-accent-strong: #fcd34d;
+    --color-accent-soft: oklch(70% 0.14 82.12 / 0.3);
+
+    --color-danger: #f87171;
+    --color-danger-strong: #fecaca;
+    --color-danger-soft: #2a0d0d;
+
+    --color-ok: #4ade80;
+
+    /* The code palette is intentionally absent here — see the @theme block. */
+    --color-tooltip: #fe9a00;
+
+    --grid-color: #1c1c20;
+    --grid-color-soft: #16161a;
+
+    --color-code-surface: #111113;
+    --color-code-header: #0a0a0a;
+    --color-code-border: #1c1c20;
+  }
+
+  .header-shell {
+    transform: translateY(var(--header-shift));
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  html.header-hidden {
+    --header-shift: calc(var(--header-h) * -1);
+  }
+
+  html.theme-switching,
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition: none !important;
+    animation-duration: 0s !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-shell {
+      transition: none;
+    }
+  }
+
+  @font-face {
+    font-family: "Satoshi";
+    src:
+      url("/fonts/Satoshi-Variable.woff2") format("woff2"),
+      url("/fonts/Satoshi-Variable.woff") format("woff");
+    font-feature-settings:
+      "salt" 1,
+      "tnum" 1;
+    font-variant-ligatures: none;
+  }
+
+  p {
+    font-feature-settings: "salt" 0;
+  }
+
+  @keyframes search-cell {
+    0%,
+    70%,
+    100% {
+      opacity: 0.2;
+    }
+    35% {
+      opacity: 1;
+    }
+  }
+
+  .search-cell {
+    animation: search-cell 1.2s infinite ease-in-out;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
+  }
+
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    background-color: var(--color-surface);
+    margin: 0;
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono,
+  code,
+  pre,
+  kbd {
+    font-family: var(--font-mono);
+  }
+
+  .supermouse-tooltip-cursor {
+    @apply fixed z-[9999] font-bold text-xs pointer-events-none select-none font-mono bg-tooltip text-elevated px-2 py-1 rounded uppercase tracking-wider;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    background-position: 0 0;
+  }
+
+  /*
+   * Demo canvases sit on top of a code shell, so they get a quieter grid than
+   * the landing-page sections — the cursor should be the loudest thing there.
+   */
+  .grid-bg-soft {
+    background-image:
+      linear-gradient(to right, var(--grid-color-soft) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color-soft) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+    background-position: 0 0;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-inverse);
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border) transparent;
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-subtle);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .link {
+    @apply text-inverse font-bold underline decoration-dotted decoration-faint underline-offset-4 hover:decoration-inverse transition-colors;
+  }
+
+  .docs-content a {
+    @apply font-semibold text-inverse transition-colors;
+    color: var(--color-inverse) !important;
+    text-decoration-line: underline !important;
+    text-decoration-style: dotted !important;
+    text-decoration-color: var(--color-faint) !important;
+    text-underline-offset: 4px !important;
+  }
+
+  .docs-content a:hover {
+    text-decoration-color: var(--color-inverse) !important;
+  }
+
+  /* Kill typography-plugin underlines inside markdown doc headings */
+  .docs-content h1 a,
+  .docs-content h2 a,
+  .docs-content h3 a,
+  .docs-content h4 a {
+    text-decoration: none !important;
+    color: inherit;
+  }
+
+  /* Ensure strong stays inline in list items */
+  .docs-content li strong {
+    display: inline !important;
+  }
+
+  .docs-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .docs-table table {
+    width: 100%;
+  }
+
+  /* Keep code blocks inside the column; the <pre> scrolls internally. */
+  .docs-content pre {
+    max-width: 100%;
+  }
+
+  .code-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .code-scroll:hover {
+    scrollbar-color: var(--color-code-muted) transparent;
+  }
+
+  .code-scroll::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+
+  .code-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .code-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 2px;
+  }
+
+  .code-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--color-code-muted);
+  }
+
+  /*
+   * Chrome that stays on screen for a long time: nav rails, the TOC, the
+   * search results. The standard pair is written first so Firefox and
+   * Chromium 121+ paint a thin themed bar; the `::-webkit-scrollbar` rules
+   * cover Safari, which ignores the standard properties.
+   */
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .scroll-area::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .scroll-area::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-area::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+
+  .scroll-area::-webkit-scrollbar-thumb:hover {
+    background: var(--color-subtle);
+  }
+
+  /* Horizontal rails that scroll on touch but should never show a bar. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .code-panel {
+    --color-surface: var(--color-code-surface);
+    --color-surface-muted: var(--color-code-header);
+    --color-surface-subtle: var(--color-code-border);
+    --color-border: var(--color-code-border);
+    --color-border-subtle: var(--color-code-border);
+    --color-inverse: var(--color-code-strong);
+    --color-strong: var(--color-code-strong);
+    --color-body: var(--color-code-text);
+    --color-muted: var(--color-code-soft);
+    --color-subtle: var(--color-code-muted);
+    --color-faint: var(--color-code-faint);
+  }
+
+  /*
+   * Cursor previews need a fine pointer: `autoDisableOnMobile` turns the engine
+   * off for touch, so the stage is swapped for a notice. Expressed as a media
+   * query rather than a JS check on purpose — it is the same test the engine
+   * runs (`(pointer: fine)`), it survives SSR without a hydration mismatch, and
+   * it reacts the moment a mouse is attached.
+   */
+  .pointer-demo-fallback {
+    display: none;
+  }
+
+  @media (pointer: coarse), (pointer: none) {
+    .pointer-demo-stage {
+      display: none;
+    }
+
+    .pointer-demo-fallback {
+      display: flex;
+    }
+  }
+
+  .docs-content pre code {
+    @apply !bg-transparent;
+    color: var(--color-code-text) !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+  }
+
+  /*
+   * Syntax palette emitted by `@utils/highlight`. Classes instead of inline
+   * colours so the code theme is light/dark adaptive from a single definition.
+   */
+  .tok-keyword {
+    color: var(--color-code-accent);
+    font-weight: 600;
+  }
+  .tok-tag {
+    color: var(--color-code-accent);
+    font-weight: 600;
+  }
+  .tok-function {
+    color: var(--color-code-strong);
+  }
+  .tok-interpolation {
+    color: var(--color-code-strong);
+  }
+  .tok-builtin {
+    color: var(--color-code-soft);
+  }
+  .tok-attr {
+    color: var(--color-code-soft);
+  }
+  .tok-string {
+    color: var(--color-code-string);
+  }
+  .tok-number {
+    color: var(--color-code-number);
+  }
+  .tok-comment {
+    color: var(--color-code-comment);
+    font-style: italic;
+  }
+  .tok-punctuation {
+    color: var(--color-code-muted);
+  }
+
+  /*
+   * Range chrome for the interactive previews. The track is painted from an
+   * inline `background-image` gradient (see ControlSlider), so the element is
+   * given a generous 24px hit area while `background-size` keeps the visible
+   * rail at 4px — a thin line that still accepts a thumb on touch screens.
+   * `--range-thumb` lets a colour control tint its handle to match the value.
+   */
+  .supermouse-range {
+    --range-thumb: var(--color-inverse);
+    @apply block w-full cursor-pointer appearance-none;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 0.25rem;
+    outline: none;
+  }
+
+  .supermouse-range:focus-visible {
+    box-shadow:
+      0 0 0 2px var(--color-surface),
+      0 0 0 3px var(--color-inverse);
+  }
+
+  .supermouse-range::-webkit-slider-thumb {
+    @apply appearance-none;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 0;
+    background: var(--range-thumb);
+    border: 1px solid var(--color-surface);
+    box-shadow: 0 0 0 1px var(--color-border);
+    transition: transform 0.1s ease;
+  }
+
+  .supermouse-range:hover::-webkit-slider-thumb,
+  .supermouse-range:active::-webkit-slider-thumb {
+    transform: scale(1.2);
+  }
+
+  .supermouse-range::-moz-range-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 0;
+    background: var(--range-thumb);
+    border: 1px solid var(--color-surface);
+    box-shadow: 0 0 0 1px var(--color-border);
+    transition: transform 0.1s ease;
+  }
+
+  .supermouse-range:hover::-moz-range-thumb,
+  .supermouse-range:active::-moz-range-thumb {
+    transform: scale(1.2);
+  }
+
+  .supermouse-range::-moz-range-track {
+    height: 0.25rem;
+    background: transparent;
+  }
+}
+
+.docs-content {
+  --tw-prose-body: var(--color-body);
+  --tw-prose-links: var(--color-inverse);
+  --tw-prose-bold: var(--color-inverse);
+  --tw-prose-headings: var(--color-inverse);
+  --tw-prose-bullets: var(--color-muted);
+  --tw-prose-counters: var(--color-muted);
+  --tw-prose-code: var(--color-strong);
+  --tw-prose-quotes: var(--color-body);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-muted);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border-subtle);
+  --tw-prose-hr: var(--color-border);
+}
+
+.docs-content :where(h1, h2, h3, h4, h5, h6) {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-inverse);
+  text-decoration: none;
+  border: 0;
+}
+
+.docs-content p {
+  color: var(--color-body);
+}
+
+.docs-content strong {
+  color: var(--color-inverse);
+  font-weight: 700;
+}
+
+.docs-content :not(pre) > code {
+  color: var(--color-strong);
+  background: var(--color-surface-subtle);
+  padding: 0.1em 0.35em;
+  border-radius: 0;
+}
+
+.docs-content code::before,
+.docs-content code::after {
+  content: none;
+}
+
+.docs-content li {
+  color: var(--color-body);
+  margin: 0.25rem 0;
+}
+
+.docs-content li::marker {
+  color: var(--color-muted);
+}
+
+.docs-content hr {
+  border-color: var(--color-border);
+}
+
+.docs-content .callout-body p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.docs-content .callout-body p + p {
+  margin-top: 0.75rem;
+}
+
+.docs-content .callout-body > :first-child {
+  margin-top: 0;
+}
+
+.docs-content code {
+  font-weight: inherit;
+}
+
+pre,
+pre code {
+  border-radius: 0 !important;
+  font-variant-ligatures: none;
+  tab-size: 2;
+}
+
+.docs-content pre {
+  border-radius: 0 !important;
+  border: 0 !important;
+}

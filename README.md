@@ -67,7 +67,9 @@ It is best to avoid writing this way though. Two `requestAnimationFrame` loops (
 import { Supermouse } from "@supermousejs/core";
 
 const dot = document.createElement("div");
-Object.assign(dot.style, { /* ... */ });
+Object.assign(dot.style, {
+  /* ... */
+});
 
 const redDot = {
   name: "red-dot",
@@ -105,7 +107,17 @@ Plugins can also be added imperatively with `.use()`:
 app.use(Dot({ size: 8 }));
 
 if (someEffect) {
-  app.use(Effect1({ /* ... */ })).use(Effect2({ /* ... */ }));
+  app
+    .use(
+      Effect1({
+        /* ... */
+      })
+    )
+    .use(
+      Effect2({
+        /* ... */
+      })
+    );
 }
 ```
 
@@ -113,23 +125,23 @@ Read more about plugins and how to write them [here](./PLUGINS.md).
 
 ## Options
 
-| Option                   | Default                                                                 | Description                                                                                                     |
-| ------------------------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `smoothness`             | `0.15`                                                                  | Lower values for a smoother follow                                                                              |
-| `hoverSelectors`         | `["a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"]` | Selectors that set `state.isHover` to `true`.                                                                   |
-| `enableTouch`            | `false`                                                                 | Whether touch events move the cursor.                                                                           |
-| `autoDisableOnMobile`    | `true`                                                                  | Disables the custom cursor on devices with a coarse pointer unless `enableTouch` is `true`.                     |
-| `cursor`                 | `"auto"`                                                                | Cursor mode: `"auto"`, `"custom"`, `"native"`, or `"both"`.                                                     |
-| `cursorPolicy`           | `DEFAULT_CURSOR_POLICY`                                                 | Rules for native-cursor fallback and CSS suppression. See [Cursor Policy](#cursor-policy).                      |
-| `inheritDataAttributes`  | `true`                                                                  | Whether `data-*` attributes and `rules` cascade from ancestors to the hovered element.                          |
-| `hideOnLeave`            | `true`                                                                  | Hides the cursor when the pointer leaves the browser window.                                                    |
-| `container`              | `document.body`                                                         | Primary scope's container.                                                                                      |
-| `scopes`                 | —                                                                       | Additional scopes registered at construction. See [Scopes](#scopes).                                            |
-| `zIndex`                 | `9999`                                                                  | The stack order of the cursor stage. Increase this if overlays cover the cursor.                                |
-| `dataPrefix`             | `"supermouse"`                                                          | A prefix for `data-*` attributes. Prevents conflicts between instances.                                         |
-| `rules`                  | —                                                                       | A map of selectors to interaction data. The core adds this data to `state.interaction` on hover.                |
-| `plugins`                | —                                                                       | Plugins to install when you create the instance.                                                                |
-| `autoStart`              | `true`                                                                  | Set to `false` to prevent automatic start. Call `.start()` when ready.                                          |
+| Option                  | Default                                                                 | Description                                                                                      |
+| ----------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `smoothness`            | `0.15`                                                                  | Lower values for a smoother follow                                                               |
+| `hoverSelectors`        | `["a", "button", "input", "textarea", "[data-hover]", "[data-cursor]"]` | Selectors that set `state.isHover` to `true`.                                                    |
+| `enableTouch`           | `false`                                                                 | Whether touch events move the cursor.                                                            |
+| `autoDisableOnMobile`   | `true`                                                                  | Disables the custom cursor on devices with a coarse pointer unless `enableTouch` is `true`.      |
+| `cursor`                | `"auto"`                                                                | Cursor mode: `"auto"`, `"custom"`, `"native"`, or `"both"`.                                      |
+| `cursorPolicy`          | `DEFAULT_CURSOR_POLICY`                                                 | Rules for native-cursor fallback and CSS suppression. See [Cursor Policy](#cursor-policy).       |
+| `inheritDataAttributes` | `true`                                                                  | Whether `data-*` attributes and `rules` cascade from ancestors to the hovered element.           |
+| `hideOnLeave`           | `true`                                                                  | Hides the cursor when the pointer leaves the browser window.                                     |
+| `container`             | `document.body`                                                         | Primary scope's container.                                                                       |
+| `scopes`                | —                                                                       | Additional scopes registered at construction. See [Scopes](#scopes).                             |
+| `zIndex`                | `9999`                                                                  | The stack order of the cursor stage. Increase this if overlays cover the cursor.                 |
+| `dataPrefix`            | `"supermouse"`                                                          | A prefix for `data-*` attributes. Prevents conflicts between instances.                          |
+| `rules`                 | —                                                                       | A map of selectors to interaction data. The core adds this data to `state.interaction` on hover. |
+| `plugins`               | —                                                                       | Plugins to install when you create the instance.                                                 |
+| `autoStart`             | `true`                                                                  | Set to `false` to prevent automatic start. Call `.start()` when ready.                           |
 
 ## Cursor Modes
 
@@ -160,10 +172,7 @@ import { Supermouse, DEFAULT_CURSOR_POLICY } from "@supermousejs/core";
 
 const mouse = new Supermouse({
   cursorPolicy: {
-    rules: [
-      ...DEFAULT_CURSOR_POLICY.rules,
-      { selector: "[data-native]", native: true }
-    ]
+    rules: [...DEFAULT_CURSOR_POLICY.rules, { selector: "[data-native]", native: true }]
   }
 });
 ```
@@ -390,7 +399,7 @@ mouse.destroy();
 
 ## Browser support
 
-Supermouse.js is supported by all modern browsers.
+Supermouse.js supports all modern browsers.
 
 ## Contributing
 

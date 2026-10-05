@@ -1,23 +1,18 @@
 {
-  "extends": "../tsconfig.app.json",
+  "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
+    "noUncheckedIndexedAccess": false,
     "paths": {
-      "@/*": ["./src/*"],
-      "@shared/*": ["./src/components/shared/*"],
-      "@landing/*": ["./src/components/landing/*"],
-      "@playground/*": ["./src/components/playground/*"],
-      "@components/*": ["./src/components/*"],
-      "@util/*s": ["./src/utils/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@layouts/*": ["./src/layouts/*"],
-      "@config/*": ["./src/config/*"],
-      "@data/*": ["./src/data/*"],
-      "@composables/*": ["./src/composables/*"],
-      "@utils/*": ["./src/utils/*"],
-
+      "@/*": ["./app/*"],
+      "~/*": ["./app/*"],
+      "@config/*": ["./app/config/*"],
+      "@data/*": ["./app/data/*"],
+      "@components/*": ["./app/components/*"],
+      "@composables/*": ["./app/composables/*"],
+      "@playground/*": ["./app/components/playground/*"],
+      "@shared/*": ["./app/components/shared/*"],
+      "@utils/*": ["./app/utils/*"],
       "@supermousejs/*": ["../packages/*/src/index.ts"]
     }
-  },
-  "include": ["src"],
-  "references": []
+  }
 }
