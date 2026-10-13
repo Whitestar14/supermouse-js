@@ -172,7 +172,8 @@ import { Supermouse, DEFAULT_CURSOR_POLICY } from "@supermousejs/core";
 
 const mouse = new Supermouse({
   cursorPolicy: {
-    rules: [...DEFAULT_CURSOR_POLICY.rules, { selector: "[data-native]", native: true }]
+    native: [...DEFAULT_CURSOR_POLICY.native, "[data-native]"],
+    hide: [...DEFAULT_CURSOR_POLICY.hide, ".custom-hide"]
   }
 });
 ```
@@ -235,7 +236,7 @@ const handle = mouse.addScope({
 });
 
 handle.setCursor("auto");
-handle.remove();
+handle.destroy();
 ```
 
 The single-container form is a shorthand for the same thing internally:
@@ -377,7 +378,7 @@ mouse.setCursor("auto" | "custom" | "native" | "both");
 
 // Scopes
 mouse.addScope({ container, cursor?, hoverSelectors?, cursorPolicy?, plugins?, inheritDataAttributes?, zIndex?, name? });
-//   -> { name, container, setCursor(mode), remove() }
+//   -> ScopeHandle { name, container, active, resolved, activate, deactivate, setCursor, destroy, ... }
 
 // Plugins
 mouse.use(plugin);

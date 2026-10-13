@@ -39,9 +39,17 @@ const S = {
   hint: "color: #10b981; font-weight: 600;"
 } as const;
 
+/**
+ * The issues themselves, without printing them — for tests, and for dev
+ * tooling that wants to render the report its own way.
+ */
+export function diagnose(app?: any): readonly DoctorIssue[] {
+  return app ? audit(app) : scanDom();
+}
+
+/** Prints the report `diagnose()` returns. */
 export function doctor(app?: any): void {
-  const issues = app ? audit(app) : scanDom();
-  printReport(issues);
+  printReport(diagnose(app));
 }
 
 function audit(app: any): readonly DoctorIssue[] {
@@ -137,17 +145,23 @@ function checkGhostElements(plugins: readonly PluginLike[]): readonly DoctorIssu
   return out;
 }
 
+/**
+ * Counts top-level scopes only: nested ones are regions of the same instance and
+ * are the supported way to run several cursors, so flagging them would be noise.
+ */
 function checkMultiInstance(opts: Readonly<Record<string, unknown>>): readonly DoctorIssue[] {
-  const scopes = document.querySelectorAll('[class*="supermouse-scope-"]');
-  if (scopes.length <= 1) return [];
+  const topLevel = Array.from(document.querySelectorAll('[class*="supermouse-scope-"]')).filter(
+    (el) => !el.parentElement?.closest('[class*="supermouse-scope-"]')
+  );
+  if (topLevel.length <= 1) return [];
   if (opts.container !== document.body) return [];
 
   return [
     {
       severity: "warn",
       code: "MULTI_INSTANCE",
-      message: `Detected ${scopes.length} Supermouse instances. The body instance may conflict with scoped ones.`,
-      hint: "Use suspend() / resume() or scope instances to different containers"
+      message: `${topLevel.length} Supermouse instances are competing for the pointer. Cursors from different instances are not coordinated.`,
+      hint: "Prefer one instance with a scope per region; a second instance only for genuinely separate physics"
     }
   ];
 }
@@ -206,8 +220,9 @@ function checkCursorMode(
 function scanDom(app?: AppLike): readonly DoctorIssue[] {
   const out: DoctorIssue[] = [];
 
+  // The core renders one shared `supermouse-styles` tag for every live scope.
   const isInitialized = Array.from(document.querySelectorAll("style")).some((s) =>
-    s.id.startsWith("supermouse-style-")
+    s.id.startsWith("supermouse-style")
   );
 
   if (!isInitialized) {
@@ -225,6 +240,9 @@ function scanDom(app?: AppLike): readonly DoctorIssue[] {
     const style = el.getAttribute("style") ?? "";
     if (style.includes("cursor: none")) return;
     if (!style.includes("cursor")) return;
+    // Scope containers carry a `cursor` the engine wrote itself to release the
+    // pointer; flagging those is noise.
+    if (Array.from(el.classList).some((name) => name.startsWith("supermouse-scope"))) return;
 
     out.push({
       severity: "warn",

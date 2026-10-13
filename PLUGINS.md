@@ -202,7 +202,7 @@ import { definePlugin, css, setTransform } from "@supermousejs/utils";
 
 export const MyDot = definePlugin({
   name: "my-dot",
-  selector: "[data-my-dot]",
+  hoverSelector: "[data-my-dot]",
 
   create: () => {
     const el = document.createElement("div");

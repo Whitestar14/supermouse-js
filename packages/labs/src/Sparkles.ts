@@ -109,14 +109,31 @@ export const Sparkles = (options: SparklesOptions = {}): SupermousePlugin => {
         return container;
       },
 
+      onEnable: () => {
+        // A scope hand-off restarts the emitter. Without this, the first frame
+        // after re-entry measures a delta from the previous activation's last
+        // point and sprays a line of particles across the stage.
+        hasMoved = false;
+        accumulatedDist = 0;
+      },
+
       update: (app: SupermouseInstance, _, dtMs: number) => {
         const dt = dtMs / 1000;
         const { x: cx, y: cy } = app.state.pointer;
+
+        // The engine parks the pointer off-screen while input is absent; treat
+        // the next real frame as a fresh start rather than a huge jump.
+        if (!app.state.hasReceivedInput) {
+          hasMoved = false;
+          return;
+        }
 
         if (!hasMoved) {
           lx = cx;
           ly = cy;
           hasMoved = true;
+          accumulatedDist = 0;
+          return;
         }
 
         const dx = cx - lx;

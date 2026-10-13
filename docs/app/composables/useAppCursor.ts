@@ -1,9 +1,9 @@
 import { provideSupermouse, type SupermouseContext } from "@supermousejs/vue";
-import { SmartIcon, SmartRing } from "@supermousejs/labs";
+import { SmartIcon, SmartRing, Spotlight } from "@supermousejs/labs";
 import { Icon } from "@supermousejs/icon";
 import { Text } from "@supermousejs/text";
 import { States } from "@supermousejs/states";
-import { SpotlightReveal } from "./plugins/spotlight-reveal-plugin";
+
 
 const LOGO_CURSOR = `
 <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -81,10 +81,15 @@ export function useAppCursor(): SupermouseContext {
         anchor: "center",
         rotateWithVelocity: false
       }),
-      SpotlightReveal({
+      // The local copy of this plugin eased a fixed fraction per *frame*, so its
+      // speed depended on the refresh rate, and it re-queried the document every
+      // frame. The labs plugin is the same reveal on time-based rates: matched at
+      // 60Hz, -ln(1 - 0.08) * 60 ≈ 5 and -ln(1 - 0.12) * 60 ≈ 8.
+      Spotlight({
         selector: ".spotlight-container",
         maxRadius: 250,
-        expandSpeed: 0.08
+        expandRate: 5,
+        lagRate: 8
       }),
       SmartRing({
         name: "playground-card-bg",

@@ -92,35 +92,19 @@ The `cursor` option decides which cursor(s) to show:
 
 Change at runtime with `mouse.setCursor("both")`.
 
-The [Cursor Policy](#cursor-policy) decides which elements are considered native in `"auto"` mode.
+The [Native Cursor Selectors](#native-cursor-selectors) decide which elements are considered native in `"auto"` mode.
 
-## Cursor Policy
+## Native Cursor Selectors
 
-A single object maps selectors to two independent flags:
+`nativeCursorSelectors` lists elements that yield to the OS cursor in `"auto"` mode. It defaults to `DEFAULT_NATIVE_CURSOR_SELECTORS` (`input`, `textarea`, `select`, `[contenteditable]`).
 
-- `native` — in `"auto"` mode, matching elements yield to the OS cursor.
-- `hide` — when the custom cursor is active, matching elements get `cursor: none !important`.
-
-Extend the default policy:
+Extend the default set:
 
 ```ts
-import { Supermouse, DEFAULT_CURSOR_POLICY } from "@supermousejs/core";
+import { Supermouse, DEFAULT_NATIVE_CURSOR_SELECTORS } from "@supermousejs/core";
 
 const mouse = new Supermouse({
-  cursorPolicy: {
-    rules: [...DEFAULT_CURSOR_POLICY.rules, { selector: "[data-native]", native: true }]
-  }
-});
-```
-
-Or shorthand:
-
-```ts
-const mouse = new Supermouse({
-  cursorPolicy: {
-    native: ["input", "textarea", "select", "[data-native]"],
-    hide: ["a", "button", "[role='button']"]
-  }
+  nativeCursorSelectors: [...DEFAULT_NATIVE_CURSOR_SELECTORS, "[data-native]"]
 });
 ```
 
@@ -142,7 +126,7 @@ Or add at runtime:
 ```ts
 const handle = mouse.addScope({ container: modalEl, cursor: "both" });
 handle.setCursor("auto");
-handle.remove();
+handle.destroy();
 ```
 
 The single-container form is shorthand for one scope:
@@ -194,7 +178,7 @@ mouse.reset(); // reset state only
 
 mouse.setCursor(mode); // "auto" | "custom" | "native" | "both"
 
-mouse.addScope(config); // -> { name, container, setCursor, remove }
+mouse.addScope(config); // -> Scope { name, container, resolved, active, activate, deactivate, setCursor, destroy }
 
 mouse.use(plugin); // install plugin
 mouse.getPlugin(name); // retrieve plugin
@@ -202,7 +186,7 @@ mouse.enablePlugin(name); // enable plugin
 mouse.disablePlugin(name); // disable plugin
 mouse.togglePlugin(name); // toggle plugin
 
-mouse.addHoverSelector(sel); // add hover selector at runtime
+mouse.addHoverSelectors(sel); // add hover selector(s) at runtime
 mouse.start(); // start animation loop
 mouse.step(time); // advance one frame manually
 mouse.destroy(); // destroy instance and plugins

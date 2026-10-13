@@ -256,5 +256,1252 @@
         "reactive": false
       }
     ]
+  },
+  {
+    "id": "glitch",
+    "name": "Glitch",
+    "package": "@supermousejs/labs",
+    "description": "Chromatic separation and torn slices, drawn behind an SVG displacement map.",
+    "code": "import { Glitch } from '@supermousejs/labs';\n\napp.use(Glitch({ size: 18, intensity: 6, chaos: 0.35 }));",
+    "icon": "ghost",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "18",
+        "description": "Diameter of the cursor in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f2f2f4'",
+        "description": "Core colour. The ghosts sit either side of it.",
+        "reactive": true
+      },
+      {
+        "name": "red",
+        "type": "string",
+        "default": "'#ff2e63'",
+        "description": "Colour of the negative-offset ghost.",
+        "reactive": true
+      },
+      {
+        "name": "cyan",
+        "type": "string",
+        "default": "'#00e5ff'",
+        "description": "Colour of the positive-offset ghost.",
+        "reactive": true
+      },
+      {
+        "name": "intensity",
+        "type": "number",
+        "default": "6",
+        "description": "Maximum ghost separation in pixels, and the displacement scale.",
+        "reactive": true
+      },
+      {
+        "name": "chaos",
+        "type": "number",
+        "default": "0.35",
+        "description": "0-1. The tear rate. Higher means a slice is torn out and shifted more often.",
+        "reactive": true
+      },
+      {
+        "name": "hoverBoost",
+        "type": "boolean",
+        "default": "false",
+        "description": "Scale the effect up while hovering a registered target.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "Compositing mode for the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "motion-blur",
+    "name": "MotionBlur",
+    "package": "@supermousejs/labs",
+    "description": "A camera-shutter blur: the head smears along its own direction of travel.",
+    "code": "import { MotionBlur } from '@supermousejs/labs';\n\napp.use(MotionBlur({ size: 12, intensity: 0.55 }));",
+    "icon": "trail",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "12",
+        "description": "Diameter of the head in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f2f2f4'",
+        "description": "Head colour.",
+        "reactive": true
+      },
+      {
+        "name": "intensity",
+        "type": "number",
+        "default": "26",
+        "description": "Pixels of blur at 1000px/s of travel.",
+        "reactive": true
+      },
+      {
+        "name": "maxSpread",
+        "type": "number",
+        "default": "34",
+        "description": "Ceiling for the blur, so a fast flick does not shred the cursor.",
+        "reactive": true
+      },
+      {
+        "name": "stretch",
+        "type": "boolean",
+        "default": "false",
+        "description": "Squash and widen the head along the motion axis.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "Compositing mode for the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "comet",
+    "name": "Comet",
+    "package": "@supermousejs/labs",
+    "description": "A gradient tail whose length is the pointer's speed.",
+    "code": "import { Comet } from '@supermousejs/labs';\n\napp.use(Comet({ size: 10, length: 9, color: '#f59e0b' }));",
+    "icon": "trail",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "10",
+        "description": "Diameter of the head in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "length",
+        "type": "number",
+        "default": "190",
+        "description": "Tail length in pixels at 1000px/s of travel.",
+        "reactive": true
+      },
+      {
+        "name": "maxLength",
+        "type": "number",
+        "default": "210",
+        "description": "Hard ceiling for the tail, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Colour of the head, and the opaque end of the tail gradient.",
+        "reactive": true
+      },
+      {
+        "name": "blur",
+        "type": "number",
+        "default": "1.4",
+        "description": "Softens the tail into light rather than a hard shape.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "Compositing mode for the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "inkblot",
+    "name": "Inkblot",
+    "package": "@supermousejs/labs",
+    "description": "A press leaves a mark that spreads and dries, warped by a turbulence map.",
+    "code": "import { Inkblot } from '@supermousejs/labs';\n\napp.use(Inkblot({ size: 46, color: '#f59e0b' }));",
+    "icon": "dot",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "46",
+        "description": "Radius of a blot at the moment of contact.",
+        "reactive": true
+      },
+      {
+        "name": "count",
+        "type": "number",
+        "default": "12",
+        "description": "Number of blots that can be in flight at once.",
+        "reactive": false
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "default": "1100",
+        "description": "Milliseconds a blot takes to spread and dry.",
+        "reactive": true
+      },
+      {
+        "name": "spacing",
+        "type": "number",
+        "default": "34",
+        "description": "Pixels of travel between droplets while the button is held.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Ink colour.",
+        "reactive": true
+      },
+      {
+        "name": "organic",
+        "type": "boolean",
+        "default": "true",
+        "description": "Wobble the blot's edge with a turbulence displacement map.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "ripple",
+    "name": "Ripple",
+    "package": "@supermousejs/labs",
+    "description": "Concentric rings that carry outward from the press point and thin as they go.",
+    "code": "import { Ripple } from '@supermousejs/labs';\n\napp.use(Ripple({ size: 96, thickness: 2 }));",
+    "icon": "ring",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "96",
+        "description": "Radius a ring reaches before it dies.",
+        "reactive": true
+      },
+      {
+        "name": "count",
+        "type": "number",
+        "default": "10",
+        "description": "Rings that can be alive at once.",
+        "reactive": false
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "default": "900",
+        "description": "Milliseconds for one ring to expand out.",
+        "reactive": true
+      },
+      {
+        "name": "thickness",
+        "type": "number",
+        "default": "2",
+        "description": "Stroke weight at birth, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f2f2f4'",
+        "description": "Ring colour.",
+        "reactive": true
+      },
+      {
+        "name": "hold",
+        "type": "boolean",
+        "default": "true",
+        "description": "Keep emitting rings while the button stays down.",
+        "reactive": false
+      },
+      {
+        "name": "interval",
+        "type": "number",
+        "default": "260",
+        "description": "Milliseconds between rings while held.",
+        "reactive": true
+      },
+      {
+        "name": "spacing",
+        "type": "number",
+        "default": "260",
+        "description": "Pixels of travel between rings while dragging.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "Compositing mode for the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "lens",
+    "name": "Lens",
+    "package": "@supermousejs/labs",
+    "description": "A disc of glass held over the page: the backdrop is blurred, brightened and oversaturated behind a bright rim.",
+    "code": "import { Lens } from '@supermousejs/labs';\n\napp.use(Lens({ size: 64, hoverSize: 108, blur: 5 }));",
+    "icon": "ring",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "64",
+        "description": "Diameter at rest.",
+        "reactive": true
+      },
+      {
+        "name": "hoverSize",
+        "type": "number",
+        "default": "108",
+        "description": "Diameter while hovering a registered target.",
+        "reactive": true
+      },
+      {
+        "name": "blur",
+        "type": "number",
+        "default": "5",
+        "description": "Backdrop blur radius, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "saturation",
+        "type": "number",
+        "default": "1.5",
+        "description": "Backdrop saturation multiplier.",
+        "reactive": true
+      },
+      {
+        "name": "brightness",
+        "type": "number",
+        "default": "1.12",
+        "description": "Backdrop brightness multiplier.",
+        "reactive": true
+      },
+      {
+        "name": "tint",
+        "type": "string",
+        "default": "'transparent'",
+        "description": "Glass tint laid over the backdrop. A solid value hides the blur.",
+        "reactive": true
+      },
+      {
+        "name": "rim",
+        "type": "string",
+        "default": "'rgba(255, 255, 255, 0.55)'",
+        "description": "Colour of the rim highlight.",
+        "reactive": true
+      },
+      {
+        "name": "press",
+        "type": "boolean",
+        "default": "true",
+        "description": "Scale the lens down while pressed.",
+        "reactive": false
+      },
+      {
+        "name": "zIndex",
+        "type": "string",
+        "default": "Layers.CURSOR",
+        "description": "Stacking order inside the cursor stage.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "halftone",
+    "name": "Halftone",
+    "package": "@supermousejs/labs",
+    "description": "A printed dot screen built from one tiled CSS radial gradient, loading up with ink as it accelerates.",
+    "code": "import { Halftone } from '@supermousejs/labs';\n\napp.use(Halftone({ size: 132, cell: 9, dot: 0.32 }));",
+    "icon": "dot",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "132",
+        "description": "Diameter of the disc.",
+        "reactive": true
+      },
+      {
+        "name": "cell",
+        "type": "number",
+        "default": "9",
+        "description": "Grid pitch at rest, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "dot",
+        "type": "number",
+        "default": "0.32",
+        "description": "Dot radius as a fraction of the cell.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f2f2f4'",
+        "description": "Ink colour.",
+        "reactive": true
+      },
+      {
+        "name": "react",
+        "type": "boolean",
+        "default": "true",
+        "description": "Tighten the grid and fatten the dots as the pointer speeds up.",
+        "reactive": false
+      },
+      {
+        "name": "mask",
+        "type": "boolean",
+        "default": "true",
+        "description": "Fade the grid out at the rim instead of ending it on a hard edge.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "spotlight",
+    "name": "Spotlight",
+    "package": "@supermousejs/labs",
+    "description": "A reveal disc inside any matched container, trailing the pointer on its own easing.",
+    "code": "import { Spotlight } from '@supermousejs/labs';\n\napp.use(Spotlight({ selector: '[data-spotlight]', maxRadius: 190 }));",
+    "icon": "ghost",
+    "options": [
+      {
+        "name": "selector",
+        "type": "string",
+        "default": "'[data-supermouse-spotlight]'",
+        "description": "Containers that get a reveal disc. Rescanned on an interval.",
+        "reactive": false
+      },
+      {
+        "name": "maxRadius",
+        "type": "number",
+        "default": "190",
+        "description": "Radius the disc opens to while the pointer is inside a container.",
+        "reactive": true
+      },
+      {
+        "name": "expandRate",
+        "type": "number",
+        "default": "6",
+        "description": "Easing rate for the disc's radius.",
+        "reactive": true
+      },
+      {
+        "name": "lagRate",
+        "type": "number",
+        "default": "8",
+        "description": "Easing rate for the disc's trailing position.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#ffffff'",
+        "description": "Colour of the disc. White with `difference` reads as a cut-out.",
+        "reactive": true
+      },
+      {
+        "name": "blendMode",
+        "type": "string",
+        "default": "'difference'",
+        "description": "CSS mix-blend-mode applied to the disc.",
+        "reactive": false
+      },
+      {
+        "name": "rescan",
+        "type": "number",
+        "default": "400",
+        "description": "Milliseconds between container rescans.",
+        "reactive": false
+      },
+      {
+        "name": "zIndex",
+        "type": "string",
+        "default": "'50'",
+        "description": "Stacking order inside the matched container.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "scanner",
+    "name": "Scanner",
+    "package": "@supermousejs/labs",
+    "description": "A beam spanning the viewport, trailing the pointer with a lead in the direction of travel.",
+    "code": "import { Scanner } from '@supermousejs/labs';\n\napp.use(Scanner({ orientation: 'vertical', color: '#00e5ff', lead: 1.1 }));",
+    "icon": "pointer",
+    "options": [
+      {
+        "name": "orientation",
+        "type": "'vertical' | 'horizontal' | 'cross'",
+        "default": "'vertical'",
+        "description": "Which axes get a beam.",
+        "reactive": true
+      },
+      {
+        "name": "thickness",
+        "type": "number",
+        "default": "1.5",
+        "description": "Width of each line in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "glow",
+        "type": "number",
+        "default": "90",
+        "description": "Width of the soft halo either side of a line.",
+        "reactive": true
+      },
+      {
+        "name": "glowOpacity",
+        "type": "number",
+        "default": "0.35",
+        "description": "Halo strength, 0-1.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#00e5ff'",
+        "description": "Beam colour.",
+        "reactive": true
+      },
+      {
+        "name": "lead",
+        "type": "number",
+        "default": "140",
+        "description": "Lead in pixels at 1000px/s of pointer speed.",
+        "reactive": true
+      },
+      {
+        "name": "maxLead",
+        "type": "number",
+        "default": "90",
+        "description": "Ceiling for the lead, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "hoverBoost",
+        "type": "boolean",
+        "default": "false",
+        "description": "Sharpen the core glow while hovering a registered target.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "calligraphy",
+    "name": "Calligraphy",
+    "package": "@supermousejs/labs",
+    "description": "A wet nib dragging a simulated spring chain, swelling where the pointer slows down.",
+    "code": "import { Calligraphy } from '@supermousejs/labs';\n\napp.use(Calligraphy({ points: 44, width: 7, color: '#f59e0b' }));",
+    "icon": "trail",
+    "options": [
+      {
+        "name": "points",
+        "type": "number",
+        "default": "40",
+        "description": "Links in the spring chain. More links, longer ribbon.",
+        "reactive": false
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "default": "7",
+        "description": "Stroke width at the nib, in pixels. The chain tapers from here.",
+        "reactive": true
+      },
+      {
+        "name": "spring",
+        "type": "number",
+        "default": "0.4",
+        "description": "Spring stiffness of each link. Higher is a stiffer, shorter ribbon.",
+        "reactive": true
+      },
+      {
+        "name": "friction",
+        "type": "number",
+        "default": "0.5",
+        "description": "Velocity retained per frame. Lower is more drag.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Ink colour.",
+        "reactive": true
+      },
+      {
+        "name": "idle",
+        "type": "boolean",
+        "default": "true",
+        "description": "Draw a dormant signature before the pointer has ever moved.",
+        "reactive": false
+      },
+      {
+        "name": "idleRate",
+        "type": "number",
+        "default": "1",
+        "description": "Rate of the dormant signature.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'normal'",
+        "description": "Compositing mode for the canvas.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "pixel",
+    "name": "Pixel",
+    "package": "@supermousejs/labs",
+    "description": "An 8x8 bitmap cursor, scaled with hard edges and optionally snapped to a grid.",
+    "code": "import { Pixel } from '@supermousejs/labs';\n\napp.use(Pixel({ sprite: 'arrow', cell: 8, snap: 0 }));",
+    "icon": "dot",
+    "options": [
+      {
+        "name": "sprite",
+        "type": "'arrow' | 'heart' | 'star' | 'ghost'",
+        "default": "'arrow'",
+        "description": "Which sprite from the built-in set to draw.",
+        "reactive": true
+      },
+      {
+        "name": "cell",
+        "type": "number",
+        "default": "8",
+        "description": "Pixels per sprite pixel, rounded to a whole number. Only the style box changes.",
+        "reactive": true
+      },
+      {
+        "name": "snap",
+        "type": "number",
+        "default": "0",
+        "description": "Grid pitch the position snaps to. `0` leaves the cursor free.",
+        "reactive": true
+      },
+      {
+        "name": "primary",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Colour of the sprite's filled pixels.",
+        "reactive": true
+      },
+      {
+        "name": "secondary",
+        "type": "string",
+        "default": "'#08080a'",
+        "description": "Colour of the sprite's detail slot.",
+        "reactive": true
+      },
+      {
+        "name": "flip",
+        "type": "boolean",
+        "default": "true",
+        "description": "Turn to face the direction of travel.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'normal'",
+        "description": "Compositing mode for the sprite.",
+        "reactive": false
+      },
+      {
+        "name": "zIndex",
+        "type": "string",
+        "default": "Layers.CURSOR",
+        "description": "Stacking order inside the cursor stage.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "ascii",
+    "name": "ASCII",
+    "package": "@supermousejs/labs",
+    "description": "Stamps characters along the path and evaporates them with a destination-out wipe.",
+    "code": "import { ASCII } from '@supermousejs/labs';\n\napp.use(ASCII({ charset: '0123456789', size: 14, fade: 1.6 }));",
+    "icon": "text",
+    "options": [
+      {
+        "name": "charset",
+        "type": "string",
+        "default": "'0123456789'",
+        "description": "Characters to draw from, walked in order.",
+        "reactive": true
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "14",
+        "description": "Font size in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "spacing",
+        "type": "number",
+        "default": "13",
+        "description": "Pixels of travel between stamps.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Ink colour.",
+        "reactive": true
+      },
+      {
+        "name": "fade",
+        "type": "number",
+        "default": "1.6",
+        "description": "How fast the ink evaporates, in alpha per second.",
+        "reactive": true
+      },
+      {
+        "name": "spread",
+        "type": "number",
+        "default": "7",
+        "description": "Random position scatter, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "tilt",
+        "type": "number",
+        "default": "12",
+        "description": "Maximum random rotation of a glyph, in degrees.",
+        "reactive": true
+      },
+      {
+        "name": "react",
+        "type": "boolean",
+        "default": "false",
+        "description": "Widen the spacing with speed, so a fast pass reads as data, not prose.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'normal'",
+        "description": "Compositing mode for the canvas.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "grain",
+    "name": "Grain",
+    "package": "@supermousejs/labs",
+    "description": "Film grain from an feTurbulence field, tinted through a colour matrix and clipped to a disc.",
+    "code": "import { Grain } from '@supermousejs/labs';\n\napp.use(Grain({ size: 96, grain: 0.75, density: 0.55 }));",
+    "icon": "image",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "96",
+        "description": "Diameter of the disc.",
+        "reactive": true
+      },
+      {
+        "name": "grain",
+        "type": "number",
+        "default": "0.75",
+        "description": "Noise frequency. Higher is finer grain.",
+        "reactive": true
+      },
+      {
+        "name": "density",
+        "type": "number",
+        "default": "0.55",
+        "description": "Threshold on the noise field, 0-1: how much survives as visible speckle.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f2f2f4'",
+        "description": "Palette: the grain is painted in this colour.",
+        "reactive": true
+      },
+      {
+        "name": "flicker",
+        "type": "number",
+        "default": "8",
+        "description": "New noise fields per second. `0` freezes the grain.",
+        "reactive": true
+      },
+      {
+        "name": "react",
+        "type": "boolean",
+        "default": "true",
+        "description": "Fatten the grain while the pointer is moving.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "Compositing mode for the disc.",
+        "reactive": false
+      },
+      {
+        "name": "zIndex",
+        "type": "string",
+        "default": "Layers.CURSOR",
+        "description": "Stacking order inside the cursor stage.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "reflection",
+    "name": "Reflection",
+    "package": "@supermousejs/labs",
+    "description": "A likeness of the cursor, mirrored about the viewport axis and flipped so it reads as one.",
+    "code": "import { Reflection } from '@supermousejs/labs';\n\napp.use(Reflection({ axis: 'x', size: 10, opacity: 0.55 }));",
+    "icon": "ghost",
+    "options": [
+      {
+        "name": "axis",
+        "type": "'x' | 'y' | 'both'",
+        "default": "'x'",
+        "description": "Which axis to mirror across. `both` adds the corner reflection.",
+        "reactive": true
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "10",
+        "description": "Diameter of the reflection.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Colour of the reflection.",
+        "reactive": true
+      },
+      {
+        "name": "opacity",
+        "type": "number",
+        "default": "0.55",
+        "description": "Opacity of the reflection.",
+        "reactive": true
+      },
+      {
+        "name": "lines",
+        "type": "boolean",
+        "default": "false",
+        "description": "Draw the mirror axis as a hairline.",
+        "reactive": false
+      },
+      {
+        "name": "blur",
+        "type": "number",
+        "default": "0",
+        "description": "Blur on the reflection, to separate it from the real cursor.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'difference'",
+        "description": "CSS mix-blend-mode applied to the reflection.",
+        "reactive": false
+      },
+      {
+        "name": "zIndex",
+        "type": "string",
+        "default": "Layers.FOLLOWER",
+        "description": "Stacking order inside the cursor stage.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "blob",
+    "name": "Blob",
+    "package": "@supermousejs/labs",
+    "description": "A gelatinous body whose outline is a ring of springs: it stretches into travel and rings when it is struck.",
+    "code": "import { Blob } from '@supermousejs/labs';\n\napp.use(Blob({ size: 64, squash: 0.7, spring: 0.22 }));",
+    "icon": "dot",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "64",
+        "description": "Diameter at rest, in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Body fill.",
+        "reactive": true
+      },
+      {
+        "name": "rim",
+        "type": "string",
+        "default": "'rgba(255, 255, 255, 0.35)'",
+        "description": "Outline stroke. `transparent` leaves a bare silhouette.",
+        "reactive": true
+      },
+      {
+        "name": "points",
+        "type": "number",
+        "default": "14",
+        "description": "Points around the outline, 6-32. Fewer is lumpier, more is rounder.",
+        "reactive": true
+      },
+      {
+        "name": "squash",
+        "type": "number",
+        "default": "0.7",
+        "description": "How far travel pulls the leading edge out, 0-1.",
+        "reactive": true
+      },
+      {
+        "name": "wobble",
+        "type": "number",
+        "default": "0.6",
+        "description": "Depth of the idle breathing, 0-1. Ignored when `prefers-reduced-motion` is set.",
+        "reactive": true
+      },
+      {
+        "name": "spring",
+        "type": "number",
+        "default": "0.22",
+        "description": "How hard the outline is pulled back to its rest radius.",
+        "reactive": true
+      },
+      {
+        "name": "drag",
+        "type": "number",
+        "default": "0.86",
+        "description": "Radius kept per 60Hz frame. Low keeps ringing after a press.",
+        "reactive": true
+      },
+      {
+        "name": "hoverSize",
+        "type": "number",
+        "default": "88",
+        "description": "Diameter while hovering a registered target.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'normal'",
+        "description": "CSS mix-blend-mode applied to the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "spring",
+    "name": "Spring",
+    "package": "@supermousejs/labs",
+    "description": "Smoothing as a second-order system: a frequency to travel at and a damping ratio to settle by.",
+    "code": "import { Spring } from '@supermousejs/labs';\n\napp.use(Spring({ size: 16, frequency: 3.2, damping: 0.75 }));",
+    "icon": "pointer",
+    "options": [
+      {
+        "name": "size",
+        "type": "number",
+        "default": "16",
+        "description": "Diameter of the body at rest.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Body colour, and the colour of the pointer hairline.",
+        "reactive": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "default": "3.2",
+        "description": "Undamped natural frequency in hertz: how fast the body wants to arrive.",
+        "reactive": true
+      },
+      {
+        "name": "damping",
+        "type": "number",
+        "default": "0.75",
+        "description": "Damping ratio. 1 settles without overshooting; below 1 bounces, above 1 creeps.",
+        "reactive": true
+      },
+      {
+        "name": "squash",
+        "type": "number",
+        "default": "0.5",
+        "description": "How far the body stretches along the momentum it is carrying.",
+        "reactive": true
+      },
+      {
+        "name": "hoverSize",
+        "type": "number",
+        "default": "26",
+        "description": "Diameter while hovering a registered target.",
+        "reactive": true
+      },
+      {
+        "name": "showTarget",
+        "type": "boolean",
+        "default": "true",
+        "description": "Draw the raw pointer as a hairline, so the lag can be seen.",
+        "reactive": false
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'normal'",
+        "description": "CSS mix-blend-mode applied to the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "pendulum",
+    "name": "Pendulum",
+    "package": "@supermousejs/labs",
+    "description": "A bob on a rigid rod, hinged at the pointer, integrated with Verlet so the rod is a constraint rather than a spring.",
+    "code": "import { Pendulum } from '@supermousejs/labs';\n\napp.use(Pendulum({ rod: 96, bob: 14, gravity: 2600 }));",
+    "icon": "labs",
+    "options": [
+      {
+        "name": "rod",
+        "type": "number",
+        "default": "96",
+        "description": "Rod length in pixels, 20-160.",
+        "reactive": true
+      },
+      {
+        "name": "bob",
+        "type": "number",
+        "default": "14",
+        "description": "Bob diameter in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Colour of the rod, hinge and bob.",
+        "reactive": true
+      },
+      {
+        "name": "gravity",
+        "type": "number",
+        "default": "2600",
+        "description": "Downward acceleration, in pixels per second squared.",
+        "reactive": true
+      },
+      {
+        "name": "drag",
+        "type": "number",
+        "default": "0.985",
+        "description": "Kinetic energy kept per 60Hz frame. Near 1 swings for a long time.",
+        "reactive": true
+      },
+      {
+        "name": "entrance",
+        "type": "number",
+        "default": "0.4",
+        "description": "How far off the vertical the bob is released the first time the cursor appears.",
+        "reactive": true
+      },
+      {
+        "name": "hoverSize",
+        "type": "number",
+        "default": "24",
+        "description": "Bob diameter while hovering a registered target.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'normal'",
+        "description": "CSS mix-blend-mode applied to the whole cursor.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "vortex",
+    "name": "Vortex",
+    "package": "@supermousejs/labs",
+    "description": "A field of motes orbiting the cursor, wound up by the direction of travel and unwound when it reverses.",
+    "code": "import { Vortex } from '@supermousejs/labs';\n\napp.use(Vortex({ count: 26, radius: 34, gain: 9 }));",
+    "icon": "ring",
+    "options": [
+      {
+        "name": "count",
+        "type": "number",
+        "default": "26",
+        "description": "Motes in the field, 6-48. Set at construction.",
+        "reactive": false
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "3",
+        "description": "Mote diameter in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "34",
+        "description": "Orbit radius in pixels.",
+        "reactive": true
+      },
+      {
+        "name": "spin",
+        "type": "number",
+        "default": "90",
+        "description": "Idle angular velocity in degrees per second. Zero means the field only turns when it is moved.",
+        "reactive": true
+      },
+      {
+        "name": "gain",
+        "type": "number",
+        "default": "0.6",
+        "description": "Degrees per second of spin added per pixel per second of pointer speed.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Mote and eye colour.",
+        "reactive": true
+      },
+      {
+        "name": "jitter",
+        "type": "number",
+        "default": "0.35",
+        "description": "Spread off a perfect circle, and how much the ring breathes.",
+        "reactive": true
+      },
+      {
+        "name": "core",
+        "type": "number",
+        "default": "26",
+        "description": "Diameter of the glowing eye at the centre. Zero hides it.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "CSS mix-blend-mode applied to the field.",
+        "reactive": false
+      }
+    ]
+  },
+  {
+    "id": "fluid",
+    "name": "Fluid",
+    "package": "@supermousejs/labs",
+    "description": "A stable-fluids simulation on a coarse grid: the pointer pushes a projected velocity field and the dye is advected by it.",
+    "code": "import { Fluid } from '@supermousejs/labs';\n\napp.use(Fluid({ resolution: 96, force: 1.1, fade: 0.55 }));",
+    "icon": "trail",
+    "options": [
+      {
+        "name": "resolution",
+        "type": "number",
+        "default": "96",
+        "description": "Simulation width in cells, quantised to 8. The height follows the stage aspect.",
+        "reactive": true
+      },
+      {
+        "name": "color",
+        "type": "string",
+        "default": "'#f59e0b'",
+        "description": "Dye colour.",
+        "reactive": true
+      },
+      {
+        "name": "force",
+        "type": "number",
+        "default": "1.1",
+        "description": "Multiplier on the injected force. 1 travels exactly as fast as the hand.",
+        "reactive": true
+      },
+      {
+        "name": "swirl",
+        "type": "number",
+        "default": "0.35",
+        "description": "Rotational share of the push, so the dye curls as it leaves the pointer.",
+        "reactive": true
+      },
+      {
+        "name": "fade",
+        "type": "number",
+        "default": "0.55",
+        "description": "Dye lost per second.",
+        "reactive": true
+      },
+      {
+        "name": "drag",
+        "type": "number",
+        "default": "1.4",
+        "description": "Velocity lost per second: how quickly the flow dies when the pointer stops.",
+        "reactive": true
+      },
+      {
+        "name": "iterations",
+        "type": "number",
+        "default": "12",
+        "description": "Jacobi iterations of the pressure projection. Zero leaves the flow compressing into itself.",
+        "reactive": true
+      },
+      {
+        "name": "ink",
+        "type": "number",
+        "default": "0.28",
+        "description": "Dye laid down per 60Hz frame at the pointer.",
+        "reactive": true
+      },
+      {
+        "name": "blend",
+        "type": "string",
+        "default": "'screen'",
+        "description": "CSS mix-blend-mode applied to the canvas.",
+        "reactive": false
+      }
+    ]
   }
 ]

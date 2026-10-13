@@ -3,18 +3,11 @@ export interface SmartIconMap {
 }
 
 /**
- * Resolves a semantic icon state from a pointer target.
+ * Resolves a semantic icon state from a pointer target, or null when nothing
+ * matches and the caller should fall back to its default state.
  *
- * Priority order:
- *   1. Contenteditable / text-input elements → "text"
- *   2. Links and buttons (including descendants) → "pointer"
- *   3. Block-level content tags → "text"
- *   4. Authored cursor value from the core probe ("text" or "grab")
- *   5. Nothing — the caller falls back to `defaultState`.
- *
- * `authoredCursor` is `state.authoredCursor`, populated by Supermouse on
- * every pointerTarget change, in every cursor mode. Null when there is
- * no pointer target.
+ * Priority: text inputs and contenteditable -> "text"; links and buttons ->
+ * "pointer"; block-level content -> "text"; the core's authored cursor last.
  */
 export function resolveSemanticState(
   target: HTMLElement,
@@ -40,9 +33,8 @@ export function resolveSemanticState(
     if (icons["pointer"]) return "pointer";
   }
 
-  // Uses `closest()` rather than a strict tag check. `pointerTarget` is
-  // the deepest element under the pointer, so an <em> inside a <p> would
-  // miss a tag-name comparison.
+  // `closest()` rather than a tag check: `pointerTarget` is the deepest element
+  // under the pointer, so an <em> inside a <p> would otherwise miss.
   if (
     icons["text"] &&
     target.closest("p, span, h1, h2, h3, h4, h5, h6, li, blockquote, code, pre")
@@ -50,9 +42,8 @@ export function resolveSemanticState(
     return "text";
   }
 
-  // Authored cursor, sampled at mouseover by the core. The prior
-  // implementation read getComputedStyle(target).cursor directly, which
-  // returned "none" whenever Supermouse's own suppression was active.
+  // The core samples the authored cursor before suppression, so this never
+  // reads back the `cursor: none` Supermouse itself applies.
   if (icons["text"] && authoredCursor === "text") return "text";
   if (icons["grab"] && authoredCursor === "grab") return "grab";
 

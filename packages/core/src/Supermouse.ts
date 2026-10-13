@@ -119,7 +119,10 @@ export class Supermouse {
       this.state,
       this.options,
       (enabled) => {
-        if (!enabled) this.reset();
+        if (!enabled) {
+          this.reset();
+          this.releaseAllScopes();
+        }
       },
       (scope) => this.handleActiveScopeChange(scope),
       (node) => this.resolveScopeForNode(node),
@@ -265,11 +268,7 @@ export class Supermouse {
 
   public disable(opts?: { reset?: boolean }): void {
     this.input.isEnabled = false;
-
-    if (this._activeScope) {
-      this._activeScope.stage.setNativeCursor("auto");
-      this._activeScope.stage.setVisibility(false);
-    }
+    this.releaseAllScopes();
 
     if (opts?.reset) this.reset();
   }
@@ -385,10 +384,17 @@ export class Supermouse {
   /** @internal */
   public _setScopeCursor(scope: Scope, mode: CursorMode): void {
     scope.cursorMode = mode;
-    if (scope === this._activeScope) {
-      this.state.cursorMode = mode;
-      this.applyCursorNow();
-    }
+    if (scope !== this._activeScope) return;
+
+    this.state.cursorMode = mode;
+    this.applyCursorNow();
+
+    // `native` and `both` keep the OS pointer visible, so no scope may hold a
+    // suppression class while either is the ambient mode. Without this the
+    // scopes the pointer has left keep `cursor: none` and the regions they own
+    // show no pointer at all — the same defect `disable()` had, reached
+    // through a mode switch instead.
+    if (mode === "native" || mode === "both") this.releaseSuppression();
   }
 
   /** @internal */
@@ -405,6 +411,12 @@ export class Supermouse {
       this.input.resettle();
       this.applyCursorNow();
     }
+
+    // Inactive scopes are skipped by scope resolution, so nothing will ever
+    // write this container again. A custom ambient cursor still covers the
+    // region and needs the suppression; a native one does not, and leaving it
+    // would hand the region no pointer at all.
+    if (this.resolveCursorState() === "auto") scope.stage.setNativeCursor("auto");
   }
 
   /** @internal */
@@ -597,6 +609,34 @@ export class Supermouse {
       plugin.element?.remove();
     }
     this.crashedPlugins = [];
+  }
+
+  /**
+   * Hands the native cursor back across every scope.
+   *
+   * During normal use only the active scope is written, so a scope the pointer
+   * has left keeps its suppression class — that is deliberate, and it is what
+   * makes re-entering one flash-free. It also means turning the engine off has
+   * to release them all: clearing only the active scope strands
+   * `cursor: none` on every scope the reader has visited, and the native cursor
+   * never comes back over them.
+   */
+  private releaseAllScopes(): void {
+    for (const scope of this._scopes) {
+      scope.stage.setNativeCursor("auto");
+      scope.stage.setVisibility(false);
+    }
+  }
+
+  /**
+   * Clears the suppression class on every scope, leaving stage visibility
+   * alone. Used when the engine is still running but is no longer hiding the
+   * OS pointer anywhere (a `native`/`both` ambient mode), so a scope that was
+   * suppressing cannot strand `cursor: none` over a region no custom cursor
+   * will cover.
+   */
+  private releaseSuppression(): void {
+    for (const scope of this._scopes) scope.stage.setNativeCursor("auto");
   }
 
   /**
